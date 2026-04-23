@@ -15,21 +15,22 @@ operator workflows beyond the render-stage contract defined by RFC-0102.
 
 ## Current-State Summary
 
-`lotus-render` is newly scaffolded from Lotus platform automation as the dedicated render service
-for RFC-0102. The repository currently holds the governed backend baseline and will next receive
-the first rendering slice: service foundation, render attempt model, template registry, and Typst
-integration.
+`lotus-render` now implements the RFC-0102 Slice 1 service foundation. The repository contains the
+dedicated render-service runtime baseline, explicit render-attempt domain models, structured
+request logging, support-safe system metadata, and governed repo-native validation.
 
 ## Architecture And Module Map
 
-Current scaffold baseline:
+Current foundation baseline:
 
-1. `src/app/main.py`: FastAPI application, health/readiness, metadata, and middleware wiring.
-2. `src/app/contracts/`: API contracts and OpenAPI-facing models.
-3. `src/app/middleware/`: correlation and request middleware.
-4. `tests/unit`, `tests/integration`, `tests/e2e`: test pyramid baseline.
-5. `docs/standards/`: required engineering standards placeholders to be replaced with service truth.
-6. `docs/rfcs/`: repo-local RFC index and future service-local RFC material.
+1. `src/app/main.py`: FastAPI application factory and lifespan wiring.
+2. `src/app/api/routes/`: system routes and future render APIs.
+3. `src/app/contracts/`: OpenAPI-facing response models.
+4. `src/app/core/`: settings and logging configuration.
+5. `src/app/domain/render_attempts/`: render-attempt lifecycle models.
+6. `src/app/services/`: foundation services and future render orchestration.
+7. `src/app/middleware/`: correlation and structured request logging middleware.
+8. `tests/unit`, `tests/integration`, `tests/e2e`: test pyramid baseline.
 
 ## Runtime And Integration Boundaries
 
@@ -79,8 +80,9 @@ Primary governing artifacts:
 
 ## Known Constraints And Implementation Notes
 
-1. The current repository is scaffold baseline only; most standards docs are placeholders until the
-   first implementation slice lands.
+1. The current repository is only through the Slice 1 foundation; render package validation,
+   template registry enforcement, Typst execution, and lotus-report integration are still pending
+   later RFC-0102 slices.
 2. Keep render/data/archive boundaries strict from the start. Do not let `lotus-render` become a
    business-data authority.
 3. Update repo-local wiki source and platform RFC/context truth when service ownership or runtime

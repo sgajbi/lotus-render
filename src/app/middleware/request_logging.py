@@ -1,15 +1,17 @@
 from __future__ import annotations
 
+import logging
 import time
-import uuid
 from collections.abc import Awaitable, Callable
 
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp
 
+LOGGER = logging.getLogger("lotus_render.request")
 
-class CorrelationIdMiddleware(BaseHTTPMiddleware):
+
+class RequestLoggingMiddleware(BaseHTTPMiddleware):
     def __init__(self, app: ASGIApp, service_name: str) -> None:
         super().__init__(app)
         self._service_name = service_name
@@ -19,12 +21,17 @@ class CorrelationIdMiddleware(BaseHTTPMiddleware):
         request: Request,
         call_next: Callable[[Request], Awaitable[Response]],
     ) -> Response:
-        correlation_id = request.headers.get("X-Correlation-Id") or str(uuid.uuid4())
-        request.state.correlation_id = correlation_id
         start = time.perf_counter()
         response = await call_next(request)
         duration_ms = (time.perf_counter() - start) * 1000.0
-        response.headers["X-Correlation-Id"] = correlation_id
-        response.headers["X-Service-Name"] = self._service_name
-        response.headers["X-Request-Duration-Ms"] = f"{duration_ms:.3f}"
+        correlation_id = getattr(request.state, "correlation_id", "missing")
+        LOGGER.info(
+            "service=%s method=%s path=%s status=%s correlation_id=%s duration_ms=%.3f",
+            self._service_name,
+            request.method,
+            request.url.path,
+            response.status_code,
+            correlation_id,
+            duration_ms,
+        )
         return response

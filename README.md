@@ -14,12 +14,12 @@ make ci
 ```
 
 ```powershell
-python -m pip install -e '.[dev]'
-python -m ruff check . && python -m ruff format --check .
-python -m mypy --config-file mypy.ini
-python scripts/openapi_quality_gate.py
-python -m pytest tests/unit tests/integration tests/e2e
-python scripts/coverage_gate.py
+.venv\Scripts\python.exe -m pip install -e '.[dev]'
+.venv\Scripts\python.exe -m ruff check . && .venv\Scripts\python.exe -m ruff format --check .
+.venv\Scripts\python.exe -m mypy --config-file mypy.ini
+.venv\Scripts\python.exe scripts/openapi_quality_gate.py
+.venv\Scripts\python.exe -m pytest tests/unit tests/integration tests/e2e
+.venv\Scripts\python.exe scripts/coverage_gate.py
 ```
 
 ## Run
@@ -39,3 +39,13 @@ docker compose up --build
 - CI and governance: .github/workflows/
 - Engineering commands: Makefile
 - Platform standards docs: docs/standards/
+
+## Current Slice
+
+Slice 1 establishes the service foundation only:
+
+- separate deployable render service boundary
+- structured health/readiness/metadata posture
+- explicit render-attempt domain model
+- no direct business-data fetch behavior
+- repo-native validation and security baseline

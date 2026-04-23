@@ -1,38 +1,42 @@
-from fastapi import FastAPI, Response, status
+from __future__ import annotations
+
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
+
+from fastapi import FastAPI
 from prometheus_fastapi_instrumentator import Instrumentator
+
+from app.api.routes.system import router as system_router
+from app.core.logging import configure_logging
+from app.core.settings import Settings, get_settings
 from app.middleware.correlation import CorrelationIdMiddleware
+from app.middleware.request_logging import RequestLoggingMiddleware
+from app.services.render_foundation import RenderFoundationService
 
 SERVICE_NAME = "lotus-render"
-SERVICE_VERSION = "0.1.0"
-ROUNDING_POLICY_VERSION = "v1"
-
-app = FastAPI(title=SERVICE_NAME, version=SERVICE_VERSION)
-app.add_middleware(CorrelationIdMiddleware, service_name=SERVICE_NAME)
-Instrumentator().instrument(app).expose(app)
 
 
-@app.get("/health")
-async def health() -> dict[str, str]:
-    return {"status": "ok", "service": SERVICE_NAME}
+def create_app(settings: Settings | None = None) -> FastAPI:
+    configured_settings = settings or get_settings()
+
+    @asynccontextmanager
+    async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+        configure_logging()
+        app.state.settings = configured_settings
+        app.state.is_draining = False
+        app.state.render_foundation = RenderFoundationService(configured_settings)
+        yield
+
+    app = FastAPI(
+        title=configured_settings.service_name,
+        version=configured_settings.service_version,
+        lifespan=lifespan,
+    )
+    app.add_middleware(CorrelationIdMiddleware, service_name=configured_settings.service_name)
+    app.add_middleware(RequestLoggingMiddleware, service_name=configured_settings.service_name)
+    Instrumentator().instrument(app).expose(app)
+    app.include_router(system_router)
+    return app
 
 
-@app.get("/health/live")
-async def health_live() -> dict[str, str]:
-    return {"status": "live"}
-
-
-@app.get("/health/ready")
-async def health_ready(response: Response) -> dict[str, str]:
-    if bool(getattr(app.state, "is_draining", False)):
-        response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
-        return {"status": "draining"}
-    return {"status": "ready"}
-
-
-@app.get("/metadata")
-async def metadata() -> dict[str, str]:
-    return {
-        "service": SERVICE_NAME,
-        "version": SERVICE_VERSION,
-        "roundingPolicyVersion": ROUNDING_POLICY_VERSION,
-    }
+app = create_app()
