@@ -51,6 +51,8 @@ Current repository baseline:
    - `lotus-render` returns render artifacts and support-safe diagnostics, not archive truth.
    - `lotus-render` owns render-engine/runtime posture, template compatibility, and artifact hash
      generation.
+   - developer and CI proof should prefer the governed Typst container runtime when Docker is
+     available; local Typst is fallback only when Docker is unavailable.
 
 ## Repo-Native Commands
 
@@ -94,6 +96,8 @@ Primary governing artifacts:
    contracts change.
 4. Determinism is currently bounded to the governed Typst `0.14.2` runtime envelope; raw artifact
    hashes remain truthful, while bounded-determinism proof normalizes volatile PDF metadata fields.
+5. The committed first-wave golden PDF is minted from the governed container-first Typst envelope so
+   CI, local proof, and the future service image stay aligned.
 
 ## Context Maintenance Rule
 

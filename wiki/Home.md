@@ -9,6 +9,8 @@ Deterministic document rendering service for Lotus reporting.
 - `lotus-render` consumes complete render packages only and must not fetch business data directly
 - template lifecycle posture is explicit for `active`, `deprecated_rerenderable`, `blocked_for_new_renders`, and `blocked`
 - the current determinism claim is bounded to the governed Typst `0.14.2` runtime envelope
+- golden proof is minted from the container-first Typst runtime on developer and CI hosts so proof
+  is stable across environments
 
 ## Registry truth
 

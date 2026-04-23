@@ -53,6 +53,8 @@ and registry slices:
 - machine validation through `scripts/validate_template_registry.py` and `make check`
 - first governed Typst template under `templates/typst/portfolio-review/v1/`
 - golden render package and expected PDF proof under `tests/golden/portfolio-review/v1/`
+- docker-governed Typst rendering is preferred on developer and CI hosts so golden proof is minted
+  from the same controlled runtime envelope
 - bounded-determinism fingerprinting that normalizes volatile PDF metadata while preserving raw
   artifact hashing truth
 - `lotus-report` submission stays in a later RFC-0102 slice

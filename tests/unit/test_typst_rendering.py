@@ -141,6 +141,64 @@ def test_typst_render_service_uses_docker_fallback_when_local_typst_missing(
     assert DOCKER_TYPST_IMAGE in command
 
 
+def test_typst_render_service_prefers_docker_governed_runtime_when_available(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    service = _build_service()
+    source_path = tmp_path / "render.typ"
+    output_path = tmp_path / "rendered.pdf"
+
+    def _fake_which(binary: str) -> str | None:
+        if binary == "docker":
+            return "/usr/bin/docker"
+        if binary == "typst":
+            return "/usr/local/bin/typst"
+        return None
+
+    monkeypatch.setattr("app.services.typst_rendering.shutil.which", _fake_which)
+
+    command = service._build_compile_command(
+        workspace=tmp_path,
+        source_path=source_path,
+        output_path=output_path,
+    )
+
+    assert command[:2] == ["/usr/bin/docker", "run"]
+    assert DOCKER_TYPST_IMAGE in command
+
+
+def test_typst_render_service_uses_local_typst_when_docker_is_unavailable(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    service = _build_service()
+    source_path = tmp_path / "render.typ"
+    output_path = tmp_path / "rendered.pdf"
+
+    def _fake_which(binary: str) -> str | None:
+        if binary == "docker":
+            return None
+        if binary == "typst":
+            return "/usr/local/bin/typst"
+        return None
+
+    monkeypatch.setattr("app.services.typst_rendering.shutil.which", _fake_which)
+
+    command = service._build_compile_command(
+        workspace=tmp_path,
+        source_path=source_path,
+        output_path=output_path,
+    )
+
+    assert command == [
+        "/usr/local/bin/typst",
+        "compile",
+        str(source_path),
+        str(output_path),
+    ]
+
+
 def test_typst_render_service_raises_when_no_runtime_is_available(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,

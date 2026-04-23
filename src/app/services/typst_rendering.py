@@ -190,29 +190,27 @@ class TypstRenderService:
         source_path: Path,
         output_path: Path,
     ) -> list[str]:
+        docker_binary = shutil.which("docker")
+        if docker_binary is not None:
+            return [
+                docker_binary,
+                "run",
+                "--rm",
+                "-v",
+                f"{workspace.resolve()}:/workspace",
+                "-w",
+                "/workspace",
+                DOCKER_TYPST_IMAGE,
+                "compile",
+                source_path.name,
+                output_path.name,
+            ]
+
         local_typst = shutil.which("typst")
         if local_typst is not None:
             return [local_typst, "compile", str(source_path), str(output_path)]
 
-        docker_binary = shutil.which("docker")
-        if docker_binary is None:
-            raise RuntimeError(
-                "Typst runtime is unavailable: neither typst nor docker is installed"
-            )
-
-        return [
-            docker_binary,
-            "run",
-            "--rm",
-            "-v",
-            f"{workspace.resolve()}:/workspace",
-            "-w",
-            "/workspace",
-            DOCKER_TYPST_IMAGE,
-            "compile",
-            source_path.name,
-            output_path.name,
-        ]
+        raise RuntimeError("Typst runtime is unavailable: neither docker nor typst is installed")
 
     @staticmethod
     def _escape_typst_text(value: str) -> str:
