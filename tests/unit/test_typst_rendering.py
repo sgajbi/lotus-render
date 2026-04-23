@@ -91,7 +91,9 @@ def test_typst_render_service_builds_richer_portfolio_review_context() -> None:
     assert template_context["TOP_CONTRIBUTOR_NAME"] == "Global Equity Sleeve"
     assert "lotus-core, lotus-performance, lotus-risk" in template_context["SOURCE_SERVICES"]
     assert "#period-row(" in template_context["PERFORMANCE_PERIOD_ROWS"]
+    assert "#performance-bar-row(" in template_context["PERFORMANCE_BAR_ROWS"]
     assert "#holding-row(" in template_context["HOLDING_ROWS"]
+    assert "#allocation-row(" in template_context["HOLDING_BAR_ROWS"]
     assert "#review-note(" in template_context["OBSERVATION_NOTES"]
 
 
@@ -108,8 +110,10 @@ def test_typst_render_service_helper_fallbacks_cover_sparse_structures() -> None
     assert "No governed performance periods available." in service._render_performance_period_rows(
         [123]
     )
+    assert "No governed performance bars available." in service._render_performance_bar_rows("bad")
     assert "No governed holdings available." in service._render_holding_rows("bad")
     assert "No governed holdings available." in service._render_holding_rows([123])
+    assert "No governed allocation rows available." in service._render_holding_bar_rows("bad")
 
 
 def test_typst_render_service_marks_template_failure_when_typst_compile_fails(
@@ -168,6 +172,34 @@ def test_typst_render_service_uses_docker_fallback_when_local_typst_missing(
         f"{tmp_path.resolve()}:/workspace",
     ]
     assert DOCKER_TYPST_IMAGE in command
+
+
+def test_typst_render_service_uses_relative_source_path_for_nested_template_under_docker(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    service = _build_service()
+    source_path = tmp_path / "template" / "main.typ"
+    source_path.parent.mkdir(parents=True)
+    source_path.write_text("test", encoding="utf-8")
+    output_path = tmp_path / "rendered.pdf"
+
+    def _fake_which(binary: str) -> str | None:
+        if binary == "typst":
+            return None
+        if binary == "docker":
+            return "/usr/bin/docker"
+        return None
+
+    monkeypatch.setattr("app.services.typst_rendering.shutil.which", _fake_which)
+
+    command = service._build_compile_command(
+        workspace=tmp_path,
+        source_path=source_path,
+        output_path=output_path,
+    )
+
+    assert command[-2:] == ["template/main.typ", "rendered.pdf"]
 
 
 def test_typst_render_service_prefers_docker_governed_runtime_when_available(
@@ -242,3 +274,29 @@ def test_typst_render_service_raises_when_no_runtime_is_available(
             source_path=tmp_path / "render.typ",
             output_path=tmp_path / "rendered.pdf",
         )
+
+
+def test_typst_render_service_materializes_modular_template_directory(
+    tmp_path: Path,
+) -> None:
+    service = _build_service()
+    template_directory = tmp_path / "source-template"
+    template_directory.mkdir()
+    template_root = template_directory / "main.typ"
+    partial = template_directory / "_partial.typ"
+    template_root.write_text('#import "_partial.typ": payload\n#payload()', encoding="utf-8")
+    partial.write_text("#let payload() = [${CLIENT_NAME}]", encoding="utf-8")
+
+    render_package = _load_golden_package()
+    source_path = service._materialize_template(
+        template_root=template_root,
+        workspace=tmp_path / "workspace",
+        render_package=render_package,
+        template_context={"CLIENT_NAME": "Alex Tan"},
+        determinism_statement="deterministic",
+    )
+
+    materialized_partial = source_path.parent / "_partial.typ"
+    assert source_path.exists()
+    assert materialized_partial.exists()
+    assert "Alex Tan" in materialized_partial.read_text(encoding="utf-8")

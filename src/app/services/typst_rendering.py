@@ -226,7 +226,11 @@ class TypstRenderService:
             "PERFORMANCE_PERIOD_ROWS": self._render_performance_period_rows(
                 report_data.get("performance_periods")
             ),
+            "PERFORMANCE_BAR_ROWS": self._render_performance_bar_rows(
+                report_data.get("performance_periods")
+            ),
             "HOLDING_ROWS": self._render_holding_rows(report_data.get("top_holdings")),
+            "HOLDING_BAR_ROWS": self._render_holding_bar_rows(report_data.get("top_holdings")),
             "SOURCE_SERVICES": self._escape_typst_text(
                 ", ".join(self._string_list(governance_summary.get("source_services")))
                 or "Not available"
@@ -256,21 +260,23 @@ class TypstRenderService:
         template_context: dict[str, str],
         determinism_statement: str,
     ) -> Path:
-        template_text = template_root.read_text(encoding="utf-8")
         replacements = {
             **template_context,
             "DETERMINISM_STATEMENT": self._escape_typst_text(determinism_statement),
             "TRACE_ID": self._escape_typst_text(render_package.trace_id),
             "CORRELATION_ID": self._escape_typst_text(render_package.correlation_id),
         }
+        template_directory = template_root.parent
+        workspace_template_directory = workspace / "template"
+        shutil.copytree(template_directory, workspace_template_directory, dirs_exist_ok=True)
 
-        rendered_text = template_text
-        for key, value in replacements.items():
-            rendered_text = rendered_text.replace(f"${{{key}}}", value)
+        for template_file in workspace_template_directory.rglob("*.typ"):
+            rendered_text = template_file.read_text(encoding="utf-8")
+            for key, value in replacements.items():
+                rendered_text = rendered_text.replace(f"${{{key}}}", value)
+            template_file.write_text(rendered_text, encoding="utf-8")
 
-        source_path = workspace / "render.typ"
-        source_path.write_text(rendered_text, encoding="utf-8")
-        return source_path
+        return workspace_template_directory / template_root.name
 
     def _build_compile_command(
         self,
@@ -279,6 +285,8 @@ class TypstRenderService:
         source_path: Path,
         output_path: Path,
     ) -> list[str]:
+        source_argument = source_path.relative_to(workspace).as_posix()
+        output_argument = output_path.relative_to(workspace).as_posix()
         docker_binary = shutil.which("docker")
         if docker_binary is not None:
             return [
@@ -291,8 +299,8 @@ class TypstRenderService:
                 "/workspace",
                 DOCKER_TYPST_IMAGE,
                 "compile",
-                source_path.name,
-                output_path.name,
+                source_argument,
+                output_argument,
             ]
 
         local_typst = shutil.which("typst")
@@ -370,6 +378,29 @@ class TypstRenderService:
             return empty_message
         return "\n#v(8pt)\n".join(rendered)
 
+    def _render_performance_bar_rows(self, periods: object) -> str:
+        empty_message = (
+            "#text(size: 9pt, fill: rgb(104, 118, 132))[No governed performance bars available.]"
+        )
+        if not isinstance(periods, Sequence) or isinstance(periods, (str, bytes, bytearray)):
+            return empty_message
+        rendered: list[str] = []
+        for item in periods:
+            if not isinstance(item, Mapping):
+                continue
+            rendered.append(
+                '#performance-bar-row("'
+                + self._escape_typst_text(str(item.get("period", "n/a")))
+                + '", "'
+                + self._escape_typst_text(str(item.get("net_return_pct", "Not available")))
+                + '", '
+                + self._percent_width_token(item.get("net_return_pct"))
+                + ")"
+            )
+        if not rendered:
+            return empty_message
+        return "\n#v(8pt)\n".join(rendered)
+
     def _render_holding_rows(self, holdings: object) -> str:
         if not isinstance(holdings, Sequence) or isinstance(holdings, (str, bytes, bytearray)):
             return "#text(size: 9pt, fill: rgb(104, 118, 132))[No governed holdings available.]"
@@ -395,3 +426,39 @@ class TypstRenderService:
         if not rendered:
             return "#text(size: 9pt, fill: rgb(104, 118, 132))[No governed holdings available.]"
         return "\n#v(8pt)\n".join(rendered)
+
+    def _render_holding_bar_rows(self, holdings: object) -> str:
+        if not isinstance(holdings, Sequence) or isinstance(holdings, (str, bytes, bytearray)):
+            return (
+                "#text(size: 9pt, fill: rgb(104, 118, 132))[No governed allocation rows available.]"
+            )
+        rendered: list[str] = []
+        for item in holdings:
+            if not isinstance(item, Mapping):
+                continue
+            rendered.append(
+                '#allocation-row("'
+                + self._escape_typst_text(str(item.get("security_name", "Unknown holding")))
+                + '", "'
+                + self._escape_typst_text(str(item.get("weight_pct", "Not available")))
+                + '", "'
+                + self._escape_typst_text(str(item.get("market_value", "Not available")))
+                + '", '
+                + self._percent_width_token(item.get("weight_pct"))
+                + ")"
+            )
+        if not rendered:
+            return (
+                "#text(size: 9pt, fill: rgb(104, 118, 132))[No governed allocation rows available.]"
+            )
+        return "\n#v(8pt)\n".join(rendered)
+
+    @staticmethod
+    def _percent_width_token(value: object) -> str:
+        raw = str(value).strip().replace("%", "")
+        try:
+            numeric = float(raw)
+        except ValueError:
+            return "8%"
+        clamped = min(max(numeric, 8.0), 100.0)
+        return f"{clamped:.2f}%"
