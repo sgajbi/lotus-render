@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     runtime_engine: str = Field(default="typst")
     runtime_engine_version: str = Field(default="foundation")
     supported_output_formats: tuple[str, ...] = Field(default=("pdf",))
+    template_registry_path: str = Field(default="templates/registry")
 
     model_config = SettingsConfigDict(
         env_prefix="LOTUS_RENDER_",

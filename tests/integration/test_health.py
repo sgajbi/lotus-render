@@ -39,7 +39,8 @@ def test_metadata_endpoint_reports_foundation_posture() -> None:
         assert payload["defaultOutputFormat"] == "pdf"
         assert payload["renderAttemptStatuses"] == [
             "accepted",
-            "running",
-            "succeeded",
+            "validating_package",
+            "rendering",
+            "rendered",
             "failed",
         ]

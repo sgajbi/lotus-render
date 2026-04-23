@@ -1,4 +1,4 @@
-.PHONY: install lint monetary-float-guard typecheck openapi-gate test test-unit test-integration test-e2e test-coverage security-audit check ci docker-build clean
+.PHONY: install lint monetary-float-guard typecheck openapi-gate template-registry-gate test test-unit test-integration test-e2e test-coverage security-audit check ci docker-build clean
 
 VENV_DIR ?= .venv
 
@@ -27,6 +27,9 @@ typecheck:
 openapi-gate:
 	$(VENV_PYTHON) scripts/openapi_quality_gate.py
 
+template-registry-gate:
+	$(VENV_PYTHON) scripts/validate_template_registry.py
+
 test:
 	$(MAKE) test-unit
 
@@ -48,7 +51,7 @@ test-coverage:
 security-audit:
 	$(VENV_PYTHON) -m pip_audit
 
-check: lint typecheck openapi-gate test
+check: lint typecheck openapi-gate template-registry-gate test
 
 ci: lint typecheck openapi-gate test-integration test-e2e test-coverage security-audit
 

@@ -15,22 +15,25 @@ operator workflows beyond the render-stage contract defined by RFC-0102.
 
 ## Current-State Summary
 
-`lotus-render` now implements the RFC-0102 Slice 1 service foundation. The repository contains the
-dedicated render-service runtime baseline, explicit render-attempt domain models, structured
-request logging, support-safe system metadata, and governed repo-native validation.
+`lotus-render` now implements RFC-0102 through Slice 3. The repository contains the dedicated
+render-service runtime baseline, explicit render-attempt domain models, structured request logging,
+support-safe system metadata, versioned render package validation, and source-controlled template
+registry enforcement.
 
 ## Architecture And Module Map
 
-Current foundation baseline:
+Current repository baseline:
 
 1. `src/app/main.py`: FastAPI application factory and lifespan wiring.
 2. `src/app/api/routes/`: system routes and future render APIs.
-3. `src/app/contracts/`: OpenAPI-facing response models.
+3. `src/app/contracts/`: OpenAPI-facing response models and render package contracts.
 4. `src/app/core/`: settings and logging configuration.
 5. `src/app/domain/render_attempts/`: render-attempt lifecycle models.
-6. `src/app/services/`: foundation services and future render orchestration.
-7. `src/app/middleware/`: correlation and structured request logging middleware.
-8. `tests/unit`, `tests/integration`, `tests/e2e`: test pyramid baseline.
+6. `src/app/domain/templates/`: template manifest models and registry compatibility rules.
+7. `src/app/services/`: foundation services, package intake, and future render orchestration.
+8. `src/app/middleware/`: correlation and structured request logging middleware.
+9. `templates/registry/`: PR-governed template source truth.
+10. `tests/unit`, `tests/integration`, `tests/e2e`: test pyramid baseline.
 
 ## Runtime And Integration Boundaries
 
@@ -52,9 +55,10 @@ Current foundation baseline:
 1. Install/bootstrap: `make install`
 2. Lint: `make lint`
 3. Typecheck: `make typecheck`
-4. Unit tests: `make test-unit`
-5. Integration tests: `make test-integration`
-6. CI parity: `make check` and `make ci`
+4. Template registry validation: `make template-registry-gate`
+5. Unit tests: `make test-unit`
+6. Integration tests: `make test-integration`
+7. CI parity: `make check` and `make ci`
 
 ## Validation And CI Expectations
 
@@ -80,8 +84,7 @@ Primary governing artifacts:
 
 ## Known Constraints And Implementation Notes
 
-1. The current repository is only through the Slice 1 foundation; render package validation,
-   template registry enforcement, Typst execution, and lotus-report integration are still pending
+1. The current repository is through Slice 3. Typst execution and `lotus-report` submission remain
    later RFC-0102 slices.
 2. Keep render/data/archive boundaries strict from the start. Do not let `lotus-render` become a
    business-data authority.

@@ -7,16 +7,20 @@ from enum import StrEnum
 
 class RenderAttemptStatus(StrEnum):
     ACCEPTED = "accepted"
-    RUNNING = "running"
-    SUCCEEDED = "succeeded"
+    VALIDATING_PACKAGE = "validating_package"
+    RENDERING = "rendering"
+    RENDERED = "rendered"
     FAILED = "failed"
 
 
 class RenderFailureCategory(StrEnum):
-    PACKAGE_INVALID = "package_invalid"
-    TEMPLATE_INCOMPATIBLE = "template_incompatible"
+    PACKAGE_VALIDATION_FAILED = "package_validation_failed"
+    TEMPLATE_NOT_SUPPORTED = "template_not_supported"
+    TEMPLATE_RENDER_FAILED = "template_render_failed"
     ENGINE_UNAVAILABLE = "engine_unavailable"
-    RENDER_RUNTIME_FAILURE = "render_runtime_failure"
+    ARTIFACT_VALIDATION_FAILED = "artifact_validation_failed"
+    TIMEOUT = "timeout"
+    OPERATOR_INTERVENTION_REQUIRED = "operator_intervention_required"
 
 
 @dataclass(slots=True)
@@ -34,12 +38,16 @@ class RenderAttempt:
     failure_category: RenderFailureCategory | None = None
     diagnostic_summary: str | None = None
 
-    def mark_running(self) -> None:
-        self.status = RenderAttemptStatus.RUNNING
+    def mark_validating_package(self) -> None:
+        self.status = RenderAttemptStatus.VALIDATING_PACKAGE
         self.updated_at = datetime.now(UTC)
 
-    def mark_succeeded(self, artifact_sha256: str) -> None:
-        self.status = RenderAttemptStatus.SUCCEEDED
+    def mark_rendering(self) -> None:
+        self.status = RenderAttemptStatus.RENDERING
+        self.updated_at = datetime.now(UTC)
+
+    def mark_rendered(self, artifact_sha256: str) -> None:
+        self.status = RenderAttemptStatus.RENDERED
         self.artifact_sha256 = artifact_sha256
         self.failure_category = None
         self.diagnostic_summary = None

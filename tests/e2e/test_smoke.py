@@ -14,5 +14,13 @@ def test_metadata_endpoint() -> None:
     with TestClient(app) as client:
         response = client.get("/metadata")
         assert response.status_code == 200
-        assert response.json()["service"].startswith("lotus-")
-        assert response.json()["supportedOutputFormats"] == ["pdf"]
+        payload = response.json()
+        assert payload["service"].startswith("lotus-")
+        assert payload["supportedOutputFormats"] == ["pdf"]
+        assert payload["renderAttemptStatuses"] == [
+            "accepted",
+            "validating_package",
+            "rendering",
+            "rendered",
+            "failed",
+        ]

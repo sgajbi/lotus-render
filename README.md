@@ -18,6 +18,7 @@ make ci
 .venv\Scripts\python.exe -m ruff check . && .venv\Scripts\python.exe -m ruff format --check .
 .venv\Scripts\python.exe -m mypy --config-file mypy.ini
 .venv\Scripts\python.exe scripts/openapi_quality_gate.py
+.venv\Scripts\python.exe scripts/validate_template_registry.py
 .venv\Scripts\python.exe -m pytest tests/unit tests/integration tests/e2e
 .venv\Scripts\python.exe scripts/coverage_gate.py
 ```
@@ -42,10 +43,12 @@ docker compose up --build
 
 ## Current Slice
 
-Slice 1 establishes the service foundation only:
+Slice 3 now adds governed render package and template registry posture on top of the service
+foundation:
 
-- separate deployable render service boundary
-- structured health/readiness/metadata posture
-- explicit render-attempt domain model
-- no direct business-data fetch behavior
-- repo-native validation and security baseline
+- versioned `RenderPackage` contract with strict validation
+- source-controlled template manifests under `templates/registry/`
+- explicit lifecycle posture for `active`, `deprecated_rerenderable`,
+  `blocked_for_new_renders`, and `blocked`
+- machine validation through `scripts/validate_template_registry.py` and `make check`
+- no render execution yet; Typst proof and `lotus-report` submission stay in later RFC-0102 slices
