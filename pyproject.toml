@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=70", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "lotus-render"
+version = "0.1.0"
+description = "Deterministic document rendering service for Lotus reporting."
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+  "fastapi==0.133.0",
+  "uvicorn==0.41.0",
+  "pydantic==2.12.0",
+  "pydantic-settings==2.13.0",
+  "prometheus-fastapi-instrumentator==7.1.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "ruff==0.15.0",
+  "mypy==1.19.0",
+  "pytest==9.0.0",
+  "pytest-asyncio==1.2.0",
+  "pytest-cov==7.0.0",
+  "httpx==0.28.0",
+  "coverage==7.13.0",
+  "pip-audit==2.10.0",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
