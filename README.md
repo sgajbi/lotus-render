@@ -43,12 +43,16 @@ docker compose up --build
 
 ## Current Slice
 
-Slice 3 now adds governed render package and template registry posture on top of the service
-foundation:
+Slice 4 now adds real Typst rendering and bounded-determinism proof on top of the earlier service
+and registry slices:
 
 - versioned `RenderPackage` contract with strict validation
 - source-controlled template manifests under `templates/registry/`
 - explicit lifecycle posture for `active`, `deprecated_rerenderable`,
   `blocked_for_new_renders`, and `blocked`
 - machine validation through `scripts/validate_template_registry.py` and `make check`
-- no render execution yet; Typst proof and `lotus-report` submission stay in later RFC-0102 slices
+- first governed Typst template under `templates/typst/portfolio-review/v1/`
+- golden render package and expected PDF proof under `tests/golden/portfolio-review/v1/`
+- bounded-determinism fingerprinting that normalizes volatile PDF metadata while preserving raw
+  artifact hashing truth
+- `lotus-report` submission stays in a later RFC-0102 slice

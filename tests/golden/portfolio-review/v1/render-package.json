@@ -1,0 +1,38 @@
+{
+  "render_package_version": "render_package.v1",
+  "render_job_id": "rdr_golden_portfolio_review_v1",
+  "report_job_id": "rjob_golden_portfolio_review_v1",
+  "snapshot_id": "rsnap_golden_portfolio_review_v1",
+  "report_type": "portfolio_review",
+  "report_data_contract_version": "portfolio_review.v1",
+  "template_id": "portfolio-review",
+  "template_version": "v1",
+  "locale": "en-SG",
+  "brand_variant": "private_banking",
+  "output_format": "pdf",
+  "render_context": {
+    "timezone": "Asia/Singapore"
+  },
+  "report_data": {
+    "client_name": "Alex Tan",
+    "portfolio_name": "PB SG Global Balanced",
+    "as_of_date": "2026-04-23",
+    "currency": "USD",
+    "total_value": "15234567.89",
+    "summary_paragraph": "The portfolio remained aligned with balanced growth objectives while preserving liquidity discipline through the quarter.",
+    "review_observations": [
+      "Equity positioning remained the main contributor to year-to-date performance.",
+      "Risk posture stayed within the monitored balanced mandate range.",
+      "Cash reserves remained available for near-term client liquidity needs."
+    ]
+  },
+  "lineage_refs": [
+    "rlineage_golden_portfolio_review_v1"
+  ],
+  "disclosure_refs": [
+    "portfolio-review.standard-disclosures.v1"
+  ],
+  "requested_by": "advisor.sg@example.com",
+  "correlation_id": "corr-golden-portfolio-review-v1",
+  "trace_id": "trace-golden-portfolio-review-v1"
+}

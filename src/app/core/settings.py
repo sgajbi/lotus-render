@@ -13,7 +13,7 @@ class Settings(BaseSettings):
     environment: str = Field(default="development")
     default_output_format: str = Field(default="pdf")
     runtime_engine: str = Field(default="typst")
-    runtime_engine_version: str = Field(default="foundation")
+    runtime_engine_version: str = Field(default="0.14.2")
     supported_output_formats: tuple[str, ...] = Field(default=("pdf",))
     template_registry_path: str = Field(default="templates/registry")
 

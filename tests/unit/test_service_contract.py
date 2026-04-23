@@ -57,7 +57,7 @@ def _build_manifest(
         status=status,
         golden_sample_ids=["golden-portfolio-review-en-SG-private-banking-v1"],
         runtime_engine="typst",
-        runtime_engine_version="foundation",
+        runtime_engine_version="0.14.2",
     )
 
 
@@ -143,6 +143,32 @@ def test_template_registry_loads_repo_manifest() -> None:
 
     assert manifest.template_id == "portfolio-review"
     assert manifest.status == TemplateLifecycleStatus.ACTIVE
+
+
+def test_template_registry_exports_manifest_dicts() -> None:
+    registry = TemplateRegistry({("portfolio-review", "v1"): _build_manifest()})
+
+    exported = registry.export_manifests()
+
+    assert exported == [
+        {
+            "template_id": "portfolio-review",
+            "template_version": "v1",
+            "supported_report_types": ["portfolio_review"],
+            "supported_report_data_contract_versions": ["portfolio_review.v1"],
+            "supported_locales": ["en-SG"],
+            "supported_brand_variants": ["private_banking"],
+            "supported_output_formats": ["pdf"],
+            "required_disclosure_fragments": ["portfolio-review.standard-disclosures.v1"],
+            "owner_team": "lotus-reporting",
+            "approver": "lotus-platform-governance",
+            "approved_at": "2026-04-23",
+            "status": "active",
+            "golden_sample_ids": ["golden-portfolio-review-en-SG-private-banking-v1"],
+            "runtime_engine": "typst",
+            "runtime_engine_version": "0.14.2",
+        }
+    ]
 
 
 def test_template_registry_rejects_empty_registry(tmp_path: Path) -> None:

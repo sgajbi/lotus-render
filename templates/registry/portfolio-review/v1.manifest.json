@@ -27,5 +27,5 @@
     "golden-portfolio-review-en-SG-private-banking-v1"
   ],
   "runtime_engine": "typst",
-  "runtime_engine_version": "foundation"
+  "runtime_engine_version": "0.14.2"
 }

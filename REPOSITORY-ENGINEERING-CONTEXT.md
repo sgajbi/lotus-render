@@ -15,10 +15,10 @@ operator workflows beyond the render-stage contract defined by RFC-0102.
 
 ## Current-State Summary
 
-`lotus-render` now implements RFC-0102 through Slice 3. The repository contains the dedicated
+`lotus-render` now implements RFC-0102 through Slice 4. The repository contains the dedicated
 render-service runtime baseline, explicit render-attempt domain models, structured request logging,
-support-safe system metadata, versioned render package validation, and source-controlled template
-registry enforcement.
+support-safe system metadata, versioned render package validation, source-controlled template
+registry enforcement, and the first real Typst PDF render path for portfolio review.
 
 ## Architecture And Module Map
 
@@ -33,7 +33,9 @@ Current repository baseline:
 7. `src/app/services/`: foundation services, package intake, and future render orchestration.
 8. `src/app/middleware/`: correlation and structured request logging middleware.
 9. `templates/registry/`: PR-governed template source truth.
-10. `tests/unit`, `tests/integration`, `tests/e2e`: test pyramid baseline.
+10. `templates/typst/`: governed Typst template source.
+11. `tests/golden/`: golden render package and artifact proof inputs.
+12. `tests/unit`, `tests/integration`, `tests/e2e`: test pyramid baseline.
 
 ## Runtime And Integration Boundaries
 
@@ -84,12 +86,14 @@ Primary governing artifacts:
 
 ## Known Constraints And Implementation Notes
 
-1. The current repository is through Slice 3. Typst execution and `lotus-report` submission remain
-   later RFC-0102 slices.
+1. The current repository is through Slice 4. `lotus-report` submission remains a later RFC-0102
+   slice.
 2. Keep render/data/archive boundaries strict from the start. Do not let `lotus-render` become a
    business-data authority.
 3. Update repo-local wiki source and platform RFC/context truth when service ownership or runtime
    contracts change.
+4. Determinism is currently bounded to the governed Typst `0.14.2` runtime envelope; raw artifact
+   hashes remain truthful, while bounded-determinism proof normalizes volatile PDF metadata fields.
 
 ## Context Maintenance Rule
 

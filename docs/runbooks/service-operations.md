@@ -9,6 +9,7 @@
 - make check
 - make ci
 - docker compose up --build
+- typst --version
 
 ## Health and Readiness
 
@@ -22,5 +23,6 @@
 1. Check container logs for request failures, correlation IDs, and structured request timing lines.
 2. Verify `/health/ready`, `/metadata`, and `/metrics`.
 3. Run `make template-registry-gate` if template manifests or lifecycle posture changed.
-4. Run local fast parity (`make check`) before deeper investigation.
-5. Run `make ci` before a hotfix PR.
+4. Render the governed golden package if a template or Typst runtime change is suspected.
+5. Run local fast parity (`make check`) before deeper investigation.
+6. Run `make ci` before a hotfix PR.
