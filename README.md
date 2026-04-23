@@ -41,10 +41,10 @@ docker compose up --build
 - Engineering commands: Makefile
 - Platform standards docs: docs/standards/
 
-## Current Slice
+## Current Implementation
 
-Slice 5 now adds the first governed internal render API on top of the earlier service, registry,
-and Typst proof slices:
+RFC-0102 now covers the first governed internal render API on top of the earlier service, registry,
+and Typst foundation slices:
 
 - versioned `RenderPackage` contract with strict validation
 - source-controlled template manifests under `templates/registry/`
@@ -57,6 +57,9 @@ and Typst proof slices:
   from the same controlled runtime envelope
 - bounded-determinism fingerprinting that normalizes volatile PDF metadata while preserving raw
   artifact hashing truth
+- raw PDF bytes are not claimed to be stable across renders because Typst remints PDF document ids
+  and creation timestamps; the supported determinism claim is the bounded-runtime-envelope
+  fingerprint
 - sqlite-backed governed render job store at `data/render-store.sqlite3` by default
 - internal render API surface:
   - `POST /renders`
@@ -76,3 +79,10 @@ executes the synchronous first-wave Typst render path, and returns render truth 
 Use `GET /renders/{render_job_id}` to read support-safe render-job posture without rerunning
 anything. Use `GET /renders/{render_job_id}/artifact-metadata` when callers need artifact hash,
 size, MIME type, and determinism posture without archive semantics.
+
+The supported determinism posture is explicit:
+
+- raw artifact hash is truthful per concrete PDF file
+- bounded determinism is expressed through `bounded_determinism_fingerprint`
+- archive retrieval, legal hold, replay, rerender, regenerate, and document distribution remain
+  out of scope for `lotus-render`
