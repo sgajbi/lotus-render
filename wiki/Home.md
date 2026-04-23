@@ -13,6 +13,9 @@ Deterministic document rendering service for Lotus reporting.
   is stable across environments
 - render jobs are persisted in the governed local store before readiness is reported as healthy for
   first-wave traffic
+- the active `portfolio-review v1` flow now renders structured mandate, performance, risk,
+  holdings, and governance sections from the governed render package rather than a thin text-only
+  summary payload
 
 ## Registry truth
 

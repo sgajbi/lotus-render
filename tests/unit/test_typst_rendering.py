@@ -83,6 +83,35 @@ def test_typst_render_service_rejects_empty_review_observations() -> None:
         service.render(invalid_package)
 
 
+def test_typst_render_service_builds_richer_portfolio_review_context() -> None:
+    service = _build_service()
+    template_context = service._build_portfolio_review_context(_load_golden_package())
+
+    assert template_context["REVIEW_PERIOD_LABEL"] == "YTD"
+    assert template_context["TOP_CONTRIBUTOR_NAME"] == "Global Equity Sleeve"
+    assert "lotus-core, lotus-performance, lotus-risk" in template_context["SOURCE_SERVICES"]
+    assert "#period-row(" in template_context["PERFORMANCE_PERIOD_ROWS"]
+    assert "#holding-row(" in template_context["HOLDING_ROWS"]
+    assert "#review-note(" in template_context["OBSERVATION_NOTES"]
+
+
+def test_typst_render_service_helper_fallbacks_cover_sparse_structures() -> None:
+    service = _build_service()
+
+    assert service._string_list("not-a-list") == []
+    assert service._string_list([" lot1 ", "", "lot2"]) == ["lot1", "lot2"]
+    assert service._mapping("not-a-mapping") == {}
+    assert "No governed observations available." in service._render_observation_notes("bad")
+    assert "No governed performance periods available." in service._render_performance_period_rows(
+        "bad"
+    )
+    assert "No governed performance periods available." in service._render_performance_period_rows(
+        [123]
+    )
+    assert "No governed holdings available." in service._render_holding_rows("bad")
+    assert "No governed holdings available." in service._render_holding_rows([123])
+
+
 def test_typst_render_service_marks_template_failure_when_typst_compile_fails(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

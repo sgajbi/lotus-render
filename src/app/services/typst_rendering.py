@@ -4,6 +4,7 @@ import hashlib
 import re
 import shutil
 import subprocess
+from collections.abc import Mapping, Sequence
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from time import perf_counter
@@ -141,6 +142,13 @@ class TypstRenderService:
         if not isinstance(observations, list) or not observations:
             raise ValueError("review_observations must be a non-empty list")
 
+        mandate = self._mapping(report_data.get("mandate"))
+        portfolio_metrics = self._mapping(report_data.get("portfolio_metrics"))
+        allocation_summary = self._mapping(report_data.get("allocation_summary"))
+        performance_highlight = self._mapping(report_data.get("performance_highlight"))
+        risk_summary = self._mapping(report_data.get("risk_summary"))
+        governance_summary = self._mapping(report_data.get("governance_summary"))
+
         return {
             "CLIENT_NAME": self._escape_typst_text(str(report_data["client_name"])),
             "PORTFOLIO_NAME": self._escape_typst_text(str(report_data["portfolio_name"])),
@@ -148,8 +156,89 @@ class TypstRenderService:
             "CURRENCY": self._escape_typst_text(str(report_data["currency"])),
             "TOTAL_VALUE": self._escape_typst_text(str(report_data["total_value"])),
             "SUMMARY_PARAGRAPH": self._escape_typst_text(str(report_data["summary_paragraph"])),
-            "OBSERVATIONS": "\n".join(
-                f"- {self._escape_typst_text(str(item))}" for item in observations
+            "REVIEW_PERIOD_LABEL": self._escape_typst_text(
+                str(report_data.get("review_period_label", "YTD"))
+            ),
+            "OBJECTIVE": self._escape_typst_text(
+                str(mandate.get("objective", "Objective not available in the governed snapshot."))
+            ),
+            "RISK_EXPOSURE": self._escape_typst_text(
+                str(mandate.get("risk_exposure", "not_available"))
+            ),
+            "BOOKING_CENTER": self._escape_typst_text(
+                str(mandate.get("booking_center_code", "not_available"))
+            ),
+            "ADVISOR_ID": self._escape_typst_text(str(mandate.get("advisor_id", "not_available"))),
+            "INVESTED_VALUE": self._escape_typst_text(
+                str(portfolio_metrics.get("invested_value", "Not available"))
+            ),
+            "CASH_BALANCE": self._escape_typst_text(
+                str(portfolio_metrics.get("cash_balance", "Not available"))
+            ),
+            "CASH_WEIGHT_PCT": self._escape_typst_text(
+                str(portfolio_metrics.get("cash_weight_pct", "Not available"))
+            ),
+            "ALLOCATION_LARGEST_NAME": self._escape_typst_text(
+                str(allocation_summary.get("largest_asset_class_name", "Not available"))
+            ),
+            "ALLOCATION_LARGEST_WEIGHT": self._escape_typst_text(
+                str(allocation_summary.get("largest_asset_class_weight_pct", "Not available"))
+            ),
+            "ALLOCATION_LARGEST_VALUE": self._escape_typst_text(
+                str(allocation_summary.get("largest_asset_class_market_value", "Not available"))
+            ),
+            "ALLOCATION_POSITION_COUNT": self._escape_typst_text(
+                str(allocation_summary.get("largest_asset_class_position_count", "Not available"))
+            ),
+            "TOP_CONTRIBUTOR_NAME": self._escape_typst_text(
+                str(
+                    performance_highlight.get(
+                        "largest_positive_contributor_name",
+                        "Not available",
+                    )
+                )
+            ),
+            "TOP_CONTRIBUTOR_VALUE": self._escape_typst_text(
+                str(
+                    performance_highlight.get(
+                        "largest_positive_contribution_pct",
+                        "Not available",
+                    )
+                )
+            ),
+            "BENCHMARK_STATUS": self._escape_typst_text(
+                str(performance_highlight.get("benchmark_comparison_status", "not_available"))
+            ),
+            "RISK_VOLATILITY": self._escape_typst_text(
+                str(risk_summary.get("volatility_pct", "Not available"))
+            ),
+            "RISK_BETA": self._escape_typst_text(str(risk_summary.get("beta", "Not available"))),
+            "RISK_TRACKING_ERROR": self._escape_typst_text(
+                str(risk_summary.get("tracking_error_pct", "Not available"))
+            ),
+            "RISK_INFORMATION_RATIO": self._escape_typst_text(
+                str(risk_summary.get("information_ratio", "Not available"))
+            ),
+            "RISK_VAR": self._escape_typst_text(
+                str(risk_summary.get("value_at_risk_pct", "Not available"))
+            ),
+            "OBSERVATION_NOTES": self._render_observation_notes(observations),
+            "PERFORMANCE_PERIOD_ROWS": self._render_performance_period_rows(
+                report_data.get("performance_periods")
+            ),
+            "HOLDING_ROWS": self._render_holding_rows(report_data.get("top_holdings")),
+            "SOURCE_SERVICES": self._escape_typst_text(
+                ", ".join(self._string_list(governance_summary.get("source_services")))
+                or "Not available"
+            ),
+            "COMPLETENESS_STATUS": self._escape_typst_text(
+                str(governance_summary.get("completeness_status", "unknown"))
+            ),
+            "DATA_QUALITY_STATUS": self._escape_typst_text(
+                str(governance_summary.get("data_quality_status", "unknown"))
+            ),
+            "READINESS_STATUS": self._escape_typst_text(
+                str(governance_summary.get("readiness_status", "unknown"))
             ),
             "RENDER_JOB_ID": self._escape_typst_text(render_package.render_job_id),
             "TEMPLATE_ID": self._escape_typst_text(render_package.template_id),
@@ -234,3 +323,75 @@ class TypstRenderService:
         ):
             normalized_bytes = re.sub(pattern, b"", normalized_bytes)
         return hashlib.sha256(normalized_bytes).hexdigest()
+
+    @staticmethod
+    def _mapping(value: object) -> Mapping[str, object]:
+        return value if isinstance(value, Mapping) else {}
+
+    @staticmethod
+    def _string_list(value: object) -> list[str]:
+        if not isinstance(value, Sequence) or isinstance(value, (str, bytes, bytearray)):
+            return []
+        return [str(item).strip() for item in value if str(item).strip()]
+
+    def _render_observation_notes(self, observations: object) -> str:
+        if not isinstance(observations, Sequence) or isinstance(
+            observations, (str, bytes, bytearray)
+        ):
+            return "#text(size: 9pt, fill: rgb(104, 118, 132))[No governed observations available.]"
+        rendered: list[str] = []
+        for item in observations:
+            text = self._escape_typst_text(str(item))
+            rendered.append(f'#review-note("{text}")')
+        return "\n#v(8pt)\n".join(rendered)
+
+    def _render_performance_period_rows(self, periods: object) -> str:
+        empty_message = (
+            "#text(size: 9pt, fill: rgb(104, 118, 132))[No governed performance periods available.]"
+        )
+        if not isinstance(periods, Sequence) or isinstance(periods, (str, bytes, bytearray)):
+            return empty_message
+        rendered: list[str] = []
+        for item in periods:
+            if not isinstance(item, Mapping):
+                continue
+            rendered.append(
+                '#period-row("'
+                + self._escape_typst_text(str(item.get("period", "n/a")))
+                + '", "'
+                + self._escape_typst_text(str(item.get("net_return_pct", "Not available")))
+                + '", "'
+                + self._escape_typst_text(str(item.get("benchmark_return_pct", "Not available")))
+                + '", "'
+                + self._escape_typst_text(str(item.get("relative_return_pct", "Not available")))
+                + '")'
+            )
+        if not rendered:
+            return empty_message
+        return "\n#v(8pt)\n".join(rendered)
+
+    def _render_holding_rows(self, holdings: object) -> str:
+        if not isinstance(holdings, Sequence) or isinstance(holdings, (str, bytes, bytearray)):
+            return "#text(size: 9pt, fill: rgb(104, 118, 132))[No governed holdings available.]"
+        rendered: list[str] = []
+        for item in holdings:
+            if not isinstance(item, Mapping):
+                continue
+            rendered.append(
+                '#holding-row("'
+                + self._escape_typst_text(str(item.get("security_name", "Unknown holding")))
+                + '", "'
+                + self._escape_typst_text(str(item.get("asset_class", "Not available")))
+                + '", "'
+                + self._escape_typst_text(str(item.get("weight_pct", "Not available")))
+                + '", "'
+                + self._escape_typst_text(str(item.get("market_value", "Not available")))
+                + '", "'
+                + self._escape_typst_text(str(item.get("unrealized_pnl", "Not available")))
+                + '", "'
+                + self._escape_typst_text(str(item.get("ytd_contribution_pct", "Not available")))
+                + '")'
+            )
+        if not rendered:
+            return "#text(size: 9pt, fill: rgb(104, 118, 132))[No governed holdings available.]"
+        return "\n#v(8pt)\n".join(rendered)
