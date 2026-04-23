@@ -5,12 +5,14 @@ Deterministic document rendering service for Lotus reporting.
 ## Current posture
 
 - separate deployable render service with its own Docker image and independently scalable runtime
-- Slice 4 implements health, readiness, metadata, structured request logging, explicit render-attempt domain models, governed render package validation, template registry enforcement, and the first real Typst PDF render path
+- Slice 5 implements health, readiness, metadata, structured request logging, explicit render-attempt domain models, governed render package validation, template registry enforcement, the first real Typst PDF render path, and the first internal render API
 - `lotus-render` consumes complete render packages only and must not fetch business data directly
 - template lifecycle posture is explicit for `active`, `deprecated_rerenderable`, `blocked_for_new_renders`, and `blocked`
 - the current determinism claim is bounded to the governed Typst `0.14.2` runtime envelope
 - golden proof is minted from the container-first Typst runtime on developer and CI hosts so proof
   is stable across environments
+- render jobs are persisted in the governed local store before readiness is reported as healthy for
+  first-wave traffic
 
 ## Registry truth
 
@@ -31,3 +33,6 @@ See [Template Registry](Template-Registry).
 - `/health/live`
 - `/health/ready`
 - `/metadata`
+- `POST /renders`
+- `GET /renders/{render_job_id}`
+- `GET /renders/{render_job_id}/artifact-metadata`

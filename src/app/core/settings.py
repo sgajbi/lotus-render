@@ -16,6 +16,7 @@ class Settings(BaseSettings):
     runtime_engine_version: str = Field(default="0.14.2")
     supported_output_formats: tuple[str, ...] = Field(default=("pdf",))
     template_registry_path: str = Field(default="templates/registry")
+    render_store_path: str = Field(default="data/render-store.sqlite3")
 
     model_config = SettingsConfigDict(
         env_prefix="LOTUS_RENDER_",

@@ -28,6 +28,18 @@ def test_readiness_reports_draining_state() -> None:
             app.state.is_draining = False
 
 
+def test_readiness_reports_not_ready_when_render_store_is_unavailable() -> None:
+    with TestClient(app) as client:
+        original_store = app.state.render_store
+        del app.state.render_store
+        try:
+            response = client.get("/health/ready")
+            assert response.status_code == 503
+            assert response.json()["status"] == "not_ready"
+        finally:
+            app.state.render_store = original_store
+
+
 def test_metadata_endpoint_reports_foundation_posture() -> None:
     with TestClient(app) as client:
         response = client.get("/metadata")

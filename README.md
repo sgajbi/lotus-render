@@ -43,8 +43,8 @@ docker compose up --build
 
 ## Current Slice
 
-Slice 4 now adds real Typst rendering and bounded-determinism proof on top of the earlier service
-and registry slices:
+Slice 5 now adds the first governed internal render API on top of the earlier service, registry,
+and Typst proof slices:
 
 - versioned `RenderPackage` contract with strict validation
 - source-controlled template manifests under `templates/registry/`
@@ -57,4 +57,22 @@ and registry slices:
   from the same controlled runtime envelope
 - bounded-determinism fingerprinting that normalizes volatile PDF metadata while preserving raw
   artifact hashing truth
-- `lotus-report` submission stays in a later RFC-0102 slice
+- sqlite-backed governed render job store at `data/render-store.sqlite3` by default
+- internal render API surface:
+  - `POST /renders`
+  - `GET /renders/{render_job_id}`
+  - `GET /renders/{render_job_id}/artifact-metadata`
+- idempotent render-job semantics: same `render_job_id` plus same package returns prior truth;
+  same `render_job_id` plus different package returns `409 render_job_conflict`
+- `/health/ready` now reflects both runtime posture and render-store availability
+
+## Internal Render API
+
+Use `POST /renders` only after upstream report data is already immutable and supportable. The
+endpoint accepts a complete `RenderPackage`, validates it against the governed template registry,
+executes the synchronous first-wave Typst render path, and returns render truth plus inline
+`artifact_base64` on first successful submission.
+
+Use `GET /renders/{render_job_id}` to read support-safe render-job posture without rerunning
+anything. Use `GET /renders/{render_job_id}/artifact-metadata` when callers need artifact hash,
+size, MIME type, and determinism posture without archive semantics.

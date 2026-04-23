@@ -22,10 +22,17 @@ class RenderFoundationService:
     def __init__(self, settings: Settings) -> None:
         self._settings = settings
 
-    def readiness_status(self, *, is_draining: bool) -> tuple[int, dict[str, str]]:
+    def readiness_status(
+        self,
+        *,
+        is_draining: bool,
+        render_store_ready: bool,
+    ) -> tuple[int, dict[str, str]]:
         if is_draining:
             return 503, {"status": "draining"}
         if not self._settings.supported_output_formats:
+            return 503, {"status": "not_ready"}
+        if not render_store_ready:
             return 503, {"status": "not_ready"}
         return 200, {"status": "ready"}
 

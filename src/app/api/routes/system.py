@@ -43,8 +43,14 @@ async def health_live() -> HealthResponse:
 )
 async def health_ready(request: Request, response: Response) -> HealthResponse:
     service: RenderFoundationService = request.app.state.render_foundation
+    render_store_ready = True
+    try:
+        request.app.state.render_store.check_ready()
+    except (AttributeError, RuntimeError):
+        render_store_ready = False
     status_code, payload = service.readiness_status(
-        is_draining=bool(getattr(request.app.state, "is_draining", False))
+        is_draining=bool(getattr(request.app.state, "is_draining", False)),
+        render_store_ready=render_store_ready,
     )
     response.status_code = status_code
     return HealthResponse(**payload)

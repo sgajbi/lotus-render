@@ -113,7 +113,10 @@ def test_render_foundation_metadata_exposes_supported_statuses() -> None:
 def test_render_foundation_reports_not_ready_without_supported_formats() -> None:
     service = RenderFoundationService(Settings(supported_output_formats=()))
 
-    status_code, payload = service.readiness_status(is_draining=False)
+    status_code, payload = service.readiness_status(
+        is_draining=False,
+        render_store_ready=True,
+    )
 
     assert status_code == 503
     assert payload["status"] == "not_ready"

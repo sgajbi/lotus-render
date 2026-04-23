@@ -15,34 +15,39 @@ operator workflows beyond the render-stage contract defined by RFC-0102.
 
 ## Current-State Summary
 
-`lotus-render` now implements RFC-0102 through Slice 4. The repository contains the dedicated
+`lotus-render` now implements RFC-0102 through Slice 5. The repository contains the dedicated
 render-service runtime baseline, explicit render-attempt domain models, structured request logging,
 support-safe system metadata, versioned render package validation, source-controlled template
-registry enforcement, and the first real Typst PDF render path for portfolio review.
+registry enforcement, the first real Typst PDF render path for portfolio review, and the first
+store-backed internal render API.
 
 ## Architecture And Module Map
 
 Current repository baseline:
 
 1. `src/app/main.py`: FastAPI application factory and lifespan wiring.
-2. `src/app/api/routes/`: system routes and future render APIs.
+2. `src/app/api/routes/`: system routes and internal render APIs.
 3. `src/app/contracts/`: OpenAPI-facing response models and render package contracts.
 4. `src/app/core/`: settings and logging configuration.
 5. `src/app/domain/render_attempts/`: render-attempt lifecycle models.
 6. `src/app/domain/templates/`: template manifest models and registry compatibility rules.
-7. `src/app/services/`: foundation services, package intake, and future render orchestration.
+7. `src/app/services/`: foundation services, package intake, render submission, and Typst
+   orchestration.
 8. `src/app/middleware/`: correlation and structured request logging middleware.
 9. `templates/registry/`: PR-governed template source truth.
 10. `templates/typst/`: governed Typst template source.
 11. `tests/golden/`: golden render package and artifact proof inputs.
 12. `tests/unit`, `tests/integration`, `tests/e2e`: test pyramid baseline.
+13. `src/app/render_store.py`: sqlite-backed governed render job state for the first-wave
+    synchronous render lifecycle.
 
 ## Runtime And Integration Boundaries
 
 1. Runtime model: standalone backend service with its own Docker image and independently scalable
    runtime.
-2. Upstream dependencies: `lotus-report` submits complete render packages; future platform ingress
-   and service-to-service auth flow through Lotus platform conventions.
+2. Upstream dependencies: `lotus-report` submits complete render packages through the internal
+   render API; future platform ingress and service-to-service auth flow through Lotus platform
+   conventions.
 3. Downstream consumers: `lotus-report` first; `lotus-gateway` only if support-safe operator
    surfaces are later added through governed APIs.
 4. Boundary rules:
@@ -63,6 +68,7 @@ Current repository baseline:
 5. Unit tests: `make test-unit`
 6. Integration tests: `make test-integration`
 7. CI parity: `make check` and `make ci`
+8. Local runtime: `uvicorn app.main:app --reload --port 8310`
 
 ## Validation And CI Expectations
 
@@ -88,7 +94,8 @@ Primary governing artifacts:
 
 ## Known Constraints And Implementation Notes
 
-1. The current repository is through Slice 4. `lotus-report` submission remains a later RFC-0102
+1. The current repository is through Slice 5. The internal `POST /renders` plus status and
+   artifact-metadata reads now exist, but upstream `lotus-report` orchestration is still the next
    slice.
 2. Keep render/data/archive boundaries strict from the start. Do not let `lotus-render` become a
    business-data authority.
@@ -98,6 +105,8 @@ Primary governing artifacts:
    hashes remain truthful, while bounded-determinism proof normalizes volatile PDF metadata fields.
 5. The committed first-wave golden PDF is minted from the governed container-first Typst envelope so
    CI, local proof, and the future service image stay aligned.
+6. `/health/ready` should remain truthful for both runtime posture and render-store availability,
+   because the first-wave render APIs depend on persisted render-job state.
 
 ## Context Maintenance Rule
 
