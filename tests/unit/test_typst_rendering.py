@@ -87,10 +87,16 @@ def test_typst_render_service_builds_richer_portfolio_review_context() -> None:
     service = _build_service()
     template_context = service._build_portfolio_review_context(_load_golden_package())
 
+    assert "#cover-page()" in template_context["REPORT_SECTIONS"]
+    assert "#appendix-page()" in template_context["REPORT_SECTIONS"]
     assert template_context["REVIEW_PERIOD_LABEL"] == "YTD"
     assert template_context["TOP_CONTRIBUTOR_NAME"] == "Global Equity Sleeve"
     assert "lotus-core, lotus-performance, lotus-risk" in template_context["SOURCE_SERVICES"]
     assert "#period-row(" in template_context["PERFORMANCE_PERIOD_ROWS"]
+    assert "performance-summary-cell(" in template_context["PERFORMANCE_SUMMARY_TABLE"]
+    assert "performance-chart-row(" in template_context["PERFORMANCE_MONTHLY_CHART_ROWS"]
+    assert "#performance-chart-row(" in template_context["PERFORMANCE_ANNUAL_CHART_ROWS"]
+    assert "#performance-detail-row(" in template_context["PERFORMANCE_MONTHLY_TABLE_ROWS"]
     assert "#performance-bar-row(" in template_context["PERFORMANCE_BAR_ROWS"]
     assert "#holding-row(" in template_context["HOLDING_ROWS"]
     assert "#allocation-row(" in template_context["HOLDING_BAR_ROWS"]
@@ -104,9 +110,47 @@ def test_typst_render_service_builds_richer_portfolio_review_context() -> None:
     assert "USD" in template_context["SUPPLEMENTAL_ALLOCATION_ROWS"]
     assert "EQ-1" in template_context["DENSE_POSITION_ROWS"]
     assert "US0000000001" in template_context["DENSE_POSITION_ROWS"]
+    assert "Local 9140740.73" in template_context["DENSE_POSITION_ROWS"]
+    assert "Avg wt 55.00%" in template_context["DENSE_POSITION_ROWS"]
     assert "TXN-20260109-BUY-001" in template_context["DENSE_TRANSACTION_ROWS"]
     assert "INST-EQ-1" in template_context["DENSE_TRANSACTION_ROWS"]
     assert "#review-note(" in template_context["OBSERVATION_NOTES"]
+
+
+def test_typst_render_service_builds_selected_section_sequence() -> None:
+    service = _build_service()
+    render_package = _load_golden_package().model_copy(
+        update={
+            "render_context": {
+                "timezone": "Asia/Singapore",
+                "sections": ["performance", "asset-allocation", "transactions"],
+            }
+        }
+    )
+
+    template_context = service._build_portfolio_review_context(render_package)
+
+    assert template_context["REPORT_SECTIONS"] == (
+        "#performance-page()\n#pagebreak()\n#allocation-page()\n#pagebreak()\n#transactions-page()"
+    )
+
+
+def test_typst_render_service_renders_selected_sections_only() -> None:
+    service = _build_service()
+    render_package = _load_golden_package().model_copy(
+        update={
+            "render_context": {
+                "timezone": "Asia/Singapore",
+                "sections": ["performance"],
+            }
+        }
+    )
+
+    result = service.render(render_package)
+
+    assert result.artifact_bytes.startswith(b"%PDF")
+    assert result.diagnostic.output_size_bytes == len(result.artifact_bytes)
+    assert len(result.artifact_bytes) < len((GOLDEN_ROOT / "expected.pdf").read_bytes())
 
 
 def test_typst_render_service_helper_fallbacks_cover_sparse_structures() -> None:
@@ -123,6 +167,13 @@ def test_typst_render_service_helper_fallbacks_cover_sparse_structures() -> None
         [123]
     )
     assert "No governed performance bars available." in service._render_performance_bar_rows("bad")
+    assert "No governed performance summary available." in service._render_performance_summary_table(
+        "bad"
+    )
+    assert "No performance history available." in service._render_performance_chart_rows("bad")
+    assert "No monthly performance detail available." in service._render_performance_detail_rows(
+        "bad"
+    )
     assert "No governed holdings available." in service._render_holding_rows("bad")
     assert "No governed holdings available." in service._render_holding_rows([123])
     assert "No governed allocation rows available." in service._render_holding_bar_rows("bad")

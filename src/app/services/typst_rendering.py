@@ -21,6 +21,28 @@ from app.services.render_intake import RenderIntakeService
 DETERMINISM_MODE = "bounded_runtime_envelope"
 DOCKER_TYPST_IMAGE = "ghcr.io/typst/typst:0.14.2"
 PDF_MIME_TYPE = "application/pdf"
+PORTFOLIO_REVIEW_SECTION_CALLS = {
+    "cover": "cover-page()",
+    "contents": "contents-page()",
+    "overview": "scope-page()",
+    "scope": "scope-page()",
+    "performance": "performance-page()",
+    "allocation": "allocation-page()",
+    "positions": "observations-page()",
+    "holdings": "observations-page()",
+    "transactions": "transactions-page()",
+    "appendix": "appendix-page()",
+}
+DEFAULT_PORTFOLIO_REVIEW_SECTIONS = (
+    "cover",
+    "contents",
+    "overview",
+    "performance",
+    "allocation",
+    "positions",
+    "transactions",
+    "appendix",
+)
 
 
 class TypstRenderService:
@@ -154,6 +176,7 @@ class TypstRenderService:
         )
 
         return {
+            "REPORT_SECTIONS": self._render_report_sections(render_context.get("sections")),
             "CLIENT_NAME": self._escape_typst_text(str(report_data["client_name"])),
             "PORTFOLIO_NAME": self._escape_typst_text(str(report_data["portfolio_name"])),
             "AS_OF_DATE": self._escape_typst_text(str(report_data["as_of_date"])),
@@ -230,6 +253,19 @@ class TypstRenderService:
             "PERFORMANCE_PERIOD_ROWS": self._render_performance_period_rows(
                 report_data.get("performance_periods")
             ),
+            "PERFORMANCE_SUMMARY_TABLE": self._render_performance_summary_table(
+                report_data.get("performance_summary_table")
+            ),
+            "PERFORMANCE_MONTHLY_CHART_ROWS": self._render_performance_chart_rows(
+                report_data.get("performance_monthly_history"),
+                two_column=True,
+            ),
+            "PERFORMANCE_ANNUAL_CHART_ROWS": self._render_performance_chart_rows(
+                report_data.get("performance_annual_history")
+            ),
+            "PERFORMANCE_MONTHLY_TABLE_ROWS": self._render_performance_detail_rows(
+                report_data.get("performance_monthly_history")
+            ),
             "PERFORMANCE_BAR_ROWS": self._render_performance_bar_rows(
                 report_data.get("performance_periods")
             ),
@@ -241,7 +277,7 @@ class TypstRenderService:
             "SUPPLEMENTAL_ALLOCATION_TITLE": self._escape_typst_text(supplemental_allocation_title),
             "SUPPLEMENTAL_ALLOCATION_ROWS": supplemental_allocation_rows,
             "DENSE_POSITION_ROWS": self._render_dense_position_rows(
-                report_data.get("top_holdings")
+                report_data.get("positions") or report_data.get("top_holdings")
             ),
             "TRANSACTION_PERIOD_LABEL": self._escape_typst_text(
                 str(report_data.get("transaction_period_label", "Transaction activity"))
@@ -295,6 +331,39 @@ class TypstRenderService:
             template_file.write_text(rendered_text, encoding="utf-8")
 
         return workspace_template_directory / template_root.name
+
+    def _render_report_sections(self, requested_sections: object) -> str:
+        section_keys = self._requested_section_keys(requested_sections)
+        rendered = [f"#{PORTFOLIO_REVIEW_SECTION_CALLS[key]}" for key in section_keys]
+        return "\n#pagebreak()\n".join(rendered)
+
+    def _requested_section_keys(self, requested_sections: object) -> list[str]:
+        if not isinstance(requested_sections, Sequence) or isinstance(
+            requested_sections, (str, bytes, bytearray)
+        ):
+            return list(DEFAULT_PORTFOLIO_REVIEW_SECTIONS)
+
+        normalized: list[str] = []
+        seen: set[str] = set()
+        for item in requested_sections:
+            key = str(item).strip().lower().replace("_", "-")
+            key = {
+                "detailed-positions": "positions",
+                "holdings-appendix": "positions",
+                "asset-allocation": "allocation",
+                "scope-of-analysis": "overview",
+                "performance-review": "performance",
+                "transaction-list": "transactions",
+                "additional-information": "appendix",
+            }.get(key, key)
+            key = key.replace("-", "_")
+            if key == "detailed_positions":
+                key = "positions"
+            if key not in PORTFOLIO_REVIEW_SECTION_CALLS or key in seen:
+                continue
+            normalized.append(key)
+            seen.add(key)
+        return normalized or list(DEFAULT_PORTFOLIO_REVIEW_SECTIONS)
 
     def _build_compile_command(
         self,
@@ -419,6 +488,100 @@ class TypstRenderService:
             return empty_message
         return "\n#v(8pt)\n".join(rendered)
 
+    def _render_performance_summary_table(self, rows: object) -> str:
+        empty_message = (
+            "#text(size: 9pt, fill: rgb(104, 118, 132))[No governed performance summary available.]"
+        )
+        if not isinstance(rows, Sequence) or isinstance(rows, (str, bytes, bytearray)):
+            return empty_message
+        rendered: list[str] = []
+        for item in rows:
+            if not isinstance(item, Mapping):
+                continue
+            rendered.append(
+                'performance-summary-cell("'
+                + self._escape_typst_text(str(item.get("label", "Period")))
+                + '", "'
+                + self._escape_typst_text(str(item.get("net_return_pct", "Not available")))
+                + '", "'
+                + self._escape_typst_text(str(item.get("annualized_return_pct", "n/a")))
+                + '")'
+            )
+        if not rendered:
+            return empty_message
+        return (
+            "#grid(columns: (1fr, 1fr, 1fr, 1fr, 1fr), column-gutter: 7pt,\n"
+            + ",\n".join(rendered)
+            + "\n)"
+        )
+
+    def _render_performance_chart_rows(self, rows: object, *, two_column: bool = False) -> str:
+        empty_message = (
+            "#text(size: 8pt, fill: rgb(104, 118, 132))[No performance history available.]"
+        )
+        if not isinstance(rows, Sequence) or isinstance(rows, (str, bytes, bytearray)):
+            return empty_message
+        rendered: list[str] = []
+        for item in rows:
+            if not isinstance(item, Mapping):
+                continue
+            rendered.append(
+                'performance-chart-row("'
+                + self._escape_typst_text(str(item.get("period", "n/a")))
+                + '", "'
+                + self._escape_typst_text(str(item.get("twr_pct", "Not available")))
+                + '", "'
+                + self._escape_typst_text(str(item.get("cumulative_twr_pct", "Not available")))
+                + '", '
+                + self._performance_width_token(item.get("twr_pct"))
+                + ")"
+            )
+        if not rendered:
+            return empty_message
+        if two_column:
+            return (
+                "#grid(columns: (1fr, 1fr), column-gutter: 12pt, row-gutter: 1.5pt,\n"
+                + ",\n".join(rendered)
+                + "\n)"
+            )
+        rendered = [f"#{row}" for row in rendered]
+        return "\n#v(1.5pt)\n".join(rendered)
+
+    def _render_performance_detail_rows(self, rows: object) -> str:
+        empty_message = (
+            "#text(size: 8pt, fill: rgb(104, 118, 132))[No monthly performance detail available.]"
+        )
+        if not isinstance(rows, Sequence) or isinstance(rows, (str, bytes, bytearray)):
+            return empty_message
+        rendered: list[str] = []
+        for item in rows:
+            if not isinstance(item, Mapping):
+                continue
+            rendered.append(
+                '#performance-detail-row("'
+                + self._escape_typst_text(str(item.get("period", "n/a")))
+                + '", "'
+                + self._escape_typst_text(str(item.get("final_value", "Not available")))
+                + '", "'
+                + self._escape_typst_text(str(item.get("inflows", "Not available")))
+                + '", "'
+                + self._escape_typst_text(str(item.get("outflows", "Not available")))
+                + '", "'
+                + self._escape_typst_text(str(item.get("performance_value", "Not available")))
+                + '", "'
+                + self._escape_typst_text(str(item.get("twr_pct", "Not available")))
+                + '", "'
+                + self._escape_typst_text(
+                    str(item.get("cumulative_performance_value", "Not available"))
+                )
+                + '", "'
+                + self._escape_typst_text(str(item.get("cumulative_twr_pct", "Not available")))
+                + '")'
+            )
+        if not rendered:
+            return empty_message
+        return "\n#v(2pt)\n".join(rendered)
+
     def _render_holding_rows(self, holdings: object) -> str:
         if not isinstance(holdings, Sequence) or isinstance(holdings, (str, bytes, bytearray)):
             return "#text(size: 9pt, fill: rgb(104, 118, 132))[No governed holdings available.]"
@@ -478,36 +641,62 @@ class TypstRenderService:
         for item in holdings:
             if not isinstance(item, Mapping):
                 continue
-            detail_primary = (
-                f"Sec ID {item.get('security_id', 'Not available')}  |  "
-                f"ISIN {item.get('isin', 'Not available')}  |  "
-                f"Qty {item.get('quantity', 'Not available')} {item.get('currency', '')}".strip()
+            number_amount = (
+                f"{item.get('quantity', 'Not available')} {item.get('currency', '')}; "
+                f"{item.get('security_id', 'Not available')}"
             )
-            detail_secondary = (
+            description = (
+                f"{item.get('security_name', 'Unknown holding')}; "
+                f"{item.get('instrument_name', 'Not available')}; "
+                f"ISIN {item.get('isin', 'Not available')}"
+            )
+            classification = (
+                f"{item.get('rating', 'Not available')}; "
+                f"{item.get('sector', 'Not available')}; "
+                f"{item.get('country_of_risk', 'Not available')}; "
                 f"{item.get('product_type', 'Not available')}  |  "
-                f"{item.get('sector', 'Not available')}  |  "
-                f"{item.get('country_of_risk', 'Not available')}  |  "
-                f"Rating {item.get('rating', 'Not available')}  |  "
-                f"Px {item.get('market_price', 'Not available')}  |  "
-                f"Cost {item.get('cost_basis_reporting_currency', 'Not available')}"
+                f"{item.get('liquidity_tier', 'Not available')}; "
+                f"Held {item.get('held_since_date', 'Not available')}"
+            )
+            cost_basis = (
+                f"Cost {item.get('cost_basis_reporting_currency', 'Not available')}; "
+                f"Local {item.get('cost_basis_local', 'Not available')}; "
+                f"Px {item.get('market_price', 'Not available')}"
+            )
+            market_value = (
+                f"Value {item.get('market_value', 'Not available')}; "
+                f"Local {item.get('market_value_local', 'Not available')}; "
+                f"Date {item.get('position_date', 'Not available')}"
+            )
+            gain_loss = (
+                f"UPL {item.get('unrealized_pnl', 'Not available')}; "
+                f"Local {item.get('unrealized_pnl_local', 'Not available')}; "
+                f"{item.get('unrealized_pnl_pct', 'Not available')}"
+            )
+            performance = (
+                f"Contrib {item.get('ytd_contribution_pct', 'Not available')}; "
+                f"Return {item.get('ytd_total_return_pct', 'Not available')}; "
+                f"Avg wt {item.get('ytd_average_weight_pct', 'Not available')}"
             )
             rendered.append(
                 '#dense-position-row("'
                 + self._escape_typst_text(str(item.get("asset_class", "Not available")))
                 + '", "'
-                + self._escape_typst_text(str(item.get("security_name", "Unknown holding")))
+                + self._escape_typst_text(number_amount)
                 + '", "'
-                + self._escape_typst_text(detail_primary)
+                + self._escape_typst_text(description)
                 + '", "'
-                + self._escape_typst_text(detail_secondary)
+                + self._escape_typst_text(classification)
+                + '", "'
+                + self._escape_typst_text(cost_basis)
+                + '", "'
+                + self._escape_typst_text(market_value)
+                + '", "'
+                + self._escape_typst_text(gain_loss)
+                + '", "'
+                + self._escape_typst_text(performance)
                 + '", "'
                 + self._escape_typst_text(str(item.get("weight_pct", "Not available")))
-                + '", "'
-                + self._escape_typst_text(str(item.get("market_value", "Not available")))
-                + '", "'
-                + self._escape_typst_text(str(item.get("unrealized_pnl", "Not available")))
-                + '", "'
-                + self._escape_typst_text(str(item.get("ytd_contribution_pct", "Not available")))
                 + '")'
             )
         if not rendered:
@@ -625,6 +814,16 @@ class TypstRenderService:
         except ValueError:
             return "8%"
         clamped = min(max(numeric, 8.0), 100.0)
+        return f"{clamped:.2f}%"
+
+    @staticmethod
+    def _performance_width_token(value: object) -> str:
+        raw = str(value).strip().replace("%", "")
+        try:
+            numeric = abs(float(raw))
+        except ValueError:
+            return "8%"
+        clamped = min(max(numeric * 8, 8.0), 100.0)
         return f"{clamped:.2f}%"
 
     @staticmethod

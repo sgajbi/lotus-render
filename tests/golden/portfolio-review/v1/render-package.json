@@ -146,6 +146,216 @@
         "relative_return_pct": "1.20%"
       }
     ],
+    "performance_summary_table": [
+      {
+        "label": "Current month",
+        "period": "1M",
+        "net_return_pct": "0.22%",
+        "annualized_return_pct": "Not available"
+      },
+      {
+        "label": "Current quarter",
+        "period": "3M",
+        "net_return_pct": "1.72%",
+        "annualized_return_pct": "Not available"
+      },
+      {
+        "label": "Year-to-date",
+        "period": "YTD",
+        "net_return_pct": "2.95%",
+        "annualized_return_pct": "Not available"
+      },
+      {
+        "label": "Last 12 months",
+        "period": "1Y",
+        "net_return_pct": "7.08%",
+        "annualized_return_pct": "7.08%"
+      },
+      {
+        "label": "Since inception",
+        "period": "SI",
+        "net_return_pct": "29.03%",
+        "annualized_return_pct": "4.62%"
+      }
+    ],
+    "performance_monthly_history": [
+      {
+        "period": "2025-05",
+        "period_start": "2025-05-01",
+        "period_end": "2025-05-31",
+        "final_value": "15120000.00",
+        "inflows": "320000.00",
+        "outflows": "-280000.00",
+        "performance_value": "66000.00",
+        "cumulative_performance_value": "66000.00",
+        "twr_pct": "0.44%",
+        "cumulative_twr_pct": "0.44%"
+      },
+      {
+        "period": "2025-06",
+        "period_start": "2025-06-01",
+        "period_end": "2025-06-30",
+        "final_value": "15085000.00",
+        "inflows": "240000.00",
+        "outflows": "-310000.00",
+        "performance_value": "-49000.00",
+        "cumulative_performance_value": "17000.00",
+        "twr_pct": "-0.31%",
+        "cumulative_twr_pct": "0.13%"
+      },
+      {
+        "period": "2025-07",
+        "period_start": "2025-07-01",
+        "period_end": "2025-07-31",
+        "final_value": "15196000.00",
+        "inflows": "260000.00",
+        "outflows": "-250000.00",
+        "performance_value": "128371.00",
+        "cumulative_performance_value": "145371.00",
+        "twr_pct": "0.85%",
+        "cumulative_twr_pct": "0.98%"
+      },
+      {
+        "period": "2025-08",
+        "period_start": "2025-08-01",
+        "period_end": "2025-08-31",
+        "final_value": "15120000.00",
+        "inflows": "230000.00",
+        "outflows": "-275000.00",
+        "performance_value": "-65500.00",
+        "cumulative_performance_value": "79871.00",
+        "twr_pct": "-0.43%",
+        "cumulative_twr_pct": "0.55%"
+      },
+      {
+        "period": "2025-09",
+        "period_start": "2025-09-01",
+        "period_end": "2025-09-30",
+        "final_value": "15340000.00",
+        "inflows": "410000.00",
+        "outflows": "-360000.00",
+        "performance_value": "178000.00",
+        "cumulative_performance_value": "257871.00",
+        "twr_pct": "1.18%",
+        "cumulative_twr_pct": "1.74%"
+      },
+      {
+        "period": "2025-10",
+        "period_start": "2025-10-01",
+        "period_end": "2025-10-31",
+        "final_value": "15405000.00",
+        "inflows": "290000.00",
+        "outflows": "-330000.00",
+        "performance_value": "91500.00",
+        "cumulative_performance_value": "349371.00",
+        "twr_pct": "0.61%",
+        "cumulative_twr_pct": "2.36%"
+      },
+      {
+        "period": "2025-11",
+        "period_start": "2025-11-01",
+        "period_end": "2025-11-30",
+        "final_value": "15482000.00",
+        "inflows": "300000.00",
+        "outflows": "-275000.00",
+        "performance_value": "118000.00",
+        "cumulative_performance_value": "467371.00",
+        "twr_pct": "0.77%",
+        "cumulative_twr_pct": "3.15%"
+      },
+      {
+        "period": "2025-12",
+        "period_start": "2025-12-01",
+        "period_end": "2025-12-31",
+        "final_value": "15410000.00",
+        "inflows": "265000.00",
+        "outflows": "-355000.00",
+        "performance_value": "-38500.00",
+        "cumulative_performance_value": "428871.00",
+        "twr_pct": "-0.25%",
+        "cumulative_twr_pct": "2.89%"
+      },
+      {
+        "period": "2026-01",
+        "period_start": "2026-01-01",
+        "period_end": "2026-01-31",
+        "final_value": "15498000.00",
+        "inflows": "415000.00",
+        "outflows": "-390000.00",
+        "performance_value": "84135.00",
+        "cumulative_performance_value": "513006.00",
+        "twr_pct": "0.55%",
+        "cumulative_twr_pct": "3.46%"
+      },
+      {
+        "period": "2026-02",
+        "period_start": "2026-02-01",
+        "period_end": "2026-02-28",
+        "final_value": "15542000.00",
+        "inflows": "355000.00",
+        "outflows": "-390000.00",
+        "performance_value": "107000.00",
+        "cumulative_performance_value": "620006.00",
+        "twr_pct": "0.70%",
+        "cumulative_twr_pct": "4.19%"
+      },
+      {
+        "period": "2026-03",
+        "period_start": "2026-03-01",
+        "period_end": "2026-03-31",
+        "final_value": "15490000.00",
+        "inflows": "330000.00",
+        "outflows": "-415000.00",
+        "performance_value": "-73000.00",
+        "cumulative_performance_value": "547006.00",
+        "twr_pct": "-0.47%",
+        "cumulative_twr_pct": "3.70%"
+      },
+      {
+        "period": "2026-04",
+        "period_start": "2026-04-01",
+        "period_end": "2026-04-23",
+        "final_value": "15234567.89",
+        "inflows": "280000.00",
+        "outflows": "-340000.00",
+        "performance_value": "33500.00",
+        "cumulative_performance_value": "580506.00",
+        "twr_pct": "0.22%",
+        "cumulative_twr_pct": "3.93%"
+      }
+    ],
+    "performance_annual_history": [
+      {
+        "period": "2020",
+        "twr_pct": "18.40%",
+        "cumulative_twr_pct": "18.40%"
+      },
+      {
+        "period": "2021",
+        "twr_pct": "-14.20%",
+        "cumulative_twr_pct": "1.60%"
+      },
+      {
+        "period": "2022",
+        "twr_pct": "-38.40%",
+        "cumulative_twr_pct": "-37.40%"
+      },
+      {
+        "period": "2023",
+        "twr_pct": "12.80%",
+        "cumulative_twr_pct": "-29.40%"
+      },
+      {
+        "period": "2024",
+        "twr_pct": "3.70%",
+        "cumulative_twr_pct": "-26.80%"
+      },
+      {
+        "period": "2025",
+        "twr_pct": "7.08%",
+        "cumulative_twr_pct": "-21.62%"
+      }
+    ],
     "performance_highlight": {
       "largest_positive_contributor_name": "Global Equity Sleeve",
       "largest_positive_contribution_pct": "3.50%",
@@ -178,8 +388,11 @@
         "held_since_date": "2024-01-15",
         "market_price": "102.35",
         "cost_basis_reporting_currency": "8118290.51",
+        "cost_basis_local": "8118290.51",
         "market_value": "9140740.73",
+        "market_value_local": "9140740.73",
         "unrealized_pnl": "1032450.22",
+        "unrealized_pnl_local": "1032450.22",
         "unrealized_pnl_pct": "12.72%",
         "ytd_contribution_pct": "3.50%",
         "ytd_average_weight_pct": "55.00%",
@@ -203,8 +416,11 @@
         "held_since_date": "2023-09-20",
         "market_price": "101.32",
         "cost_basis_reporting_currency": "4117460.31",
+        "cost_basis_local": "4117460.31",
         "market_value": "4265680.61",
+        "market_value_local": "4265680.61",
         "unrealized_pnl": "148220.30",
+        "unrealized_pnl_local": "148220.30",
         "unrealized_pnl_pct": "3.60%",
         "ytd_contribution_pct": "0.80%",
         "ytd_average_weight_pct": "30.00%",
@@ -228,8 +444,11 @@
         "held_since_date": "2026-01-01",
         "market_price": "1.00",
         "cost_basis_reporting_currency": "250000.00",
+        "cost_basis_local": "250000.00",
         "market_value": "250000.00",
+        "market_value_local": "250000.00",
         "unrealized_pnl": "0.00",
+        "unrealized_pnl_local": "0.00",
         "unrealized_pnl_pct": "0.00%",
         "ytd_contribution_pct": "0.00%",
         "ytd_average_weight_pct": "2.00%",
