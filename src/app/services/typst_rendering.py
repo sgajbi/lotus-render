@@ -642,7 +642,7 @@ class TypstRenderService:
             if not isinstance(item, Mapping):
                 continue
             number_amount = (
-                f"{item.get('quantity', 'Not available')} {item.get('currency', '')}; "
+                f"{item.get('quantity', 'Not available')} {item.get('currency', '')};"
                 f"{item.get('security_id', 'Not available')}"
             )
             description = (
@@ -651,32 +651,31 @@ class TypstRenderService:
                 f"ISIN {item.get('isin', 'Not available')}"
             )
             classification = (
-                f"{item.get('rating', 'Not available')}; "
-                f"{item.get('sector', 'Not available')}; "
-                f"{item.get('country_of_risk', 'Not available')}; "
-                f"{item.get('product_type', 'Not available')}  |  "
-                f"{item.get('liquidity_tier', 'Not available')}; "
-                f"Held {item.get('held_since_date', 'Not available')}"
+                f"{item.get('rating', 'Not available')};"
+                f"{item.get('sector', 'Not available')};"
+                f"{item.get('product_type', 'Not available')};"
+                f"{item.get('liquidity_tier', 'Not available')}"
             )
             cost_basis = (
-                f"Cost {item.get('cost_basis_reporting_currency', 'Not available')}; "
-                f"Local {item.get('cost_basis_local', 'Not available')}; "
-                f"Px {item.get('market_price', 'Not available')}"
+                f"{item.get('market_price', 'Not available')};"
+                f"{item.get('currency', 'Not available')};"
+                f"{item.get('cost_basis_local', 'Not available')};"
+                f"{item.get('held_since_date', 'Not available')}"
             )
             market_value = (
-                f"Value {item.get('market_value', 'Not available')}; "
-                f"Local {item.get('market_value_local', 'Not available')}; "
-                f"Date {item.get('position_date', 'Not available')}"
+                f"{item.get('market_price', 'Not available')};"
+                f"{item.get('currency', 'Not available')};"
+                f"{item.get('position_date', 'Not available')};"
+                f"{item.get('ytd_total_return_pct', 'Not available')}"
             )
             gain_loss = (
-                f"UPL {item.get('unrealized_pnl', 'Not available')}; "
-                f"Local {item.get('unrealized_pnl_local', 'Not available')}; "
-                f"{item.get('unrealized_pnl_pct', 'Not available')}"
+                f"{item.get('unrealized_pnl_pct', 'Not available')};"
+                f"{item.get('currency', 'Not available')};"
+                f"{item.get('unrealized_pnl', 'Not available')}"
             )
             performance = (
-                f"Contrib {item.get('ytd_contribution_pct', 'Not available')}; "
-                f"Return {item.get('ytd_total_return_pct', 'Not available')}; "
-                f"Avg wt {item.get('ytd_average_weight_pct', 'Not available')}"
+                f"{item.get('market_value', 'Not available')};"
+                f"{item.get('net_interest_amount_reporting_currency', '0.00')}"
             )
             rendered.append(
                 '#dense-position-row("'
@@ -715,23 +714,43 @@ class TypstRenderService:
             detail_primary = (
                 f"{item.get('display_label', 'Transaction')}  |  "
                 f"{item.get('transaction_type', 'Not available')}  |  "
-                f"Cat {item.get('transaction_category', 'Not available')}  |  "
-                f"Asset {item.get('asset_class', 'Not available')}"
+                f"Category {item.get('transaction_category', 'Not available')}  |  "
+                f"Asset class {item.get('asset_class', 'Not available')}"
             )
             detail_secondary = (
-                f"TXN {item.get('transaction_id', 'Not available')}  |  "
-                f"Sec {item.get('security_id', 'Not available')}  |  "
-                f"Instr {item.get('instrument_id', 'Not available')}  |  "
-                f"Gross {item.get('gross_amount_reporting_currency', 'Not available')}  |  "
-                "Net income/tax "
-                f"{item.get('income_or_tax_reporting_currency', 'Not available')}  |  "
-                f"Cash leg {item.get('cash_leg', 'Not available')}"
+                f"Reference {item.get('transaction_id', 'Not available')}  |  "
+                f"Security {item.get('security_id', 'Not available')}  |  "
+                f"Instrument {item.get('instrument_id', 'Not available')}"
+            )
+            trade_date = (
+                f"{item.get('trade_date', 'Not available')};"
+                f"{item.get('trade_date', 'Not available')}"
+            )
+            booking_text = (
+                f"{item.get('booking_text', 'Not available')};"
+                f"{item.get('display_label', 'Not available')}"
+            )
+            price = (
+                f"{item.get('price', 'Not available')};"
+                f"{item.get('reporting_currency', '')};"
+                f"{item.get('gross_amount_reporting_currency', 'Not available')};"
+                f"{item.get('place_of_execution', '')}"
+            )
+            gain = (
+                f"{item.get('price', 'Not available')};"
+                f"{item.get('reporting_currency', '')};"
+                f"{item.get('gain_loss', 'Not available')}"
+            )
+            value = (
+                f"{item.get('transaction_value', 'Not available')};"
+                f"{item.get('net_interest_amount_reporting_currency', 'Not available')};"
+                f"{item.get('transaction_value', 'Not available')}"
             )
             rendered.append(
                 '#dense-transaction-row("'
-                + self._escape_typst_text(str(item.get("trade_date", "Not available")))
+                + self._escape_typst_text(trade_date)
                 + '", "'
-                + self._escape_typst_text(str(item.get("booking_text", "Not available")))
+                + self._escape_typst_text(booking_text)
                 + '", "'
                 + self._escape_typst_text(str(item.get("amount", "Not available")))
                 + '", "'
@@ -741,11 +760,11 @@ class TypstRenderService:
                 + '", "'
                 + self._escape_typst_text(detail_secondary)
                 + '", "'
-                + self._escape_typst_text(str(item.get("price", "Not available")))
+                + self._escape_typst_text(price)
                 + '", "'
-                + self._escape_typst_text(str(item.get("gain_loss", "Not available")))
+                + self._escape_typst_text(gain)
                 + '", "'
-                + self._escape_typst_text(str(item.get("transaction_value", "Not available")))
+                + self._escape_typst_text(value)
                 + '")'
             )
         if not rendered:

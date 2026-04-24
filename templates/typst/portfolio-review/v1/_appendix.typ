@@ -1,15 +1,15 @@
 #import "_theme.typ": accent, ink, rule, slate, soft-rule
 #import "_appendix_text.typ": *
 
-#let appendix-small = 6.65pt
-#let appendix-body = 7.15pt
-#let appendix-caption = 6.4pt
+#let appendix-small = 6.95pt
+#let appendix-body = 7.35pt
+#let appendix-caption = 6.65pt
 
 #let appendix-title() = [
   #grid(
     columns: (1.08fr, 0.72fr, 0.46fr),
     column-gutter: 22pt,
-    [#text(size: 19.5pt, weight: 300, fill: ink)[Abbreviations and explanations]],
+    [#text(size: 20.5pt, weight: 300, fill: ink)[Abbreviations and explanations]],
     [
       #set par(leading: 0.8em)
       #text(size: 6.8pt, fill: slate)[Statement of assets as of ${AS_OF_DATE}]
@@ -31,7 +31,7 @@
       ]
     ],
   )
-  #v(20pt)
+  #v(15pt)
 ]
 
 #let appendix-section-title(title) = [
@@ -151,6 +151,27 @@
   )
 ]
 
+#let risk-levels-a-to-d() = [
+  #grid(
+    columns: (1fr, 1fr),
+    row-gutter: 11pt,
+    column-gutter: 34pt,
+    [#risk-box("A", rgb("#766f70"), "\"Very low\" / Fixed Income", risk_note_a, "4.5%   (4.5%)", "4%   (3.5%)", "-15%   (-10%)", "3 years   (2 years)")],
+    [#risk-box("B", rgb("#d9b69f"), "\"Low\" / Income", risk_note_b, "5.5%   (5%)", "5.5%   (5%)", "-15%   (-15%)", "3 years   (2 years)")],
+    [#risk-box("C", rgb("#bcb8b1"), "\"Moderate\" / Yield", risk_note_c, "6%   (6%)", "7%   (7%)", "-25%   (-25%)", "3 years   (3 years)")],
+    [#risk-box("D", rgb("#f0bb42"), "\"Medium\" / Balanced", risk_note_d, "7%   (6.5%)", "9.5%   (9%)", "-35%   (-35%)", "4 years   (4 years)")],
+  )
+]
+
+#let risk-levels-e-to-f() = [
+  #grid(
+    columns: (1fr, 1fr),
+    column-gutter: 34pt,
+    [#risk-box("E", rgb("#ea8578"), "\"Above average\" / Growth", risk_note_e, "8%   (7.5%)", "12%   (12%)", "-45%   (-45%)", "4 years   (4 years)")],
+    [#risk-box("F", rgb("#b74d63"), "\"High\" / Equities", risk_note_f, "9%   (8.5%)", "15.5%   (15%)", "-55%   (-55%)", "6 years   (6 years)")],
+  )
+]
+
 #let appendix-page-start() = [
   #appendix-title()
 ]
@@ -182,29 +203,18 @@
   #v(9pt)
   #appendix-section-title("Abbreviations")
   #abbreviation-grid()
+  #v(14pt)
+  #appendix-section-title("Overview of available risk tolerance levels in USD, valid from 29.12.2023 (previous values, valid from 30.12.2022)")
+  #risk-levels-a-to-d()
 ]
 
 #let appendix-risk-scale() = [
   #pagebreak()
   #appendix-page-start()
   #appendix-section-title("Overview of available risk tolerance levels in USD, valid from 29.12.2023 (previous values, valid from 30.12.2022)")
-  #grid(
-    columns: (1fr, 1fr),
-    row-gutter: 13pt,
-    column-gutter: 34pt,
-    [#risk-box("A", rgb("#766f70"), "\"Very low\" / Fixed Income", risk_note_a, "4.5%   (4.5%)", "4%   (3.5%)", "-15%   (-10%)", "3 years   (2 years)")],
-    [#risk-box("B", rgb("#d9b69f"), "\"Low\" / Income", risk_note_b, "5.5%   (5%)", "5.5%   (5%)", "-15%   (-15%)", "3 years   (2 years)")],
-    [#risk-box("C", rgb("#bcb8b1"), "\"Moderate\" / Yield", risk_note_c, "6%   (6%)", "7%   (7%)", "-25%   (-25%)", "3 years   (3 years)")],
-    [#risk-box("D", rgb("#f0bb42"), "\"Medium\" / Balanced", risk_note_d, "7%   (6.5%)", "9.5%   (9%)", "-35%   (-35%)", "4 years   (4 years)")],
-    [#risk-box("E", rgb("#ea8578"), "\"Above average\" / Growth", risk_note_e, "8%   (7.5%)", "12%   (12%)", "-45%   (-45%)", "4 years   (4 years)")],
-    [#risk-box("F", rgb("#b74d63"), "\"High\" / Equities", risk_note_f, "9%   (8.5%)", "15.5%   (15%)", "-55%   (-55%)", "6 years   (6 years)")],
-  )
-]
-
-#let appendix-risk-and-allocation() = [
-  #pagebreak()
-  #appendix-page-start()
-  #appendix-section-title("Risk tolerance")
+  #risk-levels-e-to-f()
+  #v(16pt)
+  #appendix-section-title("Risk tolerance and methodology")
   #appendix-columns(
     [
       #appendix-def("Risk tolerance", risk_tolerance)
@@ -222,6 +232,11 @@
       #appendix-def("Risk information", risk_information)
     ],
   )
+]
+
+#let appendix-risk-and-allocation() = [
+  #pagebreak()
+  #appendix-page-start()
   #appendix-section-title("Asset allocation")
   #appendix-columns(
     [

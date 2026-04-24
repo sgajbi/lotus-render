@@ -110,10 +110,18 @@ def test_typst_render_service_builds_richer_portfolio_review_context() -> None:
     assert "USD" in template_context["SUPPLEMENTAL_ALLOCATION_ROWS"]
     assert "EQ-1" in template_context["DENSE_POSITION_ROWS"]
     assert "US0000000001" in template_context["DENSE_POSITION_ROWS"]
-    assert "Local 9140740.73" in template_context["DENSE_POSITION_ROWS"]
-    assert "Avg wt 55.00%" in template_context["DENSE_POSITION_ROWS"]
+    assert "102.35;USD;8118290.51;2024-01-15" in template_context["DENSE_POSITION_ROWS"]
+    assert "9140740.73;0.00" in template_context["DENSE_POSITION_ROWS"]
+    assert "Cost value" not in template_context["DENSE_POSITION_ROWS"]
+    assert "Average weight" not in template_context["DENSE_POSITION_ROWS"]
     assert "TXN-20260109-BUY-001" in template_context["DENSE_TRANSACTION_ROWS"]
     assert "INST-EQ-1" in template_context["DENSE_TRANSACTION_ROWS"]
+    assert "Reference TXN-20260109-BUY-001" in template_context["DENSE_TRANSACTION_ROWS"]
+    assert "Instrument INST-EQ-1" in template_context["DENSE_TRANSACTION_ROWS"]
+    assert "09.01.2026;09.01.2026" in template_context["DENSE_TRANSACTION_ROWS"]
+    assert "NAV 102.35;;450000.00;" in template_context[
+        "DENSE_TRANSACTION_ROWS"
+    ]
     assert "#review-note(" in template_context["OBSERVATION_NOTES"]
 
 

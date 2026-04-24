@@ -1,5 +1,5 @@
-#import "_theme.typ": accent, small-caps, soft-rule
-#import "_components.typ": dense-transaction-row, page-header
+#import "_theme.typ": accent, soft-rule
+#import "_components.typ": dense-transaction-row, page-header, stacked-table-label, table-label
 
 #let transactions-page() = [
   #page-header("Transaction list")
@@ -9,15 +9,15 @@
   #align(right)[#text(size: 8.5pt, fill: rgb("#66798d"))[Valued in ${CURRENCY}]]
   #v(6pt)
   #grid(
-    columns: (0.85fr, 0.95fr, 0.9fr, 2.2fr, 0.95fr, 0.9fr, 0.95fr),
+    columns: (0.78fr, 0.82fr, 0.88fr, 2.3fr, 0.95fr, 0.9fr, 0.95fr),
     column-gutter: 8pt,
-    [#small-caps("Trade date")],
-    [#small-caps("Booking text")],
-    [#align(right)[#small-caps("Number/Amount")]],
-    [#small-caps("Description")],
-    [#align(right)[#small-caps("Price")]],
-    [#align(right)[#small-caps("Gain/Loss")]],
-    [#align(right)[#small-caps("Transaction value")]],
+    [#stacked-table-label(("Trade date", "Value date"))],
+    [#stacked-table-label(("Booking text", "Brokerage"))],
+    [#stacked-table-label(("Number/Amount", "Tax", "Account"), placement: right)],
+    [#stacked-table-label(("Description", "Custody account", "Account"))],
+    [#stacked-table-label(("Purchase price", "Exchange rate", "Cost value", "Place of execution"), placement: right)],
+    [#stacked-table-label(("Transaction price", "Exchange rate", "Realized P/L"), placement: right)],
+    [#stacked-table-label(("Transaction value", "Accrued interest", "Settlement amount"), placement: right)],
   )
   #v(3pt)
   #soft-rule()

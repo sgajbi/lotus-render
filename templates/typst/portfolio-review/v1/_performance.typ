@@ -1,5 +1,5 @@
-#import "_theme.typ": accent, section-subtitle, section-title, small-caps, soft-rule
-#import "_components.typ": page-header, performance-chart-row, performance-detail-row, performance-summary-cell
+#import "_theme.typ": accent, section-subtitle, section-title, soft-rule
+#import "_components.typ": page-header, performance-chart-row, performance-detail-row, performance-summary-cell, table-label
 
 #let performance-page() = [
   #page-header("Performance")
@@ -22,10 +22,10 @@
         radius: 6pt,
       )[
         #grid(columns: (34pt, 1fr, 42pt, 42pt), column-gutter: 7pt,
-          [#small-caps("Month")],
-          [#small-caps("Performance")],
-          [#align(right)[#small-caps("TWR")]],
-          [#align(right)[#small-caps("Cum.")]],
+          [#table-label("Month")],
+          [#table-label("Performance")],
+          [#table-label("TWR", placement: right)],
+          [#table-label("Cum.", placement: right)],
         )
         #v(5pt)
         #soft-rule()
@@ -43,10 +43,10 @@
         radius: 6pt,
       )[
         #grid(columns: (34pt, 1fr, 42pt, 42pt), column-gutter: 7pt,
-          [#small-caps("Year")],
-          [#small-caps("Performance")],
-          [#align(right)[#small-caps("TWR")]],
-          [#align(right)[#small-caps("Cum.")]],
+          [#table-label("Year")],
+          [#table-label("Performance")],
+          [#table-label("TWR", placement: right)],
+          [#table-label("Cum.", placement: right)],
         )
         #v(5pt)
         #soft-rule()
@@ -66,14 +66,14 @@
   #grid(
     columns: (0.72fr, 1fr, 1fr, 1fr, 1fr, 0.7fr, 1fr, 0.7fr),
     column-gutter: 6pt,
-    [#small-caps("Period")],
-    [#align(right)[#small-caps("Final value")]],
-    [#align(right)[#small-caps("Inflows")]],
-    [#align(right)[#small-caps("Outflows")]],
-    [#align(right)[#small-caps("Value")]],
-    [#align(right)[#small-caps("TWR")]],
-    [#align(right)[#small-caps("Cumulative")]],
-    [#align(right)[#small-caps("TWR")]],
+    [#table-label("Period")],
+    [#table-label("Final value", placement: right)],
+    [#table-label("Inflows", placement: right)],
+    [#table-label("Outflows", placement: right)],
+    [#table-label("Value", placement: right)],
+    [#table-label("TWR", placement: right)],
+    [#table-label("Cumulative", placement: right)],
+    [#table-label("TWR", placement: right)],
   )
   #v(5pt)
   #soft-rule()

@@ -90,3 +90,7 @@ Supported section keys:
 Common aliases such as `asset-allocation`, `detailed-positions`, `transaction-list`, and
 `additional-information` are normalized by the renderer. Unknown section keys are ignored; if no
 valid section remains, the renderer falls back to the full report.
+
+The maintainable design-system note for the Typst implementation is authored in
+`docs/portfolio-review-typst-design-system.md`. It records the layout rhythm, typography scale,
+component model, rendering command, and focused validation gate used for this template.

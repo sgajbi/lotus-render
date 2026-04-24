@@ -68,6 +68,24 @@
   #body-strong(value)
 ]
 
+#let table-label(value, placement: left) = align(placement)[#small-caps(value)]
+
+#let stacked-table-label(values, placement: left) = align(placement)[
+  #set par(leading: 0.82em)
+  #for value in values [
+    #small-caps(value)
+    #linebreak()
+  ]
+]
+
+#let stacked-cell(values, placement: right, size: 7.25pt, fill: slate, weight: 400) = align(placement)[
+  #set par(leading: 0.86em)
+  #for value in values.split(";") [
+    #text(size: size, weight: weight, fill: fill)[#value]
+    #linebreak()
+  ]
+]
+
 #let review-note(body) = block(
   inset: 12pt,
   fill: white,
@@ -218,23 +236,23 @@
 
 #let dense-position-row(category, number_amount, description, classification, cost_basis, market_value, gain_loss, performance, weight) = [
   #grid(
-    columns: (0.85fr, 1.9fr, 1.1fr, 1.05fr, 1.05fr, 1.05fr, 0.95fr, 0.52fr),
+    columns: (0.85fr, 1.9fr, 1.05fr, 1.02fr, 1.02fr, 1.02fr, 0.95fr, 0.52fr),
     column-gutter: 7pt,
     [
       #text(size: 7.5pt, fill: slate)[#category]
       #linebreak()
-      #text(size: 7.15pt, fill: ink)[#number_amount]
+      #stacked-cell(number_amount, placement: left, size: 7.15pt, fill: ink)
     ],
     [
       #text(size: 8.1pt, fill: ink)[#description]
       #linebreak()
       #text(size: 7pt, fill: slate)[Sustainability / instrument details]
     ],
-    [#align(right)[#text(size: 7.35pt, fill: slate)[#classification]]],
-    [#align(right)[#text(size: 7.35pt, fill: ink)[#cost_basis]]],
-    [#align(right)[#text(size: 7.35pt, fill: ink)[#market_value]]],
-    [#align(right)[#text(size: 7.35pt, fill: slate)[#gain_loss]]],
-    [#align(right)[#text(size: 7.35pt, weight: 500, fill: accent)[#performance]]],
+    [#stacked-cell(classification)],
+    [#stacked-cell(cost_basis, fill: ink)],
+    [#stacked-cell(market_value, fill: ink)],
+    [#stacked-cell(gain_loss)],
+    [#stacked-cell(performance, fill: accent, weight: 500)],
     [#align(right)[#text(size: 7.35pt, fill: ink)[#weight]]],
   )
   #v(4.5pt)
@@ -243,29 +261,25 @@
 
 #let dense-transaction-row(trade_date, booking_text, amount, description, detail_primary, detail_secondary, price, gain, value) = [
   #grid(
-    columns: (0.85fr, 0.95fr, 0.9fr, 2.2fr, 0.95fr, 0.9fr, 0.95fr),
+    columns: (0.78fr, 0.82fr, 0.88fr, 2.3fr, 0.95fr, 0.9fr, 0.95fr),
     column-gutter: 8pt,
     [
-      #text(size: 7.55pt, fill: ink)[#trade_date]
-      #linebreak()
-      #text(size: 7pt, fill: slate)[Value date]
+      #stacked-cell(trade_date, placement: left, size: 7.25pt, fill: ink)
     ],
     [
-      #text(size: 7.55pt, fill: ink)[#booking_text]
-      #linebreak()
-      #text(size: 7pt, fill: slate)[Booking]
+      #stacked-cell(booking_text, placement: left, size: 7.25pt, fill: ink)
     ],
-    [#align(right)[#text(size: 7.55pt, fill: ink)[#amount]]],
+    [#stacked-cell(amount, fill: ink)],
     [
       #text(size: 8pt, fill: ink)[#description]
       #linebreak()
-      #text(size: 7.15pt, fill: slate)[#detail_primary]
+      #stacked-cell(detail_primary, placement: left, size: 7.05pt, fill: slate)
       #linebreak()
-      #text(size: 6.95pt, fill: slate)[#detail_secondary]
+      #stacked-cell(detail_secondary, placement: left, size: 6.85pt, fill: slate)
     ],
-    [#align(right)[#text(size: 7.55pt, fill: ink)[#price]]],
-    [#align(right)[#text(size: 7.55pt, fill: slate)[#gain]]],
-    [#align(right)[#text(size: 7.55pt, weight: 500, fill: accent)[#value]]],
+    [#stacked-cell(price, fill: ink)],
+    [#stacked-cell(gain)],
+    [#stacked-cell(value, fill: accent, weight: 500)],
   )
   #v(4.5pt)
   #line(length: 100%, stroke: (paint: rule, thickness: 0.25pt))

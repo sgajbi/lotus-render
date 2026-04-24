@@ -1,5 +1,5 @@
-#import "_theme.typ": section-subtitle, small-caps, soft-rule
-#import "_components.typ": dense-position-row, page-header
+#import "_theme.typ": section-subtitle, soft-rule
+#import "_components.typ": dense-position-row, page-header, stacked-table-label, table-label
 
 #let observations-page() = [
   #page-header("Detailed positions")
@@ -12,16 +12,16 @@
   )
   #v(8pt)
   #grid(
-    columns: (0.85fr, 1.9fr, 1.1fr, 1.05fr, 1.05fr, 1.05fr, 0.95fr, 0.52fr),
+    columns: (0.85fr, 1.9fr, 1.05fr, 1.02fr, 1.02fr, 1.02fr, 0.95fr, 0.52fr),
     column-gutter: 7pt,
-    [#small-caps("Number / Amount")],
-    [#small-caps("Description")],
-    [#align(right)[#small-caps("Rating / sector")]],
-    [#align(right)[#small-caps("Cost basis")]],
-    [#align(right)[#small-caps("Market value")]],
-    [#align(right)[#small-caps("Market gain")]],
-    [#align(right)[#small-caps("Net performance")]],
-    [#align(right)[#small-caps("%")]],
+    [#stacked-table-label(("Number/Amount", ""))],
+    [#stacked-table-label(("Description", "Sustainability"))],
+    [#stacked-table-label(("Rating", "Sector", "Duration", "Yield"), placement: right)],
+    [#stacked-table-label(("Cost price", "Exchange rate", "Cost value", "Last purchase"), placement: right)],
+    [#stacked-table-label(("Market price", "Exchange rate", "Market price date", "YTD performance"), placement: right)],
+    [#stacked-table-label(("Market gain", "Exchange gain", "Unrealized P/L"), placement: right)],
+    [#stacked-table-label(("Market value", "Accrued interest"), placement: right)],
+    [#table-label("%", placement: right)],
   )
   #v(3pt)
   #soft-rule()

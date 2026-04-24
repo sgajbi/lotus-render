@@ -2,11 +2,19 @@
   paper: "a4",
   flipped: true,
   margin: (x: 16mm, y: 16mm),
-  numbering: "1 / 1",
-  number-align: right + bottom,
+  footer: context [
+    #line(length: 100%, stroke: (paint: rgb("#d7e2ea"), thickness: 0.35pt))
+    #v(5pt)
+    #grid(
+      columns: (1fr, auto),
+      [#text(size: 6.4pt, fill: rgb("#66798d"))[${PORTFOLIO_NAME}]],
+      [#text(size: 6.8pt, fill: rgb("#1f2f43"))[#counter(page).display("1 / 1")]],
+    )
+  ],
+  footer-descent: 38%,
 )
 
-#set text(font: ("Source Sans 3", "Arial", "Libertinus Sans"), size: 9.2pt, fill: rgb("#27374a"))
+#set text(size: 9.2pt, fill: rgb("#27374a"))
 #set par(leading: 1.14em, spacing: 0.48em)
 
 #import "_allocation.typ": allocation-page

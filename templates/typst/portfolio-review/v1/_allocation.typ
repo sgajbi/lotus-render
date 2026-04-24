@@ -1,5 +1,5 @@
-#import "_theme.typ": rule, section-subtitle, small-caps, soft-rule
-#import "_components.typ": compact-allocation-row, key-stat, note-panel, page-header
+#import "_theme.typ": rule, section-subtitle, soft-rule
+#import "_components.typ": compact-allocation-row, key-stat, note-panel, page-header, table-label
 
 #let allocation-page() = [
   #page-header("Asset allocation")
@@ -13,10 +13,10 @@
       #grid(
         columns: (1.15fr, 1.15fr, 0.55fr, 0.75fr),
         column-gutter: 8pt,
-        [#small-caps("Category")],
-        [#small-caps("Proportion")],
-        [#align(right)[#small-caps("Weight")]],
-        [#align(right)[#small-caps("Value")]],
+        [#table-label("Category")],
+        [#table-label("Proportion")],
+        [#table-label("Weight", placement: right)],
+        [#table-label("Value", placement: right)],
       )
       #v(4pt)
       #soft-rule()
@@ -31,10 +31,10 @@
       #grid(
         columns: (1.15fr, 1.15fr, 0.55fr, 0.75fr),
         column-gutter: 8pt,
-        [#small-caps("Group")],
-        [#small-caps("Proportion")],
-        [#align(right)[#small-caps("Weight")]],
-        [#align(right)[#small-caps("Value")]],
+        [#table-label("Group")],
+        [#table-label("Proportion")],
+        [#table-label("Weight", placement: right)],
+        [#table-label("Value", placement: right)],
       )
       #v(4pt)
       #soft-rule()
