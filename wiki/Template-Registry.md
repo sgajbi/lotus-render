@@ -61,8 +61,32 @@ Current document sections are sourced from render-package fields that include:
 - performance highlight
 - risk summary
 - top holdings
+- dense position detail
+- dense transaction detail
+- monthly and annual performance history
 - governance summary
 - review observations
 
 This richer contract keeps business-data assembly in `lotus-report` and keeps `lotus-render`
 responsible for deterministic presentation only.
+
+## Portfolio review section configuration
+
+`portfolio-review v1` renders the full client report by default. Callers can provide
+`render_context.sections` to render a selected subset while preserving the same typography,
+spacing, page setup, and component styling.
+
+Supported section keys:
+
+- `cover`
+- `contents`
+- `overview`
+- `performance`
+- `allocation`
+- `positions`
+- `transactions`
+- `appendix`
+
+Common aliases such as `asset-allocation`, `detailed-positions`, `transaction-list`, and
+`additional-information` are normalized by the renderer. Unknown section keys are ignored; if no
+valid section remains, the renderer falls back to the full report.
