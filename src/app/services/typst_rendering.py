@@ -145,9 +145,13 @@ class TypstRenderService:
         mandate = self._mapping(report_data.get("mandate"))
         portfolio_metrics = self._mapping(report_data.get("portfolio_metrics"))
         allocation_summary = self._mapping(report_data.get("allocation_summary"))
+        allocation_breakdowns = self._mapping(report_data.get("allocation_breakdowns"))
         performance_highlight = self._mapping(report_data.get("performance_highlight"))
         risk_summary = self._mapping(report_data.get("risk_summary"))
         governance_summary = self._mapping(report_data.get("governance_summary"))
+        supplemental_allocation_title, supplemental_allocation_rows = (
+            self._supplemental_allocation_view(allocation_breakdowns)
+        )
 
         return {
             "CLIENT_NAME": self._escape_typst_text(str(report_data["client_name"])),
@@ -231,6 +235,20 @@ class TypstRenderService:
             ),
             "HOLDING_ROWS": self._render_holding_rows(report_data.get("top_holdings")),
             "HOLDING_BAR_ROWS": self._render_holding_bar_rows(report_data.get("top_holdings")),
+            "ASSET_CLASS_ROWS": self._render_allocation_breakdown_rows(
+                allocation_breakdowns.get("by_asset_class") or report_data.get("top_holdings")
+            ),
+            "SUPPLEMENTAL_ALLOCATION_TITLE": self._escape_typst_text(supplemental_allocation_title),
+            "SUPPLEMENTAL_ALLOCATION_ROWS": supplemental_allocation_rows,
+            "DENSE_POSITION_ROWS": self._render_dense_position_rows(
+                report_data.get("top_holdings")
+            ),
+            "TRANSACTION_PERIOD_LABEL": self._escape_typst_text(
+                str(report_data.get("transaction_period_label", "Transaction activity"))
+            ),
+            "DENSE_TRANSACTION_ROWS": self._render_dense_transaction_rows(
+                report_data.get("transactions")
+            ),
             "SOURCE_SERVICES": self._escape_typst_text(
                 ", ".join(self._string_list(governance_summary.get("source_services")))
                 or "Not available"
@@ -453,6 +471,152 @@ class TypstRenderService:
             )
         return "\n#v(8pt)\n".join(rendered)
 
+    def _render_dense_position_rows(self, holdings: object) -> str:
+        if not isinstance(holdings, Sequence) or isinstance(holdings, (str, bytes, bytearray)):
+            return "#text(size: 8pt, fill: rgb(104, 118, 132))[No position detail available.]"
+        rendered: list[str] = []
+        for item in holdings:
+            if not isinstance(item, Mapping):
+                continue
+            detail_primary = (
+                f"Sec ID {item.get('security_id', 'Not available')}  |  "
+                f"ISIN {item.get('isin', 'Not available')}  |  "
+                f"Qty {item.get('quantity', 'Not available')} {item.get('currency', '')}".strip()
+            )
+            detail_secondary = (
+                f"{item.get('product_type', 'Not available')}  |  "
+                f"{item.get('sector', 'Not available')}  |  "
+                f"{item.get('country_of_risk', 'Not available')}  |  "
+                f"Rating {item.get('rating', 'Not available')}  |  "
+                f"Px {item.get('market_price', 'Not available')}  |  "
+                f"Cost {item.get('cost_basis_reporting_currency', 'Not available')}"
+            )
+            rendered.append(
+                '#dense-position-row("'
+                + self._escape_typst_text(str(item.get("asset_class", "Not available")))
+                + '", "'
+                + self._escape_typst_text(str(item.get("security_name", "Unknown holding")))
+                + '", "'
+                + self._escape_typst_text(detail_primary)
+                + '", "'
+                + self._escape_typst_text(detail_secondary)
+                + '", "'
+                + self._escape_typst_text(str(item.get("weight_pct", "Not available")))
+                + '", "'
+                + self._escape_typst_text(str(item.get("market_value", "Not available")))
+                + '", "'
+                + self._escape_typst_text(str(item.get("unrealized_pnl", "Not available")))
+                + '", "'
+                + self._escape_typst_text(str(item.get("ytd_contribution_pct", "Not available")))
+                + '")'
+            )
+        if not rendered:
+            return "#text(size: 8pt, fill: rgb(104, 118, 132))[No position detail available.]"
+        return "\n#v(4pt)\n".join(rendered)
+
+    def _render_dense_transaction_rows(self, transactions: object) -> str:
+        if not isinstance(transactions, Sequence) or isinstance(
+            transactions, (str, bytes, bytearray)
+        ):
+            return "#text(size: 8pt, fill: rgb(104, 118, 132))[No transaction detail available.]"
+        rendered: list[str] = []
+        for item in transactions:
+            if not isinstance(item, Mapping):
+                continue
+            detail_primary = (
+                f"{item.get('display_label', 'Transaction')}  |  "
+                f"{item.get('transaction_type', 'Not available')}  |  "
+                f"Cat {item.get('transaction_category', 'Not available')}  |  "
+                f"Asset {item.get('asset_class', 'Not available')}"
+            )
+            detail_secondary = (
+                f"TXN {item.get('transaction_id', 'Not available')}  |  "
+                f"Sec {item.get('security_id', 'Not available')}  |  "
+                f"Instr {item.get('instrument_id', 'Not available')}  |  "
+                f"Gross {item.get('gross_amount_reporting_currency', 'Not available')}  |  "
+                "Net income/tax "
+                f"{item.get('income_or_tax_reporting_currency', 'Not available')}  |  "
+                f"Cash leg {item.get('cash_leg', 'Not available')}"
+            )
+            rendered.append(
+                '#dense-transaction-row("'
+                + self._escape_typst_text(str(item.get("trade_date", "Not available")))
+                + '", "'
+                + self._escape_typst_text(str(item.get("booking_text", "Not available")))
+                + '", "'
+                + self._escape_typst_text(str(item.get("amount", "Not available")))
+                + '", "'
+                + self._escape_typst_text(str(item.get("description", "Not available")))
+                + '", "'
+                + self._escape_typst_text(detail_primary)
+                + '", "'
+                + self._escape_typst_text(detail_secondary)
+                + '", "'
+                + self._escape_typst_text(str(item.get("price", "Not available")))
+                + '", "'
+                + self._escape_typst_text(str(item.get("gain_loss", "Not available")))
+                + '", "'
+                + self._escape_typst_text(str(item.get("transaction_value", "Not available")))
+                + '")'
+            )
+        if not rendered:
+            return "#text(size: 8pt, fill: rgb(104, 118, 132))[No transaction detail available.]"
+        return "\n#v(4pt)\n".join(rendered)
+
+    def _render_allocation_breakdown_rows(self, rows: object) -> str:
+        if not isinstance(rows, Sequence) or isinstance(rows, (str, bytes, bytearray)):
+            return "#text(size: 8pt, fill: rgb(104, 118, 132))[No allocation detail available.]"
+        aggregates: dict[str, dict[str, float]] = {}
+        for item in rows:
+            if not isinstance(item, Mapping):
+                continue
+            bucket_name = str(
+                item.get("name")
+                or item.get("asset_class")
+                or item.get("currency")
+                or "Not available"
+            )
+            weight = self._parse_percent(item.get("weight_pct") or item.get("weight"))
+            value = self._parse_number(item.get("market_value"))
+            bucket = aggregates.setdefault(bucket_name, {"weight": 0.0, "value": 0.0})
+            bucket["weight"] += weight
+            bucket["value"] += value
+        if not aggregates:
+            return "#text(size: 8pt, fill: rgb(104, 118, 132))[No allocation detail available.]"
+        ordered = sorted(aggregates.items(), key=lambda entry: entry[1]["weight"], reverse=True)
+        rendered: list[str] = []
+        for name, totals in ordered:
+            rendered.append(
+                '#compact-allocation-row("'
+                + self._escape_typst_text(name)
+                + '", "'
+                + self._escape_typst_text(f"{totals['weight']:.2f}%")
+                + '", "'
+                + self._escape_typst_text(f"{totals['value']:.2f}")
+                + '", '
+                + f"{min(max(totals['weight'], 8.0), 100.0):.2f}%"
+                + ")"
+            )
+        return "\n#v(4pt)\n".join(rendered)
+
+    def _supplemental_allocation_view(
+        self,
+        allocation_breakdowns: Mapping[str, object],
+    ) -> tuple[str, str]:
+        candidate_views = [
+            ("By currency", allocation_breakdowns.get("by_currency")),
+            ("By region", allocation_breakdowns.get("by_region")),
+            ("By sector", allocation_breakdowns.get("by_sector")),
+            ("By country", allocation_breakdowns.get("by_country")),
+            ("By product type", allocation_breakdowns.get("by_product_type")),
+            ("By rating", allocation_breakdowns.get("by_rating")),
+        ]
+        for title, rows in candidate_views:
+            rendered = self._render_allocation_breakdown_rows(rows)
+            if "No allocation detail available." not in rendered:
+                return title, rendered
+        return "Allocation detail", self._render_allocation_breakdown_rows([])
+
     @staticmethod
     def _percent_width_token(value: object) -> str:
         raw = str(value).strip().replace("%", "")
@@ -462,3 +626,19 @@ class TypstRenderService:
             return "8%"
         clamped = min(max(numeric, 8.0), 100.0)
         return f"{clamped:.2f}%"
+
+    @staticmethod
+    def _parse_percent(value: object) -> float:
+        raw = str(value).strip().replace("%", "")
+        try:
+            return float(raw)
+        except ValueError:
+            return 0.0
+
+    @staticmethod
+    def _parse_number(value: object) -> float:
+        raw = str(value).strip().replace(",", "")
+        try:
+            return float(raw)
+        except ValueError:
+            return 0.0

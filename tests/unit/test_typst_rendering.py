@@ -94,6 +94,18 @@ def test_typst_render_service_builds_richer_portfolio_review_context() -> None:
     assert "#performance-bar-row(" in template_context["PERFORMANCE_BAR_ROWS"]
     assert "#holding-row(" in template_context["HOLDING_ROWS"]
     assert "#allocation-row(" in template_context["HOLDING_BAR_ROWS"]
+    assert "#compact-allocation-row(" in template_context["ASSET_CLASS_ROWS"]
+    assert "#compact-allocation-row(" in template_context["SUPPLEMENTAL_ALLOCATION_ROWS"]
+    assert "#dense-position-row(" in template_context["DENSE_POSITION_ROWS"]
+    assert "#dense-transaction-row(" in template_context["DENSE_TRANSACTION_ROWS"]
+    assert template_context["TRANSACTION_PERIOD_LABEL"] == "From 01.01.2026 to 23.04.2026"
+    assert template_context["SUPPLEMENTAL_ALLOCATION_TITLE"] == "By currency"
+    assert "Equity" in template_context["ASSET_CLASS_ROWS"]
+    assert "USD" in template_context["SUPPLEMENTAL_ALLOCATION_ROWS"]
+    assert "EQ-1" in template_context["DENSE_POSITION_ROWS"]
+    assert "US0000000001" in template_context["DENSE_POSITION_ROWS"]
+    assert "TXN-20260109-BUY-001" in template_context["DENSE_TRANSACTION_ROWS"]
+    assert "INST-EQ-1" in template_context["DENSE_TRANSACTION_ROWS"]
     assert "#review-note(" in template_context["OBSERVATION_NOTES"]
 
 
@@ -114,6 +126,53 @@ def test_typst_render_service_helper_fallbacks_cover_sparse_structures() -> None
     assert "No governed holdings available." in service._render_holding_rows("bad")
     assert "No governed holdings available." in service._render_holding_rows([123])
     assert "No governed allocation rows available." in service._render_holding_bar_rows("bad")
+    assert "No position detail available." in service._render_dense_position_rows("bad")
+    assert "No position detail available." in service._render_dense_position_rows([123])
+    assert "No transaction detail available." in service._render_dense_transaction_rows("bad")
+    assert "No transaction detail available." in service._render_dense_transaction_rows([123])
+    assert "No allocation detail available." in service._render_allocation_breakdown_rows("bad")
+    assert "No allocation detail available." in service._render_allocation_breakdown_rows([123])
+
+
+def test_typst_render_service_renders_supplemental_allocation_views_with_priority() -> None:
+    service = _build_service()
+
+    title, rows = service._supplemental_allocation_view(
+        {
+            "by_region": [
+                {"name": "North America", "weight_pct": "62.00%", "market_value": "620000.00"}
+            ],
+            "by_currency": [],
+        }
+    )
+
+    assert title == "By region"
+    assert "#compact-allocation-row(" in rows
+    assert "North America" in rows
+
+
+def test_typst_render_service_allocation_view_falls_back_when_no_breakdowns_exist() -> None:
+    service = _build_service()
+
+    title, rows = service._supplemental_allocation_view({})
+
+    assert title == "Allocation detail"
+    assert "No allocation detail available." in rows
+
+
+def test_typst_render_service_returns_empty_messages_when_sequences_have_no_mapping_rows() -> None:
+    service = _build_service()
+
+    assert "No governed holdings available." in service._render_holding_rows([123, 456])
+    assert "No governed allocation rows available." in service._render_holding_bar_rows([123, 456])
+    assert "No position detail available." in service._render_dense_position_rows([123, 456])
+    assert "No transaction detail available." in service._render_dense_transaction_rows([123, 456])
+
+
+def test_typst_render_service_numeric_fallback_helpers_cover_invalid_inputs() -> None:
+    assert TypstRenderService._percent_width_token("bad") == "8%"
+    assert TypstRenderService._parse_percent("bad") == 0.0
+    assert TypstRenderService._parse_number("bad") == 0.0
 
 
 def test_typst_render_service_marks_template_failure_when_typst_compile_fails(

@@ -38,6 +38,94 @@
       "largest_asset_class_market_value": "9140740.73",
       "largest_asset_class_position_count": 8
     },
+    "allocation_breakdowns": {
+      "by_asset_class": [
+        {
+          "name": "Equity",
+          "weight_pct": "60.00%",
+          "market_value": "9140740.73",
+          "position_count": 8
+        },
+        {
+          "name": "Fixed Income",
+          "weight_pct": "28.00%",
+          "market_value": "4265680.61",
+          "position_count": 5
+        },
+        {
+          "name": "Cash",
+          "weight_pct": "1.64%",
+          "market_value": "250000.00",
+          "position_count": 1
+        }
+      ],
+      "by_currency": [
+        {
+          "name": "USD",
+          "weight_pct": "88.36%",
+          "market_value": "13463567.89",
+          "position_count": 12
+        },
+        {
+          "name": "SGD",
+          "weight_pct": "11.64%",
+          "market_value": "1771000.00",
+          "position_count": 3
+        }
+      ],
+      "by_region": [
+        {
+          "name": "North America",
+          "weight_pct": "64.10%",
+          "market_value": "9765432.10",
+          "position_count": 7
+        },
+        {
+          "name": "Asia",
+          "weight_pct": "18.55%",
+          "market_value": "2825000.00",
+          "position_count": 4
+        }
+      ],
+      "by_sector": [
+        {
+          "name": "Technology",
+          "weight_pct": "30.25%",
+          "market_value": "4600000.00",
+          "position_count": 3
+        },
+        {
+          "name": "Multi-Sector Bonds",
+          "weight_pct": "28.00%",
+          "market_value": "4265680.61",
+          "position_count": 5
+        }
+      ],
+      "by_country": [
+        {
+          "name": "United States",
+          "weight_pct": "58.40%",
+          "market_value": "8890000.00",
+          "position_count": 6
+        }
+      ],
+      "by_product_type": [
+        {
+          "name": "Fund",
+          "weight_pct": "88.00%",
+          "market_value": "13404821.34",
+          "position_count": 12
+        }
+      ],
+      "by_rating": [
+        {
+          "name": "A",
+          "weight_pct": "28.00%",
+          "market_value": "4265680.61",
+          "position_count": 5
+        }
+      ]
+    },
     "performance_periods": [
       {
         "period": "1M",
@@ -63,6 +151,7 @@
       "largest_positive_contribution_pct": "3.50%",
       "benchmark_comparison_status": "available"
     },
+    "transaction_period_label": "From 01.01.2026 to 23.04.2026",
     "risk_summary": {
       "volatility_pct": "12.00%",
       "beta": "0.82",
@@ -75,25 +164,150 @@
         "asset_class": "Equity",
         "security_name": "Global Equity Sleeve",
         "weight_pct": "60.00%",
+        "quantity": "2200.00",
+        "currency": "USD",
+        "security_id": "EQ-1",
+        "instrument_name": "Global Equity Sleeve",
+        "isin": "US0000000001",
+        "position_date": "2026-04-23",
+        "product_type": "Fund",
+        "sector": "Technology",
+        "country_of_risk": "United States",
+        "rating": "A",
+        "liquidity_tier": "High",
+        "held_since_date": "2024-01-15",
+        "market_price": "102.35",
+        "cost_basis_reporting_currency": "8118290.51",
         "market_value": "9140740.73",
         "unrealized_pnl": "1032450.22",
-        "ytd_contribution_pct": "3.50%"
+        "unrealized_pnl_pct": "12.72%",
+        "ytd_contribution_pct": "3.50%",
+        "ytd_average_weight_pct": "55.00%",
+        "ytd_total_return_pct": "8.40%"
       },
       {
         "asset_class": "Fixed Income",
         "security_name": "Global Bond Allocation",
         "weight_pct": "28.00%",
+        "quantity": "4100.00",
+        "currency": "USD",
+        "security_id": "FI-1",
+        "instrument_name": "Global Bond Allocation",
+        "isin": "US0000000002",
+        "position_date": "2026-04-23",
+        "product_type": "Fund",
+        "sector": "Multi-Sector Bonds",
+        "country_of_risk": "Global",
+        "rating": "BBB+",
+        "liquidity_tier": "High",
+        "held_since_date": "2023-09-20",
+        "market_price": "101.32",
+        "cost_basis_reporting_currency": "4117460.31",
         "market_value": "4265680.61",
         "unrealized_pnl": "148220.30",
-        "ytd_contribution_pct": "0.80%"
+        "unrealized_pnl_pct": "3.60%",
+        "ytd_contribution_pct": "0.80%",
+        "ytd_average_weight_pct": "30.00%",
+        "ytd_total_return_pct": "3.10%"
       },
       {
         "asset_class": "Cash",
         "security_name": "Liquidity Reserve",
         "weight_pct": "1.64%",
+        "quantity": "250000.00",
+        "currency": "USD",
+        "security_id": "CSH-1",
+        "instrument_name": "Liquidity Reserve",
+        "isin": "Not available",
+        "position_date": "2026-04-23",
+        "product_type": "Cash",
+        "sector": "Cash",
+        "country_of_risk": "United States",
+        "rating": "Not available",
+        "liquidity_tier": "Immediate",
+        "held_since_date": "2026-01-01",
+        "market_price": "1.00",
+        "cost_basis_reporting_currency": "250000.00",
         "market_value": "250000.00",
         "unrealized_pnl": "0.00",
-        "ytd_contribution_pct": "0.00%"
+        "unrealized_pnl_pct": "0.00%",
+        "ytd_contribution_pct": "0.00%",
+        "ytd_average_weight_pct": "2.00%",
+        "ytd_total_return_pct": "0.00%"
+      }
+    ],
+    "transactions": [
+      {
+        "category": "Trading",
+        "asset_class": "Equity",
+        "transaction_category": "Trading",
+        "display_label": "Buy",
+        "cash_leg": "No",
+        "transaction_id": "TXN-20260109-BUY-001",
+        "trade_date": "09.01.2026",
+        "transaction_type": "BUY",
+        "instrument_id": "INST-EQ-1",
+        "security_id": "EQ-1",
+        "booking_text": "Buy",
+        "amount": "USD 450000.00",
+        "description": "Global Equity Sleeve top-up",
+        "price": "NAV 102.35",
+        "gross_amount_reporting_currency": "450000.00",
+        "realized_pnl_reporting_currency": "0.00",
+        "realized_pnl_local": "0.00",
+        "net_interest_amount_reporting_currency": "0.00",
+        "withholding_tax_amount_reporting_currency": "0.00",
+        "income_or_tax_reporting_currency": "0.00",
+        "gain_loss": "USD 0.00",
+        "transaction_value": "USD 450000.00"
+      },
+      {
+        "category": "Income",
+        "asset_class": "Fixed Income",
+        "transaction_category": "Income",
+        "display_label": "Coupon",
+        "cash_leg": "No",
+        "transaction_id": "TXN-20260217-COUPON-001",
+        "trade_date": "17.02.2026",
+        "transaction_type": "COUPON",
+        "instrument_id": "INST-FI-1",
+        "security_id": "FI-1",
+        "booking_text": "Coupon",
+        "amount": "USD 18250.00",
+        "description": "Global Bond Allocation income distribution",
+        "price": "N/A",
+        "gross_amount_reporting_currency": "18250.00",
+        "realized_pnl_reporting_currency": "0.00",
+        "realized_pnl_local": "0.00",
+        "net_interest_amount_reporting_currency": "18250.00",
+        "withholding_tax_amount_reporting_currency": "0.00",
+        "income_or_tax_reporting_currency": "18250.00",
+        "gain_loss": "USD 18,250.00",
+        "transaction_value": "USD 18250.00"
+      },
+      {
+        "category": "Trading",
+        "asset_class": "Cash",
+        "transaction_category": "Trading",
+        "display_label": "Sale",
+        "cash_leg": "Yes",
+        "transaction_id": "TXN-20260331-SELL-001",
+        "trade_date": "31.03.2026",
+        "transaction_type": "SELL",
+        "instrument_id": "INST-CSH-1",
+        "security_id": "CSH-1",
+        "booking_text": "Sale",
+        "amount": "USD -125000.00",
+        "description": "Liquidity reserve rebalance",
+        "price": "NAV 100.00",
+        "gross_amount_reporting_currency": "-125000.00",
+        "realized_pnl_reporting_currency": "0.00",
+        "realized_pnl_local": "0.00",
+        "net_interest_amount_reporting_currency": "0.00",
+        "withholding_tax_amount_reporting_currency": "0.00",
+        "income_or_tax_reporting_currency": "0.00",
+        "gain_loss": "USD 0.00",
+        "transaction_value": "USD -125000.00"
       }
     ],
     "governance_summary": {
