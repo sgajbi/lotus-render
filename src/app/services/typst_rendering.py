@@ -16,6 +16,11 @@ from app.domain.render_attempts.models import (
     RenderFailureCategory,
 )
 from app.domain.rendering.models import RenderDiagnostic, RenderResult
+from app.services.portfolio_charts import (
+    allocation_items_from_report_data,
+    performance_series_from_report_data,
+    render_portfolio_chart_assets,
+)
 from app.services.render_intake import RenderIntakeService
 
 DETERMINISM_MODE = "bounded_runtime_envelope"
@@ -269,11 +274,13 @@ class TypstRenderService:
             "PERFORMANCE_BAR_ROWS": self._render_performance_bar_rows(
                 report_data.get("performance_periods")
             ),
+            "PERFORMANCE_12M_CHART_SECTION": self._render_performance_chart_section(report_data),
             "HOLDING_ROWS": self._render_holding_rows(report_data.get("top_holdings")),
             "HOLDING_BAR_ROWS": self._render_holding_bar_rows(report_data.get("top_holdings")),
             "ASSET_CLASS_ROWS": self._render_allocation_breakdown_rows(
                 allocation_breakdowns.get("by_asset_class") or report_data.get("top_holdings")
             ),
+            "ALLOCATION_DONUT_CHART_SECTION": self._render_allocation_chart_section(report_data),
             "SUPPLEMENTAL_ALLOCATION_TITLE": self._escape_typst_text(supplemental_allocation_title),
             "SUPPLEMENTAL_ALLOCATION_ROWS": supplemental_allocation_rows,
             "DENSE_POSITION_ROWS": self._render_dense_position_rows(
@@ -323,6 +330,10 @@ class TypstRenderService:
         template_directory = template_root.parent
         workspace_template_directory = workspace / "template"
         shutil.copytree(template_directory, workspace_template_directory, dirs_exist_ok=True)
+        render_portfolio_chart_assets(
+            render_package.report_data,
+            workspace_template_directory / "assets" / "charts",
+        )
 
         for template_file in workspace_template_directory.rglob("*.typ"):
             rendered_text = template_file.read_text(encoding="utf-8")
@@ -364,6 +375,30 @@ class TypstRenderService:
             normalized.append(key)
             seen.add(key)
         return normalized or list(DEFAULT_PORTFOLIO_REVIEW_SECTIONS)
+
+    def _render_performance_chart_section(self, report_data: Mapping[str, object]) -> str:
+        if not performance_series_from_report_data(report_data):
+            return (
+                '#chart-placeholder("12-Month Cumulative Performance", '
+                '"No 12-month performance series is available for this report.")'
+            )
+        return (
+            '#chart-card("12-Month Cumulative Performance", '
+            '"assets/charts/performance_12m.svg", '
+            'subtitle: "Net performance, valued in reporting currency")'
+        )
+
+    def _render_allocation_chart_section(self, report_data: Mapping[str, object]) -> str:
+        if not allocation_items_from_report_data(report_data):
+            return (
+                '#chart-placeholder("Asset Allocation", '
+                '"No allocation breakdown is available for this report.")'
+            )
+        return (
+            '#chart-card("Asset Allocation", '
+            '"assets/charts/allocation_asset_class.svg", '
+            'subtitle: "Portfolio composition by market value")'
+        )
 
     def _build_compile_command(
         self,

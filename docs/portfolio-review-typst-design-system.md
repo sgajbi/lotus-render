@@ -15,6 +15,7 @@ The template uses the governed Typst runtime font fallback with restrained sizes
 Core reusable primitives live in `_theme.typ` and `_components.typ`:
 
 - page furniture: `page-header`
+- chart cards: `chart-card`, `chart-placeholder`
 - headline metrics: `metric-card`, `key-stat`
 - narrative blocks: `spotlight-panel`, `note-panel`, `review-note`
 - table labels: `table-label`
@@ -23,6 +24,18 @@ Core reusable primitives live in `_theme.typ` and `_components.typ`:
 - appendix definitions: `appendix-term`, `appendix-section`
 
 Page modules compose these primitives instead of hardcoding local styling. This keeps spacing, color, label treatment, and table rhythm consistent across sections.
+
+## Chart Pipeline
+
+Charts are generated as deterministic SVG assets before Typst compilation. `portfolio_charts.py`
+prepares the 12-month cumulative performance series and allocation breakdown from structured
+report data, writes SVG assets under `assets/charts/` in the temporary Typst workspace, and the
+Typst template includes those assets with `image(...)`.
+
+Typst remains responsible for page composition and chart card layout. The chart generator owns
+coordinate calculation, donut geometry, enterprise palette, line/marker treatment, sorting, and
+small-slice grouping. If chart data is absent, the section renders a quiet placeholder instead of
+failing or showing an empty frame.
 
 ## Configuration Model
 
@@ -45,4 +58,5 @@ Run the focused render proof:
 python -m pytest tests/unit/test_typst_rendering.py tests/integration/test_render_api.py -q
 ```
 
-The test suite verifies deterministic PDF rendering, selected-section rendering, client-facing text hygiene, and template context generation.
+The test suite verifies deterministic PDF rendering, selected-section rendering, chart data
+transformation, SVG asset generation, client-facing text hygiene, and template context generation.

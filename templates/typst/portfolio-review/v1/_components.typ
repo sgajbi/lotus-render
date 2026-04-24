@@ -1,4 +1,4 @@
-#import "_theme.typ": accent, accent-soft, body-muted, body-strong, ink, metric-value, mist, page-kicker, rule, section-subtitle, section-title, slate, small-caps, soft-rule
+#import "_theme.typ": accent, accent-soft, body-muted, body-strong, ink, metric-value, mist, navy, page-kicker, rule, section-subtitle, section-title, slate, small-caps, soft-rule
 
 #let page-header(title) = [
   #align(right)[
@@ -66,6 +66,36 @@
   #small-caps(label)
   #v(3pt)
   #body-strong(value)
+]
+
+#let chart-card(title, chart-path, subtitle: none, note: none) = block(
+  inset: 12pt,
+  fill: white,
+  stroke: (paint: rule, thickness: 0.7pt),
+  radius: 6pt,
+)[
+  #text(size: 11.2pt, weight: 700, fill: navy)[#title]
+  #if subtitle != none [
+    #v(2pt)
+    #text(size: 8pt, fill: slate)[#subtitle]
+  ]
+  #v(8pt)
+  #image(chart-path, width: 100%)
+  #if note != none [
+    #v(6pt)
+    #text(size: 7.5pt, fill: slate)[#note]
+  ]
+]
+
+#let chart-placeholder(title, message) = block(
+  inset: 12pt,
+  fill: mist,
+  stroke: (paint: rule, thickness: 0.7pt),
+  radius: 6pt,
+)[
+  #text(size: 11.2pt, weight: 700, fill: navy)[#title]
+  #v(8pt)
+  #text(size: 8.5pt, fill: slate)[#message]
 ]
 
 #let table-label(value, placement: left) = align(placement)[#small-caps(value)]

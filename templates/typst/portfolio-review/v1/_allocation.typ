@@ -1,9 +1,40 @@
 #import "_theme.typ": rule, section-subtitle, soft-rule
-#import "_components.typ": compact-allocation-row, key-stat, note-panel, page-header, table-label
+#import "_components.typ": chart-card, chart-placeholder, compact-allocation-row, key-stat, note-panel, page-header, table-label
 
 #let allocation-page() = [
   #page-header("Asset allocation")
   #v(10pt)
+  #grid(
+    columns: (1.45fr, 1fr),
+    column-gutter: 18pt,
+    [
+      ${ALLOCATION_DONUT_CHART_SECTION}
+    ],
+    [
+      #section-subtitle("Portfolio summary")
+      #v(8pt)
+      #block(
+        inset: 12pt,
+        fill: rgb("#F6F8FA"),
+        stroke: (paint: rule, thickness: 0.5pt),
+        radius: 8pt,
+      )[
+        #grid(
+          columns: (1fr, 1fr),
+          row-gutter: 10pt,
+          column-gutter: 12pt,
+          [#key-stat("Largest asset class", "${ALLOCATION_LARGEST_NAME}")],
+          [#key-stat("Position count", "${ALLOCATION_POSITION_COUNT}")],
+          [#key-stat("Largest weight", "${ALLOCATION_LARGEST_WEIGHT}")],
+          [#key-stat("Largest value", "${CURRENCY} ${ALLOCATION_LARGEST_VALUE}")],
+          [#key-stat("Invested value", "${CURRENCY} ${INVESTED_VALUE}")],
+          [#key-stat("Cash balance", "${CURRENCY} ${CASH_BALANCE}")],
+        )
+      ]
+    ],
+  )
+
+  #v(14pt)
   #grid(
     columns: (1fr, 1fr),
     column-gutter: 18pt,
@@ -44,47 +75,20 @@
       ]
     ],
   )
-
-  #v(14pt)
+  #pagebreak()
+  #page-header("Asset allocation")
+  #v(10pt)
+  #section-subtitle("Risk profile")
+  #v(8pt)
   #grid(
-    columns: (1fr, 1fr),
-    column-gutter: 18pt,
-    [
-      #section-subtitle("Portfolio summary")
-      #v(8pt)
-      #block(
-        inset: 12pt,
-        fill: rgb("#f4f9fd"),
-        stroke: (paint: rgb("#dbe6ef"), thickness: 0.5pt),
-        radius: 8pt,
-      )[
-        #grid(
-          columns: (1fr, 1fr),
-          row-gutter: 10pt,
-          column-gutter: 12pt,
-          [#key-stat("Largest asset class", "${ALLOCATION_LARGEST_NAME}")],
-          [#key-stat("Position count", "${ALLOCATION_POSITION_COUNT}")],
-          [#key-stat("Largest weight", "${ALLOCATION_LARGEST_WEIGHT}")],
-          [#key-stat("Largest value", "${CURRENCY} ${ALLOCATION_LARGEST_VALUE}")],
-          [#key-stat("Invested value", "${CURRENCY} ${INVESTED_VALUE}")],
-          [#key-stat("Cash balance", "${CURRENCY} ${CASH_BALANCE}")],
-        )
-      ]
-    ],
-    [
-      #section-subtitle("Risk profile")
-      #v(8pt)
-      #grid(
-        columns: (1fr, 1fr),
-        row-gutter: 10pt,
-        column-gutter: 12pt,
-        [#note-panel("Volatility", "${RISK_VOLATILITY}")],
-        [#note-panel("Beta", "${RISK_BETA}")],
-        [#note-panel("Tracking error", "${RISK_TRACKING_ERROR}")],
-        [#note-panel("Information ratio", "${RISK_INFORMATION_RATIO}")],
-        [#note-panel("Value at risk", "${RISK_VAR}")],
-        [#note-panel("Review period", "${REVIEW_PERIOD_LABEL}")],
-      )
-    ],
+    columns: (1fr, 1fr, 1fr),
+    row-gutter: 10pt,
+    column-gutter: 12pt,
+    [#note-panel("Volatility", "${RISK_VOLATILITY}")],
+    [#note-panel("Beta", "${RISK_BETA}")],
+    [#note-panel("Tracking error", "${RISK_TRACKING_ERROR}")],
+    [#note-panel("Information ratio", "${RISK_INFORMATION_RATIO}")],
+    [#note-panel("Value at risk", "${RISK_VAR}")],
+    [#note-panel("Review period", "${REVIEW_PERIOD_LABEL}")],
   )
 ]

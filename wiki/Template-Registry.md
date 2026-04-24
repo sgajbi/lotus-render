@@ -93,4 +93,5 @@ valid section remains, the renderer falls back to the full report.
 
 The maintainable design-system note for the Typst implementation is authored in
 `docs/portfolio-review-typst-design-system.md`. It records the layout rhythm, typography scale,
-component model, rendering command, and focused validation gate used for this template.
+component model, deterministic SVG chart pipeline, rendering command, and focused validation gate
+used for this template.
