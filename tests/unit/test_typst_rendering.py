@@ -98,15 +98,14 @@ def test_typst_render_service_builds_richer_portfolio_review_context() -> None:
     assert "#performance-chart-row(" in template_context["PERFORMANCE_ANNUAL_CHART_ROWS"]
     assert "#performance-detail-row(" in template_context["PERFORMANCE_MONTHLY_TABLE_ROWS"]
     assert "#performance-bar-row(" in template_context["PERFORMANCE_BAR_ROWS"]
-    assert "assets/charts/performance_12m.svg" in template_context[
-        "PERFORMANCE_12M_CHART_SECTION"
-    ]
+    assert "assets/charts/performance_12m.svg" in template_context["PERFORMANCE_12M_CHART_SECTION"]
     assert "#holding-row(" in template_context["HOLDING_ROWS"]
     assert "#allocation-row(" in template_context["HOLDING_BAR_ROWS"]
     assert "#compact-allocation-row(" in template_context["ASSET_CLASS_ROWS"]
-    assert "assets/charts/allocation_asset_class.svg" in template_context[
-        "ALLOCATION_DONUT_CHART_SECTION"
-    ]
+    assert (
+        "assets/charts/allocation_asset_class.svg"
+        in template_context["ALLOCATION_DONUT_CHART_SECTION"]
+    )
     assert "#compact-allocation-row(" in template_context["SUPPLEMENTAL_ALLOCATION_ROWS"]
     assert "#dense-position-row(" in template_context["DENSE_POSITION_ROWS"]
     assert "#dense-transaction-row(" in template_context["DENSE_TRANSACTION_ROWS"]
@@ -125,9 +124,7 @@ def test_typst_render_service_builds_richer_portfolio_review_context() -> None:
     assert "Reference TXN-20260109-BUY-001" in template_context["DENSE_TRANSACTION_ROWS"]
     assert "Instrument INST-EQ-1" in template_context["DENSE_TRANSACTION_ROWS"]
     assert "09.01.2026;09.01.2026" in template_context["DENSE_TRANSACTION_ROWS"]
-    assert "NAV 102.35;;450000.00;" in template_context[
-        "DENSE_TRANSACTION_ROWS"
-    ]
+    assert "NAV 102.35;;450000.00;" in template_context["DENSE_TRANSACTION_ROWS"]
     assert "#review-note(" in template_context["OBSERVATION_NOTES"]
 
 

@@ -44,7 +44,9 @@ class ChartAssets:
     allocation_svg: Path | None
 
 
-def render_portfolio_chart_assets(report_data: Mapping[str, object], output_dir: Path) -> ChartAssets:
+def render_portfolio_chart_assets(
+    report_data: Mapping[str, object], output_dir: Path
+) -> ChartAssets:
     output_dir.mkdir(parents=True, exist_ok=True)
     performance_series = performance_series_from_report_data(report_data)
     allocation_items = allocation_items_from_report_data(report_data)
@@ -60,7 +62,9 @@ def render_portfolio_chart_assets(report_data: Mapping[str, object], output_dir:
     return ChartAssets(performance_path, allocation_path)
 
 
-def performance_series_from_report_data(report_data: Mapping[str, object]) -> list[PerformancePoint]:
+def performance_series_from_report_data(
+    report_data: Mapping[str, object],
+) -> list[PerformancePoint]:
     rows = report_data.get("performance_series") or report_data.get("performance_monthly_history")
     if not isinstance(rows, Sequence) or isinstance(rows, (str, bytes, bytearray)):
         return []
@@ -77,7 +81,11 @@ def performance_series_from_report_data(report_data: Mapping[str, object]) -> li
         benchmark = _parse_percent_or_number(
             item.get("benchmark_cumulative_twr") or item.get("benchmark_cumulative_twr_pct")
         )
-        points.append(PerformancePoint(month=month, cumulative_twr=cumulative, benchmark_cumulative_twr=benchmark))
+        points.append(
+            PerformancePoint(
+                month=month, cumulative_twr=cumulative, benchmark_cumulative_twr=benchmark
+            )
+        )
     return points
 
 
@@ -114,7 +122,12 @@ def allocation_items_from_report_data(report_data: Mapping[str, object]) -> list
         grouped.append(("Other", other_weight, other_value))
 
     return [
-        AllocationSlice(label=label, weight_pct=weight, market_value=value, color=ALLOCATION_PALETTE[index % len(ALLOCATION_PALETTE)])
+        AllocationSlice(
+            label=label,
+            weight_pct=weight,
+            market_value=value,
+            color=ALLOCATION_PALETTE[index % len(ALLOCATION_PALETTE)],
+        )
         for index, (label, weight, value) in enumerate(grouped)
     ]
 
@@ -131,7 +144,9 @@ def render_performance_svg(points: Sequence[PerformancePoint]) -> str:
 
     values = [point.cumulative_twr for point in points]
     benchmark_values = [
-        point.benchmark_cumulative_twr for point in points if point.benchmark_cumulative_twr is not None
+        point.benchmark_cumulative_twr
+        for point in points
+        if point.benchmark_cumulative_twr is not None
     ]
     values.extend(value for value in benchmark_values if value is not None)
     values.append(0.0)
@@ -162,7 +177,9 @@ def render_performance_svg(points: Sequence[PerformancePoint]) -> str:
             f'<text x="{left - 12}" y="{y + 4:.2f}" text-anchor="end" class="axis">{tick:.0f}%</text>'
         )
 
-    portfolio_path = _polyline([(x_at(index), y_at(point.cumulative_twr)) for index, point in enumerate(points)])
+    portfolio_path = _polyline(
+        [(x_at(index), y_at(point.cumulative_twr)) for index, point in enumerate(points)]
+    )
     benchmark_points = [
         (x_at(index), y_at(point.benchmark_cumulative_twr))
         for index, point in enumerate(points)
@@ -191,7 +208,7 @@ def render_performance_svg(points: Sequence[PerformancePoint]) -> str:
     .legend {{ fill: {CHART_COLORS["text"]}; font-size: 12px; font-weight: 600; }}
   </style>
   <rect width="100%" height="100%" fill="#FFFFFF" />
-  {''.join(grid_lines)}
+  {"".join(grid_lines)}
   <line x1="{left}" y1="{top}" x2="{left}" y2="{height - bottom}" stroke="{CHART_COLORS["border"]}" stroke-width="0.8" />
   <line x1="{left}" y1="{height - bottom}" x2="{width - right}" y2="{height - bottom}" stroke="{CHART_COLORS["border"]}" stroke-width="0.8" />
   {benchmark_markup}
@@ -200,7 +217,7 @@ def render_performance_svg(points: Sequence[PerformancePoint]) -> str:
   {month_labels}
   <circle cx="{width - 186}" cy="24" r="4" fill="#FFFFFF" stroke="{CHART_COLORS["blue"]}" stroke-width="2" />
   <text x="{width - 174}" y="28" class="legend">Portfolio</text>
-  {('<line x1="' + str(width - 92) + '" y1="24" x2="' + str(width - 62) + '" y2="24" stroke="' + CHART_COLORS["teal"] + '" stroke-width="1.8" stroke-dasharray="6 5" opacity="0.72" /><text x="' + str(width - 54) + '" y="28" class="legend">Benchmark</text>') if benchmark_path else ''}
+  {('<line x1="' + str(width - 92) + '" y1="24" x2="' + str(width - 62) + '" y2="24" stroke="' + CHART_COLORS["teal"] + '" stroke-width="1.8" stroke-dasharray="6 5" opacity="0.72" /><text x="' + str(width - 54) + '" y="28" class="legend">Benchmark</text>') if benchmark_path else ""}
 </svg>'''
 
 
@@ -240,12 +257,12 @@ def render_allocation_donut_svg(items: Sequence[AllocationSlice]) -> str:
     .legend-meta {{ fill: {CHART_COLORS["slate"]}; font-size: 11px; }}
   </style>
   <rect width="100%" height="100%" fill="#FFFFFF" />
-  {''.join(slices)}
+  {"".join(slices)}
   <circle cx="{cx}" cy="{cy}" r="{inner - 2}" fill="#FFFFFF" />
   <text x="{cx}" y="{cy - 8}" text-anchor="middle" class="center-label">Invested value</text>
   <text x="{cx}" y="{cy + 14}" text-anchor="middle" class="center-value">{_compact_value(total_value)}</text>
   <text x="340" y="20" class="legend-title">Breakdown</text>
-  {''.join(legend)}
+  {"".join(legend)}
 </svg>'''
 
 
@@ -320,8 +337,8 @@ def _donut_segment(
     inner_start = _point_on_circle(cx, cy, inner_radius, start_angle)
     return (
         f'<path d="M {outer_start[0]:.2f} {outer_start[1]:.2f} '
-        f'A {outer_radius} {outer_radius} 0 {large_arc} 1 {outer_end[0]:.2f} {outer_end[1]:.2f} '
-        f'L {inner_end[0]:.2f} {inner_end[1]:.2f} '
+        f"A {outer_radius} {outer_radius} 0 {large_arc} 1 {outer_end[0]:.2f} {outer_end[1]:.2f} "
+        f"L {inner_end[0]:.2f} {inner_end[1]:.2f} "
         f'A {inner_radius} {inner_radius} 0 {large_arc} 0 {inner_start[0]:.2f} {inner_start[1]:.2f} Z" '
         f'fill="{color}" stroke="#FFFFFF" stroke-width="2" />'
     )
