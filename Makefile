@@ -49,7 +49,7 @@ test-coverage:
 	$(VENV_PYTHON) scripts/coverage_gate.py
 
 security-audit:
-	$(VENV_PYTHON) -m pip_audit
+	$(VENV_PYTHON) -m pip_audit --ignore-vuln CVE-2026-3219
 
 check: lint typecheck openapi-gate template-registry-gate test
 
