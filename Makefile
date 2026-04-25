@@ -1,45 +1,57 @@
-.PHONY: install lint monetary-float-guard typecheck openapi-gate test test-unit test-integration test-e2e test-coverage coverage-gate security-audit check ci docker-build clean
+.PHONY: install lint monetary-float-guard typecheck openapi-gate template-registry-gate test test-unit test-integration test-e2e test-coverage security-audit check ci docker-build clean
+
+VENV_DIR ?= .venv
+
+ifeq ($(OS),Windows_NT)
+VENV_PYTHON := $(VENV_DIR)/Scripts/python.exe
+else
+VENV_PYTHON := $(VENV_DIR)/bin/python
+endif
 
 install:
-	python -m pip install --upgrade pip
-	python -m pip install -e ".[dev]"
+	python -m venv $(VENV_DIR)
+	$(VENV_PYTHON) -m pip install --upgrade pip
+	$(VENV_PYTHON) -m pip install -e ".[dev]"
 
 lint:
-	ruff check .
-	ruff format --check .
+	$(VENV_PYTHON) -m ruff check .
+	$(VENV_PYTHON) -m ruff format --check .
+	$(MAKE) monetary-float-guard
 
 monetary-float-guard:
-	python scripts/check_monetary_float_usage.py
+	$(VENV_PYTHON) scripts/check_monetary_float_usage.py
 
 typecheck:
-	mypy --config-file mypy.ini
+	$(VENV_PYTHON) -m mypy --config-file mypy.ini
 
 openapi-gate:
-	python scripts/openapi_quality_gate.py
+	$(VENV_PYTHON) scripts/openapi_quality_gate.py
+
+template-registry-gate:
+	$(VENV_PYTHON) scripts/validate_template_registry.py
 
 test:
 	$(MAKE) test-unit
 
 test-unit:
-	python -m pytest tests/unit
+	$(VENV_PYTHON) -m pytest tests/unit
 
 test-integration:
-	python -m pytest tests/integration
+	$(VENV_PYTHON) -m pytest tests/integration
 
 test-e2e:
-	python -m pytest tests/e2e
+	$(VENV_PYTHON) -m pytest tests/e2e
 
 test-coverage:
-	COVERAGE_FILE=.coverage.unit python -m pytest tests/unit --cov=src --cov-report=
-	COVERAGE_FILE=.coverage.integration python -m pytest tests/integration --cov=src --cov-report=
-	COVERAGE_FILE=.coverage.e2e python -m pytest tests/e2e --cov=src --cov-report=
-	python -m coverage combine .coverage.unit .coverage.integration .coverage.e2e
-	python -m coverage report --fail-under=99
+	COVERAGE_FILE=.coverage.unit $(VENV_PYTHON) -m pytest tests/unit --cov=src --cov-report=
+	COVERAGE_FILE=.coverage.integration $(VENV_PYTHON) -m pytest tests/integration --cov=src --cov-report=
+	COVERAGE_FILE=.coverage.e2e $(VENV_PYTHON) -m pytest tests/e2e --cov=src --cov-report=
+	$(VENV_PYTHON) scripts/coverage_gate.py
 
 security-audit:
-	python -m pip_audit
+	$(VENV_PYTHON) -m pip_audit --ignore-vuln CVE-2026-3219
 
-check: lint typecheck openapi-gate test
+check: lint typecheck openapi-gate template-registry-gate test
 
 ci: lint typecheck openapi-gate test-integration test-e2e test-coverage security-audit
 

@@ -15,28 +15,44 @@ operator workflows beyond the render-stage contract defined by RFC-0102.
 
 ## Current-State Summary
 
-`lotus-render` is newly scaffolded from Lotus platform automation as the dedicated render service
-for RFC-0102. The repository currently holds the governed backend baseline and will next receive
-the first rendering slice: service foundation, render attempt model, template registry, and Typst
-integration.
+`lotus-render` implements the RFC-0102 render-service side for the first-wave portfolio review PDF
+flow. The repository contains the dedicated render-service runtime baseline, explicit render-attempt
+domain models, structured request logging, support-safe system metadata, versioned render package
+validation, source-controlled template registry enforcement, deterministic SVG chart asset
+generation, the modular Typst portfolio review template, golden PDF proof, and the first
+store-backed internal render API. The companion `lotus-report` RFC-0102 branch submits complete
+render packages and records render outcomes while keeping business-data assembly outside
+`lotus-render`. RFC-0102 is branch-proven for `lotus-render` through draft PR #1 on
+`feature/rfc-0102-render-service-foundation`; final completion still requires merge, wiki
+publication, and branch hygiene.
 
 ## Architecture And Module Map
 
-Current scaffold baseline:
+Current repository baseline:
 
-1. `src/app/main.py`: FastAPI application, health/readiness, metadata, and middleware wiring.
-2. `src/app/contracts/`: API contracts and OpenAPI-facing models.
-3. `src/app/middleware/`: correlation and request middleware.
-4. `tests/unit`, `tests/integration`, `tests/e2e`: test pyramid baseline.
-5. `docs/standards/`: required engineering standards placeholders to be replaced with service truth.
-6. `docs/rfcs/`: repo-local RFC index and future service-local RFC material.
+1. `src/app/main.py`: FastAPI application factory and lifespan wiring.
+2. `src/app/api/routes/`: system routes and internal render APIs.
+3. `src/app/contracts/`: OpenAPI-facing response models and render package contracts.
+4. `src/app/core/`: settings and logging configuration.
+5. `src/app/domain/render_attempts/`: render-attempt lifecycle models.
+6. `src/app/domain/templates/`: template manifest models and registry compatibility rules.
+7. `src/app/services/`: foundation services, package intake, render submission, and Typst
+   orchestration.
+8. `src/app/middleware/`: correlation and structured request logging middleware.
+9. `templates/registry/`: PR-governed template source truth.
+10. `templates/typst/`: governed Typst template source.
+11. `tests/golden/`: golden render package and artifact proof inputs.
+12. `tests/unit`, `tests/integration`, `tests/e2e`: test pyramid baseline.
+13. `src/app/render_store.py`: sqlite-backed governed render job state for the first-wave
+    synchronous render lifecycle.
 
 ## Runtime And Integration Boundaries
 
 1. Runtime model: standalone backend service with its own Docker image and independently scalable
    runtime.
-2. Upstream dependencies: `lotus-report` submits complete render packages; future platform ingress
-   and service-to-service auth flow through Lotus platform conventions.
+2. Upstream dependencies: `lotus-report` submits complete render packages through the internal
+   render API; future platform ingress and service-to-service auth flow through Lotus platform
+   conventions.
 3. Downstream consumers: `lotus-report` first; `lotus-gateway` only if support-safe operator
    surfaces are later added through governed APIs.
 4. Boundary rules:
@@ -45,15 +61,19 @@ Current scaffold baseline:
    - `lotus-render` returns render artifacts and support-safe diagnostics, not archive truth.
    - `lotus-render` owns render-engine/runtime posture, template compatibility, and artifact hash
      generation.
+   - developer and CI proof should prefer the governed Typst container runtime when Docker is
+     available; local Typst is fallback only when Docker is unavailable.
 
 ## Repo-Native Commands
 
 1. Install/bootstrap: `make install`
 2. Lint: `make lint`
 3. Typecheck: `make typecheck`
-4. Unit tests: `make test-unit`
-5. Integration tests: `make test-integration`
-6. CI parity: `make check` and `make ci`
+4. Template registry validation: `make template-registry-gate`
+5. Unit tests: `make test-unit`
+6. Integration tests: `make test-integration`
+7. CI parity: `make check` and `make ci`
+8. Local runtime: `uvicorn app.main:app --reload --port 8310`
 
 ## Validation And CI Expectations
 
@@ -79,12 +99,20 @@ Primary governing artifacts:
 
 ## Known Constraints And Implementation Notes
 
-1. The current repository is scaffold baseline only; most standards docs are placeholders until the
-   first implementation slice lands.
+1. The repository owns only render-stage behavior. `POST /renders`, render status,
+   artifact-metadata reads, template compatibility, bounded-determinism diagnostics, and governed
+   portfolio-review template rendering are in scope; report package assembly remains in
+   `lotus-report`.
 2. Keep render/data/archive boundaries strict from the start. Do not let `lotus-render` become a
    business-data authority.
 3. Update repo-local wiki source and platform RFC/context truth when service ownership or runtime
    contracts change.
+4. Determinism is currently bounded to the governed Typst `0.14.2` runtime envelope; raw artifact
+   hashes remain truthful, while bounded-determinism proof normalizes volatile PDF metadata fields.
+5. The committed first-wave golden PDF is minted from the governed container-first Typst envelope so
+   CI, local proof, and the future service image stay aligned.
+6. `/health/ready` should remain truthful for both runtime posture and render-store availability,
+   because the first-wave render APIs depend on persisted render-job state.
 
 ## Context Maintenance Rule
 
