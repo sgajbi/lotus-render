@@ -170,6 +170,14 @@ def test_typst_render_service_helper_fallbacks_cover_sparse_structures() -> None
     assert service._string_list("not-a-list") == []
     assert service._string_list([" lot1 ", "", "lot2"]) == ["lot1", "lot2"]
     assert service._mapping("not-a-mapping") == {}
+    assert service._requested_section_keys(
+        ["detailed-positions", "asset-allocation", "unknown", "asset_allocation"]
+    ) == ["positions", "allocation"]
+    assert (
+        "No 12-month performance series is available"
+        in service._render_performance_chart_section({})
+    )
+    assert "No allocation breakdown is available" in service._render_allocation_chart_section({})
     assert "No governed observations available." in service._render_observation_notes("bad")
     assert "No governed performance periods available." in service._render_performance_period_rows(
         "bad"
@@ -178,11 +186,20 @@ def test_typst_render_service_helper_fallbacks_cover_sparse_structures() -> None
         [123]
     )
     assert "No governed performance bars available." in service._render_performance_bar_rows("bad")
+    assert "No governed performance bars available." in service._render_performance_bar_rows([123])
     performance_summary_fallback = service._render_performance_summary_table("bad")
     assert "No governed performance summary available." in performance_summary_fallback
+    assert (
+        "No governed performance summary available."
+        in service._render_performance_summary_table([123])
+    )
     assert "No performance history available." in service._render_performance_chart_rows("bad")
+    assert "No performance history available." in service._render_performance_chart_rows([123])
     assert "No monthly performance detail available." in service._render_performance_detail_rows(
         "bad"
+    )
+    assert "No monthly performance detail available." in service._render_performance_detail_rows(
+        [123]
     )
     assert "No governed holdings available." in service._render_holding_rows("bad")
     assert "No governed holdings available." in service._render_holding_rows([123])
@@ -232,6 +249,7 @@ def test_typst_render_service_returns_empty_messages_when_sequences_have_no_mapp
 
 def test_typst_render_service_numeric_fallback_helpers_cover_invalid_inputs() -> None:
     assert TypstRenderService._percent_width_token("bad") == "8%"
+    assert TypstRenderService._performance_width_token("bad") == "8%"
     assert TypstRenderService._parse_percent("bad") == 0.0
     assert TypstRenderService._parse_number("bad") == 0.0
 

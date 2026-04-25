@@ -1,6 +1,12 @@
 from pathlib import Path
 
 from app.services.portfolio_charts import (
+    _compact_value,
+    _donut_segment,
+    _nice_ticks,
+    _parse_currency_number,
+    _parse_percent_or_number,
+    _polyline,
     allocation_items_from_report_data,
     performance_series_from_report_data,
     render_allocation_donut_svg,
@@ -95,3 +101,130 @@ def test_render_portfolio_chart_assets_writes_expected_svg_files(tmp_path: Path)
     assert assets.allocation_svg == tmp_path / "allocation_asset_class.svg"
     assert assets.performance_svg.exists()
     assert assets.allocation_svg.exists()
+
+
+def test_render_portfolio_chart_assets_degrades_without_chart_data(tmp_path: Path) -> None:
+    assets = render_portfolio_chart_assets(
+        {
+            "performance_series": "not chart rows",
+            "allocation_breakdowns": {"by_asset_class": "not allocation rows"},
+        },
+        tmp_path,
+    )
+
+    assert assets.performance_svg is None
+    assert assets.allocation_svg is None
+    assert list(tmp_path.iterdir()) == []
+
+
+def test_performance_series_skips_invalid_rows_and_uses_period_fallback() -> None:
+    series = performance_series_from_report_data(
+        {
+            "performance_monthly_history": [
+                "bad row",
+                {"period": "", "cumulative_twr_pct": "1.00%"},
+                {"period": "2025-01", "cumulative_twr_pct": "not available"},
+                {
+                    "period": "2025-02",
+                    "cumulative_twr_pct": "1.25%",
+                    "benchmark_cumulative_twr_pct": "0.50%",
+                },
+            ]
+        }
+    )
+
+    assert len(series) == 1
+    assert series[0].month == "2025-02"
+    assert series[0].cumulative_twr == 1.25
+    assert series[0].benchmark_cumulative_twr == 0.5
+
+
+def test_allocation_items_use_fallback_rows_and_skip_invalid_values() -> None:
+    items = allocation_items_from_report_data(
+        {
+            "allocation_items": [
+                "bad row",
+                {"label": "", "weight_pct": "5.00%", "market_value": "500"},
+                {"label": "Zero", "weight_pct": "0.00%", "market_value": "0"},
+                {"label": "Invalid", "weight_pct": "n/a", "market_value": "100"},
+                {"label": "Equity", "weight_pct": "70.00%", "market_value": "USD 7,000"},
+                {"label": "Cash", "weight_pct": "1.00%", "market_value": ""},
+            ]
+        }
+    )
+
+    assert [item.label for item in items] == ["Equity", "Cash"]
+    assert items[0].market_value == 7000
+    assert items[1].market_value == 0
+
+
+def test_allocation_items_wrap_palette_without_grouping_large_rows() -> None:
+    items = allocation_items_from_report_data(
+        {
+            "allocation_breakdowns": {
+                "by_asset_class": [
+                    {"name": f"Class {index}", "weight_pct": "3.00%", "market_value": "300"}
+                    for index in range(7)
+                ]
+            }
+        }
+    )
+
+    assert len(items) == 7
+    assert items[0].color == items[6].color
+
+
+def test_allocation_donut_escapes_labels_and_formats_small_total() -> None:
+    items = allocation_items_from_report_data(
+        {
+            "allocation_items": [
+                {
+                    "label": "Equity & Growth",
+                    "weight_pct": "100.00%",
+                    "market_value": "999",
+                }
+            ]
+        }
+    )
+
+    svg = render_allocation_donut_svg(items)
+
+    assert "Equity &amp; Growth" in svg
+    assert ">999<" in svg
+
+
+def test_performance_svg_handles_single_point_without_benchmark() -> None:
+    svg = render_performance_svg(
+        [
+            performance_series_from_report_data(
+                {"performance_series": [{"month": "bad-month", "cumulative_twr": "0.20%"}]}
+            )[0]
+        ]
+    )
+
+    assert "bad-month" in svg
+    assert "Benchmark" not in svg
+    assert 'cx="478.00"' in svg
+
+
+def test_chart_helper_fallbacks_are_stable() -> None:
+    assert _parse_percent_or_number(None) is None
+    assert _parse_percent_or_number("n/a") is None
+    assert _parse_percent_or_number("bad") is None
+    assert _parse_percent_or_number("1,234.50%") == 1234.5
+
+    assert _parse_currency_number(None) is None
+    assert _parse_currency_number("") is None
+    assert _parse_currency_number("bad") is None
+    assert _parse_currency_number("USD 1,234.50") == 1234.5
+
+    assert _nice_ticks(1, 2, 1) == [1, 2]
+    assert _polyline([]) == ""
+    assert _compact_value(999) == "999"
+    assert _compact_value(1_500) == "1.5K"
+    assert _compact_value(2_500_000) == "2.5M"
+
+    small_arc = _donut_segment(0, 0, 10, 5, 0, 90, "#000000")
+    large_arc = _donut_segment(0, 0, 10, 5, 0, 270, "#000000")
+    assert " 0 0 1 " in small_arc
+    assert " 0 1 1 " in large_arc

@@ -155,9 +155,6 @@ def render_performance_svg(points: Sequence[PerformancePoint]) -> str:
     padding = max((max_value - min_value) * 0.15, 0.8)
     y_min = math.floor(min_value - padding)
     y_max = math.ceil(max_value + padding)
-    if y_min == y_max:
-        y_min -= 1
-        y_max += 1
 
     def x_at(index: int) -> float:
         if len(points) == 1:
