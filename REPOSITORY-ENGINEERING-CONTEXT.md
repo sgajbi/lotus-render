@@ -15,11 +15,16 @@ operator workflows beyond the render-stage contract defined by RFC-0102.
 
 ## Current-State Summary
 
-`lotus-render` now implements RFC-0102 through Slice 5. The repository contains the dedicated
-render-service runtime baseline, explicit render-attempt domain models, structured request logging,
-support-safe system metadata, versioned render package validation, source-controlled template
-registry enforcement, the first real Typst PDF render path for portfolio review, and the first
-store-backed internal render API.
+`lotus-render` implements the RFC-0102 render-service side for the first-wave portfolio review PDF
+flow. The repository contains the dedicated render-service runtime baseline, explicit render-attempt
+domain models, structured request logging, support-safe system metadata, versioned render package
+validation, source-controlled template registry enforcement, deterministic SVG chart asset
+generation, the modular Typst portfolio review template, golden PDF proof, and the first
+store-backed internal render API. The companion `lotus-report` RFC-0102 branch submits complete
+render packages and records render outcomes while keeping business-data assembly outside
+`lotus-render`. RFC-0102 is branch-proven for `lotus-render` through draft PR #1 on
+`feature/rfc-0102-render-service-foundation`; final completion still requires merge, wiki
+publication, and branch hygiene.
 
 ## Architecture And Module Map
 
@@ -94,9 +99,10 @@ Primary governing artifacts:
 
 ## Known Constraints And Implementation Notes
 
-1. The current repository is through Slice 5. The internal `POST /renders` plus status and
-   artifact-metadata reads now exist, but upstream `lotus-report` orchestration is still the next
-   slice.
+1. The repository owns only render-stage behavior. `POST /renders`, render status,
+   artifact-metadata reads, template compatibility, bounded-determinism diagnostics, and governed
+   portfolio-review template rendering are in scope; report package assembly remains in
+   `lotus-report`.
 2. Keep render/data/archive boundaries strict from the start. Do not let `lotus-render` become a
    business-data authority.
 3. Update repo-local wiki source and platform RFC/context truth when service ownership or runtime
