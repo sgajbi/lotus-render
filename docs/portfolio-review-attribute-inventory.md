@@ -1,0 +1,51 @@
+# Portfolio Review Attribute Inventory
+
+This inventory governs the `portfolio-review v1` client report. `lotus-render` must not fetch
+business data directly; it presents the complete render package assembled by `lotus-report`.
+Source ownership below identifies where the business fact originates before it reaches the render
+package.
+
+## Status Legend
+
+- `available and used`: source-backed today and rendered in the PDF.
+- `available but not yet placed properly`: source-backed today, but the current report does not yet
+  use it in the best client-facing position.
+- `missing from upstream`: valuable for the report, but not source-backed in the current Lotus
+  upstream contract.
+- `needs clarification`: source ownership or client-facing semantics need a product decision.
+
+## Inventory
+
+| Attribute | Business meaning | Report section | Source application | Source endpoint / object | Current status | Action required |
+| --- | --- | --- | --- | --- | --- | --- |
+| Client name | Legal or display name for the reviewed relationship | Cover, footer | lotus-core via lotus-report | `clientProfile.identity.client_name` / report job identity | available and used | Keep as primary relationship identifier. |
+| Portfolio name | Portfolio or mandate under review | Cover, footer, contents | lotus-core via lotus-report | Portfolio detail / report job scope | available and used | Keep visible on all pages through footer. |
+| Review period | Time window covered by the review | Cover, all page headers | lotus-report | report job request and snapshot as-of metadata | available and used | Keep in shared page furniture. |
+| Reporting currency | Currency used for report values | Cover, page headers, tables | lotus-report / lotus-core | `reportingCurrency`, portfolio base currency | available and used | Keep explicit where figures are compared. |
+| Total portfolio value | Total market value as of review date | Cover, overview | lotus-core via lotus-report | snapshot `overview.total_market_value`; `keyFigures.portfolio_value` | available and used | Continue as headline metric. |
+| Invested value | Value allocated to invested positions | Cover, overview, allocation | lotus-report derived composition from portfolio value | `keyFigures.portfolio_value.invested_value` | available and used | Continue as headline metric and allocation denominator. |
+| Cash balance and cash weight | Near-term liquidity and residual cash exposure | Cover, overview, allocation | lotus-core via lotus-report | `keyFigures.portfolio_value.cash_balance`, `cash_weight` | available and used | Keep in headline and allocation context. |
+| Mandate objective | Client-facing mandate intent | Overview | lotus-core via lotus-report | `clientProfile.mandate_profile.objective` | available and used | Keep in executive briefing. |
+| Risk exposure | Mandate risk classification | Overview, allocation risk profile | lotus-core / lotus-risk via lotus-report | `clientProfile.mandate_profile.risk_exposure`, `riskAnalytics.summary` | available and used | Use consistently as risk posture label. |
+| Booking center | Relationship booking location | Cover, overview | lotus-core via lotus-report | `clientProfile.identity.booking_center` | available and used | Keep in relationship context; avoid technical identifiers where display name exists. |
+| Advisor identifier | Relationship manager or advisory owner | Cover, overview | lotus-core / lotus-manage via lotus-report | `clientProfile.identity.advisor_id` | available and used | Prefer display name when lotus-manage exposes it. |
+| Mandate type, investment horizon, leverage permission, portfolio status, open date, cost-basis method | Important relationship and suitability context | Cover, overview | lotus-core via lotus-report | Portfolio detail / client profile fields documented in `lotus-report/docs/supported-features.md` | available but not yet placed properly | Extend render package placement into a compact mandate facts block. |
+| Allocation by asset class | Portfolio mix by investable exposure | Allocation, overview | lotus-core via lotus-report | snapshot `allocation.byAssetClass`; `keyFigures.allocation` | available and used | Keep chart and table source-aligned. |
+| Allocation by currency | Currency exposure by market value | Allocation | lotus-core via lotus-report | snapshot `allocation.byCurrency` | available and used | Keep as default supplemental allocation. |
+| Allocation by sector, region, country, product type, rating | Secondary exposure lenses | Allocation | lotus-core via lotus-report | snapshot `allocation.bySector`, `byRegion`, `byCountry`, `byProductType`, `byRating` | available but not yet placed properly | Add configurable supplemental allocation pages when section scope requires them. |
+| Target allocation / strategic asset allocation gap | Distance from model or mandate allocation | Allocation | lotus-manage / lotus-advise | model portfolio, mandate, or advisory target allocation contract | missing from upstream | RFC source gap: expose target allocation and variance with governed source ownership. |
+| Portfolio performance periods | Current month, quarter, YTD, last 12 months, since inception | Performance | lotus-performance via lotus-report | snapshot `performance.summary` | available and used | Keep in performance summary metric row. |
+| 12-month cumulative TWR series | Monthly cumulative client performance trend | Performance | lotus-performance via lotus-report | snapshot `performance.monthly_history` | available and used | Keep deterministic SVG chart generation. |
+| Benchmark cumulative series | Relative performance trend | Performance | lotus-performance | benchmark time-series contract | available but not yet placed properly | Ensure `lotus-report` passes benchmark series when sourced; hide line when absent. |
+| Annual performance history | Calendar-year net performance | Performance | lotus-performance via lotus-report | snapshot `performance.annual_history` | available and used | Keep in annual performance page. |
+| Performance contribution | Return contribution by position or exposure | Performance, positions | lotus-performance via lotus-report | performance contribution model / holdings enrichment | available but not yet placed properly | Add configurable contribution table/page for asset-class, sector, and position contribution. |
+| Risk measures | Volatility, beta, tracking error, information ratio, value at risk | Allocation risk profile | lotus-risk via lotus-report | snapshot `riskAnalytics.summary.YTD`; `keyFigures.risk` | available and used | Keep as risk profile panel; add methodology reference in appendix. |
+| Risk-free rate and benchmark supportability | Inputs that affect performance/risk interpretation | Appendix / methodology | lotus-performance / lotus-risk | risk-free and benchmark input contracts | missing from upstream | RFC source gap: expose supportability status rather than assuming zero-rate treatment. |
+| Position number, amount, description, category, rating, sector, duration, yield, cost price, market price, price date, P/L, performance, market value, weight | Statement-grade position detail and valuation context | Detailed positions | lotus-core holdings, lotus-performance enrichment via lotus-report | `HoldingsAsOf` plus enriched position fields | available and used | Continue dense table layout; keep header/value order stacked and consistent. |
+| Accrued interest, custody account, exchange rate, tax cost basis, price source, sustainability labels | Additional position business value and auditability | Detailed positions | lotus-core / lotus-report / lotus-advise | holdings enrichment, custody, sustainability, and price-source fields | needs clarification | Clarify authoritative source and client-facing placement before rendering. |
+| Transaction trade date, value date, booking text, amount, description, price, realized P/L, settlement amount | Statement-grade activity detail | Transactions | lotus-core via lotus-report | `TransactionLedgerWindow`; snapshot `transactions.transactionsByCategory` | available and used | Keep transaction table aligned with positions table grammar. |
+| Transaction tax, custody account, broker, place of execution, exchange rate, settlement status | Additional transaction economics and auditability | Transactions | lotus-core / custody source via lotus-report | transaction ledger enrichment | needs clarification | RFC placement question: clarify availability and client-facing priority. |
+| Governance and source-service evidence | Supportability and lineage of the render package | Appendix / operator evidence | lotus-report | snapshot `evidence`, `trust_metadata`, `readiness` | available but not yet placed properly | Keep out of client narrative unless converted into an advisor-facing supportability appendix. |
+| Advisory recommendation / suitability rationale | Advice context and suitability explanation | Future advisory section | lotus-advise / lotus-manage | advice lifecycle, suitability, model portfolio, recommendation objects | missing from upstream | RFC evolution opportunity: add optional advisory section after source contract is governed. |
+| AI-generated narrative | Assisted commentary or draft insights | Future advisor-only section | lotus-ai via lotus-report | advisor/reporting narrative contract | needs clarification | Do not render in client report until provenance, approval, and wording controls are governed. |
+

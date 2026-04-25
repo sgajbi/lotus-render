@@ -4,7 +4,13 @@
 
 The portfolio review template is assembled from modular Typst pages under `templates/typst/portfolio-review/v1/`. The entry template owns page setup, typography defaults, footer furniture, and section assembly. The renderer injects `REPORT_SECTIONS`, so callers can render the full report or a selected subset through `render_context.sections` without changing page modules.
 
-The report uses A4 landscape for statement-grade portfolio reporting. Section pages use a consistent rhythm: page title, reporting context, thin rule, section body, and a quiet footer with portfolio name and page numbering. Dense sections use aligned grid structures and reusable row components so positions, transactions, and performance tables keep the same measurement and hierarchy.
+The report uses A4 landscape for statement-grade portfolio reporting. Section pages use a consistent
+rhythm: page title, reporting context, thin rule, section body, and a quiet footer with portfolio
+name and page numbering. Dense sections use aligned grid structures and reusable row components so
+positions, transactions, and performance tables keep the same measurement and hierarchy. Main-body
+sections and appendix sections share the same page furniture, color tokens, panel rhythm, table
+rules, and label treatment so the report reads as one coherent product rather than separate page
+experiments.
 
 ## Typography System
 
@@ -24,6 +30,31 @@ Core reusable primitives live in `_theme.typ` and `_components.typ`:
 - appendix definitions: `appendix-term`, `appendix-section`
 
 Page modules compose these primitives instead of hardcoding local styling. This keeps spacing, color, label treatment, and table rhythm consistent across sections.
+
+## Section Families
+
+The report is organized into section families that share the same foundation:
+
+- front matter: cover and contents
+- executive briefing: overview and mandate context
+- analytics: performance, allocation, charts, and risk profile
+- statement detail: detailed positions and transactions
+- appendix: definitions, methodology notes, abbreviations, and disclosures
+
+Each family may tune density and emphasis, but it must use the shared tokens and component grammar.
+New sections should start from the closest family pattern instead of defining local page furniture.
+
+## Source-Backed Attribute Model
+
+The template renders only attributes provided by the governed render package. Business data
+ownership remains upstream in Lotus domain applications and render-package assembly remains owned by
+`lotus-report`. The maintained inventory is
+`docs/portfolio-review-attribute-inventory.md`; it records each client-facing attribute, business
+meaning, source application, source object or endpoint where known, status, and required action.
+
+When a desired report attribute is not source-backed, it must be recorded as a source gap instead of
+being invented in the template. When an attribute exists but its client-facing placement is unclear,
+it must be recorded as a placement or semantic decision before the report starts rendering it.
 
 ## Chart Pipeline
 

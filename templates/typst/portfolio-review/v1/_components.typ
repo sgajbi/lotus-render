@@ -1,65 +1,107 @@
-#import "_theme.typ": accent, accent-soft, body-muted, body-strong, ink, metric-value, mist, navy, page-kicker, rule, section-subtitle, section-title, slate, small-caps, soft-rule
+#import "_theme.typ": accent, accent-soft, body-muted, body-strong, grid-gap, hairline, ink, mist, navy, page-kicker, panel-radius, rule, section-subtitle, section-title, slate, small-caps, soft-rule
 
 #let page-header(title) = [
-  #align(right)[
-    #page-kicker("Reporting period 1 Jan 2026 - ${AS_OF_DATE}")
-    #linebreak()
-    #page-kicker("Reporting currency ${CURRENCY}")
-  ]
-  #v(10pt)
-  #section-title(title)
-  #v(6pt)
+  #grid(
+    columns: (1fr, auto),
+    column-gutter: grid-gap,
+    [#section-title(title)],
+    [
+      #align(right)[
+        #set par(leading: 0.86em)
+        #page-kicker("Reporting period 1 Jan 2026 - ${AS_OF_DATE}")
+        #linebreak()
+        #page-kicker("Reporting currency ${CURRENCY}")
+      ]
+    ],
+  )
+  #v(7pt)
   #soft-rule()
 ]
 
+#let page-meta() = [
+  #set par(leading: 0.86em)
+  #page-kicker("Statement of assets as of ${AS_OF_DATE}")
+  #linebreak()
+  #page-kicker("Produced for portfolio review")
+]
+
+#let report-panel(body, fill: white, inset: 11pt) = block(
+  inset: inset,
+  fill: fill,
+  stroke: (paint: rule, thickness: hairline),
+  radius: panel-radius,
+)[#body]
+
+#let section-lead(title, body) = report-panel([
+  #section-subtitle(title)
+  #v(5pt)
+  #text(size: 9pt, fill: ink)[#body]
+], fill: mist)
+
 #let metric-card(label, value, detail: none, tone: mist) = block(
-  inset: 12pt,
+  inset: 10pt,
   fill: tone,
-  stroke: (paint: rule, thickness: 0.5pt),
-  radius: 8pt,
+  stroke: (paint: rule, thickness: hairline),
+  radius: panel-radius,
 )[
   #small-caps(label)
-  #v(5pt)
-  #metric-value(value)
+  #v(4pt)
+  #text(size: 11.2pt, weight: 650, fill: ink)[#value]
   #if detail != none [
-    #v(4pt)
+    #v(3pt)
     #body-muted(detail)
   ]
 ]
 
 #let note-panel(title, body) = block(
-  inset: 12pt,
+  inset: 10pt,
   fill: white,
-  stroke: (paint: rule, thickness: 0.5pt),
-  radius: 8pt,
+  stroke: (paint: rule, thickness: hairline),
+  radius: panel-radius,
+)[
+  #small-caps(title)
+  #v(4pt)
+  #text(size: 8.35pt, fill: ink)[#body]
+]
+
+#let spotlight-panel(title, body) = block(
+  inset: 12pt,
+  fill: mist,
+  stroke: (paint: rule, thickness: hairline),
+  radius: panel-radius,
 )[
   #small-caps(title)
   #v(5pt)
   #text(size: 9pt, fill: ink)[#body]
 ]
 
-#let spotlight-panel(title, body) = block(
-  inset: 14pt,
-  fill: rgb("#f4f9fd"),
-  stroke: (paint: accent-soft, thickness: 0.7pt),
-  radius: 10pt,
-)[
-  #small-caps(title)
-  #v(5pt)
-  #text(size: 9.8pt, fill: ink)[#body]
-]
-
 #let content-item(index, title, detail) = [
   #grid(
-    columns: (22pt, 1fr),
-    column-gutter: 10pt,
-    [#text(size: 22pt, weight: 300, fill: accent)[#index]],
+    columns: (24pt, 1fr),
+    column-gutter: 11pt,
+    [#text(size: 19pt, weight: 300, fill: accent)[#index]],
     [
-      #text(size: 11pt, weight: 500, fill: ink)[#title]
+      #text(size: 10pt, weight: 600, fill: ink)[#title]
       #v(2pt)
       #body-muted(detail)
     ],
   )
+]
+
+#let content-row(index, title, detail, ref) = [
+  #grid(
+    columns: (28pt, 1fr, 28pt),
+    column-gutter: 10pt,
+    [#text(size: 13pt, weight: 300, fill: accent)[#index]],
+    [
+      #text(size: 9.5pt, weight: 600, fill: ink)[#title]
+      #linebreak()
+      #body-muted(detail)
+    ],
+    [#align(right)[#small-caps(ref)]],
+  )
+  #v(8pt)
+  #soft-rule()
 ]
 
 #let key-stat(label, value) = [
@@ -71,8 +113,8 @@
 #let chart-card(title, chart-path, subtitle: none, note: none) = block(
   inset: 12pt,
   fill: white,
-  stroke: (paint: rule, thickness: 0.7pt),
-  radius: 6pt,
+  stroke: (paint: rule, thickness: hairline),
+  radius: panel-radius,
 )[
   #text(size: 11.2pt, weight: 700, fill: navy)[#title]
   #if subtitle != none [
@@ -90,8 +132,8 @@
 #let chart-placeholder(title, message) = block(
   inset: 12pt,
   fill: mist,
-  stroke: (paint: rule, thickness: 0.7pt),
-  radius: 6pt,
+  stroke: (paint: rule, thickness: hairline),
+  radius: panel-radius,
 )[
   #text(size: 11.2pt, weight: 700, fill: navy)[#title]
   #v(8pt)
@@ -163,10 +205,10 @@
 ]
 
 #let performance-summary-cell(label, value, annualized) = block(
-  inset: 8pt,
+  inset: 9pt,
   fill: white,
-  stroke: (paint: rule, thickness: 0.35pt),
-  radius: 4pt,
+  stroke: (paint: rule, thickness: hairline),
+  radius: panel-radius,
 )[
   #text(size: 7.3pt, fill: slate)[#label]
   #linebreak()
@@ -245,7 +287,7 @@
     [#align(right)[#text(size: 7.75pt, fill: ink)[#weight]]],
     [#align(right)[#text(size: 7.75pt, fill: slate)[#value]]],
   )
-  #v(4pt)
+  #v(3.5pt)
   #line(length: 100%, stroke: (paint: rule, thickness: 0.25pt))
 ]
 

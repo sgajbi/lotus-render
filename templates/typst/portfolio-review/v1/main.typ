@@ -1,21 +1,23 @@
+#import "_theme.typ": ink, page-margin-x, page-margin-y, rule, slate
+
 #set page(
   paper: "a4",
   flipped: true,
-  margin: (x: 16mm, y: 16mm),
+  margin: (x: page-margin-x, y: page-margin-y),
   footer: context [
-    #line(length: 100%, stroke: (paint: rgb("#d7e2ea"), thickness: 0.35pt))
+    #line(length: 100%, stroke: (paint: rule, thickness: 0.35pt))
     #v(5pt)
     #grid(
       columns: (1fr, auto),
-      [#text(size: 6.4pt, fill: rgb("#66798d"))[${PORTFOLIO_NAME}]],
-      [#text(size: 6.8pt, fill: rgb("#1f2f43"))[#counter(page).display("1 / 1")]],
+      [#text(size: 6.4pt, fill: slate)[${PORTFOLIO_NAME}]],
+      [#text(size: 6.8pt, fill: ink)[#counter(page).display("1 / 1")]],
     )
   ],
   footer-descent: 38%,
 )
 
-#set text(size: 9.2pt, fill: rgb("#27374a"))
-#set par(leading: 1.14em, spacing: 0.48em)
+#set text(size: 8.9pt, fill: ink)
+#set par(leading: 1.08em, spacing: 0.42em)
 
 #import "_allocation.typ": allocation-page
 #import "_appendix.typ": appendix-page

@@ -1,5 +1,5 @@
-#import "_theme.typ": accent, section-subtitle, section-title, soft-rule
-#import "_components.typ": chart-card, chart-placeholder, page-header, performance-chart-row, performance-detail-row, performance-summary-cell, table-label
+#import "_theme.typ": rule, section-subtitle, section-title, soft-rule
+#import "_components.typ": chart-card, chart-placeholder, page-header, performance-chart-row, performance-detail-row, performance-summary-cell, report-panel, table-label
 
 #let performance-page() = [
   #page-header("Performance")
@@ -18,12 +18,7 @@
   #v(10pt)
   #section-subtitle("Annual net performance (TWR)")
   #v(7pt)
-  #block(
-    inset: 10pt,
-    fill: white,
-    stroke: (paint: rgb("#D9E1E8"), thickness: 0.45pt),
-    radius: 6pt,
-  )[
+  #report-panel([
     #grid(columns: (34pt, 1fr, 42pt, 42pt), column-gutter: 7pt,
       [#table-label("Year")],
       [#table-label("Performance")],
@@ -34,7 +29,7 @@
     #soft-rule()
     #v(6pt)
     ${PERFORMANCE_ANNUAL_CHART_ROWS}
-  ]
+  ])
 
   #pagebreak()
   #section-title("Performance")
@@ -58,6 +53,8 @@
   #v(5pt)
   #soft-rule()
   #v(6pt)
-  ${PERFORMANCE_MONTHLY_TABLE_ROWS}
+  #report-panel([
+    ${PERFORMANCE_MONTHLY_TABLE_ROWS}
+  ])
 
 ]

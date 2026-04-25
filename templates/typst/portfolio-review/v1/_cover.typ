@@ -1,37 +1,41 @@
-#import "_theme.typ": accent, body-muted, cover-title, ink, small-caps, soft-rule
-#import "_components.typ": content-item, metric-card, spotlight-panel
+#import "_theme.typ": accent, body-muted, cover-title, grid-gap, ink, mist, navy, section-title, small-caps, soft-rule
+#import "_components.typ": content-row, metric-card, report-panel, section-lead, spotlight-panel
 
 #let cover-page() = [
   #align(left)[#rect(width: 58pt, height: 1.4pt, fill: accent)]
-  #v(18pt)
+  #v(16pt)
   #grid(
-    columns: (1.25fr, 0.95fr),
+    columns: (1.22fr, 0.98fr),
     column-gutter: 30pt,
     [
       #cover-title("Portfolio Review")
-      #v(22pt)
-      #body-muted("Client")
-      #v(2pt)
-      #text(size: 17pt, weight: 500, fill: ink)[${CLIENT_NAME}]
-      #v(11pt)
-      #body-muted("Portfolio")
-      #v(2pt)
-      #text(size: 14pt, weight: 400, fill: ink)[${PORTFOLIO_NAME}]
-      #v(11pt)
-      #body-muted("Review period")
-      #v(2pt)
-      #text(size: 12pt, fill: ink)[1 Jan 2026 - ${AS_OF_DATE}]
       #v(18pt)
-      #spotlight-panel("Executive overview", "${SUMMARY_PARAGRAPH}")
+      #report-panel([
+        #grid(
+          columns: (0.9fr, 1.4fr),
+          row-gutter: 8pt,
+          column-gutter: grid-gap,
+          [#small-caps("Client")],
+          [#text(size: 13pt, weight: 600, fill: ink)[${CLIENT_NAME}]],
+          [#small-caps("Portfolio")],
+          [#text(size: 11pt, weight: 500, fill: ink)[${PORTFOLIO_NAME}]],
+          [#small-caps("Review period")],
+          [#text(size: 9.5pt, fill: ink)[1 Jan 2026 - ${AS_OF_DATE}]],
+          [#small-caps("Reporting currency")],
+          [#text(size: 9.5pt, fill: ink)[${CURRENCY}]],
+        )
+      ])
+      #v(13pt)
+      #section-lead("Executive overview", "${SUMMARY_PARAGRAPH}")
     ],
     [
-      #metric-card("Total portfolio value", "${CURRENCY} ${TOTAL_VALUE}", detail: "Market value as of ${AS_OF_DATE}", tone: rgb("#f4f9fd"))
+      #metric-card("Total portfolio value", "${CURRENCY} ${TOTAL_VALUE}", detail: "Market value as of ${AS_OF_DATE}", tone: mist)
       #v(10pt)
-      #metric-card("Invested value", "${CURRENCY} ${INVESTED_VALUE}")
+      #metric-card("Invested value", "${CURRENCY} ${INVESTED_VALUE}", tone: white)
       #v(10pt)
-      #metric-card("Cash balance", "${CURRENCY} ${CASH_BALANCE}")
+      #metric-card("Cash balance", "${CURRENCY} ${CASH_BALANCE}", tone: white)
       #v(10pt)
-      #metric-card("Cash weight", "${CASH_WEIGHT_PCT}", detail: "Available near-term liquidity")
+      #metric-card("Cash weight", "${CASH_WEIGHT_PCT}", detail: "Available near-term liquidity", tone: white)
     ],
   )
 
@@ -63,29 +67,31 @@
 ]
 
 #let contents-page() = [
-  #text(size: 17.2pt, weight: 300, fill: ink)[Contents]
-  #v(18pt)
+  #section-title("Contents")
+  #v(7pt)
+  #soft-rule()
+  #v(15pt)
   #grid(
     columns: (1fr, 1fr),
     column-gutter: 32pt,
     [
-      #content-item("1", "Overview", "Mandate, relationship context, and scope of analysis")
-      #v(14pt)
-      #content-item("2", "Performance", "Period returns, benchmark comparison, and trailing return profile")
-      #v(14pt)
-      #content-item("3", "Allocation", "Asset mix, exposure detail, and risk profile")
+      #content-row("1", "Overview", "Mandate, relationship context, and scope of analysis", "p. 3")
+      #v(9pt)
+      #content-row("2", "Performance", "Period returns, benchmark comparison, and return history", "p. 4")
+      #v(9pt)
+      #content-row("3", "Asset allocation", "Asset mix, exposure detail, and risk profile", "p. 7")
     ],
     [
-      #content-item("4", "Detailed positions", "Statement-style holdings detail and position-level performance")
-      #v(14pt)
-      #content-item("5", "Transactions", "Transaction activity across the review period")
-      #v(14pt)
-      #content-item("6", "Appendix", "Definitions and explanatory notes")
+      #content-row("4", "Detailed positions", "Statement-style holdings detail and position-level performance", "p. 9")
+      #v(9pt)
+      #content-row("5", "Transactions", "Transaction activity across the review period", "p. 10")
+      #v(9pt)
+      #content-row("6", "Appendix", "Definitions and explanatory notes", "p. 11")
     ],
   )
 
   #v(22pt)
-  #spotlight-panel(
+  #section-lead(
     "Review summary",
     "This report brings together current portfolio positioning, performance, allocation, positions, and transaction activity as of the stated review date.",
   )

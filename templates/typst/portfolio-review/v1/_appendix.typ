@@ -1,4 +1,4 @@
-#import "_theme.typ": accent, ink, rule, slate, soft-rule
+#import "_theme.typ": accent, ink, navy, rule, slate, soft-rule
 #import "_appendix_text.typ": *
 
 #let appendix-small = 6.95pt
@@ -9,7 +9,7 @@
   #grid(
     columns: (1.08fr, 0.72fr, 0.46fr),
     column-gutter: 22pt,
-    [#text(size: 20.5pt, weight: 300, fill: ink)[Abbreviations and explanations]],
+    [#text(size: 20.5pt, weight: 300, fill: navy)[Abbreviations and explanations]],
     [
       #set par(leading: 0.8em)
       #text(size: 6.8pt, fill: slate)[Statement of assets as of ${AS_OF_DATE}]

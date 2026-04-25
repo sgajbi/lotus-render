@@ -95,3 +95,9 @@ The maintainable design-system note for the Typst implementation is authored in
 `docs/portfolio-review-typst-design-system.md`. It records the layout rhythm, typography scale,
 component model, deterministic SVG chart pipeline, rendering command, and focused validation gate
 used for this template.
+
+The source-backed attribute inventory is authored in
+`docs/portfolio-review-attribute-inventory.md`. It records every client-facing report attribute,
+business meaning, source application, source object or endpoint where known, current placement
+status, and source gaps. Desired report fields that are not yet source-backed must be added to that
+inventory and the RFC before they appear in the template.

@@ -1,5 +1,5 @@
-#import "_theme.typ": rule, section-subtitle, soft-rule
-#import "_components.typ": chart-card, chart-placeholder, compact-allocation-row, key-stat, note-panel, page-header, table-label
+#import "_theme.typ": mist, rule, section-subtitle, soft-rule
+#import "_components.typ": chart-card, chart-placeholder, compact-allocation-row, key-stat, note-panel, page-header, report-panel, table-label
 
 #let allocation-page() = [
   #page-header("Asset allocation")
@@ -13,12 +13,7 @@
     [
       #section-subtitle("Portfolio summary")
       #v(8pt)
-      #block(
-        inset: 12pt,
-        fill: rgb("#F6F8FA"),
-        stroke: (paint: rule, thickness: 0.5pt),
-        radius: 8pt,
-      )[
+      #report-panel([
         #grid(
           columns: (1fr, 1fr),
           row-gutter: 10pt,
@@ -30,7 +25,7 @@
           [#key-stat("Invested value", "${CURRENCY} ${INVESTED_VALUE}")],
           [#key-stat("Cash balance", "${CURRENCY} ${CASH_BALANCE}")],
         )
-      ]
+      ], fill: mist)
     ],
   )
 
@@ -52,9 +47,9 @@
       #v(4pt)
       #soft-rule()
       #v(8pt)
-      #block(inset: 10pt, fill: white, stroke: (paint: rule, thickness: 0.5pt), radius: 8pt)[
+      #report-panel([
         ${ASSET_CLASS_ROWS}
-      ]
+      ])
     ],
     [
       #section-subtitle("${SUPPLEMENTAL_ALLOCATION_TITLE}")
@@ -70,9 +65,9 @@
       #v(4pt)
       #soft-rule()
       #v(8pt)
-      #block(inset: 10pt, fill: white, stroke: (paint: rule, thickness: 0.5pt), radius: 8pt)[
+      #report-panel([
         ${SUPPLEMENTAL_ALLOCATION_ROWS}
-      ]
+      ])
     ],
   )
   #pagebreak()
