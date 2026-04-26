@@ -14,6 +14,7 @@ from app.core.settings import Settings, get_settings
 from app.domain.templates.registry import TemplateRegistry
 from app.middleware.correlation import CorrelationIdMiddleware
 from app.middleware.request_logging import RequestLoggingMiddleware
+from app.render_metrics import validate_render_metric_contracts
 from app.render_store import RenderStore
 from app.services.render_foundation import RenderFoundationService
 from app.services.render_intake import RenderIntakeService
@@ -52,6 +53,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     )
     app.add_middleware(CorrelationIdMiddleware, service_name=configured_settings.service_name)
     app.add_middleware(RequestLoggingMiddleware, service_name=configured_settings.service_name)
+    validate_render_metric_contracts()
     Instrumentator().instrument(app).expose(app)
     app.include_router(system_router)
     app.include_router(renders_router)

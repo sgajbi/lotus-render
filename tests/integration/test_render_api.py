@@ -47,6 +47,24 @@ def test_submit_render_and_fetch_status_and_artifact_metadata(tmp_path: Path) ->
             == submit_body["bounded_determinism_fingerprint"]
         )
 
+        metrics_response = client.get("/metrics")
+        assert metrics_response.status_code == 200
+        metrics_text = metrics_response.text
+        expected_render_metrics = [
+            'lotus_render_operations_total{failure_category="none",'
+            'operation="render_submission",status="rendered"}',
+            'lotus_render_operations_total{failure_category="none",'
+            'operation="render_status_lookup",status="rendered"}',
+            'lotus_render_operations_total{failure_category="none",'
+            'operation="artifact_metadata_lookup",status="rendered"}',
+        ]
+        for expected_metric in expected_render_metrics:
+            assert expected_metric in metrics_text
+        assert "lotus_render_artifact_size_bytes_bucket" in metrics_text
+        assert submit_body["render_job_id"] not in metrics_text
+        assert submit_body["report_job_id"] not in metrics_text
+        assert "corr-golden-portfolio-review-v1" not in metrics_text
+
 
 def test_submit_render_is_idempotent_for_same_render_job(tmp_path: Path) -> None:
     payload = (GOLDEN_ROOT / "render-package.json").read_text(encoding="utf-8")

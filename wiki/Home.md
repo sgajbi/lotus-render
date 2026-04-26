@@ -17,6 +17,9 @@ Deterministic document rendering service for Lotus reporting.
 - the active `portfolio-review v1` flow now renders structured mandate, performance, risk,
   holdings, and governance sections from the governed render package rather than a thin text-only
   summary payload
+- RFC-0105 first-wave render metrics are implementation-backed for render submission, status
+  lookup, artifact metadata lookup, latency, failure-category, and artifact-size signals with
+  bounded labels only
 
 ## Registry truth
 
@@ -37,6 +40,7 @@ See [Template Registry](Template-Registry).
 - `/health/live`
 - `/health/ready`
 - `/metadata`
+- `/metrics`
 - `POST /renders`
 - `GET /renders/{render_job_id}`
 - `GET /renders/{render_job_id}/artifact-metadata`

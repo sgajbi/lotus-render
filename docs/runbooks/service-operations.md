@@ -23,10 +23,25 @@
 - Submit first-wave synchronous render: `POST /renders`
 - Read persisted render status: `GET /renders/{render_job_id}`
 - Read support-safe artifact metadata: `GET /renders/{render_job_id}/artifact-metadata`
+- Metrics: `/metrics`
 
 The first-wave render path is intentionally idempotent on `render_job_id` plus package hash.
 Replaying the exact same request returns the prior stored truth. Reusing the same `render_job_id`
 with a different render package returns `409 render_job_conflict`.
+
+## Metrics Contract
+
+RFC-0105 first-wave render metrics are documented in
+`docs/operations/rendering-observability-metrics.md`. Operators may use:
+
+- `lotus_render_operations_total`
+- `lotus_render_operation_duration_seconds`
+- `lotus_render_artifact_size_bytes`
+
+These metrics use bounded labels only and must not expose render job ids, report job ids,
+portfolio ids, tenant ids, correlation ids, trace ids, raw render packages, or storage locations.
+Stuck-render and SLA-breach metrics remain planned until source-backed stuck-state scanning is
+implemented.
 
 ## Incident First Checks
 
