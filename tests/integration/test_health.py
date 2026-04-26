@@ -22,6 +22,18 @@ def test_correlation_and_trace_header_propagation() -> None:
         assert response.status_code == 200
         assert response.headers["X-Correlation-Id"] == "corr-123"
         assert response.headers["X-Trace-Id"] == "trace-123"
+        assert "traceparent" not in response.headers
+
+
+def test_valid_x_trace_id_emits_traceparent() -> None:
+    trace_id = "0123456789abcdef0123456789abcdef"
+    with TestClient(app) as client:
+        response = client.get(
+            "/health",
+            headers={"X-Correlation-Id": "corr-123", "X-Trace-Id": trace_id},
+        )
+        assert response.status_code == 200
+        assert response.headers["traceparent"] == f"00-{trace_id}-0000000000000001-01"
 
 
 def test_traceparent_header_preferred_for_trace_propagation() -> None:
