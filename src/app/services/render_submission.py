@@ -3,6 +3,7 @@ from __future__ import annotations
 import base64
 import hashlib
 import json
+from time import perf_counter
 
 from app.contracts.render_package import RenderPackage
 from app.contracts.renders import (
@@ -12,7 +13,13 @@ from app.contracts.renders import (
     RenderSubmitResponse,
 )
 from app.domain.templates.registry import TemplateCompatibilityError
-from app.render_store import RenderStore, StoredRenderJob
+from app.render_metrics import record_render_artifact_size, record_render_operation
+from app.render_store import (
+    RenderJobConflictError,
+    RenderJobNotFoundError,
+    RenderStore,
+    StoredRenderJob,
+)
 from app.services.typst_rendering import TypstRenderService
 
 
@@ -35,6 +42,7 @@ class RenderSubmissionService:
         self._typst_render_service = typst_render_service
 
     def submit(self, render_package: RenderPackage) -> RenderSubmitResponse:
+        started_at = perf_counter()
         package_hash = hashlib.sha256(
             json.dumps(
                 render_package.model_dump(mode="json"),
@@ -42,21 +50,32 @@ class RenderSubmissionService:
                 separators=(",", ":"),
             ).encode("utf-8")
         ).hexdigest()
-        existing = self._render_store.create_or_get(
-            render_job_id=render_package.render_job_id,
-            report_job_id=render_package.report_job_id,
-            render_package_version=render_package.render_package_version,
-            package_hash=package_hash,
-            report_type=render_package.report_type,
-            template_id=render_package.template_id,
-            template_version=render_package.template_version,
-            output_format=render_package.output_format,
-            runtime_engine=self._typst_render_service._settings.runtime_engine,
-            runtime_engine_version=self._typst_render_service._settings.runtime_engine_version,
-        )
+        try:
+            existing = self._render_store.create_or_get(
+                render_job_id=render_package.render_job_id,
+                report_job_id=render_package.report_job_id,
+                render_package_version=render_package.render_package_version,
+                package_hash=package_hash,
+                report_type=render_package.report_type,
+                template_id=render_package.template_id,
+                template_version=render_package.template_version,
+                output_format=render_package.output_format,
+                runtime_engine=self._typst_render_service._settings.runtime_engine,
+                runtime_engine_version=self._typst_render_service._settings.runtime_engine_version,
+            )
+        except RenderJobConflictError:
+            record_render_operation(
+                operation="render_submission",
+                status="failed",
+                failure_category="render_job_conflict",
+                duration_seconds=perf_counter() - started_at,
+            )
+            raise
         if existing.status == "rendered":
+            self._record_submit_metric(existing, started_at=started_at)
             return self._to_submit_response(existing, artifact_base64=None)
         if existing.status == "failed":
+            self._record_submit_metric(existing, started_at=started_at)
             return self._to_submit_response(existing, artifact_base64=None)
 
         self._render_store.mark_rendering(render_package.render_job_id)
@@ -68,6 +87,7 @@ class RenderSubmissionService:
                 failure_category="template_not_supported",
                 failure_message=str(exc),
             )
+            self._record_submit_metric(failure, started_at=started_at)
             raise RenderPackageInvalidError(
                 failure.failure_message or "template_not_supported"
             ) from exc
@@ -77,6 +97,7 @@ class RenderSubmissionService:
                 failure_category="package_validation_failed",
                 failure_message=str(exc),
             )
+            self._record_submit_metric(failure, started_at=started_at)
             raise RenderPackageInvalidError(
                 failure.failure_message or "package_validation_failed"
             ) from exc
@@ -90,23 +111,58 @@ class RenderSubmissionService:
                 failure_category=failure_category,
                 failure_message=failure_message,
             )
+            self._record_submit_metric(failure, started_at=started_at)
             raise RenderExecutionFailedError(failure.failure_message or "render_failed") from exc
 
         stored = self._render_store.mark_rendered(render_package.render_job_id, result)
+        self._record_submit_metric(stored, started_at=started_at)
         return self._to_submit_response(
             stored,
             artifact_base64=base64.b64encode(result.artifact_bytes).decode("ascii"),
         )
 
     def get_status(self, render_job_id: str) -> RenderJobStatusResponse:
-        return self._to_status_response(self._render_store.get(render_job_id))
+        started_at = perf_counter()
+        try:
+            stored = self._render_store.get(render_job_id)
+        except RenderJobNotFoundError:
+            record_render_operation(
+                operation="render_status_lookup",
+                status="not_found",
+                failure_category="render_job_not_found",
+                duration_seconds=perf_counter() - started_at,
+            )
+            raise
+        record_render_operation(
+            operation="render_status_lookup",
+            status=stored.status,
+            failure_category=stored.failure_category,
+            duration_seconds=perf_counter() - started_at,
+        )
+        return self._to_status_response(stored)
 
     def get_artifact_metadata(
         self,
         render_job_id: str,
     ) -> RenderArtifactMetadataResponse:
-        stored = self._render_store.get(render_job_id)
+        started_at = perf_counter()
+        try:
+            stored = self._render_store.get(render_job_id)
+        except RenderJobNotFoundError:
+            record_render_operation(
+                operation="artifact_metadata_lookup",
+                status="not_found",
+                failure_category="render_job_not_found",
+                duration_seconds=perf_counter() - started_at,
+            )
+            raise
         if stored.status != "rendered":
+            record_render_operation(
+                operation="artifact_metadata_lookup",
+                status="not_ready",
+                failure_category=stored.failure_category or "render_artifact_not_ready",
+                duration_seconds=perf_counter() - started_at,
+            )
             raise ValueError("render_artifact_not_ready")
         assert stored.artifact_sha256 is not None
         assert stored.bounded_determinism_fingerprint is not None
@@ -114,6 +170,13 @@ class RenderSubmissionService:
         assert stored.output_size_bytes is not None
         assert stored.render_duration_ms is not None
         assert stored.determinism_mode is not None
+        record_render_operation(
+            operation="artifact_metadata_lookup",
+            status=stored.status,
+            failure_category=stored.failure_category,
+            duration_seconds=perf_counter() - started_at,
+        )
+        record_render_artifact_size(status=stored.status, size_bytes=stored.output_size_bytes)
         return RenderArtifactMetadataResponse(
             render_job_id=stored.render_job_id,
             status=stored.status,
@@ -180,3 +243,13 @@ class RenderSubmissionService:
             updated_at=stored.updated_at,
             completed_at=stored.completed_at,
         )
+
+    @staticmethod
+    def _record_submit_metric(stored: StoredRenderJob, *, started_at: float) -> None:
+        record_render_operation(
+            operation="render_submission",
+            status=stored.status,
+            failure_category=stored.failure_category,
+            duration_seconds=perf_counter() - started_at,
+        )
+        record_render_artifact_size(status=stored.status, size_bytes=stored.output_size_bytes)

@@ -70,6 +70,8 @@ and Typst foundation slices:
 - idempotent render-job semantics: same `render_job_id` plus same package returns prior truth;
   same `render_job_id` plus different package returns `409 render_job_conflict`
 - `/health/ready` now reflects both runtime posture and render-store availability
+- RFC-0105 render metrics expose bounded render submission, status lookup, artifact metadata lookup,
+  latency, failure-category, and artifact-size signals through `/metrics`
 
 ## Internal Render API
 
@@ -88,3 +90,9 @@ The supported determinism posture is explicit:
 - bounded determinism is expressed through `bounded_determinism_fingerprint`
 - archive retrieval, legal hold, replay, rerender, regenerate, and document distribution remain
   out of scope for `lotus-render`
+
+## Observability Metrics
+
+`docs/operations/rendering-observability-metrics.md` is the code-backed metrics, dashboard, and
+alert contract for first-wave render observability. Metrics must not add render job, report job,
+portfolio, tenant, trace, correlation, raw package, or storage labels.

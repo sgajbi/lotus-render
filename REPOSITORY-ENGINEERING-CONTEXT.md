@@ -20,11 +20,11 @@ flow. The repository contains the dedicated render-service runtime baseline, exp
 domain models, structured request logging, support-safe system metadata, versioned render package
 validation, source-controlled template registry enforcement, deterministic SVG chart asset
 generation, the modular Typst portfolio review template, golden PDF proof, and the first
-store-backed internal render API. The companion `lotus-report` RFC-0102 branch submits complete
-render packages and records render outcomes while keeping business-data assembly outside
-`lotus-render`. RFC-0102 is branch-proven for `lotus-render` through draft PR #1 on
-`feature/rfc-0102-render-service-foundation`; final completion still requires merge, wiki
-publication, and branch hygiene.
+store-backed internal render API. RFC-0105 first-wave render metrics now expose bounded render
+submission, status lookup, artifact metadata lookup, latency, failure-category, and artifact-size
+signals without high-cardinality or sensitive labels. The companion `lotus-report` implementation
+submits complete render packages and records render outcomes while keeping business-data assembly
+outside `lotus-render`.
 
 ## Architecture And Module Map
 
@@ -45,6 +45,8 @@ Current repository baseline:
 12. `tests/unit`, `tests/integration`, `tests/e2e`: test pyramid baseline.
 13. `src/app/render_store.py`: sqlite-backed governed render job state for the first-wave
     synchronous render lifecycle.
+14. `src/app/render_metrics.py`: RFC-0105 render metrics contract and bounded Prometheus metric
+    emitters.
 
 ## Runtime And Integration Boundaries
 
@@ -113,6 +115,9 @@ Primary governing artifacts:
    CI, local proof, and the future service image stay aligned.
 6. `/health/ready` should remain truthful for both runtime posture and render-store availability,
    because the first-wave render APIs depend on persisted render-job state.
+7. Render metrics must remain bounded to operation, status, failure category, and artifact-size
+   posture. Do not add render job, report job, portfolio, tenant, trace, correlation, raw package,
+   or storage labels.
 
 ## Context Maintenance Rule
 
