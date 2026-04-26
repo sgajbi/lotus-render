@@ -60,6 +60,8 @@ and Typst foundation slices:
 - raw PDF bytes are not claimed to be stable across renders because Typst remints PDF document ids
   and creation timestamps; the supported determinism claim is the bounded-runtime-envelope
   fingerprint
+- request middleware propagates `X-Correlation-Id`, `X-Trace-Id`, and `traceparent` and includes
+  correlation and trace identifiers in support-safe request logs
 - sqlite-backed governed render job store at `data/render-store.sqlite3` by default
 - internal render API surface:
   - `POST /renders`

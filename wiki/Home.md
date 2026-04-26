@@ -5,7 +5,7 @@ Deterministic document rendering service for Lotus reporting.
 ## Current posture
 
 - separate deployable render service with its own Docker image and independently scalable runtime
-- RFC-0102 first-wave implementation now covers health, readiness, metadata, structured request logging, explicit render-attempt domain models, governed render package validation, template registry enforcement, the first real Typst PDF render path, and the first internal render API
+- RFC-0102 first-wave implementation now covers health, readiness, metadata, structured request logging with correlation and trace identifiers, explicit render-attempt domain models, governed render package validation, template registry enforcement, the first real Typst PDF render path, and the first internal render API
 - `lotus-render` consumes complete render packages only and must not fetch business data directly
 - template lifecycle posture is explicit for `active`, `deprecated_rerenderable`, `blocked_for_new_renders`, and `blocked`
 - the current determinism claim is bounded to the governed Typst `0.14.2` runtime envelope
