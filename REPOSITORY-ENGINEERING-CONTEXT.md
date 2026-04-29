@@ -22,9 +22,12 @@ validation, source-controlled template registry enforcement, deterministic SVG c
 generation, the modular Typst portfolio review template, golden PDF proof, and the first
 store-backed internal render API. RFC-0105 first-wave render metrics now expose bounded render
 submission, status lookup, artifact metadata lookup, latency, failure-category, and artifact-size
-signals without high-cardinality or sensitive labels. The companion `lotus-report` implementation
-submits complete render packages and records render outcomes while keeping business-data assembly
-outside `lotus-render`.
+signals without high-cardinality or sensitive labels. RFC-0108 render supportability now publishes
+`render.observability.render_supportability` through `/metadata` and
+`lotus_render_supportability_total`, backed by drain state, render-store readiness,
+template-registry availability, and runtime configuration. The companion `lotus-report`
+implementation submits complete render packages and records render outcomes while keeping
+business-data assembly outside `lotus-render`.
 
 ## Architecture And Module Map
 
@@ -45,8 +48,8 @@ Current repository baseline:
 12. `tests/unit`, `tests/integration`, `tests/e2e`: test pyramid baseline.
 13. `src/app/render_store.py`: sqlite-backed governed render job state for the first-wave
     synchronous render lifecycle.
-14. `src/app/render_metrics.py`: RFC-0105 render metrics contract and bounded Prometheus metric
-    emitters.
+14. `src/app/render_metrics.py`: RFC-0105 and RFC-0108 render metrics contracts and bounded
+    Prometheus metric emitters.
 
 ## Runtime And Integration Boundaries
 
@@ -115,9 +118,9 @@ Primary governing artifacts:
    CI, local proof, and the future service image stay aligned.
 6. `/health/ready` should remain truthful for both runtime posture and render-store availability,
    because the first-wave render APIs depend on persisted render-job state.
-7. Render metrics must remain bounded to operation, status, failure category, and artifact-size
-   posture. Do not add render job, report job, portfolio, tenant, trace, correlation, raw package,
-   or storage labels.
+7. Render metrics must remain bounded to operation, status, failure category, artifact-size, and
+   supportability posture. Do not add render job, report job, portfolio, tenant, trace,
+   correlation, raw package, or storage labels.
 
 ## Context Maintenance Rule
 

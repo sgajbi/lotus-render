@@ -2,7 +2,8 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Request, Response, status
 
-from app.contracts.system import HealthResponse, MetadataResponse
+from app.contracts.system import HealthResponse, MetadataResponse, RenderSupportabilitySummary
+from app.render_metrics import record_render_supportability
 from app.services.render_foundation import RenderFoundationService
 
 router = APIRouter(tags=["system"])
@@ -68,6 +69,22 @@ async def health_ready(request: Request, response: Response) -> HealthResponse:
 async def metadata(request: Request) -> MetadataResponse:
     service: RenderFoundationService = request.app.state.render_foundation
     foundation_metadata = service.metadata()
+    render_store_ready = True
+    try:
+        request.app.state.render_store.check_ready()
+    except (AttributeError, RuntimeError):
+        render_store_ready = False
+    template_registry_ready = bool(getattr(request.app.state, "template_registry", None))
+    supportability = service.supportability_status(
+        is_draining=bool(getattr(request.app.state, "is_draining", False)),
+        render_store_ready=render_store_ready,
+        template_registry_ready=template_registry_ready,
+    )
+    record_render_supportability(
+        state=supportability["state"],
+        reason=supportability["reason"],
+        freshness_bucket=supportability["freshnessBucket"],
+    )
     return MetadataResponse(
         service=foundation_metadata["service"],
         version=foundation_metadata["version"],
@@ -78,4 +95,5 @@ async def metadata(request: Request) -> MetadataResponse:
         defaultOutputFormat=foundation_metadata["defaultOutputFormat"],
         supportedOutputFormats=foundation_metadata["supportedOutputFormats"],
         renderAttemptStatuses=foundation_metadata["renderAttemptStatuses"],
+        supportability=RenderSupportabilitySummary(**supportability),
     )

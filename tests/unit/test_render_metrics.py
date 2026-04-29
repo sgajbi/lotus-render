@@ -8,6 +8,7 @@ from app.render_metrics import (
     RenderMetricContract,
     record_render_artifact_size,
     record_render_operation,
+    record_render_supportability,
     validate_render_metric_contracts,
 )
 
@@ -22,6 +23,7 @@ def test_render_metric_contracts_are_bounded_and_implementation_truthful() -> No
         "lotus_render_operations_total",
         "lotus_render_operation_duration_seconds",
         "lotus_render_artifact_size_bytes",
+        "lotus_render_supportability_total",
     } <= implemented_names
     assert {
         "render_submission",
@@ -128,3 +130,16 @@ def test_record_render_artifact_size_clamps_counts_and_ignores_missing_size() ->
     record_render_artifact_size(status="rendered", size_bytes=-1)
     record_render_artifact_size(status="not-a-contract-status", size_bytes=1)
     record_render_artifact_size(status="rendered", size_bytes=None)
+
+
+def test_record_render_supportability_bounds_state_reason_and_freshness() -> None:
+    record_render_supportability(
+        state="ready",
+        reason="render_supportability_ready",
+        freshness_bucket="current",
+    )
+    record_render_supportability(
+        state="not-a-contract-state",
+        reason="not-a-contract-reason",
+        freshness_bucket="not-a-contract-freshness",
+    )

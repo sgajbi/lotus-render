@@ -14,12 +14,16 @@ Deterministic document rendering service for Lotus reporting.
   is stable across environments
 - render jobs are persisted in the governed local store before readiness is reported as healthy for
   first-wave traffic
+- `/metadata` now publishes source-backed RFC-0108 `render.observability.render_supportability`
+  posture derived from drain, render-store, template-registry, and runtime configuration state
 - the active `portfolio-review v1` flow now renders structured mandate, performance, risk,
   holdings, and governance sections from the governed render package rather than a thin text-only
   summary payload
 - RFC-0105 first-wave render metrics are implementation-backed for render submission, status
   lookup, artifact metadata lookup, latency, failure-category, and artifact-size signals with
   bounded labels only
+- RFC-0108 render supportability metrics are implementation-backed through
+  `lotus_render_supportability_total` with bounded `state`, `reason`, and `freshness_bucket` labels
 
 ## Registry truth
 

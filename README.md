@@ -72,6 +72,9 @@ and Typst foundation slices:
 - `/health/ready` now reflects both runtime posture and render-store availability
 - RFC-0105 render metrics expose bounded render submission, status lookup, artifact metadata lookup,
   latency, failure-category, and artifact-size signals through `/metrics`
+- RFC-0108 render supportability posture is published through `/metadata` as
+  `render.observability.render_supportability` and counted through bounded
+  `lotus_render_supportability_total` observations
 
 ## Internal Render API
 
