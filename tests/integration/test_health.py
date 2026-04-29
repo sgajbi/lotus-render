@@ -113,3 +113,17 @@ def test_metadata_endpoint_reports_foundation_posture() -> None:
             "rendered",
             "failed",
         ]
+        assert payload["supportability"] == {
+            "featureKey": "render.observability.render_supportability",
+            "state": "ready",
+            "reason": "render_supportability_ready",
+            "freshnessBucket": "current",
+            "deterministicOutputSupported": True,
+            "runtimeEngine": "typst",
+            "runtimeEngineVersion": "0.14.2",
+            "defaultOutputFormat": "pdf",
+            "supportedOutputFormats": ["pdf"],
+            "renderStoreReady": True,
+            "templateRegistryReady": True,
+            "draining": False,
+        }

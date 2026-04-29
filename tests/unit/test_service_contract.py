@@ -110,6 +110,52 @@ def test_render_foundation_metadata_exposes_supported_statuses() -> None:
     ]
 
 
+def test_render_foundation_supportability_reports_ready_posture() -> None:
+    service = RenderFoundationService(Settings())
+
+    supportability = service.supportability_status(
+        is_draining=False,
+        render_store_ready=True,
+        template_registry_ready=True,
+    )
+
+    assert supportability["featureKey"] == "render.observability.render_supportability"
+    assert supportability["state"] == "ready"
+    assert supportability["reason"] == "render_supportability_ready"
+    assert supportability["freshnessBucket"] == "current"
+    assert supportability["deterministicOutputSupported"] is True
+    assert supportability["renderStoreReady"] is True
+    assert supportability["templateRegistryReady"] is True
+
+
+def test_render_foundation_supportability_reports_source_backed_degradation() -> None:
+    service = RenderFoundationService(Settings())
+
+    draining = service.supportability_status(
+        is_draining=True,
+        render_store_ready=True,
+        template_registry_ready=True,
+    )
+    store_unavailable = service.supportability_status(
+        is_draining=False,
+        render_store_ready=False,
+        template_registry_ready=True,
+    )
+    registry_unavailable = service.supportability_status(
+        is_draining=False,
+        render_store_ready=True,
+        template_registry_ready=False,
+    )
+
+    assert draining["state"] == "degraded"
+    assert draining["reason"] == "render_supportability_draining"
+    assert store_unavailable["state"] == "unavailable"
+    assert store_unavailable["reason"] == "render_store_unavailable"
+    assert store_unavailable["freshnessBucket"] == "unknown"
+    assert registry_unavailable["state"] == "unavailable"
+    assert registry_unavailable["reason"] == "template_registry_unavailable"
+
+
 def test_render_foundation_reports_not_ready_without_supported_formats() -> None:
     service = RenderFoundationService(Settings(supported_output_formats=()))
 
