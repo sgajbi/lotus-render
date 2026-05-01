@@ -151,7 +151,7 @@ def test_record_render_supportability_sanitizes_labels_before_counter(
     captured: dict[str, str] = {}
 
     class _Counter:
-        def labels(self, **labels: str):
+        def labels(self, **labels: str) -> "_Counter":
             captured.update(labels)
             return self
 
