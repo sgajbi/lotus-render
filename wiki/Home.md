@@ -24,6 +24,7 @@ Deterministic document rendering service for Lotus reporting.
   bounded labels only
 - RFC-0108 render supportability metrics are implementation-backed through
   `lotus_render_supportability_total` with bounded `state`, `reason`, and `freshness_bucket` labels
+  and recorder-level fallback for unknown label values
 
 ## Registry truth
 
