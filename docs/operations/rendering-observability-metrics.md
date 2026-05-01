@@ -15,6 +15,12 @@ trace ids, raw render packages, or storage locations.
 | `lotus_render_artifact_size_bytes` | histogram | `status` | Successful render submission and artifact metadata reads when artifact size is persisted |
 | `lotus_render_supportability_total` | counter | `state`, `reason`, `freshness_bucket` | `GET /metadata` supportability posture derived from drain, render-store, template-registry, and runtime configuration state |
 
+The render supportability recorder sanitizes label values before they reach Prometheus. Unknown
+states fall back to `unavailable`, unknown reasons fall back to
+`runtime_configuration_unavailable`, and unknown freshness values fall back to `unknown`. Do not
+emit render job ids, report job ids, portfolio ids, client names, tenant ids, trace ids,
+correlation ids, raw packages, or storage locations as labels.
+
 Supported `operation` labels are:
 
 - `render_submission`

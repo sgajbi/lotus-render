@@ -143,3 +143,33 @@ def test_record_render_supportability_bounds_state_reason_and_freshness() -> Non
         reason="not-a-contract-reason",
         freshness_bucket="not-a-contract-freshness",
     )
+
+
+def test_record_render_supportability_sanitizes_labels_before_counter(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, str] = {}
+
+    class _Counter:
+        def labels(self, **labels: str):
+            captured.update(labels)
+            return self
+
+        def inc(self) -> None:
+            return None
+
+    monkeypatch.setattr(render_metrics, "_RENDER_SUPPORTABILITY_TOTAL", _Counter())
+
+    record_render_supportability(
+        state="portfolio:PB_SG_GLOBAL_BAL_001",
+        reason="client_name:private-bank-client",
+        freshness_bucket="trace:1234567890abcdef1234567890abcdef",
+    )
+
+    assert captured == {
+        "state": "unavailable",
+        "reason": "runtime_configuration_unavailable",
+        "freshness_bucket": "unknown",
+    }
+    assert "PB_SG_GLOBAL_BAL_001" not in captured.values()
+    assert "client_name:private-bank-client" not in captured.values()
