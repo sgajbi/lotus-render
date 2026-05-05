@@ -69,7 +69,7 @@ class TypstRenderService:
         manifest = self._intake_service.validate_package(render_package)
 
         try:
-            template_context = self._build_portfolio_review_context(render_package)
+            template_context = self._build_template_context(render_package)
         except ValueError as exc:
             attempt.mark_failed(RenderFailureCategory.PACKAGE_VALIDATION_FAILED, str(exc))
             raise
@@ -330,10 +330,11 @@ class TypstRenderService:
         template_directory = template_root.parent
         workspace_template_directory = workspace / "template"
         shutil.copytree(template_directory, workspace_template_directory, dirs_exist_ok=True)
-        render_portfolio_chart_assets(
-            render_package.report_data,
-            workspace_template_directory / "assets" / "charts",
-        )
+        if render_package.report_type == "portfolio_review":
+            render_portfolio_chart_assets(
+                render_package.report_data,
+                workspace_template_directory / "assets" / "charts",
+            )
 
         for template_file in workspace_template_directory.rglob("*.typ"):
             rendered_text = template_file.read_text(encoding="utf-8")
@@ -342,6 +343,100 @@ class TypstRenderService:
             template_file.write_text(rendered_text, encoding="utf-8")
 
         return workspace_template_directory / template_root.name
+
+    def _build_template_context(self, render_package: RenderPackage) -> dict[str, str]:
+        if render_package.report_type == "outcome_review":
+            return self._build_outcome_review_context(render_package)
+        return self._build_portfolio_review_context(render_package)
+
+    def _build_outcome_review_context(self, render_package: RenderPackage) -> dict[str, str]:
+        report_data = render_package.report_data
+        render_context = render_package.render_context
+        required_report_fields = [
+            "title",
+            "portfolio_id",
+            "outcome_review_id",
+            "state",
+            "overall_outcome",
+            "dimensions",
+            "content_hash",
+        ]
+        for field_name in required_report_fields:
+            if field_name not in report_data:
+                raise ValueError(f"missing required report_data field: {field_name}")
+        dimensions = report_data["dimensions"]
+        if not isinstance(dimensions, list):
+            raise ValueError("dimensions must be a list")
+        source_hashes = self._mapping(report_data.get("source_hashes"))
+        section_hashes = self._mapping(report_data.get("section_hashes"))
+        return {
+            "TITLE": self._escape_typst_text(str(report_data["title"])),
+            "PORTFOLIO_ID": self._escape_typst_text(str(report_data["portfolio_id"])),
+            "OUTCOME_REVIEW_ID": self._escape_typst_text(str(report_data["outcome_review_id"])),
+            "PROOF_PACK_ID": self._escape_typst_text(str(report_data.get("proof_pack_id", ""))),
+            "REBALANCE_RUN_ID": self._escape_typst_text(
+                str(report_data.get("rebalance_run_id", "not_available"))
+            ),
+            "WAVE_ID": self._escape_typst_text(str(report_data.get("wave_id", "not_available"))),
+            "STATE": self._escape_typst_text(str(report_data["state"])),
+            "OVERALL_OUTCOME": self._escape_typst_text(str(report_data["overall_outcome"])),
+            "REVIEW_WINDOW_START": self._escape_typst_text(
+                str(report_data.get("review_window_start", "not_available"))
+            ),
+            "REVIEW_WINDOW_END": self._escape_typst_text(
+                str(report_data.get("review_window_end", "not_available"))
+            ),
+            "DIMENSION_ROWS": self._render_outcome_dimension_rows(dimensions),
+            "SOURCE_SERVICES": self._escape_typst_text(
+                ", ".join(self._string_list(report_data.get("source_services"))) or "lotus-manage"
+            ),
+            "SOURCE_HASH_ROWS": self._render_key_value_rows(source_hashes),
+            "SECTION_HASH_ROWS": self._render_key_value_rows(section_hashes),
+            "CONTENT_HASH": self._escape_typst_text(str(report_data["content_hash"])),
+            "OUTCOME_REVIEW_CONTENT_HASH": self._escape_typst_text(
+                str(report_data.get("outcome_review_content_hash", "not_available"))
+            ),
+            "REDACTION_POLICY": self._escape_typst_text(
+                str(report_data.get("redaction_policy", "NO_RAW_PAYLOADS"))
+            ),
+            "RENDER_JOB_ID": self._escape_typst_text(render_package.render_job_id),
+            "TEMPLATE_ID": self._escape_typst_text(render_package.template_id),
+            "TEMPLATE_VERSION": self._escape_typst_text(render_package.template_version),
+            "REQUESTED_BY": self._escape_typst_text(str(render_package.requested_by)),
+            "TIMEZONE": self._escape_typst_text(str(render_context.get("timezone", "unknown"))),
+        }
+
+    def _render_outcome_dimension_rows(self, dimensions: object) -> str:
+        if not isinstance(dimensions, list) or not dimensions:
+            return (
+                "dimension-row([Not available], [not_available], [not_available], "
+                "[not_available], [not_available], [No dimension evidence supplied.])"
+            )
+        rows = []
+        for item in dimensions:
+            dimension = self._mapping(item)
+            rows.append(
+                "dimension-row("
+                f"[{self._escape_typst_text(str(dimension.get('dimension', 'not_available')))}], "
+                f"[{self._escape_typst_text(str(dimension.get('state', 'not_available')))}], "
+                f"[{self._escape_typst_text(str(dimension.get('expected', 'not_available')))}], "
+                f"[{self._escape_typst_text(str(dimension.get('realized', 'not_available')))}], "
+                f"[{self._escape_typst_text(str(dimension.get('variance', 'not_available')))}], "
+                f"[{self._escape_typst_text(str(dimension.get('explanation', '')))}]"
+                ")"
+            )
+        return "\n".join(rows)
+
+    def _render_key_value_rows(self, values: Mapping[str, object]) -> str:
+        if not values:
+            return "key-value-row([Not available], [not_available])"
+        return "\n".join(
+            "key-value-row("
+            f"[{self._escape_typst_text(str(key))}], "
+            f"[{self._escape_typst_text(str(value))}]"
+            ")"
+            for key, value in sorted(values.items())
+        )
 
     def _render_report_sections(self, requested_sections: object) -> str:
         section_keys = self._requested_section_keys(requested_sections)

@@ -18,6 +18,58 @@ def _load_golden_package() -> RenderPackage:
     )
 
 
+def _outcome_review_package() -> RenderPackage:
+    return RenderPackage.model_validate(
+        {
+            "render_package_version": "render_package.v1",
+            "render_job_id": "rdr_outcome_review_v1",
+            "report_job_id": "rjob_outcome_review_v1",
+            "snapshot_id": "rsnap_outcome_review_v1",
+            "report_type": "outcome_review",
+            "report_data_contract_version": "dpm_outcome_report_input.v1",
+            "template_id": "outcome-review",
+            "template_version": "v1",
+            "locale": "en-SG",
+            "brand_variant": "private_banking",
+            "output_format": "pdf",
+            "render_context": {"timezone": "Asia/Singapore"},
+            "report_data": {
+                "title": "Post-Trade Outcome Review - PB_SG_GLOBAL_BAL_001",
+                "portfolio_id": "PB_SG_GLOBAL_BAL_001",
+                "outcome_review_id": "dor_001",
+                "proof_pack_id": "dpp_001",
+                "rebalance_run_id": "run_001",
+                "wave_id": "wave_001",
+                "state": "READY",
+                "overall_outcome": "Execution outcome aligned with pre-trade proof.",
+                "review_window_start": "2026-04-22",
+                "review_window_end": "2026-04-23",
+                "dimensions": [
+                    {
+                        "dimension": "PERFORMANCE",
+                        "state": "READY",
+                        "expected": "4.10",
+                        "realized": "4.22",
+                        "variance": "0.12",
+                        "explanation": "Realized performance exceeded expected performance.",
+                    }
+                ],
+                "source_services": ["lotus-manage"],
+                "source_hashes": {"realized": "sha256:realized"},
+                "section_hashes": {"proof_pack": "sha256:proof-pack"},
+                "content_hash": "sha256:report-input",
+                "outcome_review_content_hash": "sha256:outcome-review",
+                "redaction_policy": "NO_RAW_PAYLOADS",
+            },
+            "lineage_refs": ["rjob_outcome_review_v1", "dor_001", "sha256:report-input"],
+            "disclosure_refs": ["outcome-review.standard-disclosures.v1"],
+            "requested_by": "advisor-123",
+            "correlation_id": "corr-outcome-render",
+            "trace_id": "4bf92f3577b34da6a3ce929d0e0e4736",
+        }
+    )
+
+
 def _build_service() -> TypstRenderService:
     settings = Settings()
     registry = TemplateRegistry.load_from_directory(Path(settings.template_registry_path))
@@ -126,6 +178,27 @@ def test_typst_render_service_builds_richer_portfolio_review_context() -> None:
     assert "09.01.2026;09.01.2026" in template_context["DENSE_TRANSACTION_ROWS"]
     assert "NAV 102.35;;450000.00;" in template_context["DENSE_TRANSACTION_ROWS"]
     assert "#review-note(" in template_context["OBSERVATION_NOTES"]
+
+
+def test_typst_render_service_builds_outcome_review_context() -> None:
+    service = _build_service()
+    template_context = service._build_outcome_review_context(_outcome_review_package())
+
+    assert template_context["PORTFOLIO_ID"] == "PB_SG_GLOBAL_BAL_001"
+    assert template_context["OUTCOME_REVIEW_ID"] == "dor_001"
+    assert "dimension-row(" in template_context["DIMENSION_ROWS"]
+    assert "0.12" in template_context["DIMENSION_ROWS"]
+    assert "lotus-manage" in template_context["SOURCE_SERVICES"]
+    assert "sha256:report-input" in template_context["CONTENT_HASH"]
+
+
+def test_template_registry_accepts_outcome_review_template() -> None:
+    settings = Settings()
+    registry = TemplateRegistry.load_from_directory(Path(settings.template_registry_path))
+    manifest = registry.resolve_for_new_render(_outcome_review_package())
+
+    assert manifest.template_id == "outcome-review"
+    assert manifest.supported_report_types == ["outcome_review"]
 
 
 def test_typst_render_service_builds_selected_section_sequence() -> None:
