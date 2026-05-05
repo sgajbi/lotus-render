@@ -388,8 +388,7 @@ class TypstRenderService:
             ),
             "DIMENSION_ROWS": self._render_outcome_dimension_rows(dimensions),
             "SOURCE_SERVICES": self._escape_typst_text(
-                ", ".join(self._string_list(report_data.get("source_services")))
-                or "lotus-manage"
+                ", ".join(self._string_list(report_data.get("source_services"))) or "lotus-manage"
             ),
             "SOURCE_HASH_ROWS": self._render_key_value_rows(source_hashes),
             "SECTION_HASH_ROWS": self._render_key_value_rows(section_hashes),
