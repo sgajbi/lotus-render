@@ -30,7 +30,7 @@ Deterministic document rendering service for Lotus reporting.
 
 - manifests live under `templates/registry/`
 - `make template-registry-gate` validates registry structure and lifecycle metadata
-- current first-wave active template is `portfolio-review` version `v1`
+- current active templates are `portfolio-review` version `v1` and `outcome-review` version `v1`
 - current first-wave golden proof lives under `tests/golden/portfolio-review/v1/`
 
 See [Template Registry](Template-Registry).

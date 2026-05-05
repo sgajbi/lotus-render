@@ -51,7 +51,8 @@ and Typst foundation slices:
 - explicit lifecycle posture for `active`, `deprecated_rerenderable`,
   `blocked_for_new_renders`, and `blocked`
 - machine validation through `scripts/validate_template_registry.py` and `make check`
-- first governed Typst template under `templates/typst/portfolio-review/v1/`
+- governed Typst templates under `templates/typst/portfolio-review/v1/` and
+  `templates/typst/outcome-review/v1/`
 - golden render package and expected PDF proof under `tests/golden/portfolio-review/v1/`
 - docker-governed Typst rendering is preferred on developer and CI hosts so golden proof is minted
   from the same controlled runtime envelope

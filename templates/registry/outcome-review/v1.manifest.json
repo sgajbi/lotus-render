@@ -1,0 +1,31 @@
+{
+  "template_id": "outcome-review",
+  "template_version": "v1",
+  "supported_report_types": [
+    "outcome_review"
+  ],
+  "supported_report_data_contract_versions": [
+    "dpm_outcome_report_input.v1"
+  ],
+  "supported_locales": [
+    "en-SG"
+  ],
+  "supported_brand_variants": [
+    "private_banking"
+  ],
+  "supported_output_formats": [
+    "pdf"
+  ],
+  "required_disclosure_fragments": [
+    "outcome-review.standard-disclosures.v1"
+  ],
+  "owner_team": "lotus-reporting",
+  "approver": "lotus-platform-governance",
+  "approved_at": "2026-05-05",
+  "status": "active",
+  "golden_sample_ids": [
+    "golden-outcome-review-en-SG-private-banking-v1"
+  ],
+  "runtime_engine": "typst",
+  "runtime_engine_version": "0.14.2"
+}

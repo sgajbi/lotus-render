@@ -27,12 +27,20 @@
 - do not treat `deprecated_rerenderable` as acceptable for new production renders
 - do not bypass blocked posture with local edits outside governed PR review
 
-## Current first-wave template
+## Current active templates
 
 - `template_id`: `portfolio-review`
 - `template_version`: `v1`
 - `report_type`: `portfolio_review`
 - `report_data_contract_version`: `portfolio_review.v1`
+- `locale`: `en-SG`
+- `brand_variant`: `private_banking`
+- `output_format`: `pdf`
+
+- `template_id`: `outcome-review`
+- `template_version`: `v1`
+- `report_type`: `outcome_review`
+- `report_data_contract_version`: `dpm_outcome_report_input.v1`
 - `locale`: `en-SG`
 - `brand_variant`: `private_banking`
 - `output_format`: `pdf`
@@ -69,6 +77,26 @@ Current document sections are sourced from render-package fields that include:
 
 This richer contract keeps business-data assembly in `lotus-report` and keeps `lotus-render`
 responsible for deterministic presentation only.
+
+## Outcome review contract shape
+
+The active `outcome-review v1` template renders the RFC-0042 post-trade outcome-review artifact
+from the bounded `DpmOutcomeReportInput` snapshot captured by `lotus-report`.
+
+Current document sections are sourced from render-package fields that include:
+
+- portfolio, outcome-review, proof-pack, rebalance-run, and wave identity
+- review-window start and end
+- outcome-review state and deterministic overall outcome
+- expected, realized, variance, and explanation rows by outcome dimension
+- source services and source hashes
+- proof-pack section hashes
+- report-input and outcome-review content hashes
+- redaction policy and deterministic render metadata
+
+This template must not fetch, infer, or recompute outcome truth. `lotus-manage` owns the
+post-trade outcome authority; `lotus-report` snapshots the bounded handoff and `lotus-render`
+presents it deterministically.
 
 ## Portfolio review section configuration
 
