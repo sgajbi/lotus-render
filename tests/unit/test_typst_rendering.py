@@ -70,6 +70,60 @@ def _outcome_review_package() -> RenderPackage:
     )
 
 
+def _proof_pack_package() -> RenderPackage:
+    return RenderPackage.model_validate(
+        {
+            "render_package_version": "render_package.v1",
+            "render_job_id": "rdr_proof_pack_v1",
+            "report_job_id": "rjob_proof_pack_v1",
+            "snapshot_id": "rsnap_proof_pack_v1",
+            "report_type": "proof_pack",
+            "report_data_contract_version": "dpm_proof_pack_report_input.v1",
+            "template_id": "proof-pack",
+            "template_version": "v1",
+            "locale": "en-SG",
+            "brand_variant": "private_banking",
+            "output_format": "pdf",
+            "render_context": {"timezone": "Asia/Singapore"},
+            "report_data": {
+                "title": "Pre-Trade Proof Pack - PB_SG_GLOBAL_BAL_001",
+                "portfolio_id": "PB_SG_GLOBAL_BAL_001",
+                "proof_pack_id": "dpp_001",
+                "mandate_id": "MANDATE_PB_SG_GLOBAL_BAL_001",
+                "as_of_date": "2026-05-03",
+                "state": "READY",
+                "decision_summary": {
+                    "recommended_action": "approve_rebalance",
+                    "rationale": "Mandate drift and source readiness support rebalance approval.",
+                },
+                "supportability": {
+                    "status": "READY",
+                    "reason_codes": ["proof_pack_ready"],
+                },
+                "sections": [
+                    {
+                        "section_id": "sec_mandate",
+                        "section_type": "MANDATE_CONTEXT",
+                        "state": "READY",
+                        "title": "Mandate context",
+                        "summary": "Mandate, model, and policy evidence are aligned.",
+                        "reason_codes": ["mandate_context_ready"],
+                    }
+                ],
+                "source_hashes": {"mandate": "sha256:mandate"},
+                "content_hash": "sha256:report-input",
+                "proof_pack_content_hash": "sha256:proof-pack",
+                "redaction_policy": "NO_RAW_PAYLOADS",
+            },
+            "lineage_refs": ["rjob_proof_pack_v1", "dpp_001", "sha256:report-input"],
+            "disclosure_refs": ["proof-pack.standard-disclosures.v1"],
+            "requested_by": "advisor-123",
+            "correlation_id": "corr-proof-pack-render",
+            "trace_id": "4bf92f3577b34da6a3ce929d0e0e4736",
+        }
+    )
+
+
 def _build_service() -> TypstRenderService:
     settings = Settings()
     registry = TemplateRegistry.load_from_directory(Path(settings.template_registry_path))
@@ -192,6 +246,68 @@ def test_typst_render_service_builds_outcome_review_context() -> None:
     assert "sha256:report-input" in template_context["CONTENT_HASH"]
 
 
+def test_typst_render_service_routes_template_context_by_report_type() -> None:
+    service = _build_service()
+
+    outcome_context = service._build_template_context(_outcome_review_package())
+    proof_pack_context = service._build_template_context(_proof_pack_package())
+
+    assert outcome_context["OUTCOME_REVIEW_ID"] == "dor_001"
+    assert proof_pack_context["PROOF_PACK_ID"] == "dpp_001"
+
+
+def test_typst_render_service_builds_proof_pack_context() -> None:
+    service = _build_service()
+    template_context = service._build_proof_pack_context(_proof_pack_package())
+
+    assert template_context["PORTFOLIO_ID"] == "PB_SG_GLOBAL_BAL_001"
+    assert template_context["PROOF_PACK_ID"] == "dpp_001"
+    assert template_context["SUPPORTABILITY_STATUS"] == "READY"
+    assert "section-row(" in template_context["SECTION_ROWS"]
+    assert "Mandate context" in template_context["SECTION_ROWS"]
+    assert "sha256:report-input" in template_context["CONTENT_HASH"]
+
+
+def test_typst_render_service_rejects_missing_proof_pack_report_data() -> None:
+    service = _build_service()
+    render_package = _proof_pack_package()
+    incomplete_report_data = dict(render_package.report_data)
+    incomplete_report_data.pop("supportability")
+    invalid_package = render_package.model_copy(update={"report_data": incomplete_report_data})
+
+    with pytest.raises(ValueError, match="missing required report_data field: supportability"):
+        service.render(invalid_package)
+
+
+def test_typst_render_service_rejects_invalid_proof_pack_sections() -> None:
+    service = _build_service()
+    render_package = _proof_pack_package()
+    invalid_package = render_package.model_copy(
+        update={"report_data": {**render_package.report_data, "sections": "not-a-list"}}
+    )
+
+    with pytest.raises(ValueError, match="sections must be a list"):
+        service.render(invalid_package)
+
+
+def test_typst_render_service_uses_proof_pack_fallback_rows() -> None:
+    service = _build_service()
+
+    assert "No section evidence supplied." in service._render_proof_pack_section_rows([])
+    assert "not_available" in service._render_key_value_rows({})
+
+
+def test_typst_render_service_renders_proof_pack_pdf() -> None:
+    service = _build_service()
+
+    result = service.render(_proof_pack_package())
+
+    assert result.attempt.status.value == "rendered"
+    assert result.artifact_bytes.startswith(b"%PDF")
+    assert result.diagnostic.template_id == "proof-pack"
+    assert result.diagnostic.artifact_sha256 == hashlib.sha256(result.artifact_bytes).hexdigest()
+
+
 def test_template_registry_accepts_outcome_review_template() -> None:
     settings = Settings()
     registry = TemplateRegistry.load_from_directory(Path(settings.template_registry_path))
@@ -199,6 +315,16 @@ def test_template_registry_accepts_outcome_review_template() -> None:
 
     assert manifest.template_id == "outcome-review"
     assert manifest.supported_report_types == ["outcome_review"]
+
+
+def test_template_registry_accepts_proof_pack_template() -> None:
+    settings = Settings()
+    registry = TemplateRegistry.load_from_directory(Path(settings.template_registry_path))
+    manifest = registry.resolve_for_new_render(_proof_pack_package())
+
+    assert manifest.template_id == "proof-pack"
+    assert manifest.supported_report_types == ["proof_pack"]
+    assert manifest.supported_report_data_contract_versions == ["dpm_proof_pack_report_input.v1"]
 
 
 def test_typst_render_service_builds_selected_section_sequence() -> None:
