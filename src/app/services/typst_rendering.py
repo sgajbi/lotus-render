@@ -345,9 +345,75 @@ class TypstRenderService:
         return workspace_template_directory / template_root.name
 
     def _build_template_context(self, render_package: RenderPackage) -> dict[str, str]:
+        if render_package.report_type == "proof_pack":
+            return self._build_proof_pack_context(render_package)
         if render_package.report_type == "outcome_review":
             return self._build_outcome_review_context(render_package)
         return self._build_portfolio_review_context(render_package)
+
+    def _build_proof_pack_context(self, render_package: RenderPackage) -> dict[str, str]:
+        report_data = render_package.report_data
+        render_context = render_package.render_context
+        required_report_fields = [
+            "title",
+            "portfolio_id",
+            "proof_pack_id",
+            "state",
+            "decision_summary",
+            "supportability",
+            "sections",
+            "content_hash",
+            "proof_pack_content_hash",
+        ]
+        for field_name in required_report_fields:
+            if field_name not in report_data:
+                raise ValueError(f"missing required report_data field: {field_name}")
+
+        sections = report_data["sections"]
+        if not isinstance(sections, list):
+            raise ValueError("sections must be a list")
+
+        decision_summary = self._mapping(report_data.get("decision_summary"))
+        supportability = self._mapping(report_data.get("supportability"))
+        source_hashes = self._mapping(report_data.get("source_hashes"))
+        return {
+            "TITLE": self._escape_typst_text(str(report_data["title"])),
+            "PORTFOLIO_ID": self._escape_typst_text(str(report_data["portfolio_id"])),
+            "PROOF_PACK_ID": self._escape_typst_text(str(report_data["proof_pack_id"])),
+            "MANDATE_ID": self._escape_typst_text(
+                str(report_data.get("mandate_id", "not_available"))
+            ),
+            "AS_OF_DATE": self._escape_typst_text(
+                str(report_data.get("as_of_date", "not_available"))
+            ),
+            "STATE": self._escape_typst_text(str(report_data["state"])),
+            "DECISION_ACTION": self._escape_typst_text(
+                str(decision_summary.get("recommended_action", "not_available"))
+            ),
+            "DECISION_RATIONALE": self._escape_typst_text(
+                str(decision_summary.get("rationale", "No decision rationale supplied."))
+            ),
+            "SUPPORTABILITY_STATUS": self._escape_typst_text(
+                str(supportability.get("status", supportability.get("state", "not_available")))
+            ),
+            "SUPPORTABILITY_REASONS": self._escape_typst_text(
+                ", ".join(self._string_list(supportability.get("reason_codes"))) or "none"
+            ),
+            "SECTION_ROWS": self._render_proof_pack_section_rows(sections),
+            "SOURCE_HASH_ROWS": self._render_key_value_rows(source_hashes),
+            "CONTENT_HASH": self._escape_typst_text(str(report_data["content_hash"])),
+            "PROOF_PACK_CONTENT_HASH": self._escape_typst_text(
+                str(report_data["proof_pack_content_hash"])
+            ),
+            "REDACTION_POLICY": self._escape_typst_text(
+                str(report_data.get("redaction_policy", "NO_RAW_PAYLOADS"))
+            ),
+            "RENDER_JOB_ID": self._escape_typst_text(render_package.render_job_id),
+            "TEMPLATE_ID": self._escape_typst_text(render_package.template_id),
+            "TEMPLATE_VERSION": self._escape_typst_text(render_package.template_version),
+            "REQUESTED_BY": self._escape_typst_text(str(render_package.requested_by)),
+            "TIMEZONE": self._escape_typst_text(str(render_context.get("timezone", "unknown"))),
+        }
 
     def _build_outcome_review_context(self, render_package: RenderPackage) -> dict[str, str]:
         report_data = render_package.report_data
@@ -423,6 +489,27 @@ class TypstRenderService:
                 f"[{self._escape_typst_text(str(dimension.get('realized', 'not_available')))}], "
                 f"[{self._escape_typst_text(str(dimension.get('variance', 'not_available')))}], "
                 f"[{self._escape_typst_text(str(dimension.get('explanation', '')))}]"
+                ")"
+            )
+        return "\n".join(rows)
+
+    def _render_proof_pack_section_rows(self, sections: object) -> str:
+        if not isinstance(sections, list) or not sections:
+            return (
+                "section-row([Not available], [not_available], [not_available], "
+                "[No section evidence supplied.], [none])"
+            )
+        rows = []
+        for item in sections:
+            section = self._mapping(item)
+            reasons = ", ".join(self._string_list(section.get("reason_codes"))) or "none"
+            rows.append(
+                "section-row("
+                f"[{self._escape_typst_text(str(section.get('title', 'Not available')))}], "
+                f"[{self._escape_typst_text(str(section.get('section_type', 'not_available')))}], "
+                f"[{self._escape_typst_text(str(section.get('state', 'not_available')))}], "
+                f"[{self._escape_typst_text(str(section.get('summary', '')))}], "
+                f"[{self._escape_typst_text(reasons)}]"
                 ")"
             )
         return "\n".join(rows)

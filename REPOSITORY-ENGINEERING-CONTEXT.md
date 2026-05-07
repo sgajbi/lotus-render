@@ -25,9 +25,12 @@ submission, status lookup, artifact metadata lookup, latency, failure-category, 
 signals without high-cardinality or sensitive labels. RFC-0108 render supportability now publishes
 `render.observability.render_supportability` through `/metadata` and
 `lotus_render_supportability_total`, backed by drain state, render-store readiness,
-template-registry availability, and runtime configuration. The companion `lotus-report`
-implementation submits complete render packages and records render outcomes while keeping
-business-data assembly outside `lotus-render`.
+template-registry availability, and runtime configuration. RFC40-WTBD-004 Slice 1 adds the
+first-wave `proof-pack v1` template and registry manifest for
+`dpm_proof_pack_report_input.v1`, establishing deterministic render-service support for
+pre-trade proof-pack artifacts while keeping proof-pack truth and report-data assembly outside
+`lotus-render`. The companion `lotus-report` implementation submits complete render packages and
+records render outcomes while keeping business-data assembly outside `lotus-render`.
 
 ## Architecture And Module Map
 

@@ -45,6 +45,14 @@
 - `brand_variant`: `private_banking`
 - `output_format`: `pdf`
 
+- `template_id`: `proof-pack`
+- `template_version`: `v1`
+- `report_type`: `proof_pack`
+- `report_data_contract_version`: `dpm_proof_pack_report_input.v1`
+- `locale`: `en-SG`
+- `brand_variant`: `private_banking`
+- `output_format`: `pdf`
+
 ## Current first-wave contract shape
 
 The active `portfolio-review v1` template now expects a richer governed `report_data` payload from
@@ -97,6 +105,27 @@ Current document sections are sourced from render-package fields that include:
 This template must not fetch, infer, or recompute outcome truth. `lotus-manage` owns the
 post-trade outcome authority; `lotus-report` snapshots the bounded handoff and `lotus-render`
 presents it deterministically.
+
+## Proof-pack contract shape
+
+The active `proof-pack v1` template renders the RFC-0040 pre-trade proof-pack artifact from the
+bounded `DpmProofPackReportInput` snapshot that `lotus-report` will materialize. It establishes the
+render-service side of RFC40-WTBD-004 without making `lotus-render` a proof-pack or report-data
+authority.
+
+Current document sections are sourced from render-package fields that include:
+
+- portfolio, mandate, proof-pack, and as-of identity
+- proof-pack state, supportability status, and supportability reason codes
+- decision summary action and rationale
+- report-safe proof-pack section summaries, section states, and reason codes
+- source hashes
+- report-input and proof-pack content hashes
+- redaction policy and deterministic render metadata
+
+This template must not fetch, infer, or recompute proof-pack truth. `lotus-manage` owns the
+proof-pack authority; `lotus-report` will snapshot the bounded handoff and `lotus-render` presents
+it deterministically.
 
 ## Portfolio review section configuration
 
