@@ -53,6 +53,14 @@
 - `brand_variant`: `private_banking`
 - `output_format`: `pdf`
 
+- `template_id`: `rebalance-wave`
+- `template_version`: `v1`
+- `report_type`: `rebalance_wave`
+- `report_data_contract_version`: `dpm_wave_report_input.v1`
+- `locale`: `en-SG`
+- `brand_variant`: `private_banking`
+- `output_format`: `pdf`
+
 ## Current first-wave contract shape
 
 The active `portfolio-review v1` template now expects a richer governed `report_data` payload from
@@ -126,6 +134,28 @@ Current document sections are sourced from render-package fields that include:
 This template must not fetch, infer, or recompute proof-pack truth. `lotus-manage` owns the
 proof-pack authority; `lotus-report` will snapshot the bounded handoff and `lotus-render` presents
 it deterministically.
+
+## Rebalance wave contract shape
+
+The active `rebalance-wave v1` template renders the RFC-0041 wave evidence artifact from the
+bounded `DpmWaveReportInput` snapshot materialized by `lotus-report`. It establishes the
+render-service side of RFC41-WTBD-008 without making `lotus-render` a wave, proof-pack, or
+report-data authority.
+
+Current document sections are sourced from render-package fields that include:
+
+- wave, trigger, and as-of identity
+- aggregate item counts and supportability posture
+- proof-pack readiness and degraded-count posture
+- report-safe wave item rows with selected alternative and proof-pack linkage
+- recent event timeline rows
+- internal handoff count and explicit `external_execution_claimed=false` posture
+- report-input and wave content hashes
+- redaction policy and deterministic render metadata
+
+This template must not fetch, infer, or recompute wave truth. `lotus-manage` owns wave state,
+proof-pack linkage, supportability, source refs, and internal handoff evidence; `lotus-report`
+snapshots the bounded handoff and `lotus-render` presents it deterministically.
 
 ## Portfolio review section configuration
 

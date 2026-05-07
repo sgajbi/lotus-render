@@ -349,6 +349,8 @@ class TypstRenderService:
             return self._build_proof_pack_context(render_package)
         if render_package.report_type == "outcome_review":
             return self._build_outcome_review_context(render_package)
+        if render_package.report_type == "rebalance_wave":
+            return self._build_wave_context(render_package)
         return self._build_portfolio_review_context(render_package)
 
     def _build_proof_pack_context(self, render_package: RenderPackage) -> dict[str, str]:
@@ -471,6 +473,133 @@ class TypstRenderService:
             "REQUESTED_BY": self._escape_typst_text(str(render_package.requested_by)),
             "TIMEZONE": self._escape_typst_text(str(render_context.get("timezone", "unknown"))),
         }
+
+    def _build_wave_context(self, render_package: RenderPackage) -> dict[str, str]:
+        report_data = render_package.report_data
+        render_context = render_package.render_context
+        required_report_fields = [
+            "title",
+            "wave_id",
+            "wave_state",
+            "trigger_type",
+            "aggregate_metrics",
+            "supportability",
+            "proof_pack_posture",
+            "items",
+            "content_hash",
+            "wave_content_hash",
+        ]
+        for field_name in required_report_fields:
+            if field_name not in report_data:
+                raise ValueError(f"missing required report_data field: {field_name}")
+        items = report_data["items"]
+        if not isinstance(items, list):
+            raise ValueError("items must be a list")
+        aggregate_metrics = self._mapping(report_data.get("aggregate_metrics"))
+        supportability = self._mapping(report_data.get("supportability"))
+        proof_pack_posture = self._mapping(report_data.get("proof_pack_posture"))
+        return {
+            "TITLE": self._escape_typst_text(str(report_data["title"])),
+            "WAVE_ID": self._escape_typst_text(str(report_data["wave_id"])),
+            "WAVE_STATE": self._escape_typst_text(str(report_data["wave_state"])),
+            "TRIGGER_TYPE": self._escape_typst_text(str(report_data["trigger_type"])),
+            "TRIGGER_ID": self._escape_typst_text(str(report_data.get("trigger_id", ""))),
+            "TRIGGER_RATIONALE": self._escape_typst_text(
+                str(report_data.get("trigger_rationale", "No trigger rationale supplied."))
+            ),
+            "AS_OF_DATE": self._escape_typst_text(
+                str(report_data.get("as_of_date", "not_available"))
+            ),
+            "ITEM_COUNT": self._escape_typst_text(
+                str(aggregate_metrics.get("item_count", "not_available"))
+            ),
+            "READY_ITEM_COUNT": self._escape_typst_text(
+                str(aggregate_metrics.get("ready_item_count", "not_available"))
+            ),
+            "BLOCKED_ITEM_COUNT": self._escape_typst_text(
+                str(aggregate_metrics.get("blocked_item_count", "not_available"))
+            ),
+            "SUPPORTABILITY_STATUS": self._escape_typst_text(
+                str(
+                    supportability.get(
+                        "supportability_state",
+                        supportability.get("status", "not_available"),
+                    )
+                )
+            ),
+            "SUPPORTABILITY_REASON": self._escape_typst_text(
+                str(supportability.get("reason", "not_available"))
+            ),
+            "PROOF_PACK_READY_COUNT": self._escape_typst_text(
+                str(proof_pack_posture.get("ready_proof_pack_count", "not_available"))
+            ),
+            "PROOF_PACK_DEGRADED_COUNT": self._escape_typst_text(
+                str(proof_pack_posture.get("degraded_proof_pack_count", "not_available"))
+            ),
+            "HANDOFF_COUNT": self._escape_typst_text(str(report_data.get("handoff_count", 0))),
+            "EXTERNAL_EXECUTION": self._escape_typst_text(
+                str(bool(report_data.get("external_execution_claimed"))).lower()
+            ),
+            "ITEM_ROWS": self._render_wave_item_rows(items),
+            "EVENT_ROWS": self._render_wave_event_rows(report_data.get("events")),
+            "CONTENT_HASH": self._escape_typst_text(str(report_data["content_hash"])),
+            "WAVE_CONTENT_HASH": self._escape_typst_text(str(report_data["wave_content_hash"])),
+            "REDACTION_POLICY": self._escape_typst_text(
+                str(report_data.get("redaction_policy", "NO_RAW_PAYLOADS"))
+            ),
+            "RENDER_JOB_ID": self._escape_typst_text(render_package.render_job_id),
+            "TEMPLATE_ID": self._escape_typst_text(render_package.template_id),
+            "TEMPLATE_VERSION": self._escape_typst_text(render_package.template_version),
+            "REQUESTED_BY": self._escape_typst_text(str(render_package.requested_by)),
+            "TIMEZONE": self._escape_typst_text(str(render_context.get("timezone", "unknown"))),
+        }
+
+    def _render_wave_item_rows(self, items: object) -> str:
+        if not isinstance(items, list) or not items:
+            return (
+                "wave-item-row([Not available], [not_available], [not_available], "
+                "[not_available], [not_available], [No item evidence supplied.])"
+            )
+        rows = []
+        for item in items:
+            row = self._mapping(item)
+            reasons = ", ".join(self._string_list(row.get("reason_codes"))) or "none"
+            alternative_id = self._escape_typst_text(
+                str(row.get("selected_alternative_id", "not_available"))
+            )
+            rows.append(
+                "wave-item-row("
+                f"[{self._escape_typst_text(str(row.get('portfolio_id', 'not_available')))}], "
+                f"[{self._escape_typst_text(str(row.get('state', 'not_available')))}], "
+                f"[{self._escape_typst_text(str(row.get('proof_pack_id', 'not_available')))}], "
+                f"[{self._escape_typst_text(str(row.get('proof_pack_state', 'not_available')))}], "
+                f"[{alternative_id}], "
+                f"[{self._escape_typst_text(reasons)}]"
+                ")"
+            )
+        return "\n".join(rows)
+
+    def _render_wave_event_rows(self, events: object) -> str:
+        if not isinstance(events, list) or not events:
+            return "key-value-row([Latest event], [No event evidence supplied.])"
+        rows = []
+        for item in events:
+            event = self._mapping(item)
+            label = (
+                f"{event.get('event_type', 'event')} -> {event.get('to_state', 'not_available')}"
+            )
+            value = (
+                f"{event.get('reason_code', 'not_available')} / "
+                f"{event.get('actor_id', 'not_available')} / "
+                f"{event.get('created_at', 'not_available')}"
+            )
+            rows.append(
+                "key-value-row("
+                f"[{self._escape_typst_text(label)}], "
+                f"[{self._escape_typst_text(value)}]"
+                ")"
+            )
+        return "\n".join(rows)
 
     def _render_outcome_dimension_rows(self, dimensions: object) -> str:
         if not isinstance(dimensions, list) or not dimensions:

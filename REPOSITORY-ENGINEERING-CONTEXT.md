@@ -29,8 +29,12 @@ template-registry availability, and runtime configuration. RFC40-WTBD-004 Slice 
 first-wave `proof-pack v1` template and registry manifest for
 `dpm_proof_pack_report_input.v1`, establishing deterministic render-service support for
 pre-trade proof-pack artifacts while keeping proof-pack truth and report-data assembly outside
-`lotus-render`. The companion `lotus-report` implementation submits complete render packages and
-records render outcomes while keeping business-data assembly outside `lotus-render`.
+`lotus-render`. RFC41-WTBD-008 adds the first-wave `rebalance-wave v1` template and registry
+manifest for `dpm_wave_report_input.v1`, establishing deterministic render-service support for
+wave evidence artifacts while keeping wave state, proof-pack linkage, internal handoff evidence,
+and report-data assembly outside `lotus-render`. The companion `lotus-report` implementation
+submits complete render packages and records render outcomes while keeping business-data assembly
+outside `lotus-render`.
 
 ## Architecture And Module Map
 

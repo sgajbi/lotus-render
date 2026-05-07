@@ -52,7 +52,8 @@ and Typst foundation slices:
   `blocked_for_new_renders`, and `blocked`
 - machine validation through `scripts/validate_template_registry.py` and `make check`
 - governed Typst templates under `templates/typst/portfolio-review/v1/`,
-  `templates/typst/outcome-review/v1/`, and `templates/typst/proof-pack/v1/`
+  `templates/typst/outcome-review/v1/`, `templates/typst/proof-pack/v1/`, and
+  `templates/typst/rebalance-wave/v1/`
 - golden render package and expected PDF proof under `tests/golden/portfolio-review/v1/`
 - docker-governed Typst rendering is preferred on developer and CI hosts so golden proof is minted
   from the same controlled runtime envelope
