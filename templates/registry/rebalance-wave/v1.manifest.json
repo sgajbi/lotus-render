@@ -1,0 +1,31 @@
+{
+  "template_id": "rebalance-wave",
+  "template_version": "v1",
+  "supported_report_types": [
+    "rebalance_wave"
+  ],
+  "supported_report_data_contract_versions": [
+    "dpm_wave_report_input.v1"
+  ],
+  "supported_locales": [
+    "en-SG"
+  ],
+  "supported_brand_variants": [
+    "private_banking"
+  ],
+  "supported_output_formats": [
+    "pdf"
+  ],
+  "required_disclosure_fragments": [
+    "rebalance-wave.standard-disclosures.v1"
+  ],
+  "owner_team": "lotus-reporting",
+  "approver": "lotus-platform-governance",
+  "approved_at": "2026-05-07",
+  "status": "active",
+  "golden_sample_ids": [
+    "golden-rebalance-wave-en-SG-private-banking-v1"
+  ],
+  "runtime_engine": "typst",
+  "runtime_engine_version": "0.14.2"
+}

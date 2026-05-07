@@ -124,6 +124,77 @@ def _proof_pack_package() -> RenderPackage:
     )
 
 
+def _wave_package() -> RenderPackage:
+    return RenderPackage.model_validate(
+        {
+            "render_package_version": "render_package.v1",
+            "render_job_id": "rdr_rebalance_wave_v1",
+            "report_job_id": "rjob_rebalance_wave_v1",
+            "snapshot_id": "rsnap_rebalance_wave_v1",
+            "report_type": "rebalance_wave",
+            "report_data_contract_version": "dpm_wave_report_input.v1",
+            "template_id": "rebalance-wave",
+            "template_version": "v1",
+            "locale": "en-SG",
+            "brand_variant": "private_banking",
+            "output_format": "pdf",
+            "render_context": {"timezone": "Asia/Singapore"},
+            "report_data": {
+                "title": "Rebalance Wave Evidence - dwv_001",
+                "wave_id": "dwv_001",
+                "wave_state": "HANDOFF_READY",
+                "trigger_type": "EXPLICIT_PORTFOLIO_LIST",
+                "trigger_id": "manual-wave-001",
+                "trigger_rationale": "Review explicit affected portfolio list.",
+                "as_of_date": "2026-05-03",
+                "aggregate_metrics": {
+                    "item_count": 1,
+                    "ready_item_count": 1,
+                    "blocked_item_count": 0,
+                },
+                "supportability": {
+                    "supportability_state": "ready",
+                    "reason": "wave_supportability_ready",
+                },
+                "proof_pack_posture": {
+                    "ready_proof_pack_count": 1,
+                    "degraded_proof_pack_count": 0,
+                },
+                "items": [
+                    {
+                        "wave_item_id": "dwi_001",
+                        "portfolio_id": "PB_SG_GLOBAL_BAL_001",
+                        "state": "HANDOFF_READY",
+                        "selected_alternative_id": "alt_min_turnover",
+                        "proof_pack_id": "dpp_001",
+                        "proof_pack_state": "READY",
+                        "reason_codes": ["WAVE_ITEM_HANDOFF_READY"],
+                    }
+                ],
+                "events": [
+                    {
+                        "event_type": "STATE_TRANSITION",
+                        "to_state": "HANDOFF_READY",
+                        "actor_id": "pm_001",
+                        "reason_code": "WAVE_HANDOFF_READY",
+                        "created_at": "2026-05-03T09:00:00Z",
+                    }
+                ],
+                "handoff_count": 1,
+                "external_execution_claimed": False,
+                "content_hash": "sha256:report-input",
+                "wave_content_hash": "sha256:wave",
+                "redaction_policy": "NO_RAW_PAYLOADS",
+            },
+            "lineage_refs": ["rjob_rebalance_wave_v1", "dwv_001", "sha256:report-input"],
+            "disclosure_refs": ["rebalance-wave.standard-disclosures.v1"],
+            "requested_by": "advisor-123",
+            "correlation_id": "corr-wave-render",
+            "trace_id": "4bf92f3577b34da6a3ce929d0e0e4736",
+        }
+    )
+
+
 def _build_service() -> TypstRenderService:
     settings = Settings()
     registry = TemplateRegistry.load_from_directory(Path(settings.template_registry_path))
@@ -251,9 +322,11 @@ def test_typst_render_service_routes_template_context_by_report_type() -> None:
 
     outcome_context = service._build_template_context(_outcome_review_package())
     proof_pack_context = service._build_template_context(_proof_pack_package())
+    wave_context = service._build_template_context(_wave_package())
 
     assert outcome_context["OUTCOME_REVIEW_ID"] == "dor_001"
     assert proof_pack_context["PROOF_PACK_ID"] == "dpp_001"
+    assert wave_context["WAVE_ID"] == "dwv_001"
 
 
 def test_typst_render_service_builds_proof_pack_context() -> None:
@@ -265,6 +338,20 @@ def test_typst_render_service_builds_proof_pack_context() -> None:
     assert template_context["SUPPORTABILITY_STATUS"] == "READY"
     assert "section-row(" in template_context["SECTION_ROWS"]
     assert "Mandate context" in template_context["SECTION_ROWS"]
+    assert "sha256:report-input" in template_context["CONTENT_HASH"]
+
+
+def test_typst_render_service_builds_wave_context() -> None:
+    service = _build_service()
+    template_context = service._build_wave_context(_wave_package())
+
+    assert template_context["WAVE_ID"] == "dwv_001"
+    assert template_context["WAVE_STATE"] == "HANDOFF_READY"
+    assert template_context["SUPPORTABILITY_STATUS"] == "ready"
+    assert template_context["PROOF_PACK_READY_COUNT"] == "1"
+    assert "wave-item-row(" in template_context["ITEM_ROWS"]
+    assert "dpp_001" in template_context["ITEM_ROWS"]
+    assert "STATE_TRANSITION" in template_context["EVENT_ROWS"]
     assert "sha256:report-input" in template_context["CONTENT_HASH"]
 
 
@@ -308,6 +395,17 @@ def test_typst_render_service_renders_proof_pack_pdf() -> None:
     assert result.diagnostic.artifact_sha256 == hashlib.sha256(result.artifact_bytes).hexdigest()
 
 
+def test_typst_render_service_renders_wave_pdf() -> None:
+    service = _build_service()
+
+    result = service.render(_wave_package())
+
+    assert result.attempt.status.value == "rendered"
+    assert result.artifact_bytes.startswith(b"%PDF")
+    assert result.diagnostic.template_id == "rebalance-wave"
+    assert result.diagnostic.artifact_sha256 == hashlib.sha256(result.artifact_bytes).hexdigest()
+
+
 def test_template_registry_accepts_outcome_review_template() -> None:
     settings = Settings()
     registry = TemplateRegistry.load_from_directory(Path(settings.template_registry_path))
@@ -325,6 +423,16 @@ def test_template_registry_accepts_proof_pack_template() -> None:
     assert manifest.template_id == "proof-pack"
     assert manifest.supported_report_types == ["proof_pack"]
     assert manifest.supported_report_data_contract_versions == ["dpm_proof_pack_report_input.v1"]
+
+
+def test_template_registry_accepts_wave_template() -> None:
+    settings = Settings()
+    registry = TemplateRegistry.load_from_directory(Path(settings.template_registry_path))
+    manifest = registry.resolve_for_new_render(_wave_package())
+
+    assert manifest.template_id == "rebalance-wave"
+    assert manifest.supported_report_types == ["rebalance_wave"]
+    assert manifest.supported_report_data_contract_versions == ["dpm_wave_report_input.v1"]
 
 
 def test_typst_render_service_builds_selected_section_sequence() -> None:
