@@ -579,6 +579,11 @@ def test_typst_render_service_helper_fallbacks_cover_sparse_structures() -> None
     assert service._requested_section_keys(
         ["detailed-positions", "asset-allocation", "unknown", "asset_allocation"]
     ) == ["positions", "allocation"]
+    assert service._requested_section_keys(["detailed_positions"]) == ["positions"]
+    assert "advisory_narrative" in service._requested_section_keys(
+        None,
+        include_advisory_narrative=True,
+    )
     assert service._requested_section_keys(
         ["reviewed-advisory-narrative"],
         include_advisory_narrative=True,
@@ -624,6 +629,18 @@ def test_typst_render_service_helper_fallbacks_cover_sparse_structures() -> None
     assert "No transaction detail available." in service._render_dense_transaction_rows([123])
     assert "No allocation detail available." in service._render_allocation_breakdown_rows("bad")
     assert "No allocation detail available." in service._render_allocation_breakdown_rows([123])
+    assert "No approved narrative section supplied." in service._render_advisory_narrative_blocks(
+        "bad"
+    )
+    assert "No approved narrative section supplied." in service._render_advisory_narrative_blocks(
+        [{"title": "Empty", "body": ""}]
+    )
+    assert "No reviewed narrative disclosure text supplied." in (
+        service._render_advisory_disclosure_blocks("bad")
+    )
+    assert "No reviewed narrative disclosure text supplied." in (
+        service._render_advisory_disclosure_blocks([{"disclosure_id": "empty", "text": ""}])
+    )
 
 
 def test_typst_render_service_renders_supplemental_allocation_views_with_priority() -> None:
