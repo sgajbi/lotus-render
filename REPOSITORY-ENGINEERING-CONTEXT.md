@@ -34,7 +34,10 @@ manifest for `dpm_wave_report_input.v1`, establishing deterministic render-servi
 wave evidence artifacts while keeping wave state, proof-pack linkage, internal handoff evidence,
 and report-data assembly outside `lotus-render`. The companion `lotus-report` implementation
 submits complete render packages and records render outcomes while keeping business-data assembly
-outside `lotus-render`.
+outside `lotus-render`. RFC-0023 Slice 11C adds optional `portfolio-review v1` rendering for
+reviewed advisor-use narrative packages emitted by `lotus-report` from `lotus-advise`; the renderer
+presents package lineage, review state, source hash, approved narrative text, and disclosure text
+without approving, rewriting, inferring, or fetching advisory facts.
 
 ## Architecture And Module Map
 
@@ -70,6 +73,8 @@ Current repository baseline:
 4. Boundary rules:
    - `lotus-render` must not fetch business data directly from domain services.
    - `lotus-render` consumes complete render packages only.
+   - advisor-use narrative rendering is presentation-only and must be backed by the
+     `reviewed_advisory_narrative` package in `report_data`.
    - `lotus-render` returns render artifacts and support-safe diagnostics, not archive truth.
    - `lotus-render` owns render-engine/runtime posture, template compatibility, and artifact hash
      generation.

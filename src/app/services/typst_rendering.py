@@ -36,6 +36,7 @@ PORTFOLIO_REVIEW_SECTION_CALLS = {
     "positions": "observations-page()",
     "holdings": "observations-page()",
     "transactions": "transactions-page()",
+    "advisory_narrative": "reviewed-advisory-narrative-page()",
     "appendix": "appendix-page()",
 }
 DEFAULT_PORTFOLIO_REVIEW_SECTIONS = (
@@ -46,6 +47,17 @@ DEFAULT_PORTFOLIO_REVIEW_SECTIONS = (
     "allocation",
     "positions",
     "transactions",
+    "appendix",
+)
+DEFAULT_PORTFOLIO_REVIEW_SECTIONS_WITH_ADVISORY_NARRATIVE = (
+    "cover",
+    "contents",
+    "overview",
+    "performance",
+    "allocation",
+    "positions",
+    "transactions",
+    "advisory_narrative",
     "appendix",
 )
 
@@ -176,12 +188,24 @@ class TypstRenderService:
         performance_highlight = self._mapping(report_data.get("performance_highlight"))
         risk_summary = self._mapping(report_data.get("risk_summary"))
         governance_summary = self._mapping(report_data.get("governance_summary"))
+        reviewed_advisory_narrative = self._mapping(report_data.get("reviewed_advisory_narrative"))
+        include_reviewed_advisory_narrative = (
+            reviewed_advisory_narrative.get("status") == "included"
+        )
         supplemental_allocation_title, supplemental_allocation_rows = (
             self._supplemental_allocation_view(allocation_breakdowns)
         )
 
         return {
-            "REPORT_SECTIONS": self._render_report_sections(render_context.get("sections")),
+            "REPORT_SECTIONS": self._render_report_sections(
+                render_context.get("sections"),
+                include_advisory_narrative=include_reviewed_advisory_narrative,
+            ),
+            "OPTIONAL_ADVISORY_IMPORT": (
+                '#import "_advisory.typ": reviewed-advisory-narrative-page'
+                if include_reviewed_advisory_narrative
+                else ""
+            ),
             "CLIENT_NAME": self._escape_typst_text(str(report_data["client_name"])),
             "PORTFOLIO_NAME": self._escape_typst_text(str(report_data["portfolio_name"])),
             "AS_OF_DATE": self._escape_typst_text(str(report_data["as_of_date"])),
@@ -304,6 +328,15 @@ class TypstRenderService:
             ),
             "READINESS_STATUS": self._escape_typst_text(
                 str(governance_summary.get("readiness_status", "unknown"))
+            ),
+            "REVIEWED_ADVISORY_FACT_ROWS": self._render_reviewed_advisory_fact_rows(
+                reviewed_advisory_narrative
+            ),
+            "REVIEWED_ADVISORY_NARRATIVE_BLOCKS": self._render_advisory_narrative_blocks(
+                reviewed_advisory_narrative.get("sections")
+            ),
+            "REVIEWED_ADVISORY_DISCLOSURE_BLOCKS": self._render_advisory_disclosure_blocks(
+                reviewed_advisory_narrative.get("disclosures")
             ),
             "RENDER_JOB_ID": self._escape_typst_text(render_package.render_job_id),
             "TEMPLATE_ID": self._escape_typst_text(render_package.template_id),
@@ -654,15 +687,30 @@ class TypstRenderService:
             for key, value in sorted(values.items())
         )
 
-    def _render_report_sections(self, requested_sections: object) -> str:
-        section_keys = self._requested_section_keys(requested_sections)
+    def _render_report_sections(
+        self,
+        requested_sections: object,
+        *,
+        include_advisory_narrative: bool = False,
+    ) -> str:
+        section_keys = self._requested_section_keys(
+            requested_sections,
+            include_advisory_narrative=include_advisory_narrative,
+        )
         rendered = [f"#{PORTFOLIO_REVIEW_SECTION_CALLS[key]}" for key in section_keys]
         return "\n#pagebreak()\n".join(rendered)
 
-    def _requested_section_keys(self, requested_sections: object) -> list[str]:
+    def _requested_section_keys(
+        self,
+        requested_sections: object,
+        *,
+        include_advisory_narrative: bool = False,
+    ) -> list[str]:
         if not isinstance(requested_sections, Sequence) or isinstance(
             requested_sections, (str, bytes, bytearray)
         ):
+            if include_advisory_narrative:
+                return list(DEFAULT_PORTFOLIO_REVIEW_SECTIONS_WITH_ADVISORY_NARRATIVE)
             return list(DEFAULT_PORTFOLIO_REVIEW_SECTIONS)
 
         normalized: list[str] = []
@@ -677,15 +725,116 @@ class TypstRenderService:
                 "performance-review": "performance",
                 "transaction-list": "transactions",
                 "additional-information": "appendix",
+                "advisor-narrative": "advisory-narrative",
+                "advisory": "advisory-narrative",
+                "reviewed-advisory": "advisory-narrative",
+                "reviewed-advisory-narrative": "advisory-narrative",
             }.get(key, key)
             key = key.replace("-", "_")
             if key == "detailed_positions":
                 key = "positions"
+            if key == "advisory_narrative" and not include_advisory_narrative:
+                continue
             if key not in PORTFOLIO_REVIEW_SECTION_CALLS or key in seen:
                 continue
             normalized.append(key)
             seen.add(key)
-        return normalized or list(DEFAULT_PORTFOLIO_REVIEW_SECTIONS)
+        if normalized:
+            return normalized
+        if include_advisory_narrative:
+            return list(DEFAULT_PORTFOLIO_REVIEW_SECTIONS_WITH_ADVISORY_NARRATIVE)
+        return list(DEFAULT_PORTFOLIO_REVIEW_SECTIONS)
+
+    def _render_reviewed_advisory_fact_rows(self, narrative: Mapping[str, object]) -> str:
+        if narrative.get("status") != "included":
+            return ""
+
+        review = self._mapping(narrative.get("review"))
+        source_lineage = self._mapping(narrative.get("source_lineage"))
+        facts = {
+            "Package status": narrative.get("package_status", "not_available"),
+            "Usage": narrative.get("usage", "not_available"),
+            "Audience": narrative.get("audience", "not_available"),
+            "Proposal": narrative.get("proposal_id", "not_available"),
+            "Proposal version": narrative.get("proposal_version_no", "not_available"),
+            "Narrative": narrative.get("narrative_id", "not_available"),
+            "Narrative status": narrative.get("narrative_status", "not_available"),
+            "Review state": review.get("review_state", "not_available"),
+            "Reviewed by": review.get("reviewed_by", "not_available"),
+            "Reviewed at": review.get("reviewed_at", "not_available"),
+            "Policy version": narrative.get("policy_version", "not_available"),
+            "Source narrative hash": source_lineage.get(
+                "source_narrative_hash",
+                "not_available",
+            ),
+        }
+        return self._render_advisory_fact_rows(facts)
+
+    def _render_advisory_fact_rows(self, facts: Mapping[str, object]) -> str:
+        rows = []
+        for key, value in facts.items():
+            rows.append(
+                "advisory-fact-row("
+                f"[{self._escape_typst_text(str(key))}], "
+                f"[{self._escape_typst_text(str(value if value is not None else 'not_available'))}]"
+                ")"
+            )
+        return "\n".join(rows)
+
+    def _render_advisory_narrative_blocks(self, sections: object) -> str:
+        if not isinstance(sections, Sequence) or isinstance(sections, (str, bytes, bytearray)):
+            return (
+                "advisory-narrative-block([No approved narrative section supplied.], "
+                "[No reviewed narrative body was included in the render package.])"
+            )
+        blocks: list[str] = []
+        for item in sections:
+            section = self._mapping(item)
+            body = str(section.get("body", "")).strip()
+            if not body:
+                continue
+            title = str(section.get("title", "Reviewed advisory section")).strip()
+            blocks.append(
+                "advisory-narrative-block("
+                f"[{self._escape_typst_text(title)}], "
+                f"[{self._escape_typst_text(body)}]"
+                ")"
+            )
+        if not blocks:
+            return (
+                "advisory-narrative-block([No approved narrative section supplied.], "
+                "[No reviewed narrative body was included in the render package.])"
+            )
+        return "\n#v(8pt)\n".join(blocks)
+
+    def _render_advisory_disclosure_blocks(self, disclosures: object) -> str:
+        if not isinstance(disclosures, Sequence) or isinstance(
+            disclosures,
+            (str, bytes, bytearray),
+        ):
+            return (
+                "advisory-disclosure-block([not_available], "
+                "[No reviewed narrative disclosure text supplied.])"
+            )
+        blocks: list[str] = []
+        for item in disclosures:
+            disclosure = self._mapping(item)
+            disclosure_id = str(disclosure.get("disclosure_id", "not_available")).strip()
+            text = str(disclosure.get("text", "")).strip()
+            if not text:
+                continue
+            blocks.append(
+                "advisory-disclosure-block("
+                f"[{self._escape_typst_text(disclosure_id)}], "
+                f"[{self._escape_typst_text(text)}]"
+                ")"
+            )
+        if not blocks:
+            return (
+                "advisory-disclosure-block([not_available], "
+                "[No reviewed narrative disclosure text supplied.])"
+            )
+        return "\n#v(6pt)\n".join(blocks)
 
     def _render_performance_chart_section(self, report_data: Mapping[str, object]) -> str:
         if not performance_series_from_report_data(report_data):

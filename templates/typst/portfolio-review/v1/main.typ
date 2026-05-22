@@ -20,6 +20,7 @@
 #set par(leading: 1.08em, spacing: 0.42em)
 
 #import "_allocation.typ": allocation-page
+${OPTIONAL_ADVISORY_IMPORT}
 #import "_appendix.typ": appendix-page
 #import "_cover.typ": contents-page, cover-page
 #import "_overview.typ": scope-page

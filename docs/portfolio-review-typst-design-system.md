@@ -39,6 +39,7 @@ The report is organized into section families that share the same foundation:
 - executive briefing: overview and mandate context
 - analytics: performance, allocation, charts, and risk profile
 - statement detail: detailed positions and transactions
+- advisor-use narrative: reviewed advisory package content supplied by `lotus-report`
 - appendix: definitions, methodology notes, abbreviations, and disclosures
 
 Each family may tune density and emphasis, but it must use the shared tokens and component grammar.
@@ -56,6 +57,12 @@ When a desired report attribute is not source-backed, it must be recorded as a s
 being invented in the template. When an attribute exists but its client-facing placement is unclear,
 it must be recorded as a placement or semantic decision before the report starts rendering it.
 
+The reviewed advisory narrative section is optional and advisor-use scoped. It appears only when the
+render package includes `report_data.reviewed_advisory_narrative.status == "included"`. The section
+renders the package lineage, review state, source narrative hash, approved section text, and
+advisor-use disclosure text supplied by `lotus-report`; it does not approve, rewrite, infer, or
+source additional advisory facts.
+
 ## Chart Pipeline
 
 Charts are generated as deterministic SVG assets before Typst compilation. `portfolio_charts.py`
@@ -70,7 +77,7 @@ failing or showing an empty frame.
 
 ## Configuration Model
 
-The full report renders by default. `render_context.sections` accepts section keys such as `cover`, `contents`, `overview`, `performance`, `allocation`, `positions`, `transactions`, and `appendix`. Common aliases are normalized by the renderer. Unknown keys are ignored; if no valid section remains, the renderer falls back to the full report.
+The full report renders by default. `render_context.sections` accepts section keys such as `cover`, `contents`, `overview`, `performance`, `allocation`, `positions`, `transactions`, and `appendix`. When an included reviewed advisory narrative package is present, the full report inserts `advisory_narrative` before the appendix, and callers can request it directly with `reviewed-advisory-narrative`. Common aliases are normalized by the renderer. Unknown keys are ignored; if no valid section remains, the renderer falls back to the full report.
 
 ## Rendering
 
