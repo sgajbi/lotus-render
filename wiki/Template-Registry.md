@@ -87,12 +87,23 @@ Current document sections are sourced from render-package fields that include:
 - top holdings
 - dense position detail
 - dense transaction detail
+- optional reviewed advisory narrative package:
+  - proposal, narrative, review, policy, and source-hash lineage
+  - approved advisor-use narrative sections
+  - advisor-use disclosure text
 - monthly and annual performance history
 - governance summary
 - review observations
 
 This richer contract keeps business-data assembly in `lotus-report` and keeps `lotus-render`
 responsible for deterministic presentation only.
+
+The reviewed advisory narrative page is rendered only when
+`report_data.reviewed_advisory_narrative.status == "included"`. The template presents the bounded
+package supplied by `lotus-report`; it does not approve narrative content, rewrite advice, infer
+suitability facts, or fetch additional advisory data. Packages may carry
+`proposal_narrative.advisor_use_only.v1` in `disclosure_refs` when the advisor-use disclosure is
+included.
 
 ## Outcome review contract shape
 
@@ -172,11 +183,14 @@ Supported section keys:
 - `allocation`
 - `positions`
 - `transactions`
+- `advisory_narrative` when the package includes reviewed advisor-use narrative content
 - `appendix`
 
 Common aliases such as `asset-allocation`, `detailed-positions`, `transaction-list`, and
-`additional-information` are normalized by the renderer. Unknown section keys are ignored; if no
-valid section remains, the renderer falls back to the full report.
+`additional-information` are normalized by the renderer. `reviewed-advisory-narrative`,
+`reviewed-advisory`, and `advisor-narrative` select the optional advisory page when the included
+package is present. Unknown section keys are ignored; if no valid section remains, the renderer
+falls back to the full report.
 
 The maintainable design-system note for the Typst implementation is authored in
 `docs/portfolio-review-typst-design-system.md`. It records the layout rhythm, typography scale,

@@ -45,9 +45,47 @@ RENDER_SUBMIT_REQUEST_EXAMPLE: dict[str, Any] = {
             "Equity positioning remained the main contributor to year-to-date performance.",
             "Risk posture stayed within the monitored balanced mandate range.",
         ],
+        "reviewed_advisory_narrative": {
+            "status": "included",
+            "package_status": "INCLUDED_REVIEWED_NARRATIVE",
+            "usage": "advisor_report_package",
+            "proposal_id": "adv_prop_001",
+            "proposal_version_no": 3,
+            "narrative_id": "adv_narrative_001",
+            "narrative_status": "REVIEWED",
+            "audience": "ADVISOR",
+            "policy_version": "proposal-narrative-policy.v1",
+            "review": {
+                "review_id": "adv_review_001",
+                "review_state": "APPROVED_FOR_ADVISOR_USE",
+                "reviewed_at": "2026-05-21T09:15:00Z",
+                "reviewed_by": "head-advisor.sg@example.com",
+            },
+            "source_lineage": {"source_narrative_hash": "sha256:reviewed-narrative"},
+            "sections": [
+                {
+                    "section_id": "suitability_summary",
+                    "title": "Suitability summary",
+                    "body": (
+                        "The proposal remains aligned to the balanced mandate while addressing "
+                        "liquidity and concentration observations."
+                    ),
+                    "source_refs": [{"source_id": "proposal-lineage-001"}],
+                }
+            ],
+            "disclosures": [
+                {
+                    "disclosure_id": "proposal_narrative.advisor_use_only.v1",
+                    "text": "Advisor use only. Client distribution requires separate approval.",
+                }
+            ],
+        },
     },
     "lineage_refs": ["rsnap_8c0c8f6fc2d947b89cb451d9f4f5d9bf"],
-    "disclosure_refs": ["portfolio-review.standard-disclosures.v1"],
+    "disclosure_refs": [
+        "portfolio-review.standard-disclosures.v1",
+        "proposal_narrative.advisor_use_only.v1",
+    ],
     "requested_by": "advisor.sg@example.com",
     "correlation_id": "corr-golden-portfolio-review-v1",
     "trace_id": "trace-golden-portfolio-review-v1",

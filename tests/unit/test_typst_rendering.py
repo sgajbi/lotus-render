@@ -1,4 +1,5 @@
 import hashlib
+from copy import deepcopy
 from pathlib import Path
 
 import pytest
@@ -15,6 +16,59 @@ GOLDEN_ROOT = Path("tests/golden/portfolio-review/v1")
 def _load_golden_package() -> RenderPackage:
     return RenderPackage.model_validate_json(
         (GOLDEN_ROOT / "render-package.json").read_text(encoding="utf-8")
+    )
+
+
+def _portfolio_review_package_with_reviewed_advisory_narrative() -> RenderPackage:
+    render_package = _load_golden_package()
+    report_data = deepcopy(render_package.report_data)
+    report_data["reviewed_advisory_narrative"] = {
+        "status": "included",
+        "package_status": "INCLUDED_REVIEWED_NARRATIVE",
+        "usage": "advisor_report_package",
+        "proposal_id": "adv_prop_001",
+        "proposal_version_no": 3,
+        "narrative_id": "adv_narrative_001",
+        "narrative_status": "REVIEWED",
+        "audience": "ADVISOR",
+        "policy_version": "proposal-narrative-policy.v1",
+        "review": {
+            "review_id": "adv_review_001",
+            "review_state": "APPROVED_FOR_ADVISOR_USE",
+            "reviewed_at": "2026-05-21T09:15:00Z",
+            "reviewed_by": "head-advisor.sg@example.com",
+        },
+        "source_lineage": {
+            "source_narrative_hash": "sha256:reviewed-narrative",
+            "proposal_hash": "sha256:proposal",
+            "proposal_version_hash": "sha256:proposal-version",
+        },
+        "sections": [
+            {
+                "section_id": "suitability_summary",
+                "title": "Suitability summary",
+                "body": (
+                    "The proposal keeps the balanced mandate within approved risk posture while "
+                    "addressing liquidity and concentration observations."
+                ),
+                "source_refs": [{"source_id": "proposal-lineage-001"}],
+            }
+        ],
+        "disclosures": [
+            {
+                "disclosure_id": "proposal_narrative.advisor_use_only.v1",
+                "text": "Advisor use only. Client distribution requires separate approval.",
+            }
+        ],
+    }
+    return render_package.model_copy(
+        update={
+            "report_data": report_data,
+            "disclosure_refs": [
+                *render_package.disclosure_refs,
+                "proposal_narrative.advisor_use_only.v1",
+            ],
+        }
     )
 
 
@@ -305,6 +359,34 @@ def test_typst_render_service_builds_richer_portfolio_review_context() -> None:
     assert "#review-note(" in template_context["OBSERVATION_NOTES"]
 
 
+def test_typst_render_service_builds_reviewed_advisory_narrative_context() -> None:
+    service = _build_service()
+    template_context = service._build_portfolio_review_context(
+        _portfolio_review_package_with_reviewed_advisory_narrative()
+    )
+
+    assert "#reviewed-advisory-narrative-page()" in template_context["REPORT_SECTIONS"]
+    assert "INCLUDED_REVIEWED_NARRATIVE" in template_context["REVIEWED_ADVISORY_FACT_ROWS"]
+    assert "APPROVED_FOR_ADVISOR_USE" in template_context["REVIEWED_ADVISORY_FACT_ROWS"]
+    assert "sha256:reviewed-narrative" in template_context["REVIEWED_ADVISORY_FACT_ROWS"]
+    assert (
+        "The proposal keeps the balanced mandate"
+        in template_context["REVIEWED_ADVISORY_NARRATIVE_BLOCKS"]
+    )
+    assert (
+        "proposal_narrative.advisor_use_only.v1"
+        in template_context["REVIEWED_ADVISORY_DISCLOSURE_BLOCKS"]
+    )
+
+
+def test_typst_render_service_omits_reviewed_advisory_page_when_not_supplied() -> None:
+    service = _build_service()
+    template_context = service._build_portfolio_review_context(_load_golden_package())
+
+    assert "#reviewed-advisory-narrative-page()" not in template_context["REPORT_SECTIONS"]
+    assert template_context["REVIEWED_ADVISORY_FACT_ROWS"] == ""
+
+
 def test_typst_render_service_builds_outcome_review_context() -> None:
     service = _build_service()
     template_context = service._build_outcome_review_context(_outcome_review_package())
@@ -471,6 +553,23 @@ def test_typst_render_service_renders_selected_sections_only() -> None:
     assert len(result.artifact_bytes) < len((GOLDEN_ROOT / "expected.pdf").read_bytes())
 
 
+def test_typst_render_service_renders_reviewed_advisory_narrative_section() -> None:
+    service = _build_service()
+    render_package = _portfolio_review_package_with_reviewed_advisory_narrative().model_copy(
+        update={
+            "render_context": {
+                "timezone": "Asia/Singapore",
+                "sections": ["reviewed-advisory-narrative"],
+            }
+        }
+    )
+
+    result = service.render(render_package)
+
+    assert result.artifact_bytes.startswith(b"%PDF")
+    assert result.diagnostic.template_id == "portfolio-review"
+
+
 def test_typst_render_service_helper_fallbacks_cover_sparse_structures() -> None:
     service = _build_service()
 
@@ -480,6 +579,19 @@ def test_typst_render_service_helper_fallbacks_cover_sparse_structures() -> None
     assert service._requested_section_keys(
         ["detailed-positions", "asset-allocation", "unknown", "asset_allocation"]
     ) == ["positions", "allocation"]
+    assert service._requested_section_keys(["detailed_positions"]) == ["positions"]
+    assert "advisory_narrative" in service._requested_section_keys(
+        None,
+        include_advisory_narrative=True,
+    )
+    assert service._requested_section_keys(
+        ["reviewed-advisory-narrative"],
+        include_advisory_narrative=True,
+    ) == ["advisory_narrative"]
+    assert service._requested_section_keys(
+        ["reviewed-advisory-narrative"],
+        include_advisory_narrative=False,
+    ) == list(service._requested_section_keys(None))
     assert (
         "No 12-month performance series is available"
         in service._render_performance_chart_section({})
@@ -517,6 +629,18 @@ def test_typst_render_service_helper_fallbacks_cover_sparse_structures() -> None
     assert "No transaction detail available." in service._render_dense_transaction_rows([123])
     assert "No allocation detail available." in service._render_allocation_breakdown_rows("bad")
     assert "No allocation detail available." in service._render_allocation_breakdown_rows([123])
+    assert "No approved narrative section supplied." in service._render_advisory_narrative_blocks(
+        "bad"
+    )
+    assert "No approved narrative section supplied." in service._render_advisory_narrative_blocks(
+        [{"title": "Empty", "body": ""}]
+    )
+    assert "No reviewed narrative disclosure text supplied." in (
+        service._render_advisory_disclosure_blocks("bad")
+    )
+    assert "No reviewed narrative disclosure text supplied." in (
+        service._render_advisory_disclosure_blocks([{"disclosure_id": "empty", "text": ""}])
+    )
 
 
 def test_typst_render_service_renders_supplemental_allocation_views_with_priority() -> None:

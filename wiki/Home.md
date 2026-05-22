@@ -19,6 +19,9 @@ Deterministic document rendering service for Lotus reporting.
 - the active `portfolio-review v1` flow now renders structured mandate, performance, risk,
   holdings, and governance sections from the governed render package rather than a thin text-only
   summary payload
+- `portfolio-review v1` can render an optional reviewed advisory narrative page when `lotus-report`
+  supplies an included advisor-use package from `lotus-advise`; render remains presentation-only
+  and does not approve, rewrite, infer, or fetch advisory facts
 - RFC-0105 first-wave render metrics are implementation-backed for render submission, status
   lookup, artifact metadata lookup, latency, failure-category, and artifact-size signals with
   bounded labels only

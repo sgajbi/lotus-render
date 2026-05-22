@@ -54,6 +54,8 @@ and Typst foundation slices:
 - governed Typst templates under `templates/typst/portfolio-review/v1/`,
   `templates/typst/outcome-review/v1/`, `templates/typst/proof-pack/v1/`, and
   `templates/typst/rebalance-wave/v1/`
+- optional `portfolio-review v1` reviewed advisory narrative rendering when `lotus-report` supplies
+  an included advisor-use package from `lotus-advise`
 - golden render package and expected PDF proof under `tests/golden/portfolio-review/v1/`
 - docker-governed Typst rendering is preferred on developer and CI hosts so golden proof is minted
   from the same controlled runtime envelope
@@ -95,6 +97,10 @@ The supported determinism posture is explicit:
 - bounded determinism is expressed through `bounded_determinism_fingerprint`
 - archive retrieval, legal hold, replay, rerender, regenerate, and document distribution remain
   out of scope for `lotus-render`
+
+For advisory narrative content, `lotus-render` renders only the reviewed package supplied in
+`report_data.reviewed_advisory_narrative`. It does not approve, rewrite, infer, or fetch advisory
+facts; advisor-use boundaries and disclosures must arrive in the render package.
 
 ## Observability Metrics
 
