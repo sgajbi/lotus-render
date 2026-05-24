@@ -762,8 +762,6 @@ class TypstRenderService:
                 "memo": "advisor-memo",
             }.get(key, key)
             key = key.replace("-", "_")
-            if key == "detailed_positions":
-                key = "positions"
             if key == "advisory_narrative" and not include_advisory_narrative:
                 continue
             if key == "advisor_memo" and not include_advisor_memo:

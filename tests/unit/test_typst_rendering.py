@@ -8,7 +8,12 @@ from app.contracts.render_package import RenderPackage
 from app.core.settings import Settings
 from app.domain.templates.registry import TemplateRegistry
 from app.services.render_intake import RenderIntakeService
-from app.services.typst_rendering import DOCKER_TYPST_IMAGE, TypstRenderService
+from app.services.typst_rendering import (
+    DEFAULT_PORTFOLIO_REVIEW_SECTIONS_WITH_ADVISORY_MEMO,
+    DEFAULT_PORTFOLIO_REVIEW_SECTIONS_WITH_ADVISORY_NARRATIVE,
+    DOCKER_TYPST_IMAGE,
+    TypstRenderService,
+)
 
 GOLDEN_ROOT = Path("tests/golden/portfolio-review/v1")
 
@@ -653,14 +658,46 @@ def test_typst_render_service_helper_fallbacks_cover_sparse_structures() -> None
     assert service._string_list("not-a-list") == []
     assert service._string_list([" lot1 ", "", "lot2"]) == ["lot1", "lot2"]
     assert service._mapping("not-a-mapping") == {}
+    with pytest.raises(ValueError, match="missing required report_data field: title"):
+        service._build_outcome_review_context(
+            _outcome_review_package().model_copy(update={"report_data": {}})
+        )
+    with pytest.raises(ValueError, match="dimensions must be a list"):
+        outcome_package = _outcome_review_package()
+        service._build_outcome_review_context(
+            outcome_package.model_copy(
+                update={"report_data": {**outcome_package.report_data, "dimensions": "bad"}}
+            )
+        )
+    with pytest.raises(ValueError, match="missing required report_data field: title"):
+        service._build_wave_context(_wave_package().model_copy(update={"report_data": {}}))
+    with pytest.raises(ValueError, match="items must be a list"):
+        wave_package = _wave_package()
+        service._build_wave_context(
+            wave_package.model_copy(
+                update={"report_data": {**wave_package.report_data, "items": "bad"}}
+            )
+        )
     assert service._requested_section_keys(
         ["detailed-positions", "asset-allocation", "unknown", "asset_allocation"]
     ) == ["positions", "allocation"]
     assert service._requested_section_keys(["detailed_positions"]) == ["positions"]
-    assert "advisory_narrative" in service._requested_section_keys(
+    assert service._requested_section_keys(
         None,
         include_advisory_narrative=True,
-    )
+    ) == list(DEFAULT_PORTFOLIO_REVIEW_SECTIONS_WITH_ADVISORY_NARRATIVE)
+    assert service._requested_section_keys(
+        None,
+        include_advisor_memo=True,
+    ) == list(DEFAULT_PORTFOLIO_REVIEW_SECTIONS_WITH_ADVISORY_MEMO)
+    assert service._requested_section_keys(
+        ["unknown"],
+        include_advisor_memo=True,
+    ) == list(DEFAULT_PORTFOLIO_REVIEW_SECTIONS_WITH_ADVISORY_MEMO)
+    assert service._requested_section_keys(
+        ["unknown"],
+        include_advisory_narrative=True,
+    ) == list(DEFAULT_PORTFOLIO_REVIEW_SECTIONS_WITH_ADVISORY_NARRATIVE)
     assert service._requested_section_keys(
         ["reviewed-advisory-narrative"],
         include_advisory_narrative=True,
@@ -673,6 +710,13 @@ def test_typst_render_service_helper_fallbacks_cover_sparse_structures() -> None
         ["reviewed-advisory-narrative"],
         include_advisory_narrative=False,
     ) == list(service._requested_section_keys(None))
+    assert service._requested_section_keys(
+        ["advisor-proposal-memo"],
+        include_advisor_memo=False,
+    ) == list(service._requested_section_keys(None))
+    assert "No item evidence supplied." in service._render_wave_item_rows("bad")
+    assert "No event evidence supplied." in service._render_wave_event_rows("bad")
+    assert "No dimension evidence supplied." in service._render_outcome_dimension_rows("bad")
     assert (
         "No 12-month performance series is available"
         in service._render_performance_chart_section({})
@@ -721,6 +765,10 @@ def test_typst_render_service_helper_fallbacks_cover_sparse_structures() -> None
     )
     assert "No reviewed narrative disclosure text supplied." in (
         service._render_advisory_disclosure_blocks([{"disclosure_id": "empty", "text": ""}])
+    )
+    assert "No advisor memo section supplied." in service._render_advisor_memo_section_blocks("bad")
+    assert "No advisor memo section supplied." in service._render_advisor_memo_section_blocks(
+        [{"title": "Empty", "summary": ""}]
     )
 
 
