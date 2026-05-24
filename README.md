@@ -54,8 +54,8 @@ and Typst foundation slices:
 - governed Typst templates under `templates/typst/portfolio-review/v1/`,
   `templates/typst/outcome-review/v1/`, `templates/typst/proof-pack/v1/`, and
   `templates/typst/rebalance-wave/v1/`
-- optional `portfolio-review v1` reviewed advisory narrative rendering when `lotus-report` supplies
-  an included advisor-use package from `lotus-advise`
+- optional `portfolio-review v1` reviewed advisory narrative and advisor proposal memo rendering
+  when `lotus-report` supplies included advisor-use packages from `lotus-advise`
 - golden render package and expected PDF proof under `tests/golden/portfolio-review/v1/`
 - docker-governed Typst rendering is preferred on developer and CI hosts so golden proof is minted
   from the same controlled runtime envelope

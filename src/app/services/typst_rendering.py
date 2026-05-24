@@ -37,6 +37,7 @@ PORTFOLIO_REVIEW_SECTION_CALLS = {
     "holdings": "observations-page()",
     "transactions": "transactions-page()",
     "advisory_narrative": "reviewed-advisory-narrative-page()",
+    "advisor_memo": "advisor-proposal-memo-page()",
     "appendix": "appendix-page()",
 }
 DEFAULT_PORTFOLIO_REVIEW_SECTIONS = (
@@ -58,6 +59,17 @@ DEFAULT_PORTFOLIO_REVIEW_SECTIONS_WITH_ADVISORY_NARRATIVE = (
     "positions",
     "transactions",
     "advisory_narrative",
+    "appendix",
+)
+DEFAULT_PORTFOLIO_REVIEW_SECTIONS_WITH_ADVISORY_MEMO = (
+    "cover",
+    "contents",
+    "overview",
+    "performance",
+    "allocation",
+    "positions",
+    "transactions",
+    "advisor_memo",
     "appendix",
 )
 
@@ -189,9 +201,11 @@ class TypstRenderService:
         risk_summary = self._mapping(report_data.get("risk_summary"))
         governance_summary = self._mapping(report_data.get("governance_summary"))
         reviewed_advisory_narrative = self._mapping(report_data.get("reviewed_advisory_narrative"))
+        advisor_proposal_memo = self._mapping(report_data.get("advisor_proposal_memo"))
         include_reviewed_advisory_narrative = (
             reviewed_advisory_narrative.get("status") == "included"
         )
+        include_advisor_proposal_memo = advisor_proposal_memo.get("status") == "included"
         supplemental_allocation_title, supplemental_allocation_rows = (
             self._supplemental_allocation_view(allocation_breakdowns)
         )
@@ -200,10 +214,12 @@ class TypstRenderService:
             "REPORT_SECTIONS": self._render_report_sections(
                 render_context.get("sections"),
                 include_advisory_narrative=include_reviewed_advisory_narrative,
+                include_advisor_memo=include_advisor_proposal_memo,
             ),
             "OPTIONAL_ADVISORY_IMPORT": (
-                '#import "_advisory.typ": reviewed-advisory-narrative-page'
-                if include_reviewed_advisory_narrative
+                '#import "_advisory.typ": '
+                "reviewed-advisory-narrative-page, advisor-proposal-memo-page"
+                if include_reviewed_advisory_narrative or include_advisor_proposal_memo
                 else ""
             ),
             "CLIENT_NAME": self._escape_typst_text(str(report_data["client_name"])),
@@ -337,6 +353,13 @@ class TypstRenderService:
             ),
             "REVIEWED_ADVISORY_DISCLOSURE_BLOCKS": self._render_advisory_disclosure_blocks(
                 reviewed_advisory_narrative.get("disclosures")
+            ),
+            "ADVISOR_MEMO_FACT_ROWS": self._render_advisor_memo_fact_rows(advisor_proposal_memo),
+            "ADVISOR_MEMO_SECTION_BLOCKS": self._render_advisor_memo_section_blocks(
+                advisor_proposal_memo.get("sections")
+            ),
+            "ADVISOR_MEMO_DISCLOSURE_BLOCKS": self._render_advisory_disclosure_blocks(
+                advisor_proposal_memo.get("disclosures")
             ),
             "RENDER_JOB_ID": self._escape_typst_text(render_package.render_job_id),
             "TEMPLATE_ID": self._escape_typst_text(render_package.template_id),
@@ -692,10 +715,12 @@ class TypstRenderService:
         requested_sections: object,
         *,
         include_advisory_narrative: bool = False,
+        include_advisor_memo: bool = False,
     ) -> str:
         section_keys = self._requested_section_keys(
             requested_sections,
             include_advisory_narrative=include_advisory_narrative,
+            include_advisor_memo=include_advisor_memo,
         )
         rendered = [f"#{PORTFOLIO_REVIEW_SECTION_CALLS[key]}" for key in section_keys]
         return "\n#pagebreak()\n".join(rendered)
@@ -705,10 +730,13 @@ class TypstRenderService:
         requested_sections: object,
         *,
         include_advisory_narrative: bool = False,
+        include_advisor_memo: bool = False,
     ) -> list[str]:
         if not isinstance(requested_sections, Sequence) or isinstance(
             requested_sections, (str, bytes, bytearray)
         ):
+            if include_advisor_memo:
+                return list(DEFAULT_PORTFOLIO_REVIEW_SECTIONS_WITH_ADVISORY_MEMO)
             if include_advisory_narrative:
                 return list(DEFAULT_PORTFOLIO_REVIEW_SECTIONS_WITH_ADVISORY_NARRATIVE)
             return list(DEFAULT_PORTFOLIO_REVIEW_SECTIONS)
@@ -729,11 +757,14 @@ class TypstRenderService:
                 "advisory": "advisory-narrative",
                 "reviewed-advisory": "advisory-narrative",
                 "reviewed-advisory-narrative": "advisory-narrative",
+                "advisor-proposal-memo": "advisor-memo",
+                "proposal-memo": "advisor-memo",
+                "memo": "advisor-memo",
             }.get(key, key)
             key = key.replace("-", "_")
-            if key == "detailed_positions":
-                key = "positions"
             if key == "advisory_narrative" and not include_advisory_narrative:
+                continue
+            if key == "advisor_memo" and not include_advisor_memo:
                 continue
             if key not in PORTFOLIO_REVIEW_SECTION_CALLS or key in seen:
                 continue
@@ -741,6 +772,8 @@ class TypstRenderService:
             seen.add(key)
         if normalized:
             return normalized
+        if include_advisor_memo:
+            return list(DEFAULT_PORTFOLIO_REVIEW_SECTIONS_WITH_ADVISORY_MEMO)
         if include_advisory_narrative:
             return list(DEFAULT_PORTFOLIO_REVIEW_SECTIONS_WITH_ADVISORY_NARRATIVE)
         return list(DEFAULT_PORTFOLIO_REVIEW_SECTIONS)
@@ -780,6 +813,53 @@ class TypstRenderService:
                 ")"
             )
         return "\n".join(rows)
+
+    def _render_advisor_memo_fact_rows(self, memo: Mapping[str, object]) -> str:
+        if memo.get("status") != "included":
+            return ""
+
+        review = self._mapping(memo.get("review"))
+        facts = {
+            "Package status": memo.get("package_status", "not_available"),
+            "Usage": memo.get("usage", "not_available"),
+            "Proposal": memo.get("proposal_id", "not_available"),
+            "Proposal version": memo.get("proposal_version_no", "not_available"),
+            "Memo": memo.get("memo_id", "not_available"),
+            "Memo status": memo.get("memo_status", "not_available"),
+            "Review action": review.get("review_action", "not_available"),
+            "Reviewed by": review.get("reviewed_by", "not_available"),
+            "Reviewed at": review.get("reviewed_at", "not_available"),
+            "Client-ready publication": memo.get("client_ready_publication", "BLOCKED"),
+            "Memo hash": memo.get("memo_hash", "not_available"),
+        }
+        return self._render_advisory_fact_rows(facts)
+
+    def _render_advisor_memo_section_blocks(self, sections: object) -> str:
+        if not isinstance(sections, Sequence) or isinstance(sections, (str, bytes, bytearray)):
+            return (
+                "advisory-narrative-block([No advisor memo section supplied.], "
+                "[No advisor proposal memo body was included in the render package.])"
+            )
+        blocks: list[str] = []
+        for item in sections:
+            section = self._mapping(item)
+            summary = str(section.get("summary", "")).strip()
+            if not summary:
+                continue
+            title = str(section.get("title", "Advisor proposal memo section")).strip()
+            status = str(section.get("status", "not_available")).strip()
+            blocks.append(
+                "advisory-narrative-block("
+                f"[{self._escape_typst_text(title + ' - ' + status)}], "
+                f"[{self._escape_typst_text(summary)}]"
+                ")"
+            )
+        if not blocks:
+            return (
+                "advisory-narrative-block([No advisor memo section supplied.], "
+                "[No advisor proposal memo body was included in the render package.])"
+            )
+        return "\n#v(8pt)\n".join(blocks)
 
     def _render_advisory_narrative_blocks(self, sections: object) -> str:
         if not isinstance(sections, Sequence) or isinstance(sections, (str, bytes, bytearray)):
