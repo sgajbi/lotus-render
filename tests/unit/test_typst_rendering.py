@@ -72,6 +72,49 @@ def _portfolio_review_package_with_reviewed_advisory_narrative() -> RenderPackag
     )
 
 
+def _portfolio_review_package_with_advisor_proposal_memo() -> RenderPackage:
+    render_package = _load_golden_package()
+    report_data = deepcopy(render_package.report_data)
+    report_data["advisor_proposal_memo"] = {
+        "status": "included",
+        "package_status": "INCLUDED_ADVISOR_PROPOSAL_MEMO",
+        "usage": "REPORT_REQUEST_APPROVED_ADVISOR_MEMO",
+        "proposal_id": "adv_prop_001",
+        "proposal_version_no": 3,
+        "memo_id": "memo_001",
+        "memo_status": "READY",
+        "memo_hash": "sha256:memo",
+        "source_input_hash": "sha256:source",
+        "client_ready_publication": "BLOCKED",
+        "review": {
+            "review_event_id": "pme_review_001",
+            "review_action": "APPROVE_FOR_ADVISOR_USE",
+            "reviewed_at": "2026-05-21T09:15:00Z",
+            "reviewed_by": "head-advisor.sg@example.com",
+        },
+        "sections": [
+            {
+                "section_id": "EXECUTIVE_SUMMARY",
+                "title": "Executive Summary",
+                "status": "READY",
+                "summary": "The advisor proposal memo is ready for advisor use.",
+            }
+        ],
+        "disclosures": [
+            {
+                "disclosure_id": "memo.advisor_use_only.v1",
+                "text": "Advisor use only. Client-ready memo publication remains blocked.",
+            }
+        ],
+    }
+    return render_package.model_copy(
+        update={
+            "report_data": report_data,
+            "disclosure_refs": [*render_package.disclosure_refs, "memo.advisor_use_only.v1"],
+        }
+    )
+
+
 def _outcome_review_package() -> RenderPackage:
     return RenderPackage.model_validate(
         {
@@ -387,6 +430,23 @@ def test_typst_render_service_omits_reviewed_advisory_page_when_not_supplied() -
     assert template_context["REVIEWED_ADVISORY_FACT_ROWS"] == ""
 
 
+def test_typst_render_service_builds_advisor_proposal_memo_context() -> None:
+    service = _build_service()
+    template_context = service._build_portfolio_review_context(
+        _portfolio_review_package_with_advisor_proposal_memo()
+    )
+
+    assert "#advisor-proposal-memo-page()" in template_context["REPORT_SECTIONS"]
+    assert "INCLUDED_ADVISOR_PROPOSAL_MEMO" in template_context["ADVISOR_MEMO_FACT_ROWS"]
+    assert "APPROVE_FOR_ADVISOR_USE" in template_context["ADVISOR_MEMO_FACT_ROWS"]
+    assert "BLOCKED" in template_context["ADVISOR_MEMO_FACT_ROWS"]
+    assert (
+        "The advisor proposal memo is ready for advisor use."
+        in template_context["ADVISOR_MEMO_SECTION_BLOCKS"]
+    )
+    assert "memo.advisor_use_only.v1" in template_context["ADVISOR_MEMO_DISCLOSURE_BLOCKS"]
+
+
 def test_typst_render_service_builds_outcome_review_context() -> None:
     service = _build_service()
     template_context = service._build_outcome_review_context(_outcome_review_package())
@@ -570,6 +630,23 @@ def test_typst_render_service_renders_reviewed_advisory_narrative_section() -> N
     assert result.diagnostic.template_id == "portfolio-review"
 
 
+def test_typst_render_service_renders_advisor_proposal_memo_section() -> None:
+    service = _build_service()
+    render_package = _portfolio_review_package_with_advisor_proposal_memo().model_copy(
+        update={
+            "render_context": {
+                "timezone": "Asia/Singapore",
+                "sections": ["advisor-proposal-memo"],
+            }
+        }
+    )
+
+    result = service.render(render_package)
+
+    assert result.artifact_bytes.startswith(b"%PDF")
+    assert result.diagnostic.template_id == "portfolio-review"
+
+
 def test_typst_render_service_helper_fallbacks_cover_sparse_structures() -> None:
     service = _build_service()
 
@@ -588,6 +665,10 @@ def test_typst_render_service_helper_fallbacks_cover_sparse_structures() -> None
         ["reviewed-advisory-narrative"],
         include_advisory_narrative=True,
     ) == ["advisory_narrative"]
+    assert service._requested_section_keys(
+        ["advisor-proposal-memo"],
+        include_advisor_memo=True,
+    ) == ["advisor_memo"]
     assert service._requested_section_keys(
         ["reviewed-advisory-narrative"],
         include_advisory_narrative=False,

@@ -63,6 +63,12 @@ renders the package lineage, review state, source narrative hash, approved secti
 advisor-use disclosure text supplied by `lotus-report`; it does not approve, rewrite, infer, or
 source additional advisory facts.
 
+The advisor proposal memo section is optional and advisor-use scoped. It appears only when the
+render package includes `report_data.advisor_proposal_memo.status == "included"`. The section
+renders memo lineage, approved advisor-use review posture, memo/source hashes, memo section
+summaries, and disclosure text supplied by `lotus-report`; client-ready memo publication remains
+blocked by upstream Advise policy.
+
 ## Chart Pipeline
 
 Charts are generated as deterministic SVG assets before Typst compilation. `portfolio_charts.py`
@@ -77,7 +83,7 @@ failing or showing an empty frame.
 
 ## Configuration Model
 
-The full report renders by default. `render_context.sections` accepts section keys such as `cover`, `contents`, `overview`, `performance`, `allocation`, `positions`, `transactions`, and `appendix`. When an included reviewed advisory narrative package is present, the full report inserts `advisory_narrative` before the appendix, and callers can request it directly with `reviewed-advisory-narrative`. Common aliases are normalized by the renderer. Unknown keys are ignored; if no valid section remains, the renderer falls back to the full report.
+The full report renders by default. `render_context.sections` accepts section keys such as `cover`, `contents`, `overview`, `performance`, `allocation`, `positions`, `transactions`, and `appendix`. When an included reviewed advisory narrative package is present, the full report inserts `advisory_narrative` before the appendix, and callers can request it directly with `reviewed-advisory-narrative`. When an included advisor proposal memo package is present, the full report inserts `advisor_memo` before the appendix, and callers can request it directly with `advisor-proposal-memo`. Common aliases are normalized by the renderer. Unknown keys are ignored; if no valid section remains, the renderer falls back to the full report.
 
 ## Rendering
 

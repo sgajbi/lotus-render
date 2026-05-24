@@ -37,7 +37,10 @@ submits complete render packages and records render outcomes while keeping busin
 outside `lotus-render`. RFC-0023 Slice 11C adds optional `portfolio-review v1` rendering for
 reviewed advisor-use narrative packages emitted by `lotus-report` from `lotus-advise`; the renderer
 presents package lineage, review state, source hash, approved narrative text, and disclosure text
-without approving, rewriting, inferring, or fetching advisory facts.
+without approving, rewriting, inferring, or fetching advisory facts. RFC-0024 Slice 9 adds optional
+`portfolio-review v1` rendering for advisor proposal memo packages emitted by `lotus-report` from
+`lotus-advise`; the renderer presents memo lineage, advisor-use review posture, memo/source hashes,
+section summaries, and disclosure text while keeping client-ready memo publication blocked upstream.
 
 ## Architecture And Module Map
 

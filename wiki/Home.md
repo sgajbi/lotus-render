@@ -22,6 +22,9 @@ Deterministic document rendering service for Lotus reporting.
 - `portfolio-review v1` can render an optional reviewed advisory narrative page when `lotus-report`
   supplies an included advisor-use package from `lotus-advise`; render remains presentation-only
   and does not approve, rewrite, infer, or fetch advisory facts
+- `portfolio-review v1` can render an optional advisor proposal memo page when `lotus-report`
+  supplies an included advisor-use memo package from `lotus-advise`; client-ready memo publication
+  remains blocked upstream
 - RFC-0105 first-wave render metrics are implementation-backed for render submission, status
   lookup, artifact metadata lookup, latency, failure-category, and artifact-size signals with
   bounded labels only

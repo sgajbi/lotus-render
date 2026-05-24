@@ -72,3 +72,35 @@
     ],
   )
 ]
+
+#let advisor-proposal-memo-page() = [
+  #page-header("Advisor proposal memo")
+  #v(10pt)
+  #grid(
+    columns: (0.76fr, 1.24fr),
+    column-gutter: 18pt,
+    [
+      #section-lead(
+        "Advisor-use memo package",
+        "The proposal memo is rendered only when lotus-advise supplies an advisor-use reviewed package through lotus-report.",
+      )
+      #v(10pt)
+      #advisory-boundary-panel()
+      #v(10pt)
+      #report-panel([
+        #text(size: 8.2pt, weight: 650, fill: navy)[Memo lineage]
+        #v(7pt)
+        ${ADVISOR_MEMO_FACT_ROWS}
+      ], inset: 10pt)
+    ],
+    [
+      #text(size: 11.5pt, weight: 700, fill: navy)[Memo sections]
+      #v(8pt)
+      ${ADVISOR_MEMO_SECTION_BLOCKS}
+      #v(12pt)
+      #text(size: 8.5pt, weight: 650, fill: navy)[Disclosures]
+      #v(6pt)
+      ${ADVISOR_MEMO_DISCLOSURE_BLOCKS}
+    ],
+  )
+]
