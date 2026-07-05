@@ -397,15 +397,18 @@ def test_typst_render_service_builds_richer_portfolio_review_context() -> None:
     assert "USD" in template_context["SUPPLEMENTAL_ALLOCATION_ROWS"]
     assert "EQ-1" in template_context["DENSE_POSITION_ROWS"]
     assert "US0000000001" in template_context["DENSE_POSITION_ROWS"]
-    assert "102.35;USD;8118290.51;2024-01-15" in template_context["DENSE_POSITION_ROWS"]
-    assert "9140740.73;0.00" in template_context["DENSE_POSITION_ROWS"]
+    assert (
+        "Not available;Not available;8118290.51;2024-01-15"
+        in template_context["DENSE_POSITION_ROWS"]
+    )
+    assert "9140740.73;Not available" in template_context["DENSE_POSITION_ROWS"]
     assert "Cost value" not in template_context["DENSE_POSITION_ROWS"]
     assert "Average weight" not in template_context["DENSE_POSITION_ROWS"]
     assert "TXN-20260109-BUY-001" in template_context["DENSE_TRANSACTION_ROWS"]
     assert "INST-EQ-1" in template_context["DENSE_TRANSACTION_ROWS"]
     assert "Reference TXN-20260109-BUY-001" in template_context["DENSE_TRANSACTION_ROWS"]
     assert "Instrument INST-EQ-1" in template_context["DENSE_TRANSACTION_ROWS"]
-    assert "09.01.2026;09.01.2026" in template_context["DENSE_TRANSACTION_ROWS"]
+    assert "09.01.2026;Not available" in template_context["DENSE_TRANSACTION_ROWS"]
     assert "NAV 102.35;;450000.00;" in template_context["DENSE_TRANSACTION_ROWS"]
     assert "#review-note(" in template_context["OBSERVATION_NOTES"]
 
@@ -808,6 +811,82 @@ def test_typst_render_service_returns_empty_messages_when_sequences_have_no_mapp
     assert "No governed allocation rows available." in service._render_holding_bar_rows([123, 456])
     assert "No position detail available." in service._render_dense_position_rows([123, 456])
     assert "No transaction detail available." in service._render_dense_transaction_rows([123, 456])
+
+
+def test_typst_render_service_maps_dense_position_lifecycle_fields() -> None:
+    service = _build_service()
+
+    rows = service._render_dense_position_rows(
+        [
+            {
+                "asset_class": "Fixed Income",
+                "quantity": "100",
+                "currency": "USD",
+                "security_id": "SEC-1",
+                "security_name": "Bond A",
+                "instrument_name": "Senior bond",
+                "isin": "SG0001",
+                "rating": "A",
+                "sector": "Financials",
+                "duration": "4.20",
+                "yield_to_maturity": "5.10%",
+                "cost_price": "98.40",
+                "exchange_rate": "1.3520",
+                "cost_basis_local": "9840.00",
+                "held_since_date": "2024-01-15",
+                "market_price": "101.25",
+                "market_price_date": "2026-04-23",
+                "ytd_total_return_pct": "3.10%",
+                "unrealized_pnl_pct": "2.90%",
+                "unrealized_pnl": "285.00",
+                "market_value": "10125.00",
+                "accrued_interest": "42.25",
+                "weight_pct": "6.20%",
+            }
+        ]
+    )
+
+    assert "A;Financials;4.20;5.10%" in rows
+    assert "98.40;1.3520;9840.00;2024-01-15" in rows
+    assert "101.25;1.3520;2026-04-23;3.10%" in rows
+    assert "10125.00;42.25" in rows
+    assert "product_type" not in rows
+    assert "liquidity_tier" not in rows
+
+
+def test_typst_render_service_maps_transaction_value_date_and_settlement_amount() -> None:
+    service = _build_service()
+
+    rows = service._render_dense_transaction_rows(
+        [
+            {
+                "display_label": "Buy Bond A",
+                "transaction_type": "BUY",
+                "transaction_category": "Trade",
+                "asset_class": "Fixed Income",
+                "transaction_id": "txn-1",
+                "security_id": "SEC-1",
+                "instrument_id": "INS-1",
+                "trade_date": "2026-04-21",
+                "value_date": "2026-04-23",
+                "booking_text": "Purchase",
+                "amount": "100",
+                "description": "Bond purchase",
+                "price": "101.25",
+                "reporting_currency": "USD",
+                "gross_amount_reporting_currency": "10125.00",
+                "gain_loss": "0.00",
+                "transaction_value": "10125.00",
+                "net_interest_amount_reporting_currency": "42.25",
+                "settlement_amount_reporting_currency": "10167.25",
+            }
+        ]
+    )
+
+    assert "2026-04-21;2026-04-23" in rows
+    assert "10125.00;42.25;10167.25" in rows
+    assert "2026-04-21;2026-04-21" not in rows
+    assert "10125.00;42.25;10125.00" not in rows
 
 
 def test_typst_render_service_numeric_fallback_helpers_cover_invalid_inputs() -> None:

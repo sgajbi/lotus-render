@@ -68,6 +68,8 @@ and Typst foundation slices:
   from the same controlled runtime envelope
 - bounded-determinism fingerprinting that normalizes volatile PDF metadata while preserving raw
   artifact hashing truth
+- renderer-owned allocation chart market-value calculations use `Decimal`; float conversion is
+  limited to SVG geometry coordinates
 - raw PDF bytes are not claimed to be stable across renders because Typst remints PDF document ids
   and creation timestamps; the supported determinism claim is the bounded-runtime-envelope
   fingerprint
