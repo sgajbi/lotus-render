@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any, TypeVar
 
-from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator
+from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
 from app.contracts.render_package import RenderPackage
 
@@ -26,13 +26,6 @@ class PortfolioReviewRenderContent(_RenderContentModel):
     total_value: str
     summary_paragraph: str
     review_observations: list[Any] = Field(min_length=1)
-
-    @field_validator("review_observations")
-    @classmethod
-    def _review_observations_non_empty(cls, value: list[Any]) -> list[Any]:
-        if not value:
-            raise ValueError("review_observations must be a non-empty list")
-        return value
 
 
 class ProofPackRenderContent(_RenderContentModel):

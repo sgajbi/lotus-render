@@ -70,6 +70,19 @@ def test_portfolio_review_content_adapter_rejects_empty_observations() -> None:
         parse_portfolio_review_content(invalid)
 
 
+def test_portfolio_review_content_adapter_reports_invalid_field_without_payload_echo() -> None:
+    package = _portfolio_package()
+    invalid = package.model_copy(
+        update={"report_data": {**package.report_data, "client_name": ["not", "a", "name"]}}
+    )
+
+    with pytest.raises(
+        RenderContentValidationError,
+        match="invalid report_data field: client_name",
+    ):
+        parse_portfolio_review_content(invalid)
+
+
 def test_proof_pack_content_adapter_validates_nested_sections() -> None:
     package = _package(
         report_type="proof_pack",

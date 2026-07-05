@@ -11,10 +11,17 @@ import pytest
 
 from app.contracts.examples import PORTFOLIO_REVIEW_RENDER_PACKAGE_EXAMPLE_PATH
 from app.contracts.render_package import RenderPackage
+from app.contracts.renders import RenderFailureCategory, RenderJobStatus
 from app.core.settings import Settings
 from app.domain.render_attempts.models import RenderAttempt
 from app.domain.rendering.models import RenderDiagnostic, RenderResult
-from app.infrastructure.render_store import RenderStore
+from app.domain.templates.registry import TemplateCompatibilityError
+from app.infrastructure.render_store import (
+    CreateOrGetRenderJobResult,
+    RenderJobTransitionError,
+    RenderStore,
+    StoredRenderJob,
+)
 from app.services.render_ports import RenderEngineTimeoutError, RenderRuntimeMetadata
 from app.services.render_submission import (
     RenderExecutionFailedError,
@@ -129,6 +136,130 @@ class _TimeoutTypstService:
         raise RenderEngineTimeoutError("render_timeout")
 
 
+class _ExceptionTypstService:
+    def __init__(self, exc: Exception) -> None:
+        self._exc = exc
+
+    @property
+    def runtime_metadata(self) -> RenderRuntimeMetadata:
+        settings = _settings()
+        return RenderRuntimeMetadata(
+            runtime_engine=settings.runtime_engine,
+            runtime_engine_version=settings.runtime_engine_version,
+        )
+
+    def render(self, _render_package: RenderPackage) -> RenderResult:
+        raise self._exc
+
+
+def _stored_job(
+    *,
+    render_job_id: str = "rdr_current_truth",
+    status: RenderJobStatus = "accepted",
+    failure_category: RenderFailureCategory | None = None,
+    failure_message: str | None = None,
+    updated_at: datetime | None = None,
+) -> StoredRenderJob:
+    observed_at = updated_at or datetime.now(UTC)
+    return StoredRenderJob(
+        render_job_id=render_job_id,
+        report_job_id="rjob_current_truth",
+        render_package_version="render_package.v1",
+        package_hash="hash-current-truth",
+        snapshot_id="rsnap_current_truth",
+        lineage_refs=("rlineage_current_truth",),
+        disclosure_refs=("portfolio-review.standard-disclosures.v1",),
+        requested_by="advisor.sg@example.com",
+        package_correlation_id="corr-current-truth",
+        package_trace_id="trace-current-truth",
+        report_type="portfolio_review",
+        template_id="portfolio-review",
+        template_version="v1",
+        output_format="pdf",
+        status=status,
+        failure_category=failure_category,
+        failure_message=failure_message,
+        runtime_engine="typst",
+        runtime_engine_version="0.14.2",
+        determinism_mode=None,
+        determinism_statement=None,
+        bounded_determinism_fingerprint=None,
+        artifact_sha256=None,
+        mime_type=None,
+        output_size_bytes=None,
+        render_duration_ms=None,
+        created_at=observed_at,
+        updated_at=observed_at,
+        completed_at=None,
+    )
+
+
+class _RacingRenderStore:
+    def __init__(self, *, fail_mark_failed: bool = False, fail_mark_rendered: bool = False) -> None:
+        self.current = _stored_job()
+        self._fail_mark_failed = fail_mark_failed
+        self._fail_mark_rendered = fail_mark_rendered
+
+    def create_or_get_with_outcome(self, **_: object) -> CreateOrGetRenderJobResult:
+        return CreateOrGetRenderJobResult(job=self.current, created=True)
+
+    def mark_rendering(self, render_job_id: str) -> StoredRenderJob:
+        self.current = _stored_job(render_job_id=render_job_id, status="rendering")
+        return self.current
+
+    def mark_rendered(self, render_job_id: str, _result: RenderResult) -> StoredRenderJob:
+        if self._fail_mark_rendered:
+            raise RenderJobTransitionError("rendering->rendered raced")
+        self.current = _stored_job(render_job_id=render_job_id, status="rendered")
+        return self.current
+
+    def mark_failed(
+        self,
+        *,
+        render_job_id: str,
+        failure_category: RenderFailureCategory,
+        failure_message: str,
+    ) -> StoredRenderJob:
+        if self._fail_mark_failed:
+            raise RenderJobTransitionError("rendering->failed raced")
+        self.current = _stored_job(
+            render_job_id=render_job_id,
+            status="failed",
+            failure_category=failure_category,
+            failure_message=failure_message,
+        )
+        return self.current
+
+    def get(self, _render_job_id: str) -> StoredRenderJob:
+        return self.current
+
+
+class _StaticRenderStore:
+    def __init__(self, job: StoredRenderJob) -> None:
+        self._job = job
+
+    def create_or_get_with_outcome(self, **_: object) -> CreateOrGetRenderJobResult:
+        return CreateOrGetRenderJobResult(job=self._job, created=False)
+
+    def mark_rendering(self, _render_job_id: str) -> StoredRenderJob:
+        return self._job
+
+    def mark_rendered(self, _render_job_id: str, _result: RenderResult) -> StoredRenderJob:
+        return self._job
+
+    def mark_failed(
+        self,
+        *,
+        render_job_id: str,
+        failure_category: RenderFailureCategory,
+        failure_message: str,
+    ) -> StoredRenderJob:
+        return self._job
+
+    def get(self, _render_job_id: str) -> StoredRenderJob:
+        return self._job
+
+
 def test_render_submission_returns_existing_failed_job_without_retrying(tmp_path: Path) -> None:
     store = RenderStore(tmp_path / "render-store.sqlite3")
     package = _render_package()
@@ -217,6 +348,43 @@ def test_render_submission_marks_failed_for_render_timeout(tmp_path: Path) -> No
     assert stored.status == "failed"
     assert stored.failure_category == "timeout"
     assert stored.failure_message == "Render execution timed out in the governed runtime envelope."
+
+
+@pytest.mark.parametrize(
+    "exc",
+    [
+        RenderEngineTimeoutError("render_timeout"),
+        TemplateCompatibilityError(reason="template_not_supported", message="template mismatch"),
+        ValueError("package payload invalid"),
+        RuntimeError("typst failed"),
+    ],
+)
+def test_render_submission_returns_current_truth_when_failure_transition_races(
+    exc: Exception,
+) -> None:
+    store = _RacingRenderStore(fail_mark_failed=True)
+    service = RenderSubmissionService(
+        render_store=store,
+        render_engine=cast(Any, _ExceptionTypstService(exc)),
+    )
+
+    response = service.submit(_render_package(render_job_id="rdr_failure_race"))
+
+    assert response.status == "rendering"
+    assert response.artifact_base64 is None
+
+
+def test_render_submission_returns_current_truth_when_rendered_transition_races() -> None:
+    store = _RacingRenderStore(fail_mark_rendered=True)
+    service = RenderSubmissionService(
+        render_store=store,
+        render_engine=cast(Any, _SuccessfulTypstService()),
+    )
+
+    response = service.submit(_render_package(render_job_id="rdr_rendered_race"))
+
+    assert response.status == "rendering"
+    assert response.artifact_base64 is None
 
 
 def test_render_submission_returns_existing_in_progress_job_without_retrying(
@@ -326,6 +494,99 @@ def test_render_submission_diagnostics_maps_failed_runtime_without_raw_message(
     assert diagnostics.handoff_owner == "reporting-platform-on-call"
     assert "timed out" not in diagnostics.support_message.lower()
     assert not hasattr(diagnostics, "package_correlation_id")
+
+
+@pytest.mark.parametrize(
+    (
+        "job",
+        "expected_stale_state",
+        "expected_retryable",
+        "expected_recovery_action",
+        "expected_handoff_owner",
+    ),
+    [
+        (
+            _stored_job(status="accepted"),
+            "fresh",
+            False,
+            "wait_for_completion",
+            "lotus-render",
+        ),
+        (
+            _stored_job(
+                status="failed",
+                failure_category="package_validation_failed",
+                failure_message="package invalid",
+            ),
+            "not_applicable",
+            False,
+            "fix_upstream_render_package",
+            "lotus-report",
+        ),
+        (
+            _stored_job(
+                status="failed",
+                failure_category="template_not_supported",
+                failure_message="template mismatch",
+            ),
+            "not_applicable",
+            False,
+            "fix_template_registry_or_package",
+            "template-owner",
+        ),
+        (
+            _stored_job(
+                status="failed",
+                failure_category="template_render_failed",
+                failure_message="template failed",
+            ),
+            "not_applicable",
+            True,
+            "escalate_template_support",
+            "reporting-platform-on-call",
+        ),
+        (
+            _stored_job(
+                status="failed",
+                failure_category="artifact_validation_failed",
+                failure_message="artifact failed",
+            ),
+            "not_applicable",
+            True,
+            "escalate_template_support",
+            "reporting-platform-on-call",
+        ),
+        (
+            _stored_job(status="failed", failure_message="unknown failed"),
+            "not_applicable",
+            True,
+            "escalate_reporting_platform",
+            "reporting-platform-on-call",
+        ),
+    ],
+)
+def test_render_submission_diagnostics_maps_recovery_actions(
+    job: StoredRenderJob,
+    expected_stale_state: str,
+    expected_retryable: bool,
+    expected_recovery_action: str,
+    expected_handoff_owner: str,
+) -> None:
+    service = RenderSubmissionService(
+        render_store=cast(Any, _StaticRenderStore(job)),
+        render_engine=cast(Any, _SuccessfulTypstService()),
+    )
+
+    diagnostics = service.get_diagnostics(
+        job.render_job_id,
+        accepted_stale_seconds=300,
+        rendering_stale_seconds=900,
+    )
+
+    assert diagnostics.stale_state == expected_stale_state
+    assert diagnostics.retryable is expected_retryable
+    assert diagnostics.recovery_action == expected_recovery_action
+    assert diagnostics.handoff_owner == expected_handoff_owner
 
 
 def test_render_submission_sanitizes_runtime_diagnostics_before_persistence(
