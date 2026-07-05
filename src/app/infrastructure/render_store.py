@@ -7,7 +7,7 @@ from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Iterator, cast
+from typing import Any, Iterator, Literal, cast
 
 from app.contracts.renders import RenderFailureCategory, RenderJobStatus
 from app.domain.rendering.models import RenderResult
@@ -32,6 +32,9 @@ class RenderJobTransitionError(RuntimeError):
 
 def utc_now() -> datetime:
     return datetime.now(UTC)
+
+
+InFlightRenderJobStatus = Literal["accepted", "rendering"]
 
 
 @dataclass(slots=True)
@@ -71,6 +74,15 @@ class StoredRenderJob:
 class CreateOrGetRenderJobResult:
     job: StoredRenderJob
     created: bool
+
+
+@dataclass(frozen=True, slots=True)
+class InFlightRenderJobSummary:
+    status: InFlightRenderJobStatus
+    count: int
+    stale_count: int
+    oldest_age_seconds: int | None
+    stale_threshold_seconds: int
 
 
 class RenderStore:
@@ -125,6 +137,56 @@ class RenderStore:
         if row is None:
             raise RenderJobNotFoundError("render_job_not_found")
         return _row_to_job(row)
+
+    def in_flight_summaries(
+        self,
+        *,
+        accepted_stale_seconds: int,
+        rendering_stale_seconds: int,
+        now: datetime | None = None,
+    ) -> tuple[InFlightRenderJobSummary, ...]:
+        observed_at = now or utc_now()
+        thresholds = {
+            "accepted": accepted_stale_seconds,
+            "rendering": rendering_stale_seconds,
+        }
+        counts: dict[RenderJobStatus, int] = {"accepted": 0, "rendering": 0}
+        stale_counts: dict[RenderJobStatus, int] = {"accepted": 0, "rendering": 0}
+        oldest_ages: dict[RenderJobStatus, int | None] = {"accepted": None, "rendering": None}
+        with self._connect() as connection:
+            rows = connection.execute(
+                """
+                SELECT status, updated_at
+                FROM render_job
+                WHERE status IN ('accepted', 'rendering')
+                """
+            ).fetchall()
+        for row in rows:
+            status = cast(InFlightRenderJobStatus, row["status"])
+            updated_at = _dt_from_text(row["updated_at"]) or observed_at
+            age_seconds = _age_seconds(updated_at, observed_at)
+            counts[status] += 1
+            if age_seconds >= thresholds[status]:
+                stale_counts[status] += 1
+            current_oldest = oldest_ages[status]
+            if current_oldest is None or age_seconds > current_oldest:
+                oldest_ages[status] = age_seconds
+        return (
+            InFlightRenderJobSummary(
+                status="accepted",
+                count=counts["accepted"],
+                stale_count=stale_counts["accepted"],
+                oldest_age_seconds=oldest_ages["accepted"],
+                stale_threshold_seconds=accepted_stale_seconds,
+            ),
+            InFlightRenderJobSummary(
+                status="rendering",
+                count=counts["rendering"],
+                stale_count=stale_counts["rendering"],
+                oldest_age_seconds=oldest_ages["rendering"],
+                stale_threshold_seconds=rendering_stale_seconds,
+            ),
+        )
 
     def create_or_get(self, **kwargs: Any) -> StoredRenderJob:
         return self.create_or_get_with_outcome(**kwargs).job
@@ -350,6 +412,11 @@ def _dt_from_text(value: str | None) -> datetime | None:
     if not value:
         return None
     return datetime.fromisoformat(value.replace("Z", "+00:00"))
+
+
+def _age_seconds(updated_at: datetime, observed_at: datetime) -> int:
+    elapsed = observed_at.astimezone(UTC) - updated_at.astimezone(UTC)
+    return max(0, int(elapsed.total_seconds()))
 
 
 _REQUIRED_RENDER_JOB_COLUMNS = {

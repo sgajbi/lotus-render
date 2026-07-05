@@ -20,6 +20,7 @@ EXPECTED_RESPONSE_CODES: dict[OperationKey, set[str]] = {
     ("GET", "/metrics"): {"200"},
     ("POST", "/renders"): {"201", "409", "422", "502"},
     ("GET", "/renders/{render_job_id}"): {"200", "404", "422"},
+    ("GET", "/renders/{render_job_id}/diagnostics"): {"200", "404", "422"},
     ("GET", "/renders/{render_job_id}/artifact-metadata"): {"200", "404", "409", "422"},
 }
 

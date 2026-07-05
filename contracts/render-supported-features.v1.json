@@ -16,6 +16,7 @@
     "/metrics",
     "/renders",
     "/renders/{render_job_id}",
+    "/renders/{render_job_id}/diagnostics",
     "/renders/{render_job_id}/artifact-metadata"
   ],
   "supportability_feature_keys": [

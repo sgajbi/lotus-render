@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import sqlite3
 from concurrent.futures import ThreadPoolExecutor
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import pytest
@@ -272,3 +273,47 @@ def test_render_store_create_or_get_conflicts_for_different_package_hash(
             runtime_engine="typst",
             runtime_engine_version="0.14.2",
         )
+
+
+def test_render_store_reports_source_backed_in_flight_summaries(tmp_path: Path) -> None:
+    db_path = tmp_path / "render-store.sqlite3"
+    store = RenderStore(db_path)
+    accepted_id = _create_job(store, "rdr_accepted")
+    rendering_id = _create_job(store, "rdr_rendering")
+    rendered_id = _create_job(store, "rdr_rendered")
+    store.mark_rendering(rendering_id)
+    store.mark_rendering(rendered_id)
+    store.mark_rendered(rendered_id, _render_result(rendered_id))
+
+    observed_at = datetime(2026, 7, 5, 12, 0, 0, tzinfo=UTC)
+    with sqlite3.connect(db_path) as connection:
+        connection.execute(
+            "UPDATE render_job SET updated_at = ? WHERE render_job_id = ?",
+            (
+                (observed_at - timedelta(seconds=301)).isoformat().replace("+00:00", "Z"),
+                accepted_id,
+            ),
+        )
+        connection.execute(
+            "UPDATE render_job SET updated_at = ? WHERE render_job_id = ?",
+            (
+                (observed_at - timedelta(seconds=120)).isoformat().replace("+00:00", "Z"),
+                rendering_id,
+            ),
+        )
+        connection.commit()
+
+    summaries = store.in_flight_summaries(
+        accepted_stale_seconds=300,
+        rendering_stale_seconds=900,
+        now=observed_at,
+    )
+
+    assert summaries[0].status == "accepted"
+    assert summaries[0].count == 1
+    assert summaries[0].stale_count == 1
+    assert summaries[0].oldest_age_seconds == 301
+    assert summaries[1].status == "rendering"
+    assert summaries[1].count == 1
+    assert summaries[1].stale_count == 0
+    assert summaries[1].oldest_age_seconds == 120

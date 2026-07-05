@@ -42,11 +42,14 @@ Deterministic document rendering service for Lotus reporting.
   supplies an included advisor-use memo package from `lotus-advise`; client-ready memo publication
   remains blocked upstream
 - RFC-0105 first-wave render metrics are implementation-backed for render submission, status
-  lookup, artifact metadata lookup, latency, failure-category, and artifact-size signals with
-  bounded labels only
+  lookup, diagnostics lookup, artifact metadata lookup, latency, failure-category, artifact-size,
+  and source-backed stale in-flight render signals with bounded labels only
 - RFC-0108 render supportability metrics are implementation-backed through
   `lotus_render_supportability_total` with bounded `state`, `reason`, and `freshness_bucket` labels
   and recorder-level fallback for unknown label values
+- `/metadata` publishes aggregate `accepted` and `rendering` stale posture from the render store,
+  and `/renders/{render_job_id}/diagnostics` maps lifecycle/failure state to bounded recovery
+  actions and handoff owners without raw package or engine output
 
 ## Registry truth
 
@@ -81,6 +84,7 @@ See [Template Registry](Template-Registry).
 - `/metrics`
 - `POST /renders`
 - `GET /renders/{render_job_id}`
+- `GET /renders/{render_job_id}/diagnostics`
 - `GET /renders/{render_job_id}/artifact-metadata`
 - `docs/configuration.md`
 

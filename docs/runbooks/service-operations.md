@@ -33,6 +33,7 @@ running `pip-audit`.
 
 - Submit first-wave synchronous render: `POST /renders`
 - Read persisted render status: `GET /renders/{render_job_id}`
+- Diagnose support-safe recovery posture: `GET /renders/{render_job_id}/diagnostics`
 - Read support-safe artifact metadata: `GET /renders/{render_job_id}/artifact-metadata`
 - Metrics: `/metrics`
 
@@ -67,11 +68,13 @@ RFC-0105 first-wave render metrics are documented in
 - `lotus_render_operation_duration_seconds`
 - `lotus_render_artifact_size_bytes`
 - `lotus_render_supportability_total`
+- `lotus_render_in_flight_jobs`
+- `lotus_render_oldest_in_flight_age_seconds`
 
 These metrics use bounded labels only and must not expose render job ids, report job ids,
 portfolio ids, tenant ids, correlation ids, trace ids, raw render packages, or storage locations.
-Stuck-render and SLA-breach metrics remain planned until source-backed stuck-state scanning is
-implemented.
+`accepted` and `rendering` stale posture is source-backed from the render store and classified by
+`LOTUS_RENDER_STALE_ACCEPTED_SECONDS` and `LOTUS_RENDER_STALE_RENDERING_SECONDS`.
 
 ## Render Supportability
 
@@ -85,6 +88,30 @@ deterministic rendering supportability evidence.
 `runtime_configuration_unavailable` means neither a governed Docker runtime nor local Typst binary
 is executable from the service process. Do not route new render traffic until `/health/ready`
 returns ready and `/metadata` reports `runtimeAvailable=true`.
+
+## Render Job Diagnostics And Recovery Matrix
+
+Use `GET /renders/{render_job_id}/diagnostics` when an incident ticket includes an affected render
+job id. The endpoint returns a bounded `recovery_action`, `handoff_owner`, stale posture, retryable
+flag, template/runtime identity, snapshot id, and lineage refs. It deliberately omits raw
+`report_data`, raw engine stderr, archive storage paths, caller/client identity, package
+correlation id, and package trace id.
+
+| State or category | Diagnostic action | Owner | Operator decision |
+| --- | --- | --- | --- |
+| `accepted`, fresh | `wait_for_completion` | `lotus-render` | Wait and monitor `/metadata` in-flight posture. |
+| `rendering`, fresh | `wait_for_completion` | `lotus-render` | Wait and monitor latency, runtime availability, and artifact size. |
+| `accepted` or `rendering`, stale | `resubmit_identical_package_or_escalate_runtime` | `reporting-platform-on-call` | Resubmit the identical package for idempotent recovery; escalate if it remains non-terminal. |
+| `rendered` | `read_artifact_metadata` | `lotus-render` | Use artifact metadata for hash, size, MIME type, and bounded-determinism proof. |
+| `package_validation_failed` | `fix_upstream_render_package` | `lotus-report` | Fix or replay the upstream report package. |
+| `template_not_supported` | `fix_template_registry_or_package` | `template-owner` | Align package contract/template registry truth. |
+| `engine_unavailable` or `timeout` | `escalate_render_runtime` | `reporting-platform-on-call` | Check Docker/Typst availability, timeout posture, and runtime capacity. |
+| `template_render_failed` or `artifact_validation_failed` | `escalate_template_support` | `reporting-platform-on-call` | Inspect template/runtime change evidence without exposing raw engine stderr. |
+| `operator_intervention_required` | `escalate_reporting_platform` | `reporting-platform-on-call` | Preserve status payload, diagnostics response, and validation evidence for handoff. |
+
+Artifact metadata returning `409 render_artifact_not_ready` is not itself a separate render state.
+Call diagnostics for the same `render_job_id` to decide whether to wait, resubmit the identical
+package, fix upstream package truth, or escalate runtime/template support.
 
 ## HTTP Boundary And Timeout Checks
 
@@ -179,6 +206,26 @@ Checks:
 
 Escalation: page reporting platform on-call when readiness is down; ticket repo owners for manifest
 or contract defects.
+
+### LotusRenderStaleInFlightJobs
+
+First query:
+
+```promql
+sum by (status) (lotus_render_in_flight_jobs{stale_state="stale"})
+```
+
+Checks:
+
+1. Call `/metadata` and capture the `renderStoreInFlight` aggregate posture.
+2. If an affected job id is available, call `GET /renders/{render_job_id}/diagnostics`.
+3. Confirm whether stale rows appeared after deploy interruption, process crash, runtime timeout,
+   or Typst/Docker unavailability.
+4. Resubmit only the identical package for idempotent recovery, or escalate runtime support when
+   rows remain non-terminal after resubmission.
+
+Escalation: page reporting platform on-call for stale `rendering`; ticket upstream package owners
+only when diagnostics points to package or template contract failure.
 
 ## Incident First Checks
 

@@ -21,13 +21,15 @@ domain models, structured request logging, support-safe system metadata, version
 validation, source-controlled template registry enforcement, deterministic SVG chart asset
 generation, the modular Typst portfolio review template, golden PDF proof, and the first
 store-backed internal render API. RFC-0105 first-wave render metrics now expose bounded render
-submission, status lookup, artifact metadata lookup, latency, failure-category, and artifact-size
-signals without high-cardinality or sensitive labels. RFC-0108 render supportability now publishes
+submission, status lookup, diagnostics lookup, artifact metadata lookup, latency,
+failure-category, artifact-size, and source-backed stale in-flight render signals without
+high-cardinality or sensitive labels. RFC-0108 render supportability now publishes
 `render.observability.render_supportability` through `/metadata` and
 `lotus_render_supportability_total`, backed by drain state, render-store readiness,
-template-registry availability, and executable Typst/Docker runtime configuration. HTTP boundary
-configuration is explicit through the `LOTUS_RENDER_` settings contract, including trusted hosts,
-CORS allow-listing, request body limits, persistent-store enforcement, and compile timeouts.
+template-registry availability, executable Typst/Docker runtime configuration, and aggregate
+`accepted`/`rendering` stale posture. HTTP boundary configuration is explicit through the
+`LOTUS_RENDER_` settings contract, including trusted hosts, CORS allow-listing, request body
+limits, persistent-store enforcement, compile timeouts, and stale in-flight thresholds.
 The render store now uses versioned SQLite migrations, readiness-time schema validation, and
 support-safe source evidence persistence for snapshot identity, lineage refs, disclosure refs,
 caller identity, and package correlation/trace identifiers. Local Docker Compose mounts the store
@@ -166,8 +168,8 @@ Primary governing artifacts:
 6. `/health/ready` should remain truthful for both runtime posture and render-store availability,
    because the first-wave render APIs depend on persisted render-job state.
 7. Render metrics must remain bounded to operation, status, failure category, artifact-size, and
-   supportability posture. Do not add render job, report job, portfolio, tenant, trace,
-   correlation, raw package, or storage labels.
+   supportability/stale in-flight posture. Do not add render job, report job, portfolio, tenant,
+   trace, correlation, raw package, or storage labels.
 8. HTTP routes should consume typed dependencies from `src/app/dependencies/` rather than reading
    concrete adapters from raw `app.state`; route tests should use app-factory instances and
    dependency overrides instead of the module-level singleton app.
@@ -183,6 +185,10 @@ Primary governing artifacts:
     render-stage lifecycle, idempotency, support-safe evidence, diagnostics, and artifact hashes;
     archive retention, legal hold, retrieval, and distribution remain out of scope for
     `lotus-render`.
+12. Persisted non-terminal render states require source-backed aggregate visibility and a typed
+    diagnostics handoff. Keep stale classification in store/service policy, expose only bounded
+    aggregate metrics, and use `/renders/{render_job_id}/diagnostics` for recovery decisions rather
+    than raw logs or raw engine output.
 
 ## Context Maintenance Rule
 
