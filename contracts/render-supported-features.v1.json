@@ -1,0 +1,73 @@
+{
+  "contract": "lotus-render.supported-features.v1",
+  "owner": "lotus-reporting-platform",
+  "service": "lotus-render",
+  "generated_from": [
+    "templates/registry",
+    "src/app/api/routes",
+    "src/app/contracts/system.py",
+    "docs/operations/rendering-observability-metrics.md"
+  ],
+  "api_paths": [
+    "/health",
+    "/health/live",
+    "/health/ready",
+    "/metadata",
+    "/metrics",
+    "/renders",
+    "/renders/{render_job_id}",
+    "/renders/{render_job_id}/artifact-metadata"
+  ],
+  "supportability_feature_keys": [
+    "render.observability.render_supportability"
+  ],
+  "templates": [
+    {
+      "template_id": "portfolio-review",
+      "template_version": "v1",
+      "report_types": ["portfolio_review"],
+      "report_data_contract_versions": ["portfolio_review.v1"],
+      "locales": ["en-SG"],
+      "brand_variants": ["private_banking"],
+      "output_formats": ["pdf"],
+      "status": "active"
+    },
+    {
+      "template_id": "outcome-review",
+      "template_version": "v1",
+      "report_types": ["outcome_review"],
+      "report_data_contract_versions": ["dpm_outcome_report_input.v1"],
+      "locales": ["en-SG"],
+      "brand_variants": ["private_banking"],
+      "output_formats": ["pdf"],
+      "status": "active"
+    },
+    {
+      "template_id": "proof-pack",
+      "template_version": "v1",
+      "report_types": ["proof_pack"],
+      "report_data_contract_versions": ["dpm_proof_pack_report_input.v1"],
+      "locales": ["en-SG"],
+      "brand_variants": ["private_banking"],
+      "output_formats": ["pdf"],
+      "status": "active"
+    },
+    {
+      "template_id": "rebalance-wave",
+      "template_version": "v1",
+      "report_types": ["rebalance_wave"],
+      "report_data_contract_versions": ["dpm_wave_report_input.v1"],
+      "locales": ["en-SG"],
+      "brand_variants": ["private_banking"],
+      "output_formats": ["pdf"],
+      "status": "active"
+    }
+  ],
+  "non_goals": [
+    "archive retrieval",
+    "legal hold",
+    "document distribution",
+    "upstream report-data assembly",
+    "business-domain data retrieval"
+  ]
+}

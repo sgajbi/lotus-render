@@ -1,0 +1,55 @@
+{
+  "contract": "lotus-render.data-product-trust.v1",
+  "owner": "lotus-reporting-platform",
+  "service": "lotus-render",
+  "classification": "internal-support-safe",
+  "access_model": "platform-ingress-and-service-policy",
+  "privacy_policy": {
+    "raw_report_data_persisted": false,
+    "raw_engine_stderr_persisted": false,
+    "artifact_bytes_persisted": false,
+    "high_cardinality_metric_labels_allowed": false
+  },
+  "retention": {
+    "render_job_store": "render-stage lifecycle, idempotency, support-safe evidence, diagnostics, and artifact hashes only",
+    "archive_retention_owner": "lotus-archive"
+  },
+  "outputs": [
+    {
+      "name": "render_status",
+      "api_path": "/renders/{render_job_id}",
+      "schema": "RenderJobStatusResponse",
+      "freshness": "current persisted render-job row",
+      "lineage_fields": ["snapshot_id", "lineage_refs", "disclosure_refs"],
+      "trust_fields": ["artifact_sha256", "bounded_determinism_fingerprint", "runtime_engine", "runtime_engine_version"]
+    },
+    {
+      "name": "artifact_metadata",
+      "api_path": "/renders/{render_job_id}/artifact-metadata",
+      "schema": "RenderArtifactMetadataResponse",
+      "freshness": "available only after rendered state",
+      "trust_fields": ["artifact_sha256", "bounded_determinism_fingerprint", "mime_type", "output_size_bytes"]
+    },
+    {
+      "name": "render_supportability",
+      "api_path": "/metadata",
+      "feature_key": "render.observability.render_supportability",
+      "freshness": "request-time source-backed supportability posture",
+      "trust_fields": ["state", "reason", "freshnessBucket", "renderStoreReady", "templateRegistryReady", "runtimeAvailable"]
+    },
+    {
+      "name": "bounded_render_metrics",
+      "api_path": "/metrics",
+      "metric_families": [
+        "lotus_render_operations_total",
+        "lotus_render_operation_duration_seconds",
+        "lotus_render_artifact_size_bytes",
+        "lotus_render_supportability_total"
+      ],
+      "freshness": "Prometheus scrape-time observations",
+      "forbidden_labels": ["render_job_id", "report_job_id", "portfolio_id", "tenant_id", "correlation_id", "trace_id", "storage_key"]
+    }
+  ],
+  "consumers": ["lotus-report", "lotus-gateway", "reporting-platform-operators"],
+  "non_goals": ["archive retrieval", "legal hold", "document distribution", "upstream report replay execution"]
+}

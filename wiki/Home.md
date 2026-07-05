@@ -56,6 +56,12 @@ Deterministic document rendering service for Lotus reporting.
 - `make openapi-gate` validates operation metadata, expected response codes, and canonical request
   example truth
 - `make security-audit` validates governed pip-audit exceptions before running dependency audit
+- `contracts/render-supported-features.v1.json` publishes supported templates, API paths, and
+  non-goals for consumers
+- `contracts/render-source-contracts.v1.json` binds manifest report-data contract versions to
+  source ownership/provenance
+- `contracts/render-data-product-trust.v1.json` declares support-safe render status, artifact
+  metadata, supportability, and metrics trust posture
 - current active templates are `portfolio-review` version `v1`, `outcome-review` version `v1`,
   `proof-pack` version `v1`, and `rebalance-wave` version `v1`
 - current first-wave golden proof lives under `tests/golden/portfolio-review/v1/`

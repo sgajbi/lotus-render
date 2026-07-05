@@ -96,6 +96,90 @@ returns ready and `/metadata` reports `runtimeAvailable=true`.
   `LOTUS_RENDER_RENDER_COMPILE_TIMEOUT_SECONDS`. Timed-out jobs persist as `failed` with failure
   category `timeout` and support-safe diagnostics.
 
+## Alert Runbooks
+
+### LotusRenderSubmissionFailureRateHigh
+
+First query:
+
+```promql
+sum by (failure_category) (increase(lotus_render_operations_total{operation="render_submission",status="failed"}[15m]))
+```
+
+Checks:
+
+1. Confirm `/health/ready` and `/metadata` supportability state.
+2. Inspect failed render status rows with `GET /renders/{render_job_id}` when an incident ticket
+   includes an affected job id.
+3. Compare failure categories: `package_validation_failed` points to producer package shape,
+   `template_not_supported` points to registry/manifest mismatch, `engine_unavailable` and
+   `timeout` point to runtime posture, and `template_render_failed` points to template/runtime
+   diagnostics.
+4. Capture correlation id, trace id, status payload, package contract version, template id/version,
+   and commit SHA. Do not capture raw `report_data`.
+
+Escalation: route producer package defects to `lotus-report`; route runtime/template defects to the
+reporting platform on-call.
+
+### LotusRenderP95LatencyHigh
+
+First query:
+
+```promql
+histogram_quantile(0.95, sum by (le) (rate(lotus_render_operation_duration_seconds_bucket{operation="render_submission"}[15m])))
+```
+
+Checks:
+
+1. Confirm whether latency aligns with Typst compile runtime, Docker availability, or large
+   artifact generation.
+2. Check `/metadata` for runtime availability and draining state.
+3. Compare artifact-size histogram with the latency window.
+4. If only one template regresses, run the canonical golden render locally and compare duration.
+
+Escalation: page reporting platform on-call for runtime saturation; ticket template owners for
+template-specific rendering growth.
+
+### LotusRenderArtifactSizeHigh
+
+First query:
+
+```promql
+histogram_quantile(0.95, sum by (le) (rate(lotus_render_artifact_size_bytes_bucket[30m])))
+```
+
+Checks:
+
+1. Use artifact metadata to confirm `output_size_bytes`, template id/version, and bounded
+   determinism fingerprint.
+2. Check whether a package added large tables, dense position rows, advisory pages, or proof-pack
+   evidence sections.
+3. Verify request body limits and artifact size remain inside expected client/channel constraints.
+
+Escalation: route content growth to the upstream package owner; route template layout bloat to the
+reporting template owner.
+
+### LotusRenderSupportabilityUnavailable
+
+First query:
+
+```promql
+sum by (reason) (increase(lotus_render_supportability_total{state="unavailable"}[10m]))
+```
+
+Checks:
+
+1. Call `/metadata` and capture `state`, `reason`, `renderStoreReady`, `templateRegistryReady`, and
+   `runtimeAvailable`.
+2. If `render_store_unavailable`, check the configured store path, volume mount, migration/schema
+   validation, and filesystem write access.
+3. If `template_registry_unavailable`, run `make template-registry-gate`.
+4. If `runtime_configuration_unavailable`, check Docker/Typst availability and
+   `LOTUS_RENDER_RENDER_COMPILE_TIMEOUT_SECONDS`.
+
+Escalation: page reporting platform on-call when readiness is down; ticket repo owners for manifest
+or contract defects.
+
 ## Incident First Checks
 
 1. Check container logs for request failures, correlation IDs, and structured request timing lines.

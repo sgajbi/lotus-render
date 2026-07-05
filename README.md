@@ -58,6 +58,8 @@ and Typst foundation slices:
 - OpenAPI governance through `scripts/openapi_quality_gate.py`, including operation metadata,
   expected response codes, internal security posture text, and canonical render-package examples
 - governed dependency-audit exception metadata under `security/pip-audit-exceptions.json`
+- consumer contract declarations under `contracts/` for supported features, source-contract
+  provenance, and data-product trust
 - governed Typst templates under `templates/typst/portfolio-review/v1/`,
   `templates/typst/outcome-review/v1/`, `templates/typst/proof-pack/v1/`, and
   `templates/typst/rebalance-wave/v1/`

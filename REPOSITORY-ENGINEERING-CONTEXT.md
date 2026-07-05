@@ -32,6 +32,10 @@ The render store now uses versioned SQLite migrations, readiness-time schema val
 support-safe source evidence persistence for snapshot identity, lineage refs, disclosure refs,
 caller identity, and package correlation/trace identifiers. Local Docker Compose mounts the store
 on a named volume so render-job state survives container recreation in the supported local runtime.
+Consumer-facing governance is declared in `contracts/render-supported-features.v1.json`,
+`contracts/render-source-contracts.v1.json`, and `contracts/render-data-product-trust.v1.json`;
+unit tests validate those contracts against the live template registry, OpenAPI paths, and metric
+contracts.
 RFC40-WTBD-004 Slice 1 adds the
 first-wave `proof-pack v1` template and registry manifest for
 `dpm_proof_pack_report_input.v1`, establishing deterministic render-service support for
@@ -75,6 +79,7 @@ Current repository baseline:
 13. `templates/typst/`: governed Typst template source.
 14. `tests/golden/`: golden render package and artifact proof inputs.
 15. `tests/unit`, `tests/integration`, `tests/e2e`: test pyramid baseline.
+16. `contracts/`: supported-feature, source-contract, and data-product trust declarations.
 
 ## Active Template Inventory
 
