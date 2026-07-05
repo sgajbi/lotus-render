@@ -1243,19 +1243,23 @@ class TypstRenderService:
             classification = (
                 f"{item.get('rating', 'Not available')};"
                 f"{item.get('sector', 'Not available')};"
-                f"{item.get('product_type', 'Not available')};"
-                f"{item.get('liquidity_tier', 'Not available')}"
+                f"{item.get('duration', 'Not available')};"
+                f"{item.get('yield_to_maturity', item.get('yield_pct', 'Not available'))}"
             )
             cost_basis = (
-                f"{item.get('market_price', 'Not available')};"
-                f"{item.get('currency', 'Not available')};"
+                f"{item.get('cost_price', item.get('average_cost_price', 'Not available'))};"
+                f"{item.get('exchange_rate', 'Not available')};"
                 f"{item.get('cost_basis_local', 'Not available')};"
                 f"{item.get('held_since_date', 'Not available')}"
             )
+            market_price_date = item.get(
+                "market_price_date",
+                item.get("price_date", item.get("position_date", "Not available")),
+            )
             market_value = (
                 f"{item.get('market_price', 'Not available')};"
-                f"{item.get('currency', 'Not available')};"
-                f"{item.get('position_date', 'Not available')};"
+                f"{item.get('exchange_rate', 'Not available')};"
+                f"{market_price_date};"
                 f"{item.get('ytd_total_return_pct', 'Not available')}"
             )
             gain_loss = (
@@ -1263,10 +1267,11 @@ class TypstRenderService:
                 f"{item.get('currency', 'Not available')};"
                 f"{item.get('unrealized_pnl', 'Not available')}"
             )
-            performance = (
-                f"{item.get('market_value', 'Not available')};"
-                f"{item.get('net_interest_amount_reporting_currency', '0.00')}"
+            accrued_interest = item.get(
+                "accrued_interest",
+                item.get("accrued_interest_reporting_currency", "Not available"),
             )
+            performance = f"{item.get('market_value', 'Not available')};{accrued_interest}"
             rendered.append(
                 '#dense-position-row("'
                 + self._escape_typst_text(str(item.get("asset_class", "Not available")))
@@ -1314,7 +1319,7 @@ class TypstRenderService:
             )
             trade_date = (
                 f"{item.get('trade_date', 'Not available')};"
-                f"{item.get('trade_date', 'Not available')}"
+                f"{item.get('value_date', item.get('settlement_date', 'Not available'))}"
             )
             booking_text = (
                 f"{item.get('booking_text', 'Not available')};"
@@ -1331,10 +1336,14 @@ class TypstRenderService:
                 f"{item.get('reporting_currency', '')};"
                 f"{item.get('gain_loss', 'Not available')}"
             )
+            settlement_amount = item.get(
+                "settlement_amount_reporting_currency",
+                item.get("settlement_amount", "Not available"),
+            )
             value = (
                 f"{item.get('transaction_value', 'Not available')};"
                 f"{item.get('net_interest_amount_reporting_currency', 'Not available')};"
-                f"{item.get('transaction_value', 'Not available')}"
+                f"{settlement_amount}"
             )
             rendered.append(
                 '#dense-transaction-row("'

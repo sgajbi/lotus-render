@@ -1,3 +1,4 @@
+from decimal import Decimal
 from pathlib import Path
 
 from app.services.portfolio_charts import (
@@ -52,8 +53,8 @@ def test_allocation_items_sort_and_group_small_slices() -> None:
     items = allocation_items_from_report_data(report_data)
 
     assert [item.label for item in items] == ["Equity", "Fixed Income", "Real Estate", "Other"]
-    assert items[-1].weight_pct == 2.5
-    assert items[-1].market_value == 250
+    assert items[-1].weight_pct == Decimal("2.50")
+    assert items[-1].market_value == Decimal("250")
 
 
 def test_svg_renderers_emit_enterprise_chart_primitives() -> None:
@@ -154,8 +155,8 @@ def test_allocation_items_use_fallback_rows_and_skip_invalid_values() -> None:
     )
 
     assert [item.label for item in items] == ["Equity", "Cash"]
-    assert items[0].market_value == 7000
-    assert items[1].market_value == 0
+    assert items[0].market_value == Decimal("7000")
+    assert items[1].market_value == Decimal("0")
 
 
 def test_allocation_items_wrap_palette_without_grouping_large_rows() -> None:
@@ -216,7 +217,7 @@ def test_chart_helper_fallbacks_are_stable() -> None:
     assert _parse_currency_number(None) is None
     assert _parse_currency_number("") is None
     assert _parse_currency_number("bad") is None
-    assert _parse_currency_number("USD 1,234.50") == 1234.5
+    assert _parse_currency_number("USD 1,234.50") == Decimal("1234.50")
 
     assert _nice_ticks(1, 2, 1) == [1, 2]
     assert _polyline([]) == ""

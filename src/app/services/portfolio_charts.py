@@ -7,6 +7,7 @@ import math
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from datetime import datetime
+from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
 from pathlib import Path
 
 CHART_COLORS = {
@@ -33,8 +34,8 @@ class PerformancePoint:
 @dataclass(frozen=True)
 class AllocationSlice:
     label: str
-    weight_pct: float
-    market_value: float
+    weight_pct: Decimal
+    market_value: Decimal
     color: str
 
 
@@ -97,23 +98,23 @@ def allocation_items_from_report_data(report_data: Mapping[str, object]) -> list
     if not isinstance(rows, Sequence) or isinstance(rows, (str, bytes, bytearray)):
         return []
 
-    raw_items: list[tuple[str, float, float]] = []
+    raw_items: list[tuple[str, Decimal, Decimal]] = []
     for item in rows:
         if not isinstance(item, Mapping):
             continue
         label = str(item.get("label") or item.get("name") or "").strip()
-        weight = _parse_percent_or_number(item.get("weight_pct"))
+        weight = _parse_decimal_number(item.get("weight_pct"), strip_percent=True)
         value = _parse_currency_number(item.get("market_value"))
         if not label or weight is None or weight <= 0:
             continue
-        raw_items.append((label, weight, value or 0.0))
+        raw_items.append((label, weight, value or Decimal("0")))
     raw_items.sort(key=lambda entry: entry[1], reverse=True)
 
-    grouped: list[tuple[str, float, float]] = []
-    other_weight = 0.0
-    other_value = 0.0
+    grouped: list[tuple[str, Decimal, Decimal]] = []
+    other_weight = Decimal("0")
+    other_value = Decimal("0")
     for label, weight, value in raw_items:
-        if weight < 2.0 and len(raw_items) > 4:
+        if weight < Decimal("2.0") and len(raw_items) > 4:
             other_weight += weight
             other_value += value
         else:
@@ -225,12 +226,12 @@ def render_allocation_donut_svg(items: Sequence[AllocationSlice]) -> str:
     cy = 91
     outer = 54
     inner = 33
-    total_weight = sum(item.weight_pct for item in items) or 1.0
-    total_value = sum(item.market_value for item in items)
+    total_weight = sum((item.weight_pct for item in items), Decimal("0")) or Decimal("1.0")
+    total_value = sum((item.market_value for item in items), Decimal("0"))
     start_angle = -90.0
     slices: list[str] = []
     for item in items:
-        sweep = (item.weight_pct / total_weight) * 360.0
+        sweep = float((item.weight_pct / total_weight) * Decimal("360.0"))
         end_angle = start_angle + sweep
         slices.append(_donut_segment(cx, cy, outer, inner, start_angle, end_angle, item.color))
         start_angle = end_angle
@@ -241,7 +242,7 @@ def render_allocation_donut_svg(items: Sequence[AllocationSlice]) -> str:
         legend.append(
             f'<rect x="340" y="{y - 9}" width="11" height="11" rx="2" fill="{item.color}" />'
             f'<text x="360" y="{y}" class="legend-label">{html.escape(item.label)}</text>'
-            f'<text x="360" y="{y + 15}" class="legend-meta">{item.weight_pct:.2f}%   {_format_currency(item.market_value)}</text>'
+            f'<text x="360" y="{y + 15}" class="legend-meta">{_format_decimal(item.weight_pct)}%   {_format_currency(item.market_value)}</text>'
         )
 
     return f'''<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}">
@@ -276,15 +277,21 @@ def _parse_percent_or_number(value: object) -> float | None:
         return None
 
 
-def _parse_currency_number(value: object) -> float | None:
+def _parse_currency_number(value: object) -> Decimal | None:
+    return _parse_decimal_number(value, strip_percent=False)
+
+
+def _parse_decimal_number(value: object, *, strip_percent: bool) -> Decimal | None:
     if value is None:
         return None
     text = str(value).strip().replace(",", "").replace("USD", "").strip()
+    if strip_percent:
+        text = text.removesuffix("%").strip()
     if not text:
         return None
     try:
-        return float(text)
-    except ValueError:
+        return Decimal(text)
+    except InvalidOperation:
         return None
 
 
@@ -341,13 +348,23 @@ def _donut_segment(
     )
 
 
-def _format_currency(value: float) -> str:
-    return f"{value:,.0f}"
+def _format_currency(value: Decimal) -> str:
+    return f"{value.quantize(Decimal('1'), rounding=ROUND_HALF_UP):,.0f}"
 
 
-def _compact_value(value: float) -> str:
-    if abs(value) >= 1_000_000:
-        return f"{value / 1_000_000:.1f}M"
-    if abs(value) >= 1_000:
-        return f"{value / 1_000:.1f}K"
-    return f"{value:.0f}"
+def _compact_value(value: Decimal | int) -> str:
+    decimal_value = Decimal(value)
+    absolute = abs(decimal_value)
+    if absolute >= Decimal("1000000"):
+        return f"{_format_one_decimal(decimal_value / Decimal('1000000'))}M"
+    if absolute >= Decimal("1000"):
+        return f"{_format_one_decimal(decimal_value / Decimal('1000'))}K"
+    return _format_currency(decimal_value)
+
+
+def _format_decimal(value: Decimal) -> str:
+    return f"{value.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP):,.2f}"
+
+
+def _format_one_decimal(value: Decimal) -> str:
+    return f"{value.quantize(Decimal('0.1'), rounding=ROUND_HALF_UP):,.1f}"
