@@ -8,6 +8,7 @@
 - trusted hosts are enforced for direct service HTTP requests
 - CORS is disabled by default and browser-facing access remains platform-ingress governed
 - render API body size is bounded by `LOTUS_RENDER_MAX_REQUEST_BODY_BYTES`
+- render execution concurrency is bounded by `LOTUS_RENDER_RENDER_EXECUTION_CONCURRENCY_LIMIT`
 - `/health/ready` requires render-store readiness and executable Typst or Docker runtime
 - `/metadata` publishes `runtimeAvailable` through RFC-0108 render supportability
 - Typst/Docker compile execution is bounded by `LOTUS_RENDER_RENDER_COMPILE_TIMEOUT_SECONDS`

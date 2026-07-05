@@ -42,6 +42,13 @@ Replaying the exact same request returns the prior stored truth for `accepted`, 
 `rendered`, and `failed` jobs without rerunning the renderer. Reusing the same `render_job_id` with
 a different render package returns `409 render_job_conflict`.
 
+`POST /renders` keeps the first-wave synchronous response contract, but blocking Typst/Docker
+execution runs through a threadpool and an in-process limiter configured by
+`LOTUS_RENDER_RENDER_EXECUTION_CONCURRENCY_LIMIT`. When capacity is exhausted, the endpoint returns
+`429 render_execution_capacity_exhausted` and records `lotus_render_operations_total` with
+`operation="render_submission"` and `status="rejected"`. Health, readiness, metadata, status, and
+artifact-metadata routes do not acquire this limiter.
+
 The persisted render job row retains support-safe render evidence from the governed package:
 `snapshot_id`, `lineage_refs`, `disclosure_refs`, `requested_by`, `package_correlation_id`, and
 `package_trace_id`. It does not store raw `report_data`, raw engine stderr, artifact bytes, client
@@ -119,6 +126,9 @@ package, fix upstream package truth, or escalate runtime/template support.
 - CORS is disabled by default; browser-facing access must use governed platform ingress.
 - Requests larger than `LOTUS_RENDER_MAX_REQUEST_BODY_BYTES` return
   `413 request_body_too_large` without echoing package payload content.
+- Render execution concurrency is bounded by
+  `LOTUS_RENDER_RENDER_EXECUTION_CONCURRENCY_LIMIT`; exhausted capacity returns
+  `429 render_execution_capacity_exhausted`.
 - Typst/Docker compile execution is bounded by
   `LOTUS_RENDER_RENDER_COMPILE_TIMEOUT_SECONDS`. Timed-out jobs persist as `failed` with failure
   category `timeout` and support-safe diagnostics.
@@ -147,6 +157,27 @@ Checks:
 
 Escalation: route producer package defects to `lotus-report`; route runtime/template defects to the
 reporting platform on-call.
+
+### LotusRenderExecutionCapacityExhausted
+
+First query:
+
+```promql
+sum(rate(lotus_render_operations_total{operation="render_submission",status="rejected"}[10m]))
+```
+
+Checks:
+
+1. Confirm the active `LOTUS_RENDER_RENDER_EXECUTION_CONCURRENCY_LIMIT`.
+2. Check `lotus_render_oldest_in_flight_age_seconds` and stale in-flight posture for work that is
+   occupying capacity.
+3. Verify `/health/ready` and `/metadata` still respond; they should not be blocked by the render
+   execution limiter.
+4. If rejections align with expected batch load, scale the service horizontally or increase the
+   limit only after validating CPU, memory, temp storage, and Typst/Docker saturation.
+
+Escalation: page reporting platform on-call when callers see sustained `429` responses; route
+upstream retry storms to the caller owner after render capacity is proven healthy.
 
 ### LotusRenderP95LatencyHigh
 

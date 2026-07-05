@@ -23,6 +23,8 @@ Deterministic document rendering service for Lotus reporting.
   trace evidence without storing raw report data or archive retention truth
 - direct HTTP traffic is bounded by trusted hosts, configured request body size, and disabled CORS
   by default; browser-facing access remains a platform-ingress concern
+- `POST /renders` executes blocking Typst/Docker work through a bounded threadpool-backed runtime
+  path and returns `429 render_execution_capacity_exhausted` when configured capacity is exhausted
 - same-package render replays return the prior persisted `accepted`, `rendering`, `rendered`, or
   `failed` truth without rerunning the renderer; different-package reuse of a render job id remains
   a governed conflict

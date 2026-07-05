@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 from fastapi import APIRouter, HTTPException, Response, status
+from starlette.concurrency import run_in_threadpool
 
 from app.contracts.renders import (
     API_ERROR_RESPONSE_EXAMPLES,
@@ -16,6 +17,7 @@ from app.contracts.renders import (
 )
 from app.dependencies.container import ContainerDependency, RenderSubmissionDependency
 from app.infrastructure.render_store import RenderJobConflictError, RenderJobNotFoundError
+from app.observability.render_metrics import record_render_operation
 from app.services.render_submission import (
     RenderExecutionFailedError,
     RenderPackageInvalidError,
@@ -91,15 +93,31 @@ def _error_response(
             example_key="render_failed",
             description="Returned when governed render execution fails after package acceptance.",
         ),
+        **_error_response(
+            status.HTTP_429_TOO_MANY_REQUESTS,
+            example_key="render_execution_capacity_exhausted",
+            description="Returned when bounded render execution capacity is exhausted.",
+        ),
     },
 )
 async def submit_render(
     request_payload: RenderSubmitRequest,
     response: Response,
+    container: ContainerDependency,
     service: RenderSubmissionDependency,
 ) -> RenderSubmitResponse:
+    if not container.render_execution_limiter.acquire():
+        record_render_operation(
+            operation="render_submission",
+            status="rejected",
+            failure_category="render_execution_capacity_exhausted",
+        )
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail=API_ERROR_RESPONSE_EXAMPLES["render_execution_capacity_exhausted"]["detail"],
+        )
     try:
-        result = service.submit(request_payload)
+        result = await run_in_threadpool(service.submit, request_payload)
     except RenderJobConflictError as exc:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
@@ -121,6 +139,8 @@ async def submit_render(
                 "message": str(exc),
             },
         ) from exc
+    finally:
+        container.render_execution_limiter.release()
 
     if result.artifact_base64 is None:
         response.status_code = status.HTTP_200_OK

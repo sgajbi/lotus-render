@@ -79,6 +79,9 @@ and Typst foundation slices:
   correlation and trace identifiers in support-safe request logs
 - direct HTTP requests are bounded by trusted-host, request-body-size, and CORS configuration;
   browser-facing access remains platform-ingress governed by default
+- `POST /renders` offloads blocking Typst/Docker execution to a threadpool and applies the
+  configured `LOTUS_RENDER_RENDER_EXECUTION_CONCURRENCY_LIMIT`, returning
+  `429 render_execution_capacity_exhausted` when capacity is exhausted
 - sqlite-backed governed render job store at `data/render-store.sqlite3` by default
 - versioned SQLite render-store migrations with schema readiness validation
 - support-safe render evidence persistence for snapshot identity, lineage refs, disclosure refs,
@@ -110,6 +113,11 @@ Use `POST /renders` only after upstream report data is already immutable and sup
 endpoint accepts a complete `RenderPackage`, validates it against the governed template registry,
 executes the synchronous first-wave Typst render path, and returns render truth plus inline
 `artifact_base64` on first successful submission.
+
+The endpoint remains synchronous for first-wave consumers, but expensive Typst/Docker work runs off
+the ASGI event loop behind a bounded in-process limiter. Capacity exhaustion returns
+`429 render_execution_capacity_exhausted`; callers should retry after current render work completes
+using the same idempotent package.
 
 Use `GET /renders/{render_job_id}` to read support-safe render-job posture without rerunning
 anything. Use `GET /renders/{render_job_id}/diagnostics` to classify stale posture, retryability,

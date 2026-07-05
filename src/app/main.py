@@ -22,6 +22,7 @@ from app.middleware.correlation import CorrelationIdMiddleware
 from app.middleware.http_boundary import RequestBodySizeLimitMiddleware
 from app.middleware.request_logging import RequestLoggingMiddleware
 from app.observability.render_metrics import validate_render_metric_contracts
+from app.services.render_execution import RenderExecutionLimiter
 from app.services.render_foundation import RenderFoundationService
 from app.services.render_intake import RenderIntakeService
 from app.services.render_runtime import RenderRuntimeProbe
@@ -46,6 +47,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             settings=configured_settings,
             render_foundation=RenderFoundationService(configured_settings),
             render_store=render_store,
+            render_execution_limiter=RenderExecutionLimiter(
+                configured_settings.render_execution_concurrency_limit
+            ),
             render_submission_service=RenderSubmissionService(
                 render_store=render_store,
                 render_engine=TypstRenderService(

@@ -8,6 +8,7 @@ from fastapi import Depends, Request
 from app.core.settings import Settings
 from app.domain.templates.registry import TemplateRegistry
 from app.infrastructure.render_store import RenderStore
+from app.services.render_execution import RenderExecutionLimiter
 from app.services.render_foundation import RenderFoundationService
 from app.services.render_runtime import RenderRuntimeProbe
 from app.services.render_submission import RenderSubmissionService
@@ -18,6 +19,7 @@ class AppContainer:
     settings: Settings
     render_foundation: RenderFoundationService
     render_store: RenderStore
+    render_execution_limiter: RenderExecutionLimiter
     render_submission_service: RenderSubmissionService
     render_runtime_probe: RenderRuntimeProbe
     template_registry: TemplateRegistry

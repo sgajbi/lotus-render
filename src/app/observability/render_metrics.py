@@ -63,6 +63,7 @@ RENDER_OPERATION_STATUSES = frozenset(
         "failed",
         "not_found",
         "not_ready",
+        "rejected",
         "rendered",
         "rendering",
     }

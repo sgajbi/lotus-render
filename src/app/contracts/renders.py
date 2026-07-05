@@ -136,6 +136,14 @@ API_ERROR_RESPONSE_EXAMPLES: dict[str, dict[str, Any]] = {
             "message": "Render execution failed in the governed runtime envelope.",
         }
     },
+    "render_execution_capacity_exhausted": {
+        "detail": {
+            "code": "render_execution_capacity_exhausted",
+            "message": (
+                "Render execution capacity is exhausted. Retry after current render work completes."
+            ),
+        }
+    },
 }
 
 
