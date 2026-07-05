@@ -10,6 +10,7 @@ from app.main import app
 from app.observability.render_metrics import FORBIDDEN_METRIC_LABELS, RENDER_METRIC_CONTRACTS
 
 CONTRACT_ROOT = Path("contracts")
+GOLDEN_PRODUCER_FIXTURES = Path("tests/golden/producer-fixtures.v1.json")
 
 
 def _load_contract(name: str) -> dict[str, Any]:
@@ -60,6 +61,61 @@ def test_source_contracts_cover_all_manifest_contract_versions() -> None:
         assert entry["source_repository"]
         assert entry["source_path"]
         assert entry["compatibility_policy"] == "exact-version"
+
+
+def test_golden_samples_resolve_to_committed_packages_and_artifacts() -> None:
+    registry = TemplateRegistry.load_from_directory(Path(Settings().template_registry_path))
+    fixture_manifest = json.loads(GOLDEN_PRODUCER_FIXTURES.read_text(encoding="utf-8"))
+    fixtures = {
+        (entry["template_id"], entry["template_version"], entry["golden_sample_id"]): entry
+        for entry in fixture_manifest["fixtures"]
+    }
+    advertised_samples: set[tuple[str, str, str]] = set()
+
+    for manifest in registry.export_manifests():
+        template_id = cast(str, manifest["template_id"])
+        template_version = cast(str, manifest["template_version"])
+        for golden_sample_id in cast(list[str], manifest["golden_sample_ids"]):
+            key = (template_id, template_version, golden_sample_id)
+            advertised_samples.add(key)
+            fixture = fixtures[key]
+            package_path = Path(cast(str, fixture["package_path"]))
+            expected_pdf_path = Path(cast(str, fixture["expected_pdf_path"]))
+
+            assert package_path == Path("tests/golden") / template_id / template_version / (
+                "render-package.json"
+            )
+            assert expected_pdf_path == Path("tests/golden") / template_id / template_version / (
+                "expected.pdf"
+            )
+            assert package_path.exists()
+            assert expected_pdf_path.exists()
+            assert (
+                json.loads(package_path.read_text(encoding="utf-8"))["template_id"] == template_id
+            )
+            assert expected_pdf_path.read_bytes().startswith(b"%PDF")
+
+    assert set(fixtures) == advertised_samples
+
+
+def test_golden_producer_fixtures_cover_active_source_contracts() -> None:
+    source_contract = _load_contract("render-source-contracts.v1.json")
+    active_contract_versions = {
+        entry["report_data_contract_version"]
+        for entry in cast(list[dict[str, str]], source_contract["contracts"])
+        if entry["status"] == "active"
+    }
+    fixture_manifest = json.loads(GOLDEN_PRODUCER_FIXTURES.read_text(encoding="utf-8"))
+    fixture_contract_versions = {
+        entry["report_data_contract_version"] for entry in fixture_manifest["fixtures"]
+    }
+
+    assert fixture_manifest["manifest_version"] == "render_golden_producer_fixtures.v1"
+    assert fixture_contract_versions == active_contract_versions
+    for fixture in fixture_manifest["fixtures"]:
+        assert fixture["producer_repository"] == "sgajbi/lotus-report"
+        assert fixture["producer_source_paths"]
+        assert fixture["provenance"]
 
 
 def test_data_product_trust_contract_references_live_paths_and_metrics() -> None:

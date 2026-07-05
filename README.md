@@ -69,7 +69,8 @@ and Typst foundation slices:
   `templates/typst/rebalance-wave/v1/`
 - optional `portfolio-review v1` reviewed advisory narrative and advisor proposal memo rendering
   when `lotus-report` supplies included advisor-use packages from `lotus-advise`
-- golden render package and expected PDF proof under `tests/golden/portfolio-review/v1/`
+- producer-backed golden render packages and expected PDF proofs under `tests/golden/<template>/v1/`
+  for every active template, with provenance in `tests/golden/producer-fixtures.v1.json`
 - docker-governed Typst rendering is preferred on developer and CI hosts so golden proof is minted
   from the same controlled runtime envelope
 - bounded-determinism fingerprinting that normalizes volatile PDF metadata while preserving raw

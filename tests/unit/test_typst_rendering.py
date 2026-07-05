@@ -5,7 +5,6 @@ from pathlib import Path
 
 import pytest
 
-from app.contracts.examples import PORTFOLIO_REVIEW_RENDER_PACKAGE_EXAMPLE_PATH
 from app.contracts.render_package import RenderPackage
 from app.core.settings import Settings
 from app.domain.templates.registry import TemplateRegistry
@@ -18,13 +17,23 @@ from app.services.typst_rendering import (
     TypstRenderService,
 )
 
-GOLDEN_ROOT = Path("tests/golden/portfolio-review/v1")
+GOLDEN_ROOT = Path("tests/golden")
+
+
+def _golden_root(template_id: str, template_version: str = "v1") -> Path:
+    return GOLDEN_ROOT / template_id / template_version
+
+
+def _load_golden_package_for(template_id: str, template_version: str = "v1") -> RenderPackage:
+    return RenderPackage.model_validate_json(
+        (_golden_root(template_id, template_version) / "render-package.json").read_text(
+            encoding="utf-8"
+        )
+    )
 
 
 def _load_golden_package() -> RenderPackage:
-    return RenderPackage.model_validate_json(
-        PORTFOLIO_REVIEW_RENDER_PACKAGE_EXAMPLE_PATH.read_text(encoding="utf-8")
-    )
+    return _load_golden_package_for("portfolio-review")
 
 
 def _portfolio_review_package_with_reviewed_advisory_narrative() -> RenderPackage:
@@ -306,14 +315,28 @@ def _build_service() -> TypstRenderService:
     return TypstRenderService(settings, RenderIntakeService(registry))
 
 
-def test_typst_render_service_renders_golden_portfolio_review_pdf() -> None:
+@pytest.mark.parametrize(
+    ("template_id", "expected_report_data_contract_version"),
+    [
+        ("portfolio-review", "portfolio_review.v1"),
+        ("outcome-review", "dpm_outcome_report_input.v1"),
+        ("proof-pack", "dpm_proof_pack_report_input.v1"),
+        ("rebalance-wave", "dpm_wave_report_input.v1"),
+    ],
+)
+def test_typst_render_service_renders_golden_pdf(
+    template_id: str, expected_report_data_contract_version: str
+) -> None:
     service = _build_service()
-    expected_pdf = (GOLDEN_ROOT / "expected.pdf").read_bytes()
+    expected_pdf = (_golden_root(template_id) / "expected.pdf").read_bytes()
+    render_package = _load_golden_package_for(template_id)
 
-    result = service.render(_load_golden_package())
+    result = service.render(render_package)
 
     assert result.attempt.status.value == "rendered"
     assert result.artifact_bytes.startswith(b"%PDF")
+    assert result.diagnostic.template_id == template_id
+    assert render_package.report_data_contract_version == expected_report_data_contract_version
     assert result.diagnostic.artifact_sha256 == hashlib.sha256(result.artifact_bytes).hexdigest()
     assert (
         result.diagnostic.bounded_determinism_fingerprint
@@ -547,28 +570,6 @@ def test_typst_render_service_uses_proof_pack_fallback_rows() -> None:
     assert "not_available" in service._render_key_value_rows({})
 
 
-def test_typst_render_service_renders_proof_pack_pdf() -> None:
-    service = _build_service()
-
-    result = service.render(_proof_pack_package())
-
-    assert result.attempt.status.value == "rendered"
-    assert result.artifact_bytes.startswith(b"%PDF")
-    assert result.diagnostic.template_id == "proof-pack"
-    assert result.diagnostic.artifact_sha256 == hashlib.sha256(result.artifact_bytes).hexdigest()
-
-
-def test_typst_render_service_renders_wave_pdf() -> None:
-    service = _build_service()
-
-    result = service.render(_wave_package())
-
-    assert result.attempt.status.value == "rendered"
-    assert result.artifact_bytes.startswith(b"%PDF")
-    assert result.diagnostic.template_id == "rebalance-wave"
-    assert result.diagnostic.artifact_sha256 == hashlib.sha256(result.artifact_bytes).hexdigest()
-
-
 def test_template_registry_accepts_outcome_review_template() -> None:
     settings = Settings()
     registry = TemplateRegistry.load_from_directory(Path(settings.template_registry_path))
@@ -631,7 +632,9 @@ def test_typst_render_service_renders_selected_sections_only() -> None:
 
     assert result.artifact_bytes.startswith(b"%PDF")
     assert result.diagnostic.output_size_bytes == len(result.artifact_bytes)
-    assert len(result.artifact_bytes) < len((GOLDEN_ROOT / "expected.pdf").read_bytes())
+    assert len(result.artifact_bytes) < len(
+        (_golden_root("portfolio-review") / "expected.pdf").read_bytes()
+    )
 
 
 def test_typst_render_service_renders_reviewed_advisory_narrative_section() -> None:

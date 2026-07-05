@@ -12,8 +12,8 @@ Deterministic document rendering service for Lotus reporting.
 - template lifecycle posture is explicit for `active`, `deprecated_rerenderable`, `blocked_for_new_renders`, and `blocked`
 - the current determinism claim is bounded to the governed Typst `0.14.2` runtime envelope
 - raw PDF bytes are not claimed to be stable across renders because PDF document ids and timestamps are reminted per artifact; support-safe repeatability uses the bounded determinism fingerprint
-- golden proof is minted from the container-first Typst runtime on developer and CI hosts so proof
-  is stable across environments
+- active-template golden proof is minted from the container-first Typst runtime on developer and CI
+  hosts so proof is stable across environments
 - render jobs are persisted in the governed local store before readiness is reported as healthy for
   first-wave traffic
 - render-store schema is versioned through SQLite migrations and validated during readiness
@@ -73,7 +73,9 @@ Deterministic document rendering service for Lotus reporting.
   combinations fail without falling back to portfolio review
 - current active templates are `portfolio-review` version `v1`, `outcome-review` version `v1`,
   `proof-pack` version `v1`, and `rebalance-wave` version `v1`
-- current first-wave golden proof lives under `tests/golden/portfolio-review/v1/`
+- current active-template golden proof lives under `tests/golden/<template>/v1/`; each active
+  registry golden sample must have `render-package.json`, `expected.pdf`, and provenance in
+  `tests/golden/producer-fixtures.v1.json`
 
 See [Template Registry](Template-Registry).
 

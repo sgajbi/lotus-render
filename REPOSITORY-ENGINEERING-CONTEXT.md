@@ -19,7 +19,7 @@ operator workflows beyond the render-stage contract defined by RFC-0102.
 flow. The repository contains the dedicated render-service runtime baseline, explicit render-attempt
 domain models, structured request logging, support-safe system metadata, versioned render package
 validation, source-controlled template registry enforcement, deterministic SVG chart asset
-generation, the modular Typst portfolio review template, golden PDF proof, and the first
+generation, modular Typst templates, producer-backed golden PDF proof, and the first
 store-backed internal render API. RFC-0105 first-wave render metrics now expose bounded render
 submission, status lookup, diagnostics lookup, artifact metadata lookup, latency,
 failure-category, artifact-size, and source-backed stale in-flight render signals without
@@ -40,7 +40,10 @@ Consumer-facing governance is declared in `contracts/render-supported-features.v
 unit tests validate those contracts against the live template registry, OpenAPI paths, and metric
 contracts. Active report-data contract versions are parsed through typed render content adapters
 before Typst context generation, and active report/template/version tuples are routed through an
-explicit template-context registry instead of a fallback report-type switch.
+explicit template-context registry instead of a fallback report-type switch. Every active template
+advertised through the registry now has a committed golden render package, expected PDF artifact,
+and producer-provenance fixture under `tests/golden/`; governance tests fail when template manifests,
+source contracts, or golden sample evidence drift.
 RFC40-WTBD-004 Slice 1 adds the
 first-wave `proof-pack v1` template and registry manifest for
 `dpm_proof_pack_report_input.v1`, establishing deterministic render-service support for
@@ -82,7 +85,7 @@ Current repository baseline:
 11. `src/app/middleware/`: correlation, HTTP-boundary, and structured request logging middleware.
 12. `templates/registry/`: PR-governed template source truth.
 13. `templates/typst/`: governed Typst template source.
-14. `tests/golden/`: golden render package and artifact proof inputs.
+14. `tests/golden/`: golden render package, expected PDF, and producer-provenance proof inputs.
 15. `tests/unit`, `tests/integration`, `tests/e2e`: test pyramid baseline.
 16. `contracts/`: supported-feature, source-contract, and data-product trust declarations.
 
@@ -166,8 +169,10 @@ Primary governing artifacts:
    contracts change.
 4. Determinism is currently bounded to the governed Typst `0.14.2` runtime envelope; raw artifact
    hashes remain truthful, while bounded-determinism proof normalizes volatile PDF metadata fields.
-5. The committed first-wave golden PDF is minted from the governed container-first Typst envelope so
-   CI, local proof, and the future service image stay aligned.
+5. Committed golden PDFs for active templates are minted from the governed container-first Typst
+   envelope so CI, local proof, and the future service image stay aligned; do not add an active
+   template without `tests/golden/<template>/<version>/render-package.json`, `expected.pdf`, and
+   `tests/golden/producer-fixtures.v1.json` provenance.
 6. `/health/ready` should remain truthful for both runtime posture and render-store availability,
    because the first-wave render APIs depend on persisted render-job state.
 7. Render metrics must remain bounded to operation, status, failure category, artifact-size, and

@@ -1,0 +1,557 @@
+{
+  "render_package_version": "render_package.v1",
+  "render_job_id": "rdr_golden_portfolio_review_v1",
+  "report_job_id": "rjob_golden_portfolio_review_v1",
+  "snapshot_id": "rsnap_golden_portfolio_review_v1",
+  "report_type": "portfolio_review",
+  "report_data_contract_version": "portfolio_review.v1",
+  "template_id": "portfolio-review",
+  "template_version": "v1",
+  "locale": "en-SG",
+  "brand_variant": "private_banking",
+  "output_format": "pdf",
+  "render_context": {
+    "timezone": "Asia/Singapore"
+  },
+  "report_data": {
+    "client_name": "Alex Tan",
+    "portfolio_name": "PB SG Global Balanced",
+    "as_of_date": "2026-04-23",
+    "currency": "USD",
+    "total_value": "15234567.89",
+    "summary_paragraph": "The portfolio remained aligned with balanced growth objectives while preserving liquidity discipline through the quarter.",
+    "review_period_label": "YTD",
+    "mandate": {
+      "objective": "Long-term real wealth growth with controlled income and liquidity.",
+      "risk_exposure": "balanced",
+      "booking_center_code": "Singapore",
+      "advisor_id": "RM_SG_001"
+    },
+    "portfolio_metrics": {
+      "invested_value": "14984567.89",
+      "cash_balance": "250000.00",
+      "cash_weight_pct": "1.64%"
+    },
+    "allocation_summary": {
+      "largest_asset_class_name": "Equity",
+      "largest_asset_class_weight_pct": "60.00%",
+      "largest_asset_class_market_value": "9140740.73",
+      "largest_asset_class_position_count": 8
+    },
+    "allocation_breakdowns": {
+      "by_asset_class": [
+        {
+          "name": "Equity",
+          "weight_pct": "60.00%",
+          "market_value": "9140740.73",
+          "position_count": 8
+        },
+        {
+          "name": "Fixed Income",
+          "weight_pct": "28.00%",
+          "market_value": "4265680.61",
+          "position_count": 5
+        },
+        {
+          "name": "Cash",
+          "weight_pct": "1.64%",
+          "market_value": "250000.00",
+          "position_count": 1
+        }
+      ],
+      "by_currency": [
+        {
+          "name": "USD",
+          "weight_pct": "88.36%",
+          "market_value": "13463567.89",
+          "position_count": 12
+        },
+        {
+          "name": "SGD",
+          "weight_pct": "11.64%",
+          "market_value": "1771000.00",
+          "position_count": 3
+        }
+      ],
+      "by_region": [
+        {
+          "name": "North America",
+          "weight_pct": "64.10%",
+          "market_value": "9765432.10",
+          "position_count": 7
+        },
+        {
+          "name": "Asia",
+          "weight_pct": "18.55%",
+          "market_value": "2825000.00",
+          "position_count": 4
+        }
+      ],
+      "by_sector": [
+        {
+          "name": "Technology",
+          "weight_pct": "30.25%",
+          "market_value": "4600000.00",
+          "position_count": 3
+        },
+        {
+          "name": "Multi-Sector Bonds",
+          "weight_pct": "28.00%",
+          "market_value": "4265680.61",
+          "position_count": 5
+        }
+      ],
+      "by_country": [
+        {
+          "name": "United States",
+          "weight_pct": "58.40%",
+          "market_value": "8890000.00",
+          "position_count": 6
+        }
+      ],
+      "by_product_type": [
+        {
+          "name": "Fund",
+          "weight_pct": "88.00%",
+          "market_value": "13404821.34",
+          "position_count": 12
+        }
+      ],
+      "by_rating": [
+        {
+          "name": "A",
+          "weight_pct": "28.00%",
+          "market_value": "4265680.61",
+          "position_count": 5
+        }
+      ]
+    },
+    "performance_periods": [
+      {
+        "period": "1M",
+        "net_return_pct": "1.10%",
+        "benchmark_return_pct": "0.90%",
+        "relative_return_pct": "0.20%"
+      },
+      {
+        "period": "YTD",
+        "net_return_pct": "4.10%",
+        "benchmark_return_pct": "3.40%",
+        "relative_return_pct": "0.70%"
+      },
+      {
+        "period": "5Y",
+        "net_return_pct": "12.00%",
+        "benchmark_return_pct": "10.80%",
+        "relative_return_pct": "1.20%"
+      }
+    ],
+    "performance_summary_table": [
+      {
+        "label": "Current month",
+        "period": "1M",
+        "net_return_pct": "0.22%",
+        "annualized_return_pct": "Not available"
+      },
+      {
+        "label": "Current quarter",
+        "period": "3M",
+        "net_return_pct": "1.72%",
+        "annualized_return_pct": "Not available"
+      },
+      {
+        "label": "Year-to-date",
+        "period": "YTD",
+        "net_return_pct": "2.95%",
+        "annualized_return_pct": "Not available"
+      },
+      {
+        "label": "Last 12 months",
+        "period": "1Y",
+        "net_return_pct": "7.08%",
+        "annualized_return_pct": "7.08%"
+      },
+      {
+        "label": "Since inception",
+        "period": "SI",
+        "net_return_pct": "29.03%",
+        "annualized_return_pct": "4.62%"
+      }
+    ],
+    "performance_monthly_history": [
+      {
+        "period": "2025-05",
+        "period_start": "2025-05-01",
+        "period_end": "2025-05-31",
+        "final_value": "15120000.00",
+        "inflows": "320000.00",
+        "outflows": "-280000.00",
+        "performance_value": "66000.00",
+        "cumulative_performance_value": "66000.00",
+        "twr_pct": "0.44%",
+        "cumulative_twr_pct": "0.44%"
+      },
+      {
+        "period": "2025-06",
+        "period_start": "2025-06-01",
+        "period_end": "2025-06-30",
+        "final_value": "15085000.00",
+        "inflows": "240000.00",
+        "outflows": "-310000.00",
+        "performance_value": "-49000.00",
+        "cumulative_performance_value": "17000.00",
+        "twr_pct": "-0.31%",
+        "cumulative_twr_pct": "0.13%"
+      },
+      {
+        "period": "2025-07",
+        "period_start": "2025-07-01",
+        "period_end": "2025-07-31",
+        "final_value": "15196000.00",
+        "inflows": "260000.00",
+        "outflows": "-250000.00",
+        "performance_value": "128371.00",
+        "cumulative_performance_value": "145371.00",
+        "twr_pct": "0.85%",
+        "cumulative_twr_pct": "0.98%"
+      },
+      {
+        "period": "2025-08",
+        "period_start": "2025-08-01",
+        "period_end": "2025-08-31",
+        "final_value": "15120000.00",
+        "inflows": "230000.00",
+        "outflows": "-275000.00",
+        "performance_value": "-65500.00",
+        "cumulative_performance_value": "79871.00",
+        "twr_pct": "-0.43%",
+        "cumulative_twr_pct": "0.55%"
+      },
+      {
+        "period": "2025-09",
+        "period_start": "2025-09-01",
+        "period_end": "2025-09-30",
+        "final_value": "15340000.00",
+        "inflows": "410000.00",
+        "outflows": "-360000.00",
+        "performance_value": "178000.00",
+        "cumulative_performance_value": "257871.00",
+        "twr_pct": "1.18%",
+        "cumulative_twr_pct": "1.74%"
+      },
+      {
+        "period": "2025-10",
+        "period_start": "2025-10-01",
+        "period_end": "2025-10-31",
+        "final_value": "15405000.00",
+        "inflows": "290000.00",
+        "outflows": "-330000.00",
+        "performance_value": "91500.00",
+        "cumulative_performance_value": "349371.00",
+        "twr_pct": "0.61%",
+        "cumulative_twr_pct": "2.36%"
+      },
+      {
+        "period": "2025-11",
+        "period_start": "2025-11-01",
+        "period_end": "2025-11-30",
+        "final_value": "15482000.00",
+        "inflows": "300000.00",
+        "outflows": "-275000.00",
+        "performance_value": "118000.00",
+        "cumulative_performance_value": "467371.00",
+        "twr_pct": "0.77%",
+        "cumulative_twr_pct": "3.15%"
+      },
+      {
+        "period": "2025-12",
+        "period_start": "2025-12-01",
+        "period_end": "2025-12-31",
+        "final_value": "15410000.00",
+        "inflows": "265000.00",
+        "outflows": "-355000.00",
+        "performance_value": "-38500.00",
+        "cumulative_performance_value": "428871.00",
+        "twr_pct": "-0.25%",
+        "cumulative_twr_pct": "2.89%"
+      },
+      {
+        "period": "2026-01",
+        "period_start": "2026-01-01",
+        "period_end": "2026-01-31",
+        "final_value": "15498000.00",
+        "inflows": "415000.00",
+        "outflows": "-390000.00",
+        "performance_value": "84135.00",
+        "cumulative_performance_value": "513006.00",
+        "twr_pct": "0.55%",
+        "cumulative_twr_pct": "3.46%"
+      },
+      {
+        "period": "2026-02",
+        "period_start": "2026-02-01",
+        "period_end": "2026-02-28",
+        "final_value": "15542000.00",
+        "inflows": "355000.00",
+        "outflows": "-390000.00",
+        "performance_value": "107000.00",
+        "cumulative_performance_value": "620006.00",
+        "twr_pct": "0.70%",
+        "cumulative_twr_pct": "4.19%"
+      },
+      {
+        "period": "2026-03",
+        "period_start": "2026-03-01",
+        "period_end": "2026-03-31",
+        "final_value": "15490000.00",
+        "inflows": "330000.00",
+        "outflows": "-415000.00",
+        "performance_value": "-73000.00",
+        "cumulative_performance_value": "547006.00",
+        "twr_pct": "-0.47%",
+        "cumulative_twr_pct": "3.70%"
+      },
+      {
+        "period": "2026-04",
+        "period_start": "2026-04-01",
+        "period_end": "2026-04-23",
+        "final_value": "15234567.89",
+        "inflows": "280000.00",
+        "outflows": "-340000.00",
+        "performance_value": "33500.00",
+        "cumulative_performance_value": "580506.00",
+        "twr_pct": "0.22%",
+        "cumulative_twr_pct": "3.93%"
+      }
+    ],
+    "performance_annual_history": [
+      {
+        "period": "2020",
+        "twr_pct": "18.40%",
+        "cumulative_twr_pct": "18.40%"
+      },
+      {
+        "period": "2021",
+        "twr_pct": "-14.20%",
+        "cumulative_twr_pct": "1.60%"
+      },
+      {
+        "period": "2022",
+        "twr_pct": "-38.40%",
+        "cumulative_twr_pct": "-37.40%"
+      },
+      {
+        "period": "2023",
+        "twr_pct": "12.80%",
+        "cumulative_twr_pct": "-29.40%"
+      },
+      {
+        "period": "2024",
+        "twr_pct": "3.70%",
+        "cumulative_twr_pct": "-26.80%"
+      },
+      {
+        "period": "2025",
+        "twr_pct": "7.08%",
+        "cumulative_twr_pct": "-21.62%"
+      }
+    ],
+    "performance_highlight": {
+      "largest_positive_contributor_name": "Global Equity Sleeve",
+      "largest_positive_contribution_pct": "3.50%",
+      "benchmark_comparison_status": "available"
+    },
+    "transaction_period_label": "From 01.01.2026 to 23.04.2026",
+    "risk_summary": {
+      "volatility_pct": "12.00%",
+      "beta": "0.82",
+      "tracking_error_pct": "4.00%",
+      "information_ratio": "0.72",
+      "value_at_risk_pct": "-2.00%"
+    },
+    "top_holdings": [
+      {
+        "asset_class": "Equity",
+        "security_name": "Global Equity Sleeve",
+        "weight_pct": "60.00%",
+        "quantity": "2200.00",
+        "currency": "USD",
+        "security_id": "EQ-1",
+        "instrument_name": "Global Equity Sleeve",
+        "isin": "US0000000001",
+        "position_date": "2026-04-23",
+        "product_type": "Fund",
+        "sector": "Technology",
+        "country_of_risk": "United States",
+        "rating": "A",
+        "liquidity_tier": "High",
+        "held_since_date": "2024-01-15",
+        "market_price": "102.35",
+        "cost_basis_reporting_currency": "8118290.51",
+        "cost_basis_local": "8118290.51",
+        "market_value": "9140740.73",
+        "market_value_local": "9140740.73",
+        "unrealized_pnl": "1032450.22",
+        "unrealized_pnl_local": "1032450.22",
+        "unrealized_pnl_pct": "12.72%",
+        "ytd_contribution_pct": "3.50%",
+        "ytd_average_weight_pct": "55.00%",
+        "ytd_total_return_pct": "8.40%"
+      },
+      {
+        "asset_class": "Fixed Income",
+        "security_name": "Global Bond Allocation",
+        "weight_pct": "28.00%",
+        "quantity": "4100.00",
+        "currency": "USD",
+        "security_id": "FI-1",
+        "instrument_name": "Global Bond Allocation",
+        "isin": "US0000000002",
+        "position_date": "2026-04-23",
+        "product_type": "Fund",
+        "sector": "Multi-Sector Bonds",
+        "country_of_risk": "Global",
+        "rating": "BBB+",
+        "liquidity_tier": "High",
+        "held_since_date": "2023-09-20",
+        "market_price": "101.32",
+        "cost_basis_reporting_currency": "4117460.31",
+        "cost_basis_local": "4117460.31",
+        "market_value": "4265680.61",
+        "market_value_local": "4265680.61",
+        "unrealized_pnl": "148220.30",
+        "unrealized_pnl_local": "148220.30",
+        "unrealized_pnl_pct": "3.60%",
+        "ytd_contribution_pct": "0.80%",
+        "ytd_average_weight_pct": "30.00%",
+        "ytd_total_return_pct": "3.10%"
+      },
+      {
+        "asset_class": "Cash",
+        "security_name": "Liquidity Reserve",
+        "weight_pct": "1.64%",
+        "quantity": "250000.00",
+        "currency": "USD",
+        "security_id": "CSH-1",
+        "instrument_name": "Liquidity Reserve",
+        "isin": "Not available",
+        "position_date": "2026-04-23",
+        "product_type": "Cash",
+        "sector": "Cash",
+        "country_of_risk": "United States",
+        "rating": "Not available",
+        "liquidity_tier": "Immediate",
+        "held_since_date": "2026-01-01",
+        "market_price": "1.00",
+        "cost_basis_reporting_currency": "250000.00",
+        "cost_basis_local": "250000.00",
+        "market_value": "250000.00",
+        "market_value_local": "250000.00",
+        "unrealized_pnl": "0.00",
+        "unrealized_pnl_local": "0.00",
+        "unrealized_pnl_pct": "0.00%",
+        "ytd_contribution_pct": "0.00%",
+        "ytd_average_weight_pct": "2.00%",
+        "ytd_total_return_pct": "0.00%"
+      }
+    ],
+    "transactions": [
+      {
+        "category": "Trading",
+        "asset_class": "Equity",
+        "transaction_category": "Trading",
+        "display_label": "Buy",
+        "cash_leg": "No",
+        "transaction_id": "TXN-20260109-BUY-001",
+        "trade_date": "09.01.2026",
+        "transaction_type": "BUY",
+        "instrument_id": "INST-EQ-1",
+        "security_id": "EQ-1",
+        "booking_text": "Buy",
+        "amount": "USD 450000.00",
+        "description": "Global Equity Sleeve top-up",
+        "price": "NAV 102.35",
+        "gross_amount_reporting_currency": "450000.00",
+        "realized_pnl_reporting_currency": "0.00",
+        "realized_pnl_local": "0.00",
+        "net_interest_amount_reporting_currency": "0.00",
+        "withholding_tax_amount_reporting_currency": "0.00",
+        "income_or_tax_reporting_currency": "0.00",
+        "gain_loss": "USD 0.00",
+        "transaction_value": "USD 450000.00"
+      },
+      {
+        "category": "Income",
+        "asset_class": "Fixed Income",
+        "transaction_category": "Income",
+        "display_label": "Coupon",
+        "cash_leg": "No",
+        "transaction_id": "TXN-20260217-COUPON-001",
+        "trade_date": "17.02.2026",
+        "transaction_type": "COUPON",
+        "instrument_id": "INST-FI-1",
+        "security_id": "FI-1",
+        "booking_text": "Coupon",
+        "amount": "USD 18250.00",
+        "description": "Global Bond Allocation income distribution",
+        "price": "N/A",
+        "gross_amount_reporting_currency": "18250.00",
+        "realized_pnl_reporting_currency": "0.00",
+        "realized_pnl_local": "0.00",
+        "net_interest_amount_reporting_currency": "18250.00",
+        "withholding_tax_amount_reporting_currency": "0.00",
+        "income_or_tax_reporting_currency": "18250.00",
+        "gain_loss": "USD 18,250.00",
+        "transaction_value": "USD 18250.00"
+      },
+      {
+        "category": "Trading",
+        "asset_class": "Cash",
+        "transaction_category": "Trading",
+        "display_label": "Sale",
+        "cash_leg": "Yes",
+        "transaction_id": "TXN-20260331-SELL-001",
+        "trade_date": "31.03.2026",
+        "transaction_type": "SELL",
+        "instrument_id": "INST-CSH-1",
+        "security_id": "CSH-1",
+        "booking_text": "Sale",
+        "amount": "USD -125000.00",
+        "description": "Liquidity reserve rebalance",
+        "price": "NAV 100.00",
+        "gross_amount_reporting_currency": "-125000.00",
+        "realized_pnl_reporting_currency": "0.00",
+        "realized_pnl_local": "0.00",
+        "net_interest_amount_reporting_currency": "0.00",
+        "withholding_tax_amount_reporting_currency": "0.00",
+        "income_or_tax_reporting_currency": "0.00",
+        "gain_loss": "USD 0.00",
+        "transaction_value": "USD -125000.00"
+      }
+    ],
+    "governance_summary": {
+      "source_services": [
+        "lotus-core",
+        "lotus-performance",
+        "lotus-risk"
+      ],
+      "completeness_status": "complete",
+      "data_quality_status": "quality_passed",
+      "readiness_status": "ready"
+    },
+    "review_observations": [
+      "Equity positioning remained the main contributor to year-to-date performance.",
+      "Risk posture stayed within the monitored balanced mandate range.",
+      "Cash reserves remained available for near-term client liquidity needs."
+    ]
+  },
+  "lineage_refs": [
+    "rlineage_golden_portfolio_review_v1"
+  ],
+  "disclosure_refs": [
+    "portfolio-review.standard-disclosures.v1"
+  ],
+  "requested_by": "advisor.sg@example.com",
+  "correlation_id": "corr-golden-portfolio-review-v1",
+  "trace_id": "trace-golden-portfolio-review-v1"
+}
