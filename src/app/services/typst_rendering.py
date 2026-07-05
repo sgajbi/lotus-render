@@ -21,8 +21,15 @@ from app.services.portfolio_charts import (
     performance_series_from_report_data,
     render_portfolio_chart_assets,
 )
+from app.services.render_content import (
+    parse_outcome_review_content,
+    parse_portfolio_review_content,
+    parse_proof_pack_content,
+    parse_rebalance_wave_content,
+)
 from app.services.render_intake import RenderIntakeService
 from app.services.render_ports import RenderEngineTimeoutError, RenderRuntimeMetadata
+from app.services.template_context import TemplateContextRegistry, TemplateContextRenderer
 
 DETERMINISM_MODE = "bounded_runtime_envelope"
 DOCKER_TYPST_IMAGE = "ghcr.io/typst/typst:0.14.2"
@@ -79,6 +86,34 @@ class TypstRenderService:
     def __init__(self, settings: Settings, intake_service: RenderIntakeService) -> None:
         self._settings = settings
         self._intake_service = intake_service
+        self._template_context_registry = TemplateContextRegistry(
+            (
+                TemplateContextRenderer(
+                    report_type="portfolio_review",
+                    template_id="portfolio-review",
+                    template_version="v1",
+                    build_context=self._build_portfolio_review_context,
+                ),
+                TemplateContextRenderer(
+                    report_type="proof_pack",
+                    template_id="proof-pack",
+                    template_version="v1",
+                    build_context=self._build_proof_pack_context,
+                ),
+                TemplateContextRenderer(
+                    report_type="outcome_review",
+                    template_id="outcome-review",
+                    template_version="v1",
+                    build_context=self._build_outcome_review_context,
+                ),
+                TemplateContextRenderer(
+                    report_type="rebalance_wave",
+                    template_id="rebalance-wave",
+                    template_version="v1",
+                    build_context=self._build_wave_context,
+                ),
+            )
+        )
 
     @property
     def runtime_metadata(self) -> RenderRuntimeMetadata:
@@ -188,25 +223,10 @@ class TypstRenderService:
         )
 
     def _build_portfolio_review_context(self, render_package: RenderPackage) -> dict[str, str]:
-        report_data = render_package.report_data
+        report_data = parse_portfolio_review_content(render_package).as_report_data()
         render_context = render_package.render_context
 
-        required_report_fields = [
-            "client_name",
-            "portfolio_name",
-            "as_of_date",
-            "currency",
-            "total_value",
-            "summary_paragraph",
-            "review_observations",
-        ]
-        for field_name in required_report_fields:
-            if field_name not in report_data:
-                raise ValueError(f"missing required report_data field: {field_name}")
-
         observations = report_data["review_observations"]
-        if not isinstance(observations, list) or not observations:
-            raise ValueError("review_observations must be a non-empty list")
 
         mandate = self._mapping(report_data.get("mandate"))
         portfolio_metrics = self._mapping(report_data.get("portfolio_metrics"))
@@ -416,35 +436,12 @@ class TypstRenderService:
         return workspace_template_directory / template_root.name
 
     def _build_template_context(self, render_package: RenderPackage) -> dict[str, str]:
-        if render_package.report_type == "proof_pack":
-            return self._build_proof_pack_context(render_package)
-        if render_package.report_type == "outcome_review":
-            return self._build_outcome_review_context(render_package)
-        if render_package.report_type == "rebalance_wave":
-            return self._build_wave_context(render_package)
-        return self._build_portfolio_review_context(render_package)
+        return self._template_context_registry.build_context(render_package)
 
     def _build_proof_pack_context(self, render_package: RenderPackage) -> dict[str, str]:
-        report_data = render_package.report_data
+        report_data = parse_proof_pack_content(render_package).as_report_data()
         render_context = render_package.render_context
-        required_report_fields = [
-            "title",
-            "portfolio_id",
-            "proof_pack_id",
-            "state",
-            "decision_summary",
-            "supportability",
-            "sections",
-            "content_hash",
-            "proof_pack_content_hash",
-        ]
-        for field_name in required_report_fields:
-            if field_name not in report_data:
-                raise ValueError(f"missing required report_data field: {field_name}")
-
         sections = report_data["sections"]
-        if not isinstance(sections, list):
-            raise ValueError("sections must be a list")
 
         decision_summary = self._mapping(report_data.get("decision_summary"))
         supportability = self._mapping(report_data.get("supportability"))
@@ -489,23 +486,9 @@ class TypstRenderService:
         }
 
     def _build_outcome_review_context(self, render_package: RenderPackage) -> dict[str, str]:
-        report_data = render_package.report_data
+        report_data = parse_outcome_review_content(render_package).as_report_data()
         render_context = render_package.render_context
-        required_report_fields = [
-            "title",
-            "portfolio_id",
-            "outcome_review_id",
-            "state",
-            "overall_outcome",
-            "dimensions",
-            "content_hash",
-        ]
-        for field_name in required_report_fields:
-            if field_name not in report_data:
-                raise ValueError(f"missing required report_data field: {field_name}")
         dimensions = report_data["dimensions"]
-        if not isinstance(dimensions, list):
-            raise ValueError("dimensions must be a list")
         source_hashes = self._mapping(report_data.get("source_hashes"))
         section_hashes = self._mapping(report_data.get("section_hashes"))
         return {
@@ -546,26 +529,9 @@ class TypstRenderService:
         }
 
     def _build_wave_context(self, render_package: RenderPackage) -> dict[str, str]:
-        report_data = render_package.report_data
+        report_data = parse_rebalance_wave_content(render_package).as_report_data()
         render_context = render_package.render_context
-        required_report_fields = [
-            "title",
-            "wave_id",
-            "wave_state",
-            "trigger_type",
-            "aggregate_metrics",
-            "supportability",
-            "proof_pack_posture",
-            "items",
-            "content_hash",
-            "wave_content_hash",
-        ]
-        for field_name in required_report_fields:
-            if field_name not in report_data:
-                raise ValueError(f"missing required report_data field: {field_name}")
         items = report_data["items"]
-        if not isinstance(items, list):
-            raise ValueError("items must be a list")
         aggregate_metrics = self._mapping(report_data.get("aggregate_metrics"))
         supportability = self._mapping(report_data.get("supportability"))
         proof_pack_posture = self._mapping(report_data.get("proof_pack_posture"))

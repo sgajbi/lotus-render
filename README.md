@@ -60,6 +60,10 @@ and Typst foundation slices:
 - governed dependency-audit exception metadata under `security/pip-audit-exceptions.json`
 - consumer contract declarations under `contracts/` for supported features, source-contract
   provenance, and data-product trust
+- typed render content adapters for each active report-data contract version before Typst context
+  generation
+- explicit template-context renderer registration for active report/template/version tuples, with
+  unknown combinations failing instead of falling back to portfolio review
 - governed Typst templates under `templates/typst/portfolio-review/v1/`,
   `templates/typst/outcome-review/v1/`, `templates/typst/proof-pack/v1/`, and
   `templates/typst/rebalance-wave/v1/`
@@ -124,6 +128,12 @@ anything. Use `GET /renders/{render_job_id}/diagnostics` to classify stale postu
 recovery action, and support handoff without raw package or engine diagnostics. Use
 `GET /renders/{render_job_id}/artifact-metadata` when callers need artifact hash, size, MIME type,
 and determinism posture without archive semantics.
+
+Supported report-data contract versions are parsed through render-safe content adapters before
+Typst context generation. The adapters validate the active `portfolio_review.v1`,
+`dpm_outcome_report_input.v1`, `dpm_proof_pack_report_input.v1`, and
+`dpm_wave_report_input.v1` shapes without making `lotus-render` the owner of upstream domain
+calculations or source-data retrieval.
 
 The supported determinism posture is explicit:
 

@@ -38,7 +38,9 @@ on a named volume so render-job state survives container recreation in the suppo
 Consumer-facing governance is declared in `contracts/render-supported-features.v1.json`,
 `contracts/render-source-contracts.v1.json`, and `contracts/render-data-product-trust.v1.json`;
 unit tests validate those contracts against the live template registry, OpenAPI paths, and metric
-contracts.
+contracts. Active report-data contract versions are parsed through typed render content adapters
+before Typst context generation, and active report/template/version tuples are routed through an
+explicit template-context registry instead of a fallback report-type switch.
 RFC40-WTBD-004 Slice 1 adds the
 first-wave `proof-pack v1` template and registry manifest for
 `dpm_proof_pack_report_input.v1`, establishing deterministic render-service support for
@@ -191,6 +193,12 @@ Primary governing artifacts:
     diagnostics handoff. Keep stale classification in store/service policy, expose only bounded
     aggregate metrics, and use `/renders/{render_job_id}/diagnostics` for recovery decisions rather
     than raw logs or raw engine output.
+13. Report-data contract interpretation belongs in `src/app/services/render_content.py`, not in
+    routers, submission orchestration, or ad hoc Typst formatting code. Add a typed content adapter
+    and focused contract-shape tests whenever a new active render data contract is introduced.
+14. Template context routing belongs in `src/app/services/template_context.py`. Register each
+    active report/template/version tuple explicitly and fail unknown combinations rather than
+    falling back to another template's context builder.
 
 ## Context Maintenance Rule
 
