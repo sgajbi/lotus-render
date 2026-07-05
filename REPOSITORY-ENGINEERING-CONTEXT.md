@@ -146,10 +146,9 @@ Key expectations:
 2. repo-native full gate: `make ci`
 3. Docker build must stay green because the service is independently deployable
 4. OpenAPI quality, strict typing, coverage gate, and security audit are all part of baseline CI
-5. `main` branch protection requires strict PR Merge Gate status checks, one approving review,
-   code-owner review, last-push approval, conversation resolution, linear history, and admin
-   enforcement. Keep `.github/CODEOWNERS` aligned to governed backend, contract, template, CI, and
-   operator-facing documentation paths.
+5. `main` branch protection requires strict PR Merge Gate status checks, conversation resolution,
+   linear history, and admin enforcement. Human approval is optional in the solo-developer baseline;
+   required GitHub checks and truthful PR evidence are the merge control.
 
 ## Standards And RFCs That Govern This Repository
 

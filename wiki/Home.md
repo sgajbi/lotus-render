@@ -98,10 +98,10 @@ See [Template Registry](Template-Registry).
 
 ## Remote governance
 
-- `main` branch protection requires strict PR Merge Gate contexts, one approving review, code-owner
-  review, last-push approval, conversation resolution, linear history, and admin enforcement
-- `.github/CODEOWNERS` owns governed backend, contract, template, CI, and operator-facing
-  documentation paths
+- `main` branch protection requires strict PR Merge Gate contexts, conversation resolution, linear
+  history, and admin enforcement
+- human approval is optional in the solo-developer baseline; required GitHub checks and truthful PR
+  evidence are the merge control
 
 ## Scope guardrails
 
