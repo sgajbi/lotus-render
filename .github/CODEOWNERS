@@ -1,0 +1,13 @@
+# Lotus render governance ownership.
+* @sgajbi
+
+# Explicitly governed backend, contract, template, CI, and operator-facing truth.
+/.github/ @sgajbi
+/contracts/ @sgajbi
+/docs/ @sgajbi
+/src/app/api/ @sgajbi
+/src/app/contracts/ @sgajbi
+/templates/ @sgajbi
+/wiki/ @sgajbi
+/README.md @sgajbi
+/REPOSITORY-ENGINEERING-CONTEXT.md @sgajbi

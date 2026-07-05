@@ -96,6 +96,13 @@ See [Template Registry](Template-Registry).
 - `GET /renders/{render_job_id}/artifact-metadata`
 - `docs/configuration.md`
 
+## Remote governance
+
+- `main` branch protection requires strict PR Merge Gate contexts, one approving review, code-owner
+  review, last-push approval, conversation resolution, linear history, and admin enforcement
+- `.github/CODEOWNERS` owns governed backend, contract, template, CI, and operator-facing
+  documentation paths
+
 ## Scope guardrails
 
 - `lotus-render` owns render execution, render status, artifact hash, and support-safe diagnostics
