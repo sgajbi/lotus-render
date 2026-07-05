@@ -1,0 +1,46 @@
+{
+  "contract": "lotus-render.source-contracts.v1",
+  "owner": "lotus-reporting-platform",
+  "service": "lotus-render",
+  "contracts": [
+    {
+      "report_data_contract_version": "portfolio_review.v1",
+      "source_owner": "lotus-report",
+      "source_repository": "sgajbi/lotus-report",
+      "source_path": "contracts/report-data/portfolio_review.v1.json",
+      "compatibility_policy": "exact-version",
+      "status": "active",
+      "effective_from": "2026-04-23"
+    },
+    {
+      "report_data_contract_version": "dpm_outcome_report_input.v1",
+      "source_owner": "lotus-report",
+      "source_repository": "sgajbi/lotus-report",
+      "source_path": "contracts/report-data/dpm_outcome_report_input.v1.json",
+      "upstream_domain_owner": "lotus-manage",
+      "compatibility_policy": "exact-version",
+      "status": "active",
+      "effective_from": "2026-04-23"
+    },
+    {
+      "report_data_contract_version": "dpm_proof_pack_report_input.v1",
+      "source_owner": "lotus-report",
+      "source_repository": "sgajbi/lotus-report",
+      "source_path": "contracts/report-data/dpm_proof_pack_report_input.v1.json",
+      "upstream_domain_owner": "lotus-manage",
+      "compatibility_policy": "exact-version",
+      "status": "active",
+      "effective_from": "2026-04-23"
+    },
+    {
+      "report_data_contract_version": "dpm_wave_report_input.v1",
+      "source_owner": "lotus-report",
+      "source_repository": "sgajbi/lotus-report",
+      "source_path": "contracts/report-data/dpm_wave_report_input.v1.json",
+      "upstream_domain_owner": "lotus-manage",
+      "compatibility_policy": "exact-version",
+      "status": "active",
+      "effective_from": "2026-04-23"
+    }
+  ]
+}
