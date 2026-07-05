@@ -7,6 +7,7 @@ from typing import Any, cast
 
 import pytest
 
+from app.contracts.examples import PORTFOLIO_REVIEW_RENDER_PACKAGE_EXAMPLE_PATH
 from app.contracts.render_package import RenderPackage
 from app.core.settings import Settings
 from app.domain.render_attempts.models import RenderAttempt
@@ -19,11 +20,9 @@ from app.services.render_submission import (
     RenderSubmissionService,
 )
 
-GOLDEN_PACKAGE_PATH = Path("tests/golden/portfolio-review/v1/render-package.json")
-
 
 def _render_package(**overrides: object) -> RenderPackage:
-    payload = json.loads(GOLDEN_PACKAGE_PATH.read_text(encoding="utf-8"))
+    payload = json.loads(PORTFOLIO_REVIEW_RENDER_PACKAGE_EXAMPLE_PATH.read_text(encoding="utf-8"))
     payload.update(overrides)
     return RenderPackage.model_validate(payload)
 

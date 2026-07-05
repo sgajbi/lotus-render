@@ -5,6 +5,7 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
+from app.contracts.examples import load_portfolio_review_render_package_example
 from app.contracts.render_package import RenderPackage
 
 RenderJobStatus = Literal["accepted", "rendering", "rendered", "failed"]
@@ -18,78 +19,7 @@ RenderFailureCategory = Literal[
     "operator_intervention_required",
 ]
 
-RENDER_SUBMIT_REQUEST_EXAMPLE: dict[str, Any] = {
-    "render_package_version": "render_package.v1",
-    "render_job_id": "rdr_golden_portfolio_review_v1",
-    "report_job_id": "rjob_83ca965c50334c40a17d2b8cc94873a5",
-    "snapshot_id": "rsnap_8c0c8f6fc2d947b89cb451d9f4f5d9bf",
-    "report_type": "portfolio_review",
-    "report_data_contract_version": "portfolio_review.v1",
-    "template_id": "portfolio-review",
-    "template_version": "v1",
-    "locale": "en-SG",
-    "brand_variant": "private_banking",
-    "output_format": "pdf",
-    "render_context": {"timezone": "Asia/Singapore"},
-    "report_data": {
-        "client_name": "Alex Tan",
-        "portfolio_name": "PB SG Global Balanced",
-        "as_of_date": "2026-04-23",
-        "currency": "USD",
-        "total_value": "15234567.89",
-        "summary_paragraph": (
-            "The portfolio remained aligned with balanced growth objectives while preserving "
-            "liquidity discipline through the quarter."
-        ),
-        "review_observations": [
-            "Equity positioning remained the main contributor to year-to-date performance.",
-            "Risk posture stayed within the monitored balanced mandate range.",
-        ],
-        "reviewed_advisory_narrative": {
-            "status": "included",
-            "package_status": "INCLUDED_REVIEWED_NARRATIVE",
-            "usage": "advisor_report_package",
-            "proposal_id": "adv_prop_001",
-            "proposal_version_no": 3,
-            "narrative_id": "adv_narrative_001",
-            "narrative_status": "REVIEWED",
-            "audience": "ADVISOR",
-            "policy_version": "proposal-narrative-policy.v1",
-            "review": {
-                "review_id": "adv_review_001",
-                "review_state": "APPROVED_FOR_ADVISOR_USE",
-                "reviewed_at": "2026-05-21T09:15:00Z",
-                "reviewed_by": "head-advisor.sg@example.com",
-            },
-            "source_lineage": {"source_narrative_hash": "sha256:reviewed-narrative"},
-            "sections": [
-                {
-                    "section_id": "suitability_summary",
-                    "title": "Suitability summary",
-                    "body": (
-                        "The proposal remains aligned to the balanced mandate while addressing "
-                        "liquidity and concentration observations."
-                    ),
-                    "source_refs": [{"source_id": "proposal-lineage-001"}],
-                }
-            ],
-            "disclosures": [
-                {
-                    "disclosure_id": "proposal_narrative.advisor_use_only.v1",
-                    "text": "Advisor use only. Client distribution requires separate approval.",
-                }
-            ],
-        },
-    },
-    "lineage_refs": ["rsnap_8c0c8f6fc2d947b89cb451d9f4f5d9bf"],
-    "disclosure_refs": [
-        "portfolio-review.standard-disclosures.v1",
-        "proposal_narrative.advisor_use_only.v1",
-    ],
-    "requested_by": "advisor.sg@example.com",
-    "correlation_id": "corr-golden-portfolio-review-v1",
-    "trace_id": "trace-golden-portfolio-review-v1",
-}
+RENDER_SUBMIT_REQUEST_EXAMPLE: dict[str, Any] = load_portfolio_review_render_package_example()
 
 RENDER_STATUS_RESPONSE_EXAMPLE: dict[str, Any] = {
     "render_job_id": "rdr_golden_portfolio_review_v1",

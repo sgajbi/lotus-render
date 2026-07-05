@@ -46,3 +46,6 @@ testpaths = ["tests"]
 [tool.coverage.run]
 branch = true
 source = ["src/app"]
+
+[tool.setuptools.package-data]
+"app.contracts" = ["examples/*.json"]

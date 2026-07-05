@@ -19,6 +19,7 @@ make ci
 .venv\Scripts\python.exe -m mypy --config-file mypy.ini
 .venv\Scripts\python.exe scripts/openapi_quality_gate.py
 .venv\Scripts\python.exe scripts/validate_template_registry.py
+.venv\Scripts\python.exe scripts/pip_audit_gate.py
 .venv\Scripts\python.exe -m pytest tests/unit tests/integration tests/e2e
 .venv\Scripts\python.exe scripts/coverage_gate.py
 ```
@@ -48,10 +49,15 @@ RFC-0102 now covers the first governed internal render API on top of the earlier
 and Typst foundation slices:
 
 - versioned `RenderPackage` contract with strict validation
+- canonical `POST /renders` OpenAPI request example sourced from
+  `src/app/contracts/examples/portfolio-review-render-package.v1.json`
 - source-controlled template manifests under `templates/registry/`
 - explicit lifecycle posture for `active`, `deprecated_rerenderable`,
   `blocked_for_new_renders`, and `blocked`
 - machine validation through `scripts/validate_template_registry.py` and `make check`
+- OpenAPI governance through `scripts/openapi_quality_gate.py`, including operation metadata,
+  expected response codes, internal security posture text, and canonical render-package examples
+- governed dependency-audit exception metadata under `security/pip-audit-exceptions.json`
 - governed Typst templates under `templates/typst/portfolio-review/v1/`,
   `templates/typst/outcome-review/v1/`, `templates/typst/proof-pack/v1/`, and
   `templates/typst/rebalance-wave/v1/`

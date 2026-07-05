@@ -1,0 +1,64 @@
+{
+  "exceptions": [
+    {
+      "id": "CVE-2026-3219",
+      "package": "starlette",
+      "owner": "lotus-platform-governance",
+      "tracking_issue": "https://github.com/sgajbi/lotus-render/issues/30",
+      "created_on": "2026-07-05",
+      "expires_on": "2026-08-31",
+      "reason": "prometheus-fastapi-instrumentator 7.1.0 constrains the current FastAPI/Starlette line below the audited fixed major version.",
+      "compensating_controls": "Internal API behind governed platform ingress; trusted-host/body-size boundaries; support-safe error handling; dependency upgrade tracked for removal of this exception."
+    },
+    {
+      "id": "PYSEC-2026-161",
+      "package": "starlette",
+      "owner": "lotus-platform-governance",
+      "tracking_issue": "https://github.com/sgajbi/lotus-render/issues/30",
+      "created_on": "2026-07-05",
+      "expires_on": "2026-08-31",
+      "reason": "prometheus-fastapi-instrumentator 7.1.0 constrains the current FastAPI/Starlette line below the audited fixed major version.",
+      "compensating_controls": "Internal API behind governed platform ingress; trusted-host/body-size boundaries; support-safe error handling; dependency upgrade tracked for removal of this exception."
+    },
+    {
+      "id": "CVE-2026-48818",
+      "package": "starlette",
+      "owner": "lotus-platform-governance",
+      "tracking_issue": "https://github.com/sgajbi/lotus-render/issues/30",
+      "created_on": "2026-07-05",
+      "expires_on": "2026-08-31",
+      "reason": "prometheus-fastapi-instrumentator 7.1.0 constrains the current FastAPI/Starlette line below the audited fixed major version.",
+      "compensating_controls": "Internal API behind governed platform ingress; trusted-host/body-size boundaries; support-safe error handling; dependency upgrade tracked for removal of this exception."
+    },
+    {
+      "id": "CVE-2026-48817",
+      "package": "starlette",
+      "owner": "lotus-platform-governance",
+      "tracking_issue": "https://github.com/sgajbi/lotus-render/issues/30",
+      "created_on": "2026-07-05",
+      "expires_on": "2026-08-31",
+      "reason": "prometheus-fastapi-instrumentator 7.1.0 constrains the current FastAPI/Starlette line below the audited fixed major version.",
+      "compensating_controls": "Internal API behind governed platform ingress; trusted-host/body-size boundaries; support-safe error handling; dependency upgrade tracked for removal of this exception."
+    },
+    {
+      "id": "CVE-2026-54283",
+      "package": "starlette",
+      "owner": "lotus-platform-governance",
+      "tracking_issue": "https://github.com/sgajbi/lotus-render/issues/30",
+      "created_on": "2026-07-05",
+      "expires_on": "2026-08-31",
+      "reason": "prometheus-fastapi-instrumentator 7.1.0 constrains the current FastAPI/Starlette line below the audited fixed major version.",
+      "compensating_controls": "Internal API behind governed platform ingress; trusted-host/body-size boundaries; support-safe error handling; dependency upgrade tracked for removal of this exception."
+    },
+    {
+      "id": "CVE-2026-54282",
+      "package": "starlette",
+      "owner": "lotus-platform-governance",
+      "tracking_issue": "https://github.com/sgajbi/lotus-render/issues/30",
+      "created_on": "2026-07-05",
+      "expires_on": "2026-08-31",
+      "reason": "prometheus-fastapi-instrumentator 7.1.0 constrains the current FastAPI/Starlette line below the audited fixed major version.",
+      "compensating_controls": "Internal API behind governed platform ingress; trusted-host/body-size boundaries; support-safe error handling; dependency upgrade tracked for removal of this exception."
+    }
+  ]
+}

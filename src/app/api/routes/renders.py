@@ -51,7 +51,11 @@ def _error_response(
         "Accepts a complete governed render package and executes the first-wave synchronous render "
         "path. Use this internal endpoint when lotus-report has already assembled immutable report "
         "data and needs lotus-render to validate the template, execute the render, and return "
-        "support-safe diagnostics plus inline artifact bytes."
+        "support-safe diagnostics plus inline artifact bytes. Submissions are idempotent for the "
+        "same render job identifier and package hash. Request correlation uses X-Correlation-Id, "
+        "X-Trace-Id, and traceparent headers when supplied. Authentication and authorization are "
+        "enforced by governed platform ingress and service-to-service policy before this internal "
+        "API is reached."
     ),
     openapi_extra={
         "requestBody": {

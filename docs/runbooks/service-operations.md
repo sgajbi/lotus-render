@@ -6,6 +6,8 @@
 - make lint
 - make typecheck
 - make template-registry-gate
+- make openapi-gate
+- make security-audit
 - make check
 - make ci
 - docker compose up --build
@@ -13,6 +15,12 @@
 
 Runtime configuration is documented in `docs/configuration.md`. Settings use the
 `LOTUS_RENDER_` prefix and invalid required configuration fails at service startup.
+
+`make ci` and the remote feature, PR merge, and main releasability lanes all run the template
+registry validator. `make openapi-gate` proves operation metadata, expected response codes,
+internal security posture text, and canonical request-example truth. `make security-audit`
+validates time-bounded pip-audit exceptions from `security/pip-audit-exceptions.json` before
+running `pip-audit`.
 
 ## Health and Readiness
 
@@ -79,7 +87,10 @@ returns ready and `/metadata` reports `runtimeAvailable=true`.
 3. Check `docs/configuration.md` and the active `LOTUS_RENDER_` settings when readiness, request
    boundary, timeout, or render-store posture changed.
 4. Run `make template-registry-gate` if template manifests or lifecycle posture changed.
-5. Render the governed golden package from the container-first Typst envelope if a template or
+5. Run `make openapi-gate` if API descriptions, examples, response envelopes, or route metadata
+   changed.
+6. Run `make security-audit` if dependency pins or vulnerability exceptions changed.
+7. Render the governed golden package from the container-first Typst envelope if a template or
    runtime change is suspected.
-6. Run local fast parity (`make check`) before deeper investigation.
-7. Run `make ci` before a hotfix PR.
+8. Run local fast parity (`make check`) before deeper investigation.
+9. Run `make ci` before a hotfix PR.

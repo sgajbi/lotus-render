@@ -6,12 +6,11 @@ from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
 
+from app.contracts.examples import PORTFOLIO_REVIEW_RENDER_PACKAGE_EXAMPLE_PATH
 from app.core.settings import Settings
 from app.dependencies.container import get_render_submission_service
 from app.main import create_app
 from app.services.render_submission import RenderExecutionFailedError
-
-GOLDEN_ROOT = Path("tests/golden/portfolio-review/v1")
 
 
 def _build_client(tmp_path: Path) -> TestClient:
@@ -24,7 +23,7 @@ def _build_client(tmp_path: Path) -> TestClient:
 
 
 def test_submit_render_and_fetch_status_and_artifact_metadata(tmp_path: Path) -> None:
-    payload = (GOLDEN_ROOT / "render-package.json").read_text(encoding="utf-8")
+    payload = PORTFOLIO_REVIEW_RENDER_PACKAGE_EXAMPLE_PATH.read_text(encoding="utf-8")
 
     with _build_client(tmp_path) as client:
         submit = client.post(
@@ -69,7 +68,7 @@ def test_submit_render_and_fetch_status_and_artifact_metadata(tmp_path: Path) ->
 
 
 def test_submit_render_is_idempotent_for_same_render_job(tmp_path: Path) -> None:
-    payload = (GOLDEN_ROOT / "render-package.json").read_text(encoding="utf-8")
+    payload = PORTFOLIO_REVIEW_RENDER_PACKAGE_EXAMPLE_PATH.read_text(encoding="utf-8")
 
     with _build_client(tmp_path) as client:
         first = client.post(
@@ -90,7 +89,7 @@ def test_submit_render_is_idempotent_for_same_render_job(tmp_path: Path) -> None
 
 
 def test_submit_render_rejects_conflicting_reuse_of_render_job_id(tmp_path: Path) -> None:
-    payload = (GOLDEN_ROOT / "render-package.json").read_text(encoding="utf-8")
+    payload = PORTFOLIO_REVIEW_RENDER_PACKAGE_EXAMPLE_PATH.read_text(encoding="utf-8")
     conflicting = payload.replace("Alex Tan", "Jordan Lee")
 
     with _build_client(tmp_path) as client:
@@ -111,7 +110,7 @@ def test_submit_render_rejects_conflicting_reuse_of_render_job_id(tmp_path: Path
 
 
 def test_submit_render_returns_validation_failure_for_template_mismatch(tmp_path: Path) -> None:
-    payload = (GOLDEN_ROOT / "render-package.json").read_text(encoding="utf-8")
+    payload = PORTFOLIO_REVIEW_RENDER_PACKAGE_EXAMPLE_PATH.read_text(encoding="utf-8")
     invalid = payload.replace('"template_version": "v1"', '"template_version": "v9"')
 
     with _build_client(tmp_path) as client:
@@ -126,7 +125,7 @@ def test_submit_render_returns_validation_failure_for_template_mismatch(tmp_path
 
 
 def test_artifact_metadata_requires_successful_render(tmp_path: Path) -> None:
-    payload = (GOLDEN_ROOT / "render-package.json").read_text(encoding="utf-8")
+    payload = PORTFOLIO_REVIEW_RENDER_PACKAGE_EXAMPLE_PATH.read_text(encoding="utf-8")
     invalid = payload.replace('"template_version": "v1"', '"template_version": "v9"')
 
     with _build_client(tmp_path) as client:
@@ -163,7 +162,7 @@ def test_artifact_metadata_returns_not_found_for_unknown_job(tmp_path: Path) -> 
 
 
 def test_submit_render_returns_bad_gateway_when_render_execution_fails(tmp_path: Path) -> None:
-    payload = (GOLDEN_ROOT / "render-package.json").read_text(encoding="utf-8")
+    payload = PORTFOLIO_REVIEW_RENDER_PACKAGE_EXAMPLE_PATH.read_text(encoding="utf-8")
 
     class _FailingRenderSubmissionService:
         def submit(self, _request_payload: object) -> object:
@@ -209,7 +208,7 @@ def test_artifact_metadata_reraises_unexpected_value_error(tmp_path: Path) -> No
 
 
 def test_submit_render_framework_validation_is_support_safe(tmp_path: Path) -> None:
-    payload = (GOLDEN_ROOT / "render-package.json").read_text(encoding="utf-8")
+    payload = PORTFOLIO_REVIEW_RENDER_PACKAGE_EXAMPLE_PATH.read_text(encoding="utf-8")
     invalid = payload.replace('"render_job_id": "rdr_golden_portfolio_review_v1",', "")
 
     with _build_client(tmp_path) as client:
@@ -236,7 +235,7 @@ def test_submit_render_framework_validation_is_support_safe(tmp_path: Path) -> N
 def test_submit_render_rejects_oversized_request_body_without_payload_echo(
     tmp_path: Path,
 ) -> None:
-    payload = (GOLDEN_ROOT / "render-package.json").read_text(encoding="utf-8")
+    payload = PORTFOLIO_REVIEW_RENDER_PACKAGE_EXAMPLE_PATH.read_text(encoding="utf-8")
     app = create_app(
         Settings(
             render_store_path=str(tmp_path / "render-store.sqlite3"),
@@ -265,7 +264,7 @@ def test_submit_render_rejects_oversized_request_body_without_payload_echo(
 
 
 def test_submit_render_extra_field_validation_is_support_safe(tmp_path: Path) -> None:
-    payload = json.loads((GOLDEN_ROOT / "render-package.json").read_text(encoding="utf-8"))
+    payload = json.loads(PORTFOLIO_REVIEW_RENDER_PACKAGE_EXAMPLE_PATH.read_text(encoding="utf-8"))
     payload["snapshot_hash"] = "sha256:not-contract"
 
     with _build_client(tmp_path) as client:

@@ -45,6 +45,8 @@ jobs:
         run: make typecheck
       - name: OpenAPI Gate
         run: make openapi-gate
+      - name: Template Registry Gate
+        run: make template-registry-gate
       - name: Security Audit
         run: make security-audit
 

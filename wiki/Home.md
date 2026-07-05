@@ -7,6 +7,8 @@ Deterministic document rendering service for Lotus reporting.
 - separate deployable render service with its own Docker image and independently scalable runtime
 - RFC-0102 first-wave implementation now covers health, readiness, metadata, structured request logging with correlation and trace identifiers, explicit render-attempt domain models, governed render package validation, template registry enforcement, the first real Typst PDF render path, and the first internal render API
 - `lotus-render` consumes complete render packages only and must not fetch business data directly
+- the `POST /renders` OpenAPI request example is sourced from the same canonical
+  portfolio-review render package used by regression tests
 - template lifecycle posture is explicit for `active`, `deprecated_rerenderable`, `blocked_for_new_renders`, and `blocked`
 - the current determinism claim is bounded to the governed Typst `0.14.2` runtime envelope
 - raw PDF bytes are not claimed to be stable across renders because PDF document ids and timestamps are reminted per artifact; support-safe repeatability uses the bounded determinism fingerprint
@@ -45,6 +47,10 @@ Deterministic document rendering service for Lotus reporting.
 
 - manifests live under `templates/registry/`
 - `make template-registry-gate` validates registry structure and lifecycle metadata
+- remote feature, PR merge, and main releasability lanes run the template registry gate
+- `make openapi-gate` validates operation metadata, expected response codes, and canonical request
+  example truth
+- `make security-audit` validates governed pip-audit exceptions before running dependency audit
 - current active templates are `portfolio-review` version `v1`, `outcome-review` version `v1`,
   `proof-pack` version `v1`, and `rebalance-wave` version `v1`
 - current first-wave golden proof lives under `tests/golden/portfolio-review/v1/`
