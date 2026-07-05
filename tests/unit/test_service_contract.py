@@ -1,6 +1,8 @@
 from pathlib import Path
 from time import sleep
 
+import pytest
+
 from app.contracts.examples import load_portfolio_review_render_package_example
 from app.contracts.render_package import SUPPORTED_RENDER_PACKAGE_VERSION, RenderPackage
 from app.contracts.renders import RENDER_SUBMIT_REQUEST_EXAMPLE
@@ -15,6 +17,7 @@ from app.domain.templates.registry import (
 from app.main import SERVICE_NAME
 from app.services.render_foundation import RenderFoundationService
 from app.services.render_intake import RenderIntakeService
+from app.services.render_runtime import RenderRuntimeProbe
 
 
 def _build_render_package(**overrides: object) -> RenderPackage:
@@ -207,6 +210,23 @@ def test_render_foundation_supportability_reports_source_backed_degradation() ->
     assert runtime_unavailable["deterministicOutputSupported"] is False
 
 
+def test_render_foundation_supportability_reports_non_deterministic_configuration() -> None:
+    settings = Settings().model_copy(update={"runtime_engine": ""})
+    service = RenderFoundationService(settings)
+
+    supportability = service.supportability_status(
+        is_draining=False,
+        render_store_ready=True,
+        template_registry_ready=True,
+        render_runtime_available=True,
+    )
+
+    assert supportability["state"] == "unavailable"
+    assert supportability["reason"] == "runtime_configuration_unavailable"
+    assert supportability["freshnessBucket"] == "unknown"
+    assert supportability["deterministicOutputSupported"] is False
+
+
 def test_settings_rejects_missing_supported_output_formats() -> None:
     try:
         Settings(supported_output_formats=())
@@ -227,6 +247,31 @@ def test_render_foundation_reports_not_ready_without_runtime() -> None:
 
     assert status_code == 503
     assert payload["status"] == "not_ready"
+
+
+def test_render_foundation_reports_not_ready_without_supported_outputs() -> None:
+    settings = Settings().model_copy(update={"supported_output_formats": ()})
+    service = RenderFoundationService(settings)
+
+    status_code, payload = service.readiness_status(
+        is_draining=False,
+        render_store_ready=True,
+        render_runtime_available=True,
+    )
+
+    assert status_code == 503
+    assert payload["status"] == "not_ready"
+
+
+def test_render_runtime_probe_reports_unavailable_without_typst_or_docker(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr("app.services.render_runtime.shutil.which", lambda _: None)
+
+    availability = RenderRuntimeProbe().check_available()
+
+    assert availability.available is False
+    assert availability.reason == "runtime_configuration_unavailable"
 
 
 def test_render_package_rejects_blank_identity_fields() -> None:

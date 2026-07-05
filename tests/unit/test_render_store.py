@@ -33,6 +33,29 @@ def test_render_store_check_ready_reports_missing_schema(tmp_path: Path) -> None
         store.check_ready()
 
 
+def test_render_store_check_ready_reports_outdated_schema_version(tmp_path: Path) -> None:
+    db_path = tmp_path / "render-store.sqlite3"
+    store = RenderStore(db_path)
+    with sqlite3.connect(db_path) as connection:
+        connection.execute("PRAGMA user_version = 1")
+        connection.commit()
+
+    with pytest.raises(RuntimeError, match="render_store_schema_version_outdated"):
+        store.check_ready()
+
+
+def test_render_store_check_ready_reports_missing_required_column(tmp_path: Path) -> None:
+    db_path = tmp_path / "render-store.sqlite3"
+    with sqlite3.connect(db_path) as connection:
+        connection.execute("CREATE TABLE render_job (render_job_id TEXT PRIMARY KEY)")
+        connection.execute(f"PRAGMA user_version = {CURRENT_RENDER_STORE_SCHEMA_VERSION}")
+        connection.commit()
+    store = RenderStore(db_path)
+
+    with pytest.raises(RuntimeError, match="render_store_schema_missing"):
+        store.check_ready()
+
+
 def test_render_store_get_unknown_job_raises_not_found(tmp_path: Path) -> None:
     store = _build_store(tmp_path)
 
@@ -164,6 +187,40 @@ def test_render_store_persists_support_safe_source_lineage(tmp_path: Path) -> No
     assert job.requested_by == "advisor.sg@example.com"
     assert job.package_correlation_id == "corr-lineage"
     assert job.package_trace_id == "trace-lineage"
+
+
+def test_render_store_bounds_corrupt_json_lineage_fields(tmp_path: Path) -> None:
+    db_path = tmp_path / "render-store.sqlite3"
+    store = RenderStore(db_path)
+    job = store.create_or_get(
+        render_job_id="rdr_corrupt_lineage",
+        report_job_id="rjob_corrupt_lineage",
+        render_package_version="render_package.v1",
+        package_hash="hash-corrupt-lineage",
+        snapshot_id="rsnap_corrupt_lineage",
+        lineage_refs=("rlineage_one",),
+        disclosure_refs=("portfolio-review.standard-disclosures.v1",),
+        requested_by="advisor.sg@example.com",
+        package_correlation_id="corr-lineage",
+        package_trace_id="trace-lineage",
+        report_type="portfolio_review",
+        template_id="portfolio-review",
+        template_version="v1",
+        output_format="pdf",
+        runtime_engine="typst",
+        runtime_engine_version="0.14.2",
+    )
+    with sqlite3.connect(db_path) as connection:
+        connection.execute(
+            "UPDATE render_job SET lineage_refs_json = ? WHERE render_job_id = ?",
+            ('{"not":"a-list"}', job.render_job_id),
+        )
+        connection.commit()
+
+    restored = store.get(job.render_job_id)
+
+    assert restored.lineage_refs == ()
+    assert restored.disclosure_refs == ("portfolio-review.standard-disclosures.v1",)
 
 
 def _render_result(render_job_id: str) -> RenderResult:

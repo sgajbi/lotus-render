@@ -85,12 +85,68 @@ def test_traceparent_header_preferred_for_trace_propagation(tmp_path: Path) -> N
         assert response.headers["traceparent"] == f"00-{trace_id}-0000000000000001-01"
 
 
+def test_invalid_traceparent_falls_back_to_trace_header(tmp_path: Path) -> None:
+    trace_id = "0123456789abcdef0123456789abcdef"
+    with _build_client(tmp_path) as client:
+        response = client.get(
+            "/health",
+            headers={
+                "X-Correlation-Id": "corr-invalid-traceparent",
+                "X-Trace-Id": trace_id,
+                "traceparent": "00-not-a-valid-trace-id-0000000000000001-01",
+            },
+        )
+
+        assert response.status_code == 200
+        assert response.headers["X-Trace-Id"] == trace_id
+        assert response.headers["traceparent"] == f"00-{trace_id}-0000000000000001-01"
+
+
 def test_missing_trace_header_is_generated(tmp_path: Path) -> None:
     with _build_client(tmp_path) as client:
         response = client.get("/health", headers={"X-Correlation-Id": "corr-generated"})
         assert response.status_code == 200
         assert response.headers["X-Trace-Id"]
         assert response.headers["traceparent"].startswith("00-")
+
+
+def test_cors_middleware_is_enabled_when_origins_are_configured(tmp_path: Path) -> None:
+    app = create_app(
+        Settings(
+            render_store_path=str(tmp_path / "render-store.sqlite3"),
+            cors_allowed_origins=("https://lotus.example",),
+        )
+    )
+    with TestClient(app) as client:
+        response = client.options(
+            "/health",
+            headers={
+                "Origin": "https://lotus.example",
+                "Access-Control-Request-Method": "GET",
+            },
+        )
+
+        assert response.status_code == 200
+        assert response.headers["access-control-allow-origin"] == "https://lotus.example"
+
+
+def test_malformed_content_length_is_rejected_without_echoing_body(tmp_path: Path) -> None:
+    with _build_client(tmp_path) as client:
+        response = client.post(
+            "/renders",
+            content=b"{}",
+            headers={
+                "Content-Length": "not-a-number",
+                "X-Correlation-Id": "corr-bad-length",
+                "X-Trace-Id": "trace-bad-length",
+            },
+        )
+
+        assert response.status_code == 413
+        detail = response.json()["detail"]
+        assert detail["code"] == "request_body_too_large"
+        assert detail["correlation_id"] == "corr-bad-length"
+        assert detail["trace_id"] == "trace-bad-length"
 
 
 def test_request_log_contains_correlation_and_trace(
