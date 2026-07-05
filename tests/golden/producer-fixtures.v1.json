@@ -1,0 +1,62 @@
+{
+  "manifest_version": "render_golden_producer_fixtures.v1",
+  "generated_at": "2026-07-05T15:30:00Z",
+  "fixtures": [
+    {
+      "template_id": "portfolio-review",
+      "template_version": "v1",
+      "golden_sample_id": "golden-portfolio-review-en-SG-private-banking-v1",
+      "report_data_contract_version": "portfolio_review.v1",
+      "package_path": "tests/golden/portfolio-review/v1/render-package.json",
+      "expected_pdf_path": "tests/golden/portfolio-review/v1/expected.pdf",
+      "producer_repository": "sgajbi/lotus-report",
+      "producer_source_paths": [
+        "src/app/reporting_render/package_builder.py",
+        "src/app/contracts/examples/portfolio-review-render-package.v1.json"
+      ],
+      "provenance": "Portfolio review package is the canonical lotus-report render package example mirrored into the golden fixture tree for registry-to-artifact gating."
+    },
+    {
+      "template_id": "outcome-review",
+      "template_version": "v1",
+      "golden_sample_id": "golden-outcome-review-en-SG-private-banking-v1",
+      "report_data_contract_version": "dpm_outcome_report_input.v1",
+      "package_path": "tests/golden/outcome-review/v1/render-package.json",
+      "expected_pdf_path": "tests/golden/outcome-review/v1/expected.pdf",
+      "producer_repository": "sgajbi/lotus-report",
+      "producer_source_paths": [
+        "src/app/reporting_render/package_builder.py",
+        "tests/unit/reporting_render/test_service.py"
+      ],
+      "provenance": "Generated from lotus-report ReportJobLedger and typed OutcomeReviewReportJobRequest through _build_render_package."
+    },
+    {
+      "template_id": "proof-pack",
+      "template_version": "v1",
+      "golden_sample_id": "golden-proof-pack-en-SG-private-banking-v1",
+      "report_data_contract_version": "dpm_proof_pack_report_input.v1",
+      "package_path": "tests/golden/proof-pack/v1/render-package.json",
+      "expected_pdf_path": "tests/golden/proof-pack/v1/expected.pdf",
+      "producer_repository": "sgajbi/lotus-report",
+      "producer_source_paths": [
+        "src/app/reporting_render/package_builder.py",
+        "tests/unit/reporting_render/test_service.py"
+      ],
+      "provenance": "Generated from lotus-report ReportJobLedger and typed ProofPackReportJobRequest through _build_render_package."
+    },
+    {
+      "template_id": "rebalance-wave",
+      "template_version": "v1",
+      "golden_sample_id": "golden-rebalance-wave-en-SG-private-banking-v1",
+      "report_data_contract_version": "dpm_wave_report_input.v1",
+      "package_path": "tests/golden/rebalance-wave/v1/render-package.json",
+      "expected_pdf_path": "tests/golden/rebalance-wave/v1/expected.pdf",
+      "producer_repository": "sgajbi/lotus-report",
+      "producer_source_paths": [
+        "src/app/reporting_render/package_builder.py",
+        "tests/unit/reporting_render/test_service.py"
+      ],
+      "provenance": "Generated from lotus-report ReportJobLedger and typed WaveReportJobRequest through _build_render_package."
+    }
+  ]
+}

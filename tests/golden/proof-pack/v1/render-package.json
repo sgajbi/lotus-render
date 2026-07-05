@@ -1,0 +1,108 @@
+{
+  "brand_variant": "private_banking",
+  "correlation_id": "corr-render",
+  "disclosure_refs": [
+    "proof-pack.standard-disclosures.v1"
+  ],
+  "lineage_refs": [
+    "rjob_4f8f60ad9afc46949f94761e99489b0a",
+    "dpp_001",
+    "sha256:report-input",
+    "sha256:portfolio-memory"
+  ],
+  "locale": "en-SG",
+  "output_format": "pdf",
+  "render_context": {
+    "timezone": "Asia/Singapore"
+  },
+  "render_job_id": "rdr_golden_proof_pack_v1",
+  "render_package_version": "render_package.v1",
+  "report_data": {
+    "as_of_date": "2026-05-03",
+    "content_hash": "sha256:report-input",
+    "decision_summary": {
+      "rationale": "Mandate drift and source readiness support rebalance approval.",
+      "recommended_action": "approve_rebalance"
+    },
+    "mandate_id": "MANDATE_PB_SG_GLOBAL_BAL_001",
+    "portfolio_id": "PB_SG_GLOBAL_BAL_001",
+    "portfolio_memory": {
+      "content_hash": "sha256:portfolio-memory",
+      "context_content_hash": "sha256:portfolio-memory-context",
+      "event_count": 3,
+      "event_ref_limit": 12,
+      "event_ref_selection_policy": "MOST_RECENT_RELEVANT_FIRST",
+      "event_refs": [
+        {
+          "access_classification": "CLIENT_CONFIDENTIAL_INTERNAL",
+          "audit_policy": "AUDIT_READ_AND_EXPORT",
+          "content_hash": "sha256:proof-pack",
+          "event_identity": "lotus-manage:DPM_PROOF_PACK:dpp_001:sha256:proof-pack",
+          "event_ref_selection_rank": 1,
+          "event_time": "2026-05-03T08:59:00Z",
+          "event_type": "PROOF_PACK_CREATED",
+          "manage_lookup_id": "pmem_lookup_dpp_001",
+          "redaction_policy": "NO_RAW_PAYLOADS",
+          "retention_policy": "DPM_PORTFOLIO_MEMORY_SOURCE_LINEAGE_7Y",
+          "source_id": "dpp_001",
+          "source_system": "lotus-manage",
+          "source_type": "DPM_PROOF_PACK"
+        }
+      ],
+      "event_refs_omitted": 2,
+      "event_refs_returned": 1,
+      "event_refs_truncated": true,
+      "governance_policy": {
+        "access_classification": "CLIENT_CONFIDENTIAL_INTERNAL",
+        "audit_policy": "AUDIT_READ_AND_EXPORT",
+        "redaction_policy": "NO_RAW_PAYLOADS",
+        "retention_policy": "DPM_PORTFOLIO_MEMORY_SOURCE_LINEAGE_7Y"
+      },
+      "portfolio_id": "PB_SG_GLOBAL_BAL_001",
+      "reason_codes": [
+        "proof_pack_ready"
+      ],
+      "source_systems": [
+        "lotus-manage"
+      ],
+      "status": "supplied",
+      "support_boundary": "BOUNDED_EVENT_REFS_ONLY",
+      "supportability_state": "READY"
+    },
+    "proof_pack_content_hash": "sha256:proof-pack",
+    "proof_pack_id": "dpp_001",
+    "redaction_policy": "NO_RAW_PAYLOADS",
+    "sections": [
+      {
+        "content_hash": "sha256:section-mandate",
+        "reason_codes": [
+          "mandate_context_ready"
+        ],
+        "section_id": "sec_mandate",
+        "section_type": "MANDATE_CONTEXT",
+        "state": "READY",
+        "summary": "Mandate, model, and policy evidence are aligned.",
+        "title": "Mandate context"
+      }
+    ],
+    "source_hashes": {
+      "mandate": "sha256:mandate"
+    },
+    "state": "READY",
+    "supportability": {
+      "reason_codes": [
+        "proof_pack_ready"
+      ],
+      "status": "READY"
+    },
+    "title": "Pre-Trade Proof Pack - PB_SG_GLOBAL_BAL_001"
+  },
+  "report_data_contract_version": "dpm_proof_pack_report_input.v1",
+  "report_job_id": "rjob_4f8f60ad9afc46949f94761e99489b0a",
+  "report_type": "proof_pack",
+  "requested_by": "advisor-123",
+  "snapshot_id": "snapshot-for-rjob_4f8f60ad9afc46949f94761e99489b0a",
+  "template_id": "proof-pack",
+  "template_version": "v1",
+  "trace_id": "trace-render"
+}
