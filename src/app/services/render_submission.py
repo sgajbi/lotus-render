@@ -20,7 +20,11 @@ from app.infrastructure.render_store import (
     StoredRenderJob,
 )
 from app.observability.render_metrics import record_render_artifact_size, record_render_operation
-from app.services.render_ports import RenderEnginePort, RenderJobStorePort
+from app.services.render_ports import (
+    RenderEnginePort,
+    RenderEngineTimeoutError,
+    RenderJobStorePort,
+)
 
 
 class RenderPackageInvalidError(ValueError):
@@ -86,6 +90,16 @@ class RenderSubmissionService:
         self._render_store.mark_rendering(render_package.render_job_id)
         try:
             result = self._render_engine.render(render_package)
+        except RenderEngineTimeoutError as exc:
+            failure = self._mark_failed_or_current_truth(
+                render_package.render_job_id,
+                failure_category="timeout",
+                failure_message=_support_safe_render_failure_message("timeout"),
+            )
+            self._record_submit_metric(failure, started_at=started_at)
+            if failure.status != "failed":
+                return self._to_submit_response(failure, artifact_base64=None)
+            raise RenderExecutionFailedError(failure.failure_message or "render_failed") from exc
         except TemplateCompatibilityError as exc:
             failure = self._mark_failed_or_current_truth(
                 render_package.render_job_id,

@@ -233,6 +233,37 @@ def test_submit_render_framework_validation_is_support_safe(tmp_path: Path) -> N
         assert "summary_paragraph" not in response_text
 
 
+def test_submit_render_rejects_oversized_request_body_without_payload_echo(
+    tmp_path: Path,
+) -> None:
+    payload = (GOLDEN_ROOT / "render-package.json").read_text(encoding="utf-8")
+    app = create_app(
+        Settings(
+            render_store_path=str(tmp_path / "render-store.sqlite3"),
+            max_request_body_bytes=128,
+        )
+    )
+
+    with TestClient(app) as client:
+        response = client.post(
+            "/renders",
+            content=payload,
+            headers={
+                "Content-Type": "application/json",
+                "X-Correlation-Id": "corr-body-limit",
+                "X-Trace-Id": "trace-body-limit",
+            },
+        )
+
+        assert response.status_code == 413
+        body = response.json()
+        assert body["detail"]["code"] == "request_body_too_large"
+        assert body["detail"]["correlation_id"] == "corr-body-limit"
+        assert body["detail"]["trace_id"] == "trace-body-limit"
+        assert "Alex Tan" not in response.text
+        assert "summary_paragraph" not in response.text
+
+
 def test_submit_render_extra_field_validation_is_support_safe(tmp_path: Path) -> None:
     payload = json.loads((GOLDEN_ROOT / "render-package.json").read_text(encoding="utf-8"))
     payload["snapshot_hash"] = "sha256:not-contract"

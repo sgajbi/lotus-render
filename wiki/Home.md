@@ -14,6 +14,8 @@ Deterministic document rendering service for Lotus reporting.
   is stable across environments
 - render jobs are persisted in the governed local store before readiness is reported as healthy for
   first-wave traffic
+- direct HTTP traffic is bounded by trusted hosts, configured request body size, and disabled CORS
+  by default; browser-facing access remains a platform-ingress concern
 - same-package render replays return the prior persisted `accepted`, `rendering`, `rendered`, or
   `failed` truth without rerunning the renderer; different-package reuse of a render job id remains
   a governed conflict
@@ -21,6 +23,8 @@ Deterministic document rendering service for Lotus reporting.
   explicit infrastructure and observability modules
 - `/metadata` now publishes source-backed RFC-0108 `render.observability.render_supportability`
   posture derived from drain, render-store, template-registry, and runtime configuration state
+- Typst/Docker compile execution is timeout-bounded; timed-out renders persist as failed jobs with
+  category `timeout` and support-safe diagnostics
 - the active `portfolio-review v1` flow now renders structured mandate, performance, risk,
   holdings, and governance sections from the governed render package rather than a thin text-only
   summary payload
@@ -61,6 +65,7 @@ See [Template Registry](Template-Registry).
 - `POST /renders`
 - `GET /renders/{render_job_id}`
 - `GET /renders/{render_job_id}/artifact-metadata`
+- `docs/configuration.md`
 
 ## Scope guardrails
 

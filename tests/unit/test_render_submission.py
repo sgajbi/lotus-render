@@ -12,7 +12,7 @@ from app.core.settings import Settings
 from app.domain.render_attempts.models import RenderAttempt
 from app.domain.rendering.models import RenderDiagnostic, RenderResult
 from app.infrastructure.render_store import RenderStore
-from app.services.render_ports import RenderRuntimeMetadata
+from app.services.render_ports import RenderEngineTimeoutError, RenderRuntimeMetadata
 from app.services.render_submission import (
     RenderExecutionFailedError,
     RenderPackageInvalidError,
@@ -115,6 +115,19 @@ class _RuntimeErrorTypstService:
         raise RuntimeError(self._message)
 
 
+class _TimeoutTypstService:
+    @property
+    def runtime_metadata(self) -> RenderRuntimeMetadata:
+        settings = _settings()
+        return RenderRuntimeMetadata(
+            runtime_engine=settings.runtime_engine,
+            runtime_engine_version=settings.runtime_engine_version,
+        )
+
+    def render(self, _render_package: RenderPackage) -> RenderResult:
+        raise RenderEngineTimeoutError("render_timeout")
+
+
 def test_render_submission_returns_existing_failed_job_without_retrying(tmp_path: Path) -> None:
     store = RenderStore(tmp_path / "render-store.sqlite3")
     package = _render_package()
@@ -187,6 +200,22 @@ def test_render_submission_marks_engine_unavailable_for_runtime_dependency_failu
     assert (
         stored.failure_message == "Render runtime is unavailable in the governed runtime envelope."
     )
+
+
+def test_render_submission_marks_failed_for_render_timeout(tmp_path: Path) -> None:
+    store = RenderStore(tmp_path / "render-store.sqlite3")
+    service = RenderSubmissionService(
+        render_store=store,
+        render_engine=cast(Any, _TimeoutTypstService()),
+    )
+
+    with pytest.raises(RenderExecutionFailedError, match="timed out"):
+        service.submit(_render_package(render_job_id="rdr_timeout"))
+
+    stored = store.get("rdr_timeout")
+    assert stored.status == "failed"
+    assert stored.failure_category == "timeout"
+    assert stored.failure_message == "Render execution timed out in the governed runtime envelope."
 
 
 def test_render_submission_returns_existing_in_progress_job_without_retrying(

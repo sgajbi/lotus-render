@@ -25,7 +25,10 @@ submission, status lookup, artifact metadata lookup, latency, failure-category, 
 signals without high-cardinality or sensitive labels. RFC-0108 render supportability now publishes
 `render.observability.render_supportability` through `/metadata` and
 `lotus_render_supportability_total`, backed by drain state, render-store readiness,
-template-registry availability, and runtime configuration. RFC40-WTBD-004 Slice 1 adds the
+template-registry availability, and executable Typst/Docker runtime configuration. HTTP boundary
+configuration is explicit through the `LOTUS_RENDER_` settings contract, including trusted hosts,
+CORS allow-listing, request body limits, persistent-store enforcement, and compile timeouts.
+RFC40-WTBD-004 Slice 1 adds the
 first-wave `proof-pack v1` template and registry manifest for
 `dpm_proof_pack_report_input.v1`, establishing deterministic render-service support for
 pre-trade proof-pack artifacts while keeping proof-pack truth and report-data assembly outside
@@ -60,7 +63,7 @@ Current repository baseline:
    render job state for the first-wave synchronous render lifecycle.
 10. `src/app/observability/`: RFC-0105 and RFC-0108 render metrics contracts and bounded
     Prometheus metric emitters.
-11. `src/app/middleware/`: correlation and structured request logging middleware.
+11. `src/app/middleware/`: correlation, HTTP-boundary, and structured request logging middleware.
 12. `templates/registry/`: PR-governed template source truth.
 13. `templates/typst/`: governed Typst template source.
 14. `tests/golden/`: golden render package and artifact proof inputs.
@@ -85,6 +88,8 @@ Current repository baseline:
      generation.
    - developer and CI proof should prefer the governed Typst container runtime when Docker is
      available; local Typst is fallback only when Docker is unavailable.
+   - direct service HTTP access is bounded by trusted-host and request-body-size controls; browser
+     access and authentication remain platform-ingress responsibilities until governed otherwise.
 
 ## Repo-Native Commands
 
@@ -145,6 +150,10 @@ Primary governing artifacts:
    `accepted`, `rendering`, `rendered`, and `failed` replays return prior truth without rerunning
    the renderer; terminal states are immutable unless a future governed recovery workflow changes
    that contract.
+10. Settings live behind the `LOTUS_RENDER_` contract documented in `docs/configuration.md`.
+    Required invalid configuration fails at service startup; runtime unavailability reports as
+    `runtime_configuration_unavailable`; Typst/Docker compile timeouts persist as failed render
+    jobs with category `timeout`.
 
 ## Context Maintenance Rule
 

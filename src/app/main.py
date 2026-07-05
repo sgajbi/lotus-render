@@ -6,8 +6,10 @@ from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from prometheus_fastapi_instrumentator import Instrumentator
+from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from app.api.routes.renders import router as renders_router
 from app.api.routes.system import router as system_router
@@ -17,10 +19,12 @@ from app.dependencies.container import AppContainer
 from app.domain.templates.registry import TemplateRegistry
 from app.infrastructure.render_store import RenderStore
 from app.middleware.correlation import CorrelationIdMiddleware
+from app.middleware.http_boundary import RequestBodySizeLimitMiddleware
 from app.middleware.request_logging import RequestLoggingMiddleware
 from app.observability.render_metrics import validate_render_metric_contracts
 from app.services.render_foundation import RenderFoundationService
 from app.services.render_intake import RenderIntakeService
+from app.services.render_runtime import RenderRuntimeProbe
 from app.services.render_submission import RenderSubmissionService
 from app.services.typst_rendering import TypstRenderService
 
@@ -48,6 +52,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                     RenderIntakeService(template_registry),
                 ),
             ),
+            render_runtime_probe=RenderRuntimeProbe(),
             template_registry=template_registry,
         )
         app.state.is_draining = False
@@ -61,6 +66,27 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         title=configured_settings.service_name,
         version=configured_settings.service_version,
         lifespan=lifespan,
+    )
+    app.add_middleware(
+        TrustedHostMiddleware,
+        allowed_hosts=list(configured_settings.allowed_hosts),
+    )
+    if configured_settings.cors_allowed_origins:
+        app.add_middleware(
+            CORSMiddleware,
+            allow_origins=list(configured_settings.cors_allowed_origins),
+            allow_methods=["GET", "POST", "OPTIONS"],
+            allow_headers=[
+                "Authorization",
+                "Content-Type",
+                "X-Correlation-Id",
+                "X-Trace-Id",
+                "traceparent",
+            ],
+        )
+    app.add_middleware(
+        RequestBodySizeLimitMiddleware,
+        max_request_body_bytes=configured_settings.max_request_body_bytes,
     )
     app.add_middleware(CorrelationIdMiddleware, service_name=configured_settings.service_name)
     app.add_middleware(RequestLoggingMiddleware, service_name=configured_settings.service_name)

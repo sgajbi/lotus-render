@@ -3,11 +3,13 @@
 ## Product And Scope
 
 - [Home](Home)
+- [Configuration](Configuration)
 - [Template Registry](Template-Registry)
 
 ## Operations
 
 - [Home - Operator Checks](Home#operator-checks)
+- [Configuration - Operator Controls](Configuration#operator-relevant-controls)
 - [Home - Scope Guardrails](Home#scope-guardrails)
 
 ## Engineering

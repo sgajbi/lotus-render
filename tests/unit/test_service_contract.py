@@ -144,6 +144,7 @@ def test_render_foundation_supportability_reports_ready_posture() -> None:
         is_draining=False,
         render_store_ready=True,
         template_registry_ready=True,
+        render_runtime_available=True,
     )
 
     assert supportability["featureKey"] == "render.observability.render_supportability"
@@ -153,6 +154,7 @@ def test_render_foundation_supportability_reports_ready_posture() -> None:
     assert supportability["deterministicOutputSupported"] is True
     assert supportability["renderStoreReady"] is True
     assert supportability["templateRegistryReady"] is True
+    assert supportability["runtimeAvailable"] is True
 
 
 def test_render_foundation_supportability_reports_source_backed_degradation() -> None:
@@ -162,16 +164,25 @@ def test_render_foundation_supportability_reports_source_backed_degradation() ->
         is_draining=True,
         render_store_ready=True,
         template_registry_ready=True,
+        render_runtime_available=True,
     )
     store_unavailable = service.supportability_status(
         is_draining=False,
         render_store_ready=False,
         template_registry_ready=True,
+        render_runtime_available=True,
     )
     registry_unavailable = service.supportability_status(
         is_draining=False,
         render_store_ready=True,
         template_registry_ready=False,
+        render_runtime_available=True,
+    )
+    runtime_unavailable = service.supportability_status(
+        is_draining=False,
+        render_store_ready=True,
+        template_registry_ready=True,
+        render_runtime_available=False,
     )
 
     assert draining["state"] == "degraded"
@@ -181,14 +192,27 @@ def test_render_foundation_supportability_reports_source_backed_degradation() ->
     assert store_unavailable["freshnessBucket"] == "unknown"
     assert registry_unavailable["state"] == "unavailable"
     assert registry_unavailable["reason"] == "template_registry_unavailable"
+    assert runtime_unavailable["state"] == "unavailable"
+    assert runtime_unavailable["reason"] == "runtime_configuration_unavailable"
+    assert runtime_unavailable["deterministicOutputSupported"] is False
 
 
-def test_render_foundation_reports_not_ready_without_supported_formats() -> None:
-    service = RenderFoundationService(Settings(supported_output_formats=()))
+def test_settings_rejects_missing_supported_output_formats() -> None:
+    try:
+        Settings(supported_output_formats=())
+    except ValueError as exc:
+        assert "default_output_format must be included in supported_output_formats" in str(exc)
+    else:
+        raise AssertionError("expected supported output formats to be required")
+
+
+def test_render_foundation_reports_not_ready_without_runtime() -> None:
+    service = RenderFoundationService(Settings())
 
     status_code, payload = service.readiness_status(
         is_draining=False,
         render_store_ready=True,
+        render_runtime_available=False,
     )
 
     assert status_code == 503

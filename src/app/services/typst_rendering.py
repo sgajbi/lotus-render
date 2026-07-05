@@ -22,7 +22,7 @@ from app.services.portfolio_charts import (
     render_portfolio_chart_assets,
 )
 from app.services.render_intake import RenderIntakeService
-from app.services.render_ports import RenderRuntimeMetadata
+from app.services.render_ports import RenderEngineTimeoutError, RenderRuntimeMetadata
 
 DETERMINISM_MODE = "bounded_runtime_envelope"
 DOCKER_TYPST_IMAGE = "ghcr.io/typst/typst:0.14.2"
@@ -131,13 +131,20 @@ class TypstRenderService:
                 source_path=source_path,
                 output_path=output_path,
             )
-            process = subprocess.run(
-                command,
-                capture_output=True,
-                text=True,
-                check=False,
-                timeout=60,
-            )
+            try:
+                process = subprocess.run(
+                    command,
+                    capture_output=True,
+                    text=True,
+                    check=False,
+                    timeout=self._settings.render_compile_timeout_seconds,
+                )
+            except subprocess.TimeoutExpired as exc:
+                attempt.mark_failed(
+                    RenderFailureCategory.TIMEOUT,
+                    "Render execution timed out in the governed runtime envelope.",
+                )
+                raise RenderEngineTimeoutError("render_timeout") from exc
             if process.returncode != 0:
                 diagnostic_summary = (
                     process.stderr.strip() or process.stdout.strip() or "typst compile failed"

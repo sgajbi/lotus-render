@@ -1,4 +1,5 @@
 import hashlib
+import subprocess
 from copy import deepcopy
 from pathlib import Path
 
@@ -8,6 +9,7 @@ from app.contracts.render_package import RenderPackage
 from app.core.settings import Settings
 from app.domain.templates.registry import TemplateRegistry
 from app.services.render_intake import RenderIntakeService
+from app.services.render_ports import RenderEngineTimeoutError
 from app.services.typst_rendering import (
     DEFAULT_PORTFOLIO_REVIEW_SECTIONS_WITH_ADVISORY_MEMO,
     DEFAULT_PORTFOLIO_REVIEW_SECTIONS_WITH_ADVISORY_NARRATIVE,
@@ -836,6 +838,27 @@ def test_typst_render_service_marks_template_failure_when_typst_compile_fails(
     )
 
     with pytest.raises(RuntimeError, match="compile failed"):
+        service.render(render_package)
+
+
+def test_typst_render_service_raises_typed_timeout_when_compile_times_out(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    service = _build_service()
+    render_package = _load_golden_package()
+
+    monkeypatch.setattr(
+        service,
+        "_build_compile_command",
+        lambda **_: ["typst", "compile", "render.typ", "rendered.pdf"],
+    )
+
+    def _raise_timeout(*_: object, **__: object) -> object:
+        raise subprocess.TimeoutExpired(cmd=["typst"], timeout=1)
+
+    monkeypatch.setattr("app.services.typst_rendering.subprocess.run", _raise_timeout)
+
+    with pytest.raises(RenderEngineTimeoutError, match="render_timeout"):
         service.render(render_package)
 
 
