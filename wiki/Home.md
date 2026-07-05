@@ -67,6 +67,10 @@ Deterministic document rendering service for Lotus reporting.
   source ownership/provenance
 - `contracts/render-data-product-trust.v1.json` declares support-safe render status, artifact
   metadata, supportability, and metrics trust posture
+- active report-data contract versions are parsed through typed render content adapters before
+  Typst context generation
+- template context routing is explicit for active report/template/version tuples and unknown
+  combinations fail without falling back to portfolio review
 - current active templates are `portfolio-review` version `v1`, `outcome-review` version `v1`,
   `proof-pack` version `v1`, and `rebalance-wave` version `v1`
 - current first-wave golden proof lives under `tests/golden/portfolio-review/v1/`

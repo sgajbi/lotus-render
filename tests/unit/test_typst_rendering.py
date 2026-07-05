@@ -482,6 +482,16 @@ def test_typst_render_service_routes_template_context_by_report_type() -> None:
     assert wave_context["WAVE_ID"] == "dwv_001"
 
 
+def test_typst_render_service_rejects_unregistered_template_context_without_fallback() -> None:
+    service = _build_service()
+    render_package = _load_golden_package().model_copy(
+        update={"report_type": "unknown", "template_id": "unknown"}
+    )
+
+    with pytest.raises(ValueError, match="unsupported template context renderer"):
+        service._build_template_context(render_package)
+
+
 def test_typst_render_service_builds_proof_pack_context() -> None:
     service = _build_service()
     template_context = service._build_proof_pack_context(_proof_pack_package())

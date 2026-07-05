@@ -6,6 +6,8 @@
     "templates/registry",
     "src/app/api/routes",
     "src/app/contracts/system.py",
+    "src/app/services/render_content.py",
+    "src/app/services/template_context.py",
     "docs/operations/rendering-observability-metrics.md"
   ],
   "api_paths": [
