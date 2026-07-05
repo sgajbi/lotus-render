@@ -32,7 +32,10 @@ RFC40-WTBD-004 Slice 1 adds the
 first-wave `proof-pack v1` template and registry manifest for
 `dpm_proof_pack_report_input.v1`, establishing deterministic render-service support for
 pre-trade proof-pack artifacts while keeping proof-pack truth and report-data assembly outside
-`lotus-render`. RFC41-WTBD-008 adds the first-wave `rebalance-wave v1` template and registry
+`lotus-render`. RFC-0042 outcome-review support is active through the `outcome-review v1` template
+and `dpm_outcome_report_input.v1` render package contract, establishing post-trade outcome-review
+artifact rendering while keeping outcome truth and report-data assembly upstream. RFC41-WTBD-008
+adds the first-wave `rebalance-wave v1` template and registry
 manifest for `dpm_wave_report_input.v1`, establishing deterministic render-service support for
 wave evidence artifacts while keeping wave state, proof-pack linkage, internal handoff evidence,
 and report-data assembly outside `lotus-render`. The companion `lotus-report` implementation
@@ -68,6 +71,19 @@ Current repository baseline:
 13. `templates/typst/`: governed Typst template source.
 14. `tests/golden/`: golden render package and artifact proof inputs.
 15. `tests/unit`, `tests/integration`, `tests/e2e`: test pyramid baseline.
+
+## Active Template Inventory
+
+Template lifecycle, report-data contract versions, and disclosure fragments are governed by
+`templates/registry/` and documented in `wiki/Template-Registry.md`. Keep this inventory aligned
+whenever a template is added, deprecated, blocked, or moved across ownership boundaries.
+
+| Template | Version | Report data contract | Upstream package owner | Render boundary |
+| --- | --- | --- | --- | --- |
+| `portfolio-review` | `v1` | `portfolio_review.v1` | `lotus-report` | Client/advisor portfolio review presentation only. |
+| `outcome-review` | `v1` | `dpm_outcome_report_input.v1` | `lotus-report` with outcome evidence from `lotus-manage` | Post-trade outcome-review artifact rendering only. |
+| `proof-pack` | `v1` | `dpm_proof_pack_report_input.v1` | `lotus-report` with proof-pack evidence from `lotus-manage` | Pre-trade proof-pack artifact rendering only. |
+| `rebalance-wave` | `v1` | `dpm_wave_report_input.v1` | `lotus-report` with wave evidence from `lotus-manage` | Rebalance wave evidence artifact rendering only. |
 
 ## Runtime And Integration Boundaries
 

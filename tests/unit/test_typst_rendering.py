@@ -5,6 +5,7 @@ from pathlib import Path
 
 import pytest
 
+from app.contracts.examples import PORTFOLIO_REVIEW_RENDER_PACKAGE_EXAMPLE_PATH
 from app.contracts.render_package import RenderPackage
 from app.core.settings import Settings
 from app.domain.templates.registry import TemplateRegistry
@@ -22,7 +23,7 @@ GOLDEN_ROOT = Path("tests/golden/portfolio-review/v1")
 
 def _load_golden_package() -> RenderPackage:
     return RenderPackage.model_validate_json(
-        (GOLDEN_ROOT / "render-package.json").read_text(encoding="utf-8")
+        PORTFOLIO_REVIEW_RENDER_PACKAGE_EXAMPLE_PATH.read_text(encoding="utf-8")
     )
 
 

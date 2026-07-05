@@ -91,7 +91,7 @@ From `lotus-render`:
 
 ```powershell
 $env:PYTHONPATH='src'
-python -c "from pathlib import Path; from app.contracts.render_package import RenderPackage; from app.core.settings import Settings; from app.domain.templates.registry import TemplateRegistry; from app.services.render_intake import RenderIntakeService; from app.services.typst_rendering import TypstRenderService; root=Path('tests/golden/portfolio-review/v1'); pkg=RenderPackage.model_validate_json((root/'render-package.json').read_text(encoding='utf-8')); settings=Settings(); registry=TemplateRegistry.load_from_directory(Path(settings.template_registry_path)); service=TypstRenderService(settings, RenderIntakeService(registry)); result=service.render(pkg); (root/'expected.pdf').write_bytes(result.artifact_bytes); print(len(result.artifact_bytes))"
+python -c "from pathlib import Path; from app.contracts.examples import PORTFOLIO_REVIEW_RENDER_PACKAGE_EXAMPLE_PATH; from app.contracts.render_package import RenderPackage; from app.core.settings import Settings; from app.domain.templates.registry import TemplateRegistry; from app.services.render_intake import RenderIntakeService; from app.services.typst_rendering import TypstRenderService; root=Path('tests/golden/portfolio-review/v1'); pkg=RenderPackage.model_validate_json(PORTFOLIO_REVIEW_RENDER_PACKAGE_EXAMPLE_PATH.read_text(encoding='utf-8')); settings=Settings(); registry=TemplateRegistry.load_from_directory(Path(settings.template_registry_path)); service=TypstRenderService(settings, RenderIntakeService(registry)); result=service.render(pkg); (root/'expected.pdf').write_bytes(result.artifact_bytes); print(len(result.artifact_bytes))"
 ```
 
 ## Validation

@@ -1,7 +1,9 @@
 from pathlib import Path
 from time import sleep
 
+from app.contracts.examples import load_portfolio_review_render_package_example
 from app.contracts.render_package import SUPPORTED_RENDER_PACKAGE_VERSION, RenderPackage
+from app.contracts.renders import RENDER_SUBMIT_REQUEST_EXAMPLE
 from app.core.settings import Settings
 from app.domain.render_attempts.models import RenderAttempt, RenderFailureCategory
 from app.domain.templates.models import TemplateLifecycleStatus, TemplateManifest
@@ -64,6 +66,10 @@ def _build_manifest(
 
 def test_service_name_is_lotus_prefixed() -> None:
     assert SERVICE_NAME.startswith("lotus-")
+
+
+def test_openapi_render_request_example_uses_canonical_render_package() -> None:
+    assert RENDER_SUBMIT_REQUEST_EXAMPLE == load_portfolio_review_render_package_example()
 
 
 def test_render_attempt_lifecycle_transitions() -> None:
