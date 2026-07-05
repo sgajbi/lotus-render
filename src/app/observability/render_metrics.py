@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections.abc import Iterable
 from dataclasses import dataclass
 
-from prometheus_client import Counter, Histogram
+from prometheus_client import Counter, Gauge, Histogram
 
 METRIC_OPERATION_LABEL = "operation"
 METRIC_STATUS_LABEL = "status"
@@ -11,12 +11,14 @@ METRIC_FAILURE_CATEGORY_LABEL = "failure_category"
 METRIC_STATE_LABEL = "state"
 METRIC_REASON_LABEL = "reason"
 METRIC_FRESHNESS_BUCKET_LABEL = "freshness_bucket"
+METRIC_STALE_STATE_LABEL = "stale_state"
 
 RENDER_METRIC_LABELS = frozenset(
     {
         METRIC_FRESHNESS_BUCKET_LABEL,
         METRIC_OPERATION_LABEL,
         METRIC_REASON_LABEL,
+        METRIC_STALE_STATE_LABEL,
         METRIC_STATE_LABEL,
         METRIC_STATUS_LABEL,
         METRIC_FAILURE_CATEGORY_LABEL,
@@ -51,6 +53,7 @@ IMPLEMENTED_RENDER_OPERATIONS = frozenset(
     {
         "artifact_metadata_lookup",
         "render_status_lookup",
+        "render_diagnostics_lookup",
         "render_submission",
     }
 )
@@ -65,6 +68,8 @@ RENDER_OPERATION_STATUSES = frozenset(
     }
 )
 RENDER_SUPPORTABILITY_STATES = frozenset({"ready", "degraded", "unavailable"})
+RENDER_IN_FLIGHT_STATUSES = frozenset({"accepted", "rendering"})
+RENDER_STALE_STATES = frozenset({"fresh", "stale"})
 RENDER_SUPPORTABILITY_REASONS = frozenset(
     {
         "render_supportability_ready",
@@ -124,6 +129,26 @@ RENDER_METRIC_CONTRACTS: tuple[RenderMetricContract, ...] = (
             "state, reason, and freshness labels."
         ),
     ),
+    RenderMetricContract(
+        name="lotus_render_in_flight_jobs",
+        metric_type="gauge",
+        labels=(METRIC_STATUS_LABEL, METRIC_STALE_STATE_LABEL),
+        implemented=True,
+        description=(
+            "Reports source-backed counts of non-terminal render jobs by bounded lifecycle state "
+            "and stale/fresh posture."
+        ),
+    ),
+    RenderMetricContract(
+        name="lotus_render_oldest_in_flight_age_seconds",
+        metric_type="gauge",
+        labels=(METRIC_STATUS_LABEL,),
+        implemented=True,
+        description=(
+            "Reports the oldest source-backed non-terminal render job age by bounded lifecycle "
+            "state without exposing job, report, portfolio, tenant, trace, or storage identifiers."
+        ),
+    ),
 )
 
 _RENDER_OPERATIONS_TOTAL = Counter(
@@ -147,6 +172,16 @@ _RENDER_SUPPORTABILITY_TOTAL = Counter(
     "lotus_render_supportability_total",
     RENDER_METRIC_CONTRACTS[3].description,
     [METRIC_STATE_LABEL, METRIC_REASON_LABEL, METRIC_FRESHNESS_BUCKET_LABEL],
+)
+_RENDER_IN_FLIGHT_JOBS = Gauge(
+    "lotus_render_in_flight_jobs",
+    RENDER_METRIC_CONTRACTS[4].description,
+    [METRIC_STATUS_LABEL, METRIC_STALE_STATE_LABEL],
+)
+_RENDER_OLDEST_IN_FLIGHT_AGE_SECONDS = Gauge(
+    "lotus_render_oldest_in_flight_age_seconds",
+    RENDER_METRIC_CONTRACTS[5].description,
+    [METRIC_STATUS_LABEL],
 )
 
 
@@ -200,6 +235,27 @@ def record_render_supportability(
     ).inc()
 
 
+def record_render_in_flight_summary(
+    *,
+    status: str,
+    fresh_count: int,
+    stale_count: int,
+    oldest_age_seconds: int | None,
+) -> None:
+    status_label = _bounded_in_flight_status(status)
+    _RENDER_IN_FLIGHT_JOBS.labels(
+        status=status_label,
+        stale_state="fresh",
+    ).set(max(0, fresh_count))
+    _RENDER_IN_FLIGHT_JOBS.labels(
+        status=status_label,
+        stale_state="stale",
+    ).set(max(0, stale_count))
+    _RENDER_OLDEST_IN_FLIGHT_AGE_SECONDS.labels(status=status_label).set(
+        max(0, oldest_age_seconds or 0)
+    )
+
+
 def _validate_labels(labels: Iterable[str]) -> None:
     label_set = set(labels)
     forbidden = label_set & FORBIDDEN_METRIC_LABELS
@@ -220,6 +276,12 @@ def _bounded_status(status: str) -> str:
     if status in RENDER_OPERATION_STATUSES:
         return status
     return "failed"
+
+
+def _bounded_in_flight_status(status: str) -> str:
+    if status in RENDER_IN_FLIGHT_STATUSES:
+        return status
+    return "rendering"
 
 
 def _bounded_failure_category(failure_category: str | None) -> str:

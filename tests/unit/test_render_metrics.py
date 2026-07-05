@@ -7,6 +7,7 @@ from app.observability.render_metrics import (
     RENDER_METRIC_CONTRACTS,
     RenderMetricContract,
     record_render_artifact_size,
+    record_render_in_flight_summary,
     record_render_operation,
     record_render_supportability,
     validate_render_metric_contracts,
@@ -24,10 +25,13 @@ def test_render_metric_contracts_are_bounded_and_implementation_truthful() -> No
         "lotus_render_operation_duration_seconds",
         "lotus_render_artifact_size_bytes",
         "lotus_render_supportability_total",
+        "lotus_render_in_flight_jobs",
+        "lotus_render_oldest_in_flight_age_seconds",
     } <= implemented_names
     assert {
         "render_submission",
         "render_status_lookup",
+        "render_diagnostics_lookup",
         "artifact_metadata_lookup",
     } <= IMPLEMENTED_RENDER_OPERATIONS
     for contract in RENDER_METRIC_CONTRACTS:
@@ -173,3 +177,35 @@ def test_record_render_supportability_sanitizes_labels_before_counter(
     }
     assert "PB_SG_GLOBAL_BAL_001" not in captured.values()
     assert "client_name:private-bank-client" not in captured.values()
+
+
+def test_record_render_in_flight_summary_sanitizes_labels_before_gauges(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: list[dict[str, str]] = []
+    observed: list[float] = []
+
+    class _Gauge:
+        def labels(self, **labels: str) -> "_Gauge":
+            captured.append(labels)
+            return self
+
+        def set(self, value: float) -> None:
+            observed.append(value)
+
+    monkeypatch.setattr(render_metrics, "_RENDER_IN_FLIGHT_JOBS", _Gauge())
+    monkeypatch.setattr(render_metrics, "_RENDER_OLDEST_IN_FLIGHT_AGE_SECONDS", _Gauge())
+
+    record_render_in_flight_summary(
+        status="portfolio:PB_SG_GLOBAL_BAL_001",
+        fresh_count=-1,
+        stale_count=2,
+        oldest_age_seconds=-20,
+    )
+
+    assert captured == [
+        {"status": "rendering", "stale_state": "fresh"},
+        {"status": "rendering", "stale_state": "stale"},
+        {"status": "rendering"},
+    ]
+    assert observed == [0, 2, 0]

@@ -18,6 +18,23 @@ RenderFailureCategory = Literal[
     "timeout",
     "operator_intervention_required",
 ]
+RenderStaleState = Literal["fresh", "stale", "not_applicable"]
+RenderRecoveryAction = Literal[
+    "wait_for_completion",
+    "resubmit_identical_package_or_escalate_runtime",
+    "read_artifact_metadata",
+    "fix_upstream_render_package",
+    "fix_template_registry_or_package",
+    "escalate_render_runtime",
+    "escalate_template_support",
+    "escalate_reporting_platform",
+]
+RenderHandoffOwner = Literal[
+    "lotus-render",
+    "lotus-report",
+    "template-owner",
+    "reporting-platform-on-call",
+]
 
 RENDER_SUBMIT_REQUEST_EXAMPLE: dict[str, Any] = load_portfolio_review_render_package_example()
 
@@ -61,6 +78,29 @@ RENDER_ARTIFACT_METADATA_RESPONSE_EXAMPLE: dict[str, Any] = {
     "output_size_bytes": 26823,
     "render_duration_ms": 842,
     "determinism_mode": "bounded_runtime_envelope",
+}
+
+RENDER_JOB_DIAGNOSTICS_RESPONSE_EXAMPLE: dict[str, Any] = {
+    "render_job_id": "rdr_golden_portfolio_review_v1",
+    "status": "rendering",
+    "failure_category": None,
+    "artifact_ready": False,
+    "stale_state": "fresh",
+    "age_seconds": 42,
+    "stale_threshold_seconds": 900,
+    "retryable": False,
+    "recovery_action": "wait_for_completion",
+    "handoff_owner": "lotus-render",
+    "support_message": "Render is in progress inside the governed runtime envelope.",
+    "snapshot_id": "rsnap_golden_portfolio_review_v1",
+    "lineage_refs": ["rlineage_golden_portfolio_review_v1"],
+    "template_id": "portfolio-review",
+    "template_version": "v1",
+    "output_format": "pdf",
+    "runtime_engine": "typst",
+    "runtime_engine_version": "0.14.2",
+    "updated_at": "2026-04-23T13:33:33Z",
+    "completed_at": None,
 }
 
 API_ERROR_RESPONSE_EXAMPLES: dict[str, dict[str, Any]] = {
@@ -461,6 +501,101 @@ class RenderArtifactMetadataResponse(BaseModel):
         ...,
         description="Declared determinism mode for the artifact.",
         examples=["bounded_runtime_envelope"],
+    )
+
+
+class RenderJobDiagnosticsResponse(BaseModel):
+    render_job_id: str = Field(
+        ...,
+        description="Opaque render job identifier being diagnosed.",
+        examples=["rdr_golden_portfolio_review_v1"],
+    )
+    status: RenderJobStatus = Field(
+        ...,
+        description="Current persisted render job lifecycle state.",
+        examples=["rendering"],
+    )
+    failure_category: RenderFailureCategory | None = Field(
+        default=None,
+        description="Machine-readable failure category when the render job failed.",
+        examples=["timeout"],
+    )
+    artifact_ready: bool = Field(
+        description="Whether artifact metadata is available for this render job.",
+        examples=[False],
+    )
+    stale_state: RenderStaleState = Field(
+        description=(
+            "Stale posture for non-terminal jobs, or not_applicable for rendered and failed jobs."
+        ),
+        examples=["fresh"],
+    )
+    age_seconds: int = Field(
+        ge=0,
+        description="Age in seconds since the render job row was last updated.",
+        examples=[42],
+    )
+    stale_threshold_seconds: int | None = Field(
+        default=None,
+        ge=1,
+        description="Configured threshold used for accepted/rendering stale classification.",
+        examples=[900],
+    )
+    retryable: bool = Field(
+        description="Whether an identical-package resubmission or recovery retry is appropriate.",
+        examples=[False],
+    )
+    recovery_action: RenderRecoveryAction = Field(
+        description="Bounded next action for operators and internal callers.",
+        examples=["wait_for_completion"],
+    )
+    handoff_owner: RenderHandoffOwner = Field(
+        description="Owning team or support boundary for the next action.",
+        examples=["lotus-render"],
+    )
+    support_message: str = Field(
+        description=(
+            "Support-safe explanation of the next action. Raw packages and engine stderr are "
+            "never returned."
+        ),
+        examples=["Render is in progress inside the governed runtime envelope."],
+    )
+    snapshot_id: str = Field(
+        description="Support-safe upstream report snapshot identifier for lineage handoff.",
+        examples=["rsnap_golden_portfolio_review_v1"],
+    )
+    lineage_refs: list[str] = Field(
+        description="Support-safe source lineage references retained from the render package.",
+        examples=[["rlineage_golden_portfolio_review_v1"]],
+    )
+    template_id: str = Field(
+        description="Governed template identifier used for the render job.",
+        examples=["portfolio-review"],
+    )
+    template_version: str = Field(
+        description="Governed template version used for the render job.",
+        examples=["v1"],
+    )
+    output_format: str = Field(
+        description="Requested output format for the render job.",
+        examples=["pdf"],
+    )
+    runtime_engine: str = Field(
+        description="Governed render engine used for this render job.",
+        examples=["typst"],
+    )
+    runtime_engine_version: str = Field(
+        description="Governed render engine version used for this render job.",
+        examples=["0.14.2"],
+    )
+    updated_at: datetime = Field(
+        description="UTC timestamp when the render job was last updated.",
+        examples=["2026-04-23T13:33:33Z"],
+    )
+    completed_at: datetime | None = Field(
+        default=None,
+        description="UTC timestamp when the render job reached a terminal state.",
+        examples=["2026-04-23T13:33:33Z"],
     )
 
 

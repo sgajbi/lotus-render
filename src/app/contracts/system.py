@@ -75,6 +75,39 @@ class RenderSupportabilitySummary(BaseModel):
     )
 
 
+class RenderInFlightJobSummary(BaseModel):
+    status: Literal["accepted", "rendering"] = Field(
+        description="Non-terminal persisted render job lifecycle state.",
+        examples=["rendering"],
+    )
+    count: int = Field(
+        ge=0,
+        description="Number of persisted non-terminal render jobs in this state.",
+        examples=[2],
+    )
+    staleCount: int = Field(
+        ge=0,
+        description="Number of jobs at or beyond the configured stale threshold.",
+        examples=[1],
+    )
+    freshCount: int = Field(
+        ge=0,
+        description="Number of jobs below the configured stale threshold.",
+        examples=[1],
+    )
+    oldestAgeSeconds: int | None = Field(
+        default=None,
+        ge=0,
+        description="Age in seconds of the oldest job in this state, or null when none exist.",
+        examples=[912],
+    )
+    staleThresholdSeconds: int = Field(
+        ge=1,
+        description="Configured threshold used to classify stale jobs in this state.",
+        examples=[900],
+    )
+
+
 class MetadataResponse(BaseModel):
     service: str = Field(description="Service name.", examples=["lotus-render"])
     version: str = Field(description="Service version.", examples=["0.1.0"])
@@ -111,4 +144,11 @@ class MetadataResponse(BaseModel):
     )
     supportability: RenderSupportabilitySummary = Field(
         description="Source-backed RFC-0108 render supportability posture.",
+    )
+    renderStoreInFlight: list[RenderInFlightJobSummary] = Field(
+        description=(
+            "Source-backed aggregate non-terminal render job posture. This is bounded aggregate "
+            "state and never includes render job, report job, portfolio, tenant, trace, or storage "
+            "identifiers."
+        ),
     )

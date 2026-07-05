@@ -31,11 +31,19 @@
       "trust_fields": ["artifact_sha256", "bounded_determinism_fingerprint", "mime_type", "output_size_bytes"]
     },
     {
+      "name": "render_diagnostics",
+      "api_path": "/renders/{render_job_id}/diagnostics",
+      "schema": "RenderJobDiagnosticsResponse",
+      "freshness": "current persisted render-job row plus request-time stale threshold classification",
+      "lineage_fields": ["snapshot_id", "lineage_refs"],
+      "trust_fields": ["status", "failure_category", "stale_state", "recovery_action", "handoff_owner", "retryable"]
+    },
+    {
       "name": "render_supportability",
       "api_path": "/metadata",
       "feature_key": "render.observability.render_supportability",
       "freshness": "request-time source-backed supportability posture",
-      "trust_fields": ["state", "reason", "freshnessBucket", "renderStoreReady", "templateRegistryReady", "runtimeAvailable"]
+      "trust_fields": ["state", "reason", "freshnessBucket", "renderStoreReady", "templateRegistryReady", "runtimeAvailable", "renderStoreInFlight"]
     },
     {
       "name": "bounded_render_metrics",
@@ -44,7 +52,9 @@
         "lotus_render_operations_total",
         "lotus_render_operation_duration_seconds",
         "lotus_render_artifact_size_bytes",
-        "lotus_render_supportability_total"
+        "lotus_render_supportability_total",
+        "lotus_render_in_flight_jobs",
+        "lotus_render_oldest_in_flight_age_seconds"
       ],
       "freshness": "Prometheus scrape-time observations",
       "forbidden_labels": ["render_job_id", "report_job_id", "portfolio_id", "tenant_id", "correlation_id", "trace_id", "storage_key"]

@@ -88,6 +88,7 @@ and Typst foundation slices:
 - internal render API surface:
   - `POST /renders`
   - `GET /renders/{render_job_id}`
+  - `GET /renders/{render_job_id}/diagnostics`
   - `GET /renders/{render_job_id}/artifact-metadata`
 - idempotent render-job semantics: same `render_job_id` plus same package returns prior stored
   truth for `accepted`, `rendering`, `rendered`, and `failed` without rerunning the renderer; same
@@ -95,11 +96,13 @@ and Typst foundation slices:
 - `/health/ready` now reflects both runtime posture and render-store availability
 - Typst/Docker compile execution is bounded by `LOTUS_RENDER_RENDER_COMPILE_TIMEOUT_SECONDS`;
   timeouts persist as failed render jobs with category `timeout`
-- RFC-0105 render metrics expose bounded render submission, status lookup, artifact metadata lookup,
-  latency, failure-category, and artifact-size signals through `/metrics`
+- RFC-0105 render metrics expose bounded render submission, status lookup, diagnostics lookup,
+  artifact metadata lookup, latency, failure-category, artifact-size, and source-backed stale
+  in-flight render signals through `/metrics`
 - RFC-0108 render supportability posture is published through `/metadata` as
   `render.observability.render_supportability` and counted through bounded
-  `lotus_render_supportability_total` observations
+  `lotus_render_supportability_total` observations; `/metadata` also publishes aggregate
+  `accepted` and `rendering` stale posture from the render store
 
 ## Internal Render API
 
@@ -109,8 +112,10 @@ executes the synchronous first-wave Typst render path, and returns render truth 
 `artifact_base64` on first successful submission.
 
 Use `GET /renders/{render_job_id}` to read support-safe render-job posture without rerunning
-anything. Use `GET /renders/{render_job_id}/artifact-metadata` when callers need artifact hash,
-size, MIME type, and determinism posture without archive semantics.
+anything. Use `GET /renders/{render_job_id}/diagnostics` to classify stale posture, retryability,
+recovery action, and support handoff without raw package or engine diagnostics. Use
+`GET /renders/{render_job_id}/artifact-metadata` when callers need artifact hash, size, MIME type,
+and determinism posture without archive semantics.
 
 The supported determinism posture is explicit:
 

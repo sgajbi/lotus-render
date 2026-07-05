@@ -5,6 +5,7 @@ from typing import Annotated
 
 from fastapi import Depends, Request
 
+from app.core.settings import Settings
 from app.domain.templates.registry import TemplateRegistry
 from app.infrastructure.render_store import RenderStore
 from app.services.render_foundation import RenderFoundationService
@@ -14,6 +15,7 @@ from app.services.render_submission import RenderSubmissionService
 
 @dataclass(slots=True)
 class AppContainer:
+    settings: Settings
     render_foundation: RenderFoundationService
     render_store: RenderStore
     render_submission_service: RenderSubmissionService

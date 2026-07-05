@@ -2,9 +2,17 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Response, status
 
-from app.contracts.system import HealthResponse, MetadataResponse, RenderSupportabilitySummary
+from app.contracts.system import (
+    HealthResponse,
+    MetadataResponse,
+    RenderInFlightJobSummary,
+    RenderSupportabilitySummary,
+)
 from app.dependencies.container import ContainerDependency
-from app.observability.render_metrics import record_render_supportability
+from app.observability.render_metrics import (
+    record_render_in_flight_summary,
+    record_render_supportability,
+)
 
 router = APIRouter(tags=["system"])
 
@@ -79,6 +87,29 @@ async def metadata(container: ContainerDependency) -> MetadataResponse:
         reason=supportability["reason"],
         freshness_bucket=supportability["freshnessBucket"],
     )
+    in_flight_summaries = container.render_store.in_flight_summaries(
+        accepted_stale_seconds=container.settings.stale_accepted_seconds,
+        rendering_stale_seconds=container.settings.stale_rendering_seconds,
+    )
+    render_store_in_flight = []
+    for summary in in_flight_summaries:
+        fresh_count = summary.count - summary.stale_count
+        record_render_in_flight_summary(
+            status=summary.status,
+            fresh_count=fresh_count,
+            stale_count=summary.stale_count,
+            oldest_age_seconds=summary.oldest_age_seconds,
+        )
+        render_store_in_flight.append(
+            RenderInFlightJobSummary(
+                status=summary.status,
+                count=summary.count,
+                staleCount=summary.stale_count,
+                freshCount=fresh_count,
+                oldestAgeSeconds=summary.oldest_age_seconds,
+                staleThresholdSeconds=summary.stale_threshold_seconds,
+            )
+        )
     return MetadataResponse(
         service=foundation_metadata["service"],
         version=foundation_metadata["version"],
@@ -90,4 +121,5 @@ async def metadata(container: ContainerDependency) -> MetadataResponse:
         supportedOutputFormats=foundation_metadata["supportedOutputFormats"],
         renderAttemptStatuses=foundation_metadata["renderAttemptStatuses"],
         supportability=RenderSupportabilitySummary(**supportability),
+        renderStoreInFlight=render_store_in_flight,
     )

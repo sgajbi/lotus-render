@@ -9,11 +9,12 @@ from app.contracts.renders import (
     RENDER_SUBMIT_REQUEST_EXAMPLE,
     ApiErrorResponse,
     RenderArtifactMetadataResponse,
+    RenderJobDiagnosticsResponse,
     RenderJobStatusResponse,
     RenderSubmitRequest,
     RenderSubmitResponse,
 )
-from app.dependencies.container import RenderSubmissionDependency
+from app.dependencies.container import ContainerDependency, RenderSubmissionDependency
 from app.infrastructure.render_store import RenderJobConflictError, RenderJobNotFoundError
 from app.services.render_submission import (
     RenderExecutionFailedError,
@@ -148,6 +149,41 @@ async def get_render_status(
 ) -> RenderJobStatusResponse:
     try:
         return service.get_status(render_job_id)
+    except RenderJobNotFoundError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=API_ERROR_RESPONSE_EXAMPLES["render_job_not_found"]["detail"],
+        ) from exc
+
+
+@router.get(
+    "/{render_job_id}/diagnostics",
+    response_model=RenderJobDiagnosticsResponse,
+    summary="Diagnose render job recovery posture",
+    description=(
+        "Returns support-safe operator diagnostics for a persisted render job, including bounded "
+        "stale posture, retryability, recovery action, and handoff owner. This endpoint never "
+        "returns raw render packages, raw engine stderr, artifact storage locations, archive "
+        "retention truth, or upstream replay commands."
+    ),
+    responses={
+        **_error_response(
+            status.HTTP_404_NOT_FOUND,
+            example_key="render_job_not_found",
+            description="Returned when the requested render job identifier does not exist.",
+        )
+    },
+)
+async def get_render_diagnostics(
+    render_job_id: str,
+    container: ContainerDependency,
+) -> RenderJobDiagnosticsResponse:
+    try:
+        return container.render_submission_service.get_diagnostics(
+            render_job_id,
+            accepted_stale_seconds=container.settings.stale_accepted_seconds,
+            rendering_stale_seconds=container.settings.stale_rendering_seconds,
+        )
     except RenderJobNotFoundError as exc:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import hashlib
 import json
+import sqlite3
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any, cast
 
@@ -243,6 +245,87 @@ def test_render_submission_returns_existing_in_progress_job_without_retrying(
     assert response.status == "rendering"
     assert response.artifact_base64 is None
     assert renderer.calls == 0
+
+
+def test_render_submission_diagnostics_reports_stale_in_progress_handoff(
+    tmp_path: Path,
+) -> None:
+    db_path = tmp_path / "render-store.sqlite3"
+    store = RenderStore(db_path)
+    package = _render_package(render_job_id="rdr_stale")
+    existing = store.create_or_get(
+        render_job_id=package.render_job_id,
+        report_job_id=package.report_job_id,
+        render_package_version=package.render_package_version,
+        package_hash=_package_hash(package),
+        snapshot_id=package.snapshot_id,
+        lineage_refs=tuple(package.lineage_refs),
+        disclosure_refs=tuple(package.disclosure_refs),
+        requested_by=package.requested_by,
+        package_correlation_id=package.correlation_id,
+        package_trace_id=package.trace_id,
+        report_type=package.report_type,
+        template_id=package.template_id,
+        template_version=package.template_version,
+        output_format=package.output_format,
+        runtime_engine="typst",
+        runtime_engine_version="0.14.2",
+    )
+    store.mark_rendering(existing.render_job_id)
+    with sqlite3.connect(db_path) as connection:
+        connection.execute(
+            "UPDATE render_job SET updated_at = ? WHERE render_job_id = ?",
+            (
+                (datetime.now(UTC) - timedelta(seconds=901)).isoformat().replace("+00:00", "Z"),
+                existing.render_job_id,
+            ),
+        )
+        connection.commit()
+    service = RenderSubmissionService(
+        render_store=store,
+        render_engine=cast(Any, _SuccessfulTypstService()),
+    )
+
+    diagnostics = service.get_diagnostics(
+        existing.render_job_id,
+        accepted_stale_seconds=300,
+        rendering_stale_seconds=900,
+    )
+
+    assert diagnostics.status == "rendering"
+    assert diagnostics.stale_state == "stale"
+    assert diagnostics.retryable is True
+    assert diagnostics.recovery_action == "resubmit_identical_package_or_escalate_runtime"
+    assert diagnostics.handoff_owner == "reporting-platform-on-call"
+    assert diagnostics.snapshot_id == package.snapshot_id
+    assert diagnostics.lineage_refs == package.lineage_refs
+
+
+def test_render_submission_diagnostics_maps_failed_runtime_without_raw_message(
+    tmp_path: Path,
+) -> None:
+    store = RenderStore(tmp_path / "render-store.sqlite3")
+    service = RenderSubmissionService(
+        render_store=store,
+        render_engine=cast(Any, _TimeoutTypstService()),
+    )
+    with pytest.raises(RenderExecutionFailedError):
+        service.submit(_render_package(render_job_id="rdr_diagnostics_timeout"))
+
+    diagnostics = service.get_diagnostics(
+        "rdr_diagnostics_timeout",
+        accepted_stale_seconds=300,
+        rendering_stale_seconds=900,
+    )
+
+    assert diagnostics.status == "failed"
+    assert diagnostics.failure_category == "timeout"
+    assert diagnostics.stale_state == "not_applicable"
+    assert diagnostics.retryable is True
+    assert diagnostics.recovery_action == "escalate_render_runtime"
+    assert diagnostics.handoff_owner == "reporting-platform-on-call"
+    assert "timed out" not in diagnostics.support_message.lower()
+    assert not hasattr(diagnostics, "package_correlation_id")
 
 
 def test_render_submission_sanitizes_runtime_diagnostics_before_persistence(

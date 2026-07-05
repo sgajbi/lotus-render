@@ -31,7 +31,7 @@ class RenderAttempt:
     template_id: str
     template_version: str
     output_format: str
-    status: RenderAttemptStatus = RenderAttemptStatus.ACCEPTED
+    status: RenderAttemptStatus = field(default=RenderAttemptStatus.ACCEPTED)
     created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     updated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     artifact_sha256: str | None = None

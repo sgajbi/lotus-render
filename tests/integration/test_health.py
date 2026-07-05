@@ -1,4 +1,6 @@
 import logging
+import sqlite3
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 from fastapi.testclient import TestClient
@@ -168,6 +170,77 @@ def test_metadata_endpoint_reports_foundation_posture(tmp_path: Path) -> None:
             "runtimeAvailable": True,
             "draining": False,
         }
+        assert payload["renderStoreInFlight"] == [
+            {
+                "status": "accepted",
+                "count": 0,
+                "staleCount": 0,
+                "freshCount": 0,
+                "oldestAgeSeconds": None,
+                "staleThresholdSeconds": 300,
+            },
+            {
+                "status": "rendering",
+                "count": 0,
+                "staleCount": 0,
+                "freshCount": 0,
+                "oldestAgeSeconds": None,
+                "staleThresholdSeconds": 900,
+            },
+        ]
+
+
+def test_metadata_endpoint_reports_stale_in_flight_render_store_posture(
+    tmp_path: Path,
+) -> None:
+    app = create_app(
+        Settings(
+            render_store_path=str(tmp_path / "render-store.sqlite3"),
+            stale_accepted_seconds=30,
+            stale_rendering_seconds=60,
+        )
+    )
+    with TestClient(app) as client:
+        store = app.state.container.render_store
+        store.create_or_get(
+            render_job_id="rdr_stale_metadata",
+            report_job_id="rjob_stale_metadata",
+            render_package_version="render_package.v1",
+            package_hash="hash-stale-metadata",
+            report_type="portfolio_review",
+            template_id="portfolio-review",
+            template_version="v1",
+            output_format="pdf",
+            runtime_engine="typst",
+            runtime_engine_version="0.14.2",
+        )
+        with sqlite3.connect(tmp_path / "render-store.sqlite3") as connection:
+            connection.execute(
+                "UPDATE render_job SET updated_at = ? WHERE render_job_id = ?",
+                (
+                    (datetime.now(UTC) - timedelta(seconds=31)).isoformat().replace("+00:00", "Z"),
+                    "rdr_stale_metadata",
+                ),
+            )
+            connection.commit()
+
+        response = client.get("/metadata")
+        metrics_response = client.get("/metrics")
+
+        assert response.status_code == 200
+        assert response.json()["renderStoreInFlight"][0] == {
+            "status": "accepted",
+            "count": 1,
+            "staleCount": 1,
+            "freshCount": 0,
+            "oldestAgeSeconds": 31,
+            "staleThresholdSeconds": 30,
+        }
+        assert (
+            'lotus_render_in_flight_jobs{stale_state="stale",status="accepted"} 1.0'
+            in metrics_response.text
+        )
+        assert "rdr_stale_metadata" not in metrics_response.text
 
 
 def test_metadata_endpoint_reports_runtime_configuration_unavailable(

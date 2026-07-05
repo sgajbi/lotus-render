@@ -22,6 +22,8 @@ degraded service mode.
 | `LOTUS_RENDER_CORS_ALLOWED_ORIGINS` | `[]` | CORS allow-list. Empty by default because browser ingress is platform-governed. |
 | `LOTUS_RENDER_MAX_REQUEST_BODY_BYTES` | `5242880` | Maximum accepted request body size for render API requests. |
 | `LOTUS_RENDER_RENDER_COMPILE_TIMEOUT_SECONDS` | `60` | Typst/Docker compile timeout. Timed-out renders persist as `failed` with category `timeout`. |
+| `LOTUS_RENDER_STALE_ACCEPTED_SECONDS` | `300` | Stale threshold for persisted `accepted` render jobs used by `/metadata`, diagnostics, and metrics. |
+| `LOTUS_RENDER_STALE_RENDERING_SECONDS` | `900` | Stale threshold for persisted `rendering` render jobs used by `/metadata`, diagnostics, and metrics. |
 | `LOTUS_RENDER_REQUIRE_PERSISTENT_RENDER_STORE` | `false` | Rejects `:memory:` render stores when an environment requires persistent render truth. |
 
 Docker Compose overrides `LOTUS_RENDER_RENDER_STORE_PATH` to
@@ -40,6 +42,9 @@ and sets `LOTUS_RENDER_REQUIRE_PERSISTENT_RENDER_STORE=true`.
 - `/metadata` publishes `runtimeAvailable` through
   `render.observability.render_supportability`; `runtime_configuration_unavailable` means
   deterministic render supportability is unavailable.
+- `/metadata` publishes source-backed aggregate stale posture for persisted `accepted` and
+  `rendering` jobs using `LOTUS_RENDER_STALE_ACCEPTED_SECONDS` and
+  `LOTUS_RENDER_STALE_RENDERING_SECONDS`.
 - Render compile timeouts are bounded by `LOTUS_RENDER_RENDER_COMPILE_TIMEOUT_SECONDS` and are
   persisted as support-safe failed render jobs.
 

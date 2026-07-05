@@ -64,6 +64,10 @@ def _build_manifest(
     )
 
 
+def _attempt_status_value(attempt: RenderAttempt) -> str:
+    return attempt.status.value
+
+
 def test_service_name_is_lotus_prefixed() -> None:
     assert SERVICE_NAME.startswith("lotus-")
 
@@ -82,22 +86,22 @@ def test_render_attempt_lifecycle_transitions() -> None:
         output_format="pdf",
     )
 
-    assert attempt.status.value == "accepted"
+    assert _attempt_status_value(attempt) == "accepted"
     attempt.mark_validating_package()
-    assert attempt.status.value == "validating_package"
+    assert _attempt_status_value(attempt) == "validating_package"
 
     attempt.mark_rendering()
-    assert attempt.status.value == "rendering"
+    assert _attempt_status_value(attempt) == "rendering"
 
     attempt.mark_failed(
         RenderFailureCategory.TEMPLATE_RENDER_FAILED,
         "template render failed",
     )
-    assert attempt.status.value == "failed"
+    assert _attempt_status_value(attempt) == "failed"
     assert attempt.failure_category == RenderFailureCategory.TEMPLATE_RENDER_FAILED
 
     attempt.mark_rendered("abc123")
-    assert attempt.status.value == "rendered"
+    assert _attempt_status_value(attempt) == "rendered"
     assert attempt.artifact_sha256 == "abc123"
     assert attempt.failure_category is None
 

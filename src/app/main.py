@@ -43,6 +43,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         )
         render_store = RenderStore(Path(configured_settings.render_store_path))
         app.state.container = AppContainer(
+            settings=configured_settings,
             render_foundation=RenderFoundationService(configured_settings),
             render_store=render_store,
             render_submission_service=RenderSubmissionService(

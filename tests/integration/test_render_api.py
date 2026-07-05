@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import json
+import sqlite3
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import pytest
@@ -58,6 +60,17 @@ def test_submit_render_and_fetch_status_and_artifact_metadata(tmp_path: Path) ->
             artifact_response.json()["bounded_determinism_fingerprint"]
             == submit_body["bounded_determinism_fingerprint"]
         )
+
+        diagnostics_response = client.get(f"/renders/{submit_body['render_job_id']}/diagnostics")
+        assert diagnostics_response.status_code == 200
+        diagnostics = diagnostics_response.json()
+        assert diagnostics["status"] == "rendered"
+        assert diagnostics["artifact_ready"] is True
+        assert diagnostics["recovery_action"] == "read_artifact_metadata"
+        assert diagnostics["handoff_owner"] == "lotus-render"
+        assert "package_correlation_id" not in diagnostics
+        assert "package_trace_id" not in diagnostics
+        assert "requested_by" not in diagnostics
 
         metrics_response = client.get("/metrics")
         assert metrics_response.status_code == 200
@@ -155,6 +168,14 @@ def test_artifact_metadata_requires_successful_render(tmp_path: Path) -> None:
         assert artifact_response.status_code == 409
         assert artifact_response.json()["detail"]["code"] == "render_artifact_not_ready"
 
+        diagnostics_response = client.get("/renders/rdr_golden_portfolio_review_v1/diagnostics")
+        assert diagnostics_response.status_code == 200
+        diagnostics = diagnostics_response.json()
+        assert diagnostics["artifact_ready"] is False
+        assert diagnostics["failure_category"] == "template_not_supported"
+        assert diagnostics["recovery_action"] == "fix_template_registry_or_package"
+        assert "v9" not in diagnostics["support_message"]
+
 
 def test_render_status_returns_not_found_for_unknown_job(tmp_path: Path) -> None:
     with _build_client(tmp_path) as client:
@@ -170,6 +191,67 @@ def test_artifact_metadata_returns_not_found_for_unknown_job(tmp_path: Path) -> 
 
         assert response.status_code == 404
         assert response.json()["detail"]["code"] == "render_job_not_found"
+
+
+def test_render_diagnostics_returns_not_found_for_unknown_job(tmp_path: Path) -> None:
+    with _build_client(tmp_path) as client:
+        response = client.get("/renders/rdr_missing/diagnostics")
+
+        assert response.status_code == 404
+        assert response.json()["detail"]["code"] == "render_job_not_found"
+
+
+def test_render_diagnostics_reports_stale_in_progress_without_raw_identifiers(
+    tmp_path: Path,
+) -> None:
+    app = create_app(
+        Settings(
+            render_store_path=str(tmp_path / "render-store.sqlite3"),
+            stale_rendering_seconds=60,
+        )
+    )
+    with TestClient(app) as client:
+        store = app.state.container.render_store
+        store.create_or_get(
+            render_job_id="rdr_stale_api",
+            report_job_id="rjob_stale_api",
+            render_package_version="render_package.v1",
+            package_hash="hash-stale",
+            snapshot_id="rsnap_stale_api",
+            lineage_refs=("rlineage_stale_api",),
+            disclosure_refs=("portfolio-review.standard-disclosures.v1",),
+            requested_by="client-identifier@example.com",
+            package_correlation_id="corr-sensitive-api",
+            package_trace_id="trace-sensitive-api",
+            report_type="portfolio_review",
+            template_id="portfolio-review",
+            template_version="v1",
+            output_format="pdf",
+            runtime_engine="typst",
+            runtime_engine_version="0.14.2",
+        )
+        store.mark_rendering("rdr_stale_api")
+        with sqlite3.connect(tmp_path / "render-store.sqlite3") as connection:
+            connection.execute(
+                "UPDATE render_job SET updated_at = ? WHERE render_job_id = ?",
+                (
+                    (datetime.now(UTC) - timedelta(seconds=90)).isoformat().replace("+00:00", "Z"),
+                    "rdr_stale_api",
+                ),
+            )
+            connection.commit()
+
+        response = client.get("/renders/rdr_stale_api/diagnostics")
+
+        assert response.status_code == 200
+        diagnostics = response.json()
+        assert diagnostics["stale_state"] == "stale"
+        assert diagnostics["stale_threshold_seconds"] == 60
+        assert diagnostics["retryable"] is True
+        assert diagnostics["recovery_action"] == "resubmit_identical_package_or_escalate_runtime"
+        assert "corr-sensitive-api" not in response.text
+        assert "trace-sensitive-api" not in response.text
+        assert "client-identifier@example.com" not in response.text
 
 
 def test_submit_render_returns_bad_gateway_when_render_execution_fails(tmp_path: Path) -> None:
