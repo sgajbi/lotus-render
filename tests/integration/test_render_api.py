@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import sqlite3
+import threading
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
@@ -279,6 +280,82 @@ def test_submit_render_returns_bad_gateway_when_render_execution_fails(tmp_path:
 
         assert response.status_code == 502
         assert response.json()["detail"]["code"] == "render_failed"
+
+
+def test_submit_render_rejects_when_execution_capacity_is_exhausted(tmp_path: Path) -> None:
+    payload = PORTFOLIO_REVIEW_RENDER_PACKAGE_EXAMPLE_PATH.read_text(encoding="utf-8")
+    app = create_app(
+        Settings(
+            render_store_path=str(tmp_path / "render-store.sqlite3"),
+            render_execution_concurrency_limit=1,
+        )
+    )
+
+    with TestClient(app) as client:
+        assert app.state.container.render_execution_limiter.acquire() is True
+        try:
+            response = client.post(
+                "/renders",
+                content=payload,
+                headers={"Content-Type": "application/json"},
+            )
+        finally:
+            app.state.container.render_execution_limiter.release()
+
+        assert response.status_code == 429
+        assert response.json()["detail"]["code"] == "render_execution_capacity_exhausted"
+        metrics_response = client.get("/metrics")
+        assert (
+            'lotus_render_operations_total{failure_category="render_execution_capacity_exhausted",'
+            'operation="render_submission",status="rejected"}'
+        ) in metrics_response.text
+
+
+def test_health_remains_responsive_while_render_submission_runs_in_threadpool(
+    tmp_path: Path,
+) -> None:
+    payload = PORTFOLIO_REVIEW_RENDER_PACKAGE_EXAMPLE_PATH.read_text(encoding="utf-8")
+    started = threading.Event()
+    release = threading.Event()
+    responses: list[int] = []
+
+    class _SlowFailingRenderSubmissionService:
+        def submit(self, _request_payload: object) -> object:
+            started.set()
+            assert release.wait(timeout=5)
+            raise RenderExecutionFailedError("runtime render failed")
+
+    app = create_app(
+        Settings(
+            render_store_path=str(tmp_path / "render-store.sqlite3"),
+            render_execution_concurrency_limit=1,
+        )
+    )
+
+    with TestClient(app) as client:
+        app.dependency_overrides[get_render_submission_service] = lambda: (
+            _SlowFailingRenderSubmissionService()
+        )
+
+        def submit_render() -> None:
+            response = client.post(
+                "/renders",
+                content=payload,
+                headers={"Content-Type": "application/json"},
+            )
+            responses.append(response.status_code)
+
+        worker = threading.Thread(target=submit_render)
+        worker.start()
+        assert started.wait(timeout=5)
+
+        health_response = client.get("/health")
+
+        release.set()
+        worker.join(timeout=5)
+        assert not worker.is_alive()
+        assert health_response.status_code == 200
+        assert responses == [502]
 
 
 def test_artifact_metadata_reraises_unexpected_value_error(tmp_path: Path) -> None:

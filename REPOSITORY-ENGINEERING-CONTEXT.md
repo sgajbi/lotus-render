@@ -29,7 +29,8 @@ high-cardinality or sensitive labels. RFC-0108 render supportability now publish
 template-registry availability, executable Typst/Docker runtime configuration, and aggregate
 `accepted`/`rendering` stale posture. HTTP boundary configuration is explicit through the
 `LOTUS_RENDER_` settings contract, including trusted hosts, CORS allow-listing, request body
-limits, persistent-store enforcement, compile timeouts, and stale in-flight thresholds.
+limits, persistent-store enforcement, compile timeouts, bounded render-execution concurrency, and
+stale in-flight thresholds.
 The render store now uses versioned SQLite migrations, readiness-time schema validation, and
 support-safe source evidence persistence for snapshot identity, lineage refs, disclosure refs,
 caller identity, and package correlation/trace identifiers. Local Docker Compose mounts the store
@@ -180,7 +181,8 @@ Primary governing artifacts:
 10. Settings live behind the `LOTUS_RENDER_` contract documented in `docs/configuration.md`.
     Required invalid configuration fails at service startup; runtime unavailability reports as
     `runtime_configuration_unavailable`; Typst/Docker compile timeouts persist as failed render
-    jobs with category `timeout`.
+    jobs with category `timeout`; render execution capacity exhaustion returns
+    `429 render_execution_capacity_exhausted`.
 11. Render-store migrations are applied on startup and validated by readiness. The render store owns
     render-stage lifecycle, idempotency, support-safe evidence, diagnostics, and artifact hashes;
     archive retention, legal hold, retrieval, and distribution remain out of scope for

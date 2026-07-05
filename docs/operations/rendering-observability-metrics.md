@@ -38,6 +38,7 @@ Supported `status` labels are bounded to render lifecycle and lookup states:
 - `failed`
 - `not_ready`
 - `not_found`
+- `rejected`
 
 `validating_package` is a transient render-attempt phase exposed in `/metadata` as attempt
 vocabulary. It is not emitted as a persisted render job operation status.
@@ -75,6 +76,7 @@ First-wave dashboard panels may reference only the implemented metrics above:
 | --- | --- | --- |
 | Render submissions by status | `sum by (status) (rate(lotus_render_operations_total{operation="render_submission"}[5m]))` | Show render success and failure posture |
 | Render failure category mix | `sum by (failure_category) (increase(lotus_render_operations_total{status="failed"}[15m]))` | Classify product-safe render failures |
+| Render execution rejection rate | `sum(rate(lotus_render_operations_total{operation="render_submission",status="rejected"}[5m]))` | Detect exhausted in-process render execution capacity |
 | Render latency | `histogram_quantile(0.95, sum by (le) (rate(lotus_render_operation_duration_seconds_bucket{operation="render_submission"}[5m])))` | Track render-stage latency |
 | Artifact size distribution | `histogram_quantile(0.95, sum by (le) (rate(lotus_render_artifact_size_bytes_bucket{status="rendered"}[15m])))` | Detect unexpectedly large generated artifacts |
 | Render supportability posture | `sum by (state, reason, freshness_bucket) (increase(lotus_render_supportability_total[15m]))` | Show source-backed RFC-0108 supportability observations for evidence and reporting surfaces |
@@ -86,6 +88,7 @@ First-wave dashboard panels may reference only the implemented metrics above:
 | Alert | Threshold | Severity | Owner | Runbook |
 | --- | --- | --- | --- | --- |
 | `LotusRenderSubmissionFailureRateHigh` | failure rate for `render_submission` above 5% for 15 minutes | page | Reporting platform on-call | `docs/runbooks/service-operations.md` |
+| `LotusRenderExecutionCapacityExhausted` | any `render_submission` rejection for 10 minutes | page | Reporting platform on-call | `docs/runbooks/service-operations.md` |
 | `LotusRenderP95LatencyHigh` | p95 `render_submission` latency above 30 seconds for 15 minutes | ticket | Reporting platform on-call | `docs/runbooks/service-operations.md` |
 | `LotusRenderArtifactSizeHigh` | p95 rendered artifact size above 5 MiB for 30 minutes | ticket | Reporting platform on-call | `docs/runbooks/service-operations.md` |
 | `LotusRenderSupportabilityUnavailable` | latest supportability posture is `unavailable` for 10 minutes | page | Reporting platform on-call | `docs/runbooks/service-operations.md` |
