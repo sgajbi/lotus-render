@@ -22,6 +22,7 @@ from app.services.portfolio_charts import (
     render_portfolio_chart_assets,
 )
 from app.services.render_intake import RenderIntakeService
+from app.services.render_ports import RenderRuntimeMetadata
 
 DETERMINISM_MODE = "bounded_runtime_envelope"
 DOCKER_TYPST_IMAGE = "ghcr.io/typst/typst:0.14.2"
@@ -78,6 +79,13 @@ class TypstRenderService:
     def __init__(self, settings: Settings, intake_service: RenderIntakeService) -> None:
         self._settings = settings
         self._intake_service = intake_service
+
+    @property
+    def runtime_metadata(self) -> RenderRuntimeMetadata:
+        return RenderRuntimeMetadata(
+            runtime_engine=self._settings.runtime_engine,
+            runtime_engine_version=self._settings.runtime_engine_version,
+        )
 
     def render(self, render_package: RenderPackage) -> RenderResult:
         attempt = RenderAttempt(

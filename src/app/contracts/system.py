@@ -99,8 +99,11 @@ class MetadataResponse(BaseModel):
         examples=[["pdf"]],
     )
     renderAttemptStatuses: list[str] = Field(
-        description="Foundation render-attempt lifecycle statuses.",
-        examples=[["accepted", "running", "succeeded", "failed"]],
+        description=(
+            "Transient render-attempt phases used inside the render engine. Persisted render jobs "
+            "use accepted, rendering, rendered, and failed."
+        ),
+        examples=[["accepted", "validating_package", "rendering", "rendered", "failed"]],
     )
     supportability: RenderSupportabilitySummary = Field(
         description="Source-backed RFC-0108 render supportability posture.",

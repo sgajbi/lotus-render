@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
 
 from app.core.settings import Settings
+from app.dependencies.container import get_render_submission_service
 from app.main import create_app
 from app.services.render_submission import RenderExecutionFailedError
 
@@ -174,7 +176,9 @@ def test_submit_render_returns_bad_gateway_when_render_execution_fails(tmp_path:
     )
 
     with TestClient(app) as client:
-        app.state.render_submission_service = _FailingRenderSubmissionService()
+        app.dependency_overrides[get_render_submission_service] = lambda: (
+            _FailingRenderSubmissionService()
+        )
         response = client.post(
             "/renders",
             content=payload,
@@ -197,6 +201,53 @@ def test_artifact_metadata_reraises_unexpected_value_error(tmp_path: Path) -> No
     )
 
     with TestClient(app) as client:
-        app.state.render_submission_service = _UnexpectedArtifactMetadataService()
+        app.dependency_overrides[get_render_submission_service] = lambda: (
+            _UnexpectedArtifactMetadataService()
+        )
         with pytest.raises(ValueError, match="unexpected-artifact-error"):
             client.get("/renders/rdr_unexpected/artifact-metadata")
+
+
+def test_submit_render_framework_validation_is_support_safe(tmp_path: Path) -> None:
+    payload = (GOLDEN_ROOT / "render-package.json").read_text(encoding="utf-8")
+    invalid = payload.replace('"render_job_id": "rdr_golden_portfolio_review_v1",', "")
+
+    with _build_client(tmp_path) as client:
+        response = client.post(
+            "/renders",
+            content=invalid,
+            headers={
+                "Content-Type": "application/json",
+                "X-Correlation-Id": "corr-validation",
+                "X-Trace-Id": "trace-validation",
+            },
+        )
+
+        assert response.status_code == 422
+        body = response.json()
+        assert body["detail"]["code"] == "render_package_invalid"
+        assert "render_job_id" in body["detail"]["field_paths"]
+        assert body["detail"]["correlation_id"] == "corr-validation"
+        response_text = response.text
+        assert "Alex Tan" not in response_text
+        assert "summary_paragraph" not in response_text
+
+
+def test_submit_render_extra_field_validation_is_support_safe(tmp_path: Path) -> None:
+    payload = json.loads((GOLDEN_ROOT / "render-package.json").read_text(encoding="utf-8"))
+    payload["snapshot_hash"] = "sha256:not-contract"
+
+    with _build_client(tmp_path) as client:
+        response = client.post(
+            "/renders",
+            json=payload,
+            headers={"X-Correlation-Id": "corr-extra-field"},
+        )
+
+        assert response.status_code == 422
+        body = response.json()
+        assert body["detail"]["code"] == "render_package_invalid"
+        assert "snapshot_hash" in body["detail"]["field_paths"]
+        assert body["detail"]["correlation_id"] == "corr-extra-field"
+        assert "sha256:not-contract" not in response.text
+        assert payload["report_data"]["client_name"] not in response.text

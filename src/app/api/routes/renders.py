@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from fastapi import APIRouter, HTTPException, Request, Response, status
+from fastapi import APIRouter, HTTPException, Response, status
 
 from app.contracts.renders import (
     API_ERROR_RESPONSE_EXAMPLES,
@@ -13,11 +13,11 @@ from app.contracts.renders import (
     RenderSubmitRequest,
     RenderSubmitResponse,
 )
-from app.render_store import RenderJobConflictError, RenderJobNotFoundError
+from app.dependencies.container import RenderSubmissionDependency
+from app.infrastructure.render_store import RenderJobConflictError, RenderJobNotFoundError
 from app.services.render_submission import (
     RenderExecutionFailedError,
     RenderPackageInvalidError,
-    RenderSubmissionService,
 )
 
 router = APIRouter(prefix="/renders", tags=["Renders"])
@@ -90,10 +90,9 @@ def _error_response(
 )
 async def submit_render(
     request_payload: RenderSubmitRequest,
-    request: Request,
     response: Response,
+    service: RenderSubmissionDependency,
 ) -> RenderSubmitResponse:
-    service: RenderSubmissionService = request.app.state.render_submission_service
     try:
         result = service.submit(request_payload)
     except RenderJobConflictError as exc:
@@ -141,9 +140,8 @@ async def submit_render(
 )
 async def get_render_status(
     render_job_id: str,
-    request: Request,
+    service: RenderSubmissionDependency,
 ) -> RenderJobStatusResponse:
-    service: RenderSubmissionService = request.app.state.render_submission_service
     try:
         return service.get_status(render_job_id)
     except RenderJobNotFoundError as exc:
@@ -177,9 +175,8 @@ async def get_render_status(
 )
 async def get_render_artifact_metadata(
     render_job_id: str,
-    request: Request,
+    service: RenderSubmissionDependency,
 ) -> RenderArtifactMetadataResponse:
-    service: RenderSubmissionService = request.app.state.render_submission_service
     try:
         return service.get_artifact_metadata(render_job_id)
     except RenderJobNotFoundError as exc:

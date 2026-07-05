@@ -13,14 +13,14 @@ from app.contracts.renders import (
     RenderSubmitResponse,
 )
 from app.domain.templates.registry import TemplateCompatibilityError
-from app.render_metrics import record_render_artifact_size, record_render_operation
-from app.render_store import (
+from app.infrastructure.render_store import (
     RenderJobConflictError,
     RenderJobNotFoundError,
-    RenderStore,
+    RenderJobTransitionError,
     StoredRenderJob,
 )
-from app.services.typst_rendering import TypstRenderService
+from app.observability.render_metrics import record_render_artifact_size, record_render_operation
+from app.services.render_ports import RenderEnginePort, RenderJobStorePort
 
 
 class RenderPackageInvalidError(ValueError):
@@ -35,11 +35,11 @@ class RenderSubmissionService:
     def __init__(
         self,
         *,
-        render_store: RenderStore,
-        typst_render_service: TypstRenderService,
+        render_store: RenderJobStorePort,
+        render_engine: RenderEnginePort,
     ) -> None:
         self._render_store = render_store
-        self._typst_render_service = typst_render_service
+        self._render_engine = render_engine
 
     def submit(self, render_package: RenderPackage) -> RenderSubmitResponse:
         started_at = perf_counter()
@@ -50,8 +50,9 @@ class RenderSubmissionService:
                 separators=(",", ":"),
             ).encode("utf-8")
         ).hexdigest()
+        runtime_metadata = self._render_engine.runtime_metadata
         try:
-            existing = self._render_store.create_or_get(
+            create_result = self._render_store.create_or_get_with_outcome(
                 render_job_id=render_package.render_job_id,
                 report_job_id=render_package.report_job_id,
                 render_package_version=render_package.render_package_version,
@@ -60,8 +61,8 @@ class RenderSubmissionService:
                 template_id=render_package.template_id,
                 template_version=render_package.template_version,
                 output_format=render_package.output_format,
-                runtime_engine=self._typst_render_service._settings.runtime_engine,
-                runtime_engine_version=self._typst_render_service._settings.runtime_engine_version,
+                runtime_engine=runtime_metadata.runtime_engine,
+                runtime_engine_version=runtime_metadata.runtime_engine_version,
             )
         except RenderJobConflictError:
             record_render_operation(
@@ -71,33 +72,41 @@ class RenderSubmissionService:
                 duration_seconds=perf_counter() - started_at,
             )
             raise
+        existing = create_result.job
         if existing.status == "rendered":
             self._record_submit_metric(existing, started_at=started_at)
             return self._to_submit_response(existing, artifact_base64=None)
         if existing.status == "failed":
             self._record_submit_metric(existing, started_at=started_at)
             return self._to_submit_response(existing, artifact_base64=None)
+        if not create_result.created:
+            self._record_submit_metric(existing, started_at=started_at)
+            return self._to_submit_response(existing, artifact_base64=None)
 
         self._render_store.mark_rendering(render_package.render_job_id)
         try:
-            result = self._typst_render_service.render(render_package)
+            result = self._render_engine.render(render_package)
         except TemplateCompatibilityError as exc:
-            failure = self._render_store.mark_failed(
-                render_job_id=render_package.render_job_id,
+            failure = self._mark_failed_or_current_truth(
+                render_package.render_job_id,
                 failure_category="template_not_supported",
                 failure_message=str(exc),
             )
             self._record_submit_metric(failure, started_at=started_at)
+            if failure.status != "failed":
+                return self._to_submit_response(failure, artifact_base64=None)
             raise RenderPackageInvalidError(
                 failure.failure_message or "template_not_supported"
             ) from exc
         except ValueError as exc:
-            failure = self._render_store.mark_failed(
-                render_job_id=render_package.render_job_id,
+            failure = self._mark_failed_or_current_truth(
+                render_package.render_job_id,
                 failure_category="package_validation_failed",
                 failure_message=str(exc),
             )
             self._record_submit_metric(failure, started_at=started_at)
+            if failure.status != "failed":
+                return self._to_submit_response(failure, artifact_base64=None)
             raise RenderPackageInvalidError(
                 failure.failure_message or "package_validation_failed"
             ) from exc
@@ -106,16 +115,24 @@ class RenderSubmissionService:
             failure_category: RenderFailureCategory = "template_render_failed"
             if "neither docker nor typst is installed" in failure_message.lower():
                 failure_category = "engine_unavailable"
-            failure = self._render_store.mark_failed(
-                render_job_id=render_package.render_job_id,
+            safe_message = _support_safe_render_failure_message(failure_category)
+            failure = self._mark_failed_or_current_truth(
+                render_package.render_job_id,
                 failure_category=failure_category,
-                failure_message=failure_message,
+                failure_message=safe_message,
             )
             self._record_submit_metric(failure, started_at=started_at)
+            if failure.status != "failed":
+                return self._to_submit_response(failure, artifact_base64=None)
             raise RenderExecutionFailedError(failure.failure_message or "render_failed") from exc
 
-        stored = self._render_store.mark_rendered(render_package.render_job_id, result)
+        try:
+            stored = self._render_store.mark_rendered(render_package.render_job_id, result)
+        except RenderJobTransitionError:
+            stored = self._render_store.get(render_package.render_job_id)
         self._record_submit_metric(stored, started_at=started_at)
+        if stored.status != "rendered":
+            return self._to_submit_response(stored, artifact_base64=None)
         return self._to_submit_response(
             stored,
             artifact_base64=base64.b64encode(result.artifact_bytes).decode("ascii"),
@@ -189,6 +206,22 @@ class RenderSubmissionService:
             determinism_mode=stored.determinism_mode,
         )
 
+    def _mark_failed_or_current_truth(
+        self,
+        render_job_id: str,
+        *,
+        failure_category: RenderFailureCategory,
+        failure_message: str,
+    ) -> StoredRenderJob:
+        try:
+            return self._render_store.mark_failed(
+                render_job_id=render_job_id,
+                failure_category=failure_category,
+                failure_message=failure_message,
+            )
+        except RenderJobTransitionError:
+            return self._render_store.get(render_job_id)
+
     @staticmethod
     def _to_submit_response(
         stored: StoredRenderJob,
@@ -253,3 +286,11 @@ class RenderSubmissionService:
             duration_seconds=perf_counter() - started_at,
         )
         record_render_artifact_size(status=stored.status, size_bytes=stored.output_size_bytes)
+
+
+def _support_safe_render_failure_message(failure_category: RenderFailureCategory) -> str:
+    if failure_category == "engine_unavailable":
+        return "Render runtime is unavailable in the governed runtime envelope."
+    if failure_category == "timeout":
+        return "Render execution timed out in the governed runtime envelope."
+    return "Render execution failed in the governed runtime envelope."

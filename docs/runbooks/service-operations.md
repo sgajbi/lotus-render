@@ -26,8 +26,9 @@
 - Metrics: `/metrics`
 
 The first-wave render path is intentionally idempotent on `render_job_id` plus package hash.
-Replaying the exact same request returns the prior stored truth. Reusing the same `render_job_id`
-with a different render package returns `409 render_job_conflict`.
+Replaying the exact same request returns the prior stored truth for `accepted`, `rendering`,
+`rendered`, and `failed` jobs without rerunning the renderer. Reusing the same `render_job_id` with
+a different render package returns `409 render_job_conflict`.
 
 ## Metrics Contract
 

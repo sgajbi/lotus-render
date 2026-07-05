@@ -180,6 +180,24 @@ class ApiErrorDetail(BaseModel):
         description="Support-safe explanation of the render API failure.",
         examples=["Render job was not found."],
     )
+    field_paths: list[str] | None = Field(
+        default=None,
+        description=(
+            "Support-safe request field paths for framework validation failures. Raw request "
+            "payload values are never echoed."
+        ),
+        examples=[["render_job_id"]],
+    )
+    correlation_id: str | None = Field(
+        default=None,
+        description="Request correlation identifier, matching the response header when available.",
+        examples=["corr-golden-portfolio-review-v1"],
+    )
+    trace_id: str | None = Field(
+        default=None,
+        description="Request trace identifier, matching the response header when available.",
+        examples=["trace-golden-portfolio-review-v1"],
+    )
 
 
 class ApiErrorResponse(BaseModel):

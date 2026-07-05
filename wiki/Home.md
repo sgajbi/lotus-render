@@ -14,6 +14,11 @@ Deterministic document rendering service for Lotus reporting.
   is stable across environments
 - render jobs are persisted in the governed local store before readiness is reported as healthy for
   first-wave traffic
+- same-package render replays return the prior persisted `accepted`, `rendering`, `rendered`, or
+  `failed` truth without rerunning the renderer; different-package reuse of a render job id remains
+  a governed conflict
+- HTTP routes consume typed application dependencies while persistence and metrics live behind
+  explicit infrastructure and observability modules
 - `/metadata` now publishes source-backed RFC-0108 `render.observability.render_supportability`
   posture derived from drain, render-store, template-registry, and runtime configuration state
 - the active `portfolio-review v1` flow now renders structured mandate, performance, risk,

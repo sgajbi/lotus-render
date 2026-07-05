@@ -1,20 +1,27 @@
 import logging
+from pathlib import Path
 
 from fastapi.testclient import TestClient
 from pytest import LogCaptureFixture
 
-from app.main import app
+from app.core.settings import Settings
+from app.main import create_app
 
 
-def test_health_endpoints() -> None:
-    with TestClient(app) as client:
+def _build_client(tmp_path: Path) -> TestClient:
+    app = create_app(Settings(render_store_path=str(tmp_path / "render-store.sqlite3")))
+    return TestClient(app)
+
+
+def test_health_endpoints(tmp_path: Path) -> None:
+    with _build_client(tmp_path) as client:
         assert client.get("/health").status_code == 200
         assert client.get("/health/live").status_code == 200
         assert client.get("/health/ready").status_code == 200
 
 
-def test_correlation_and_trace_header_propagation() -> None:
-    with TestClient(app) as client:
+def test_correlation_and_trace_header_propagation(tmp_path: Path) -> None:
+    with _build_client(tmp_path) as client:
         response = client.get(
             "/health",
             headers={"X-Correlation-Id": "corr-123", "X-Trace-Id": "trace-123"},
@@ -25,9 +32,9 @@ def test_correlation_and_trace_header_propagation() -> None:
         assert "traceparent" not in response.headers
 
 
-def test_valid_x_trace_id_emits_traceparent() -> None:
+def test_valid_x_trace_id_emits_traceparent(tmp_path: Path) -> None:
     trace_id = "0123456789abcdef0123456789abcdef"
-    with TestClient(app) as client:
+    with _build_client(tmp_path) as client:
         response = client.get(
             "/health",
             headers={"X-Correlation-Id": "corr-123", "X-Trace-Id": trace_id},
@@ -36,9 +43,9 @@ def test_valid_x_trace_id_emits_traceparent() -> None:
         assert response.headers["traceparent"] == f"00-{trace_id}-0000000000000001-01"
 
 
-def test_traceparent_header_preferred_for_trace_propagation() -> None:
+def test_traceparent_header_preferred_for_trace_propagation(tmp_path: Path) -> None:
     trace_id = "0123456789abcdef0123456789abcdef"
-    with TestClient(app) as client:
+    with _build_client(tmp_path) as client:
         response = client.get(
             "/health",
             headers={
@@ -53,17 +60,20 @@ def test_traceparent_header_preferred_for_trace_propagation() -> None:
         assert response.headers["traceparent"] == f"00-{trace_id}-0000000000000001-01"
 
 
-def test_missing_trace_header_is_generated() -> None:
-    with TestClient(app) as client:
+def test_missing_trace_header_is_generated(tmp_path: Path) -> None:
+    with _build_client(tmp_path) as client:
         response = client.get("/health", headers={"X-Correlation-Id": "corr-generated"})
         assert response.status_code == 200
         assert response.headers["X-Trace-Id"]
         assert response.headers["traceparent"].startswith("00-")
 
 
-def test_request_log_contains_correlation_and_trace(caplog: LogCaptureFixture) -> None:
+def test_request_log_contains_correlation_and_trace(
+    tmp_path: Path,
+    caplog: LogCaptureFixture,
+) -> None:
     caplog.set_level(logging.INFO, logger="lotus_render.request")
-    with TestClient(app) as client:
+    with _build_client(tmp_path) as client:
         response = client.get(
             "/health",
             headers={"X-Correlation-Id": "corr-log", "X-Trace-Id": "trace-log"},
@@ -74,31 +84,26 @@ def test_request_log_contains_correlation_and_trace(caplog: LogCaptureFixture) -
     assert any("trace_id=trace-log" in message for message in messages)
 
 
-def test_readiness_reports_draining_state() -> None:
+def test_readiness_reports_draining_state(tmp_path: Path) -> None:
+    app = create_app(Settings(render_store_path=str(tmp_path / "render-store.sqlite3")))
     with TestClient(app) as client:
-        app.state.is_draining = True
-        try:
-            response = client.get("/health/ready")
-            assert response.status_code == 503
-            assert response.json()["status"] == "draining"
-        finally:
-            app.state.is_draining = False
+        app.state.container.is_draining = True
+        response = client.get("/health/ready")
+        assert response.status_code == 503
+        assert response.json()["status"] == "draining"
 
 
-def test_readiness_reports_not_ready_when_render_store_is_unavailable() -> None:
+def test_readiness_reports_not_ready_when_render_store_is_unavailable(tmp_path: Path) -> None:
+    app = create_app(Settings(render_store_path=str(tmp_path / "render-store.sqlite3")))
     with TestClient(app) as client:
-        original_store = app.state.render_store
-        del app.state.render_store
-        try:
-            response = client.get("/health/ready")
-            assert response.status_code == 503
-            assert response.json()["status"] == "not_ready"
-        finally:
-            app.state.render_store = original_store
+        app.state.container.render_store._db_path = tmp_path / "missing" / "store.sqlite3"
+        response = client.get("/health/ready")
+        assert response.status_code == 503
+        assert response.json()["status"] == "not_ready"
 
 
-def test_metadata_endpoint_reports_foundation_posture() -> None:
-    with TestClient(app) as client:
+def test_metadata_endpoint_reports_foundation_posture(tmp_path: Path) -> None:
+    with _build_client(tmp_path) as client:
         response = client.get("/metadata")
 
         assert response.status_code == 200
