@@ -1,15 +1,21 @@
 from __future__ import annotations
 
+import json
 import sqlite3
 import threading
 from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Iterator, cast
+from typing import Any, Iterator, cast
 
 from app.contracts.renders import RenderFailureCategory, RenderJobStatus
 from app.domain.rendering.models import RenderResult
+from app.infrastructure.migrations.render_store import (
+    CURRENT_RENDER_STORE_SCHEMA_VERSION,
+    apply_render_store_migrations,
+    render_store_columns,
+)
 
 
 class RenderJobNotFoundError(ValueError):
@@ -34,6 +40,12 @@ class StoredRenderJob:
     report_job_id: str
     render_package_version: str
     package_hash: str
+    snapshot_id: str
+    lineage_refs: tuple[str, ...]
+    disclosure_refs: tuple[str, ...]
+    requested_by: str
+    package_correlation_id: str
+    package_trace_id: str
     report_type: str
     template_id: str
     template_version: str
@@ -83,38 +95,11 @@ class RenderStore:
 
     def ensure_schema(self) -> None:
         with self._connect() as connection:
-            connection.execute(
-                """
-                CREATE TABLE IF NOT EXISTS render_job (
-                    render_job_id TEXT PRIMARY KEY,
-                    report_job_id TEXT NOT NULL,
-                    render_package_version TEXT NOT NULL,
-                    package_hash TEXT NOT NULL,
-                    report_type TEXT NOT NULL,
-                    template_id TEXT NOT NULL,
-                    template_version TEXT NOT NULL,
-                    output_format TEXT NOT NULL,
-                    status TEXT NOT NULL,
-                    failure_category TEXT,
-                    failure_message TEXT,
-                    runtime_engine TEXT NOT NULL,
-                    runtime_engine_version TEXT NOT NULL,
-                    determinism_mode TEXT,
-                    determinism_statement TEXT,
-                    bounded_determinism_fingerprint TEXT,
-                    artifact_sha256 TEXT,
-                    mime_type TEXT,
-                    output_size_bytes INTEGER,
-                    render_duration_ms INTEGER,
-                    created_at TEXT NOT NULL,
-                    updated_at TEXT NOT NULL,
-                    completed_at TEXT
-                )
-                """
-            )
+            apply_render_store_migrations(connection)
 
     def check_ready(self) -> None:
         with self._connect() as connection:
+            schema_version = int(connection.execute("PRAGMA user_version").fetchone()[0])
             row = connection.execute(
                 """
                 SELECT name
@@ -122,8 +107,14 @@ class RenderStore:
                 WHERE type = 'table' AND name = 'render_job'
                 """
             ).fetchone()
+            columns = render_store_columns(connection)
         if row is None:
             raise RuntimeError("render_store_schema_missing:render_job")
+        if schema_version < CURRENT_RENDER_STORE_SCHEMA_VERSION:
+            raise RuntimeError("render_store_schema_version_outdated")
+        missing_columns = _REQUIRED_RENDER_JOB_COLUMNS - columns
+        if missing_columns:
+            raise RuntimeError(f"render_store_schema_missing:{sorted(missing_columns)[0]}")
 
     def get(self, render_job_id: str) -> StoredRenderJob:
         with self._connect() as connection:
@@ -135,7 +126,7 @@ class RenderStore:
             raise RenderJobNotFoundError("render_job_not_found")
         return _row_to_job(row)
 
-    def create_or_get(self, **kwargs: str) -> StoredRenderJob:
+    def create_or_get(self, **kwargs: Any) -> StoredRenderJob:
         return self.create_or_get_with_outcome(**kwargs).job
 
     def create_or_get_with_outcome(
@@ -145,6 +136,12 @@ class RenderStore:
         report_job_id: str,
         render_package_version: str,
         package_hash: str,
+        snapshot_id: str = "",
+        lineage_refs: tuple[str, ...] = (),
+        disclosure_refs: tuple[str, ...] = (),
+        requested_by: str = "",
+        package_correlation_id: str = "",
+        package_trace_id: str = "",
         report_type: str,
         template_id: str,
         template_version: str,
@@ -160,19 +157,30 @@ class RenderStore:
                     """
                     INSERT OR IGNORE INTO render_job (
                         render_job_id, report_job_id, render_package_version, package_hash,
-                        report_type, template_id, template_version, output_format, status,
-                        failure_category, failure_message, runtime_engine, runtime_engine_version,
+                        snapshot_id, lineage_refs_json, disclosure_refs_json, requested_by,
+                        package_correlation_id, package_trace_id, report_type, template_id,
+                        template_version, output_format, status, failure_category,
+                        failure_message, runtime_engine, runtime_engine_version,
                         determinism_mode, determinism_statement, bounded_determinism_fingerprint,
                         artifact_sha256, mime_type, output_size_bytes, render_duration_ms,
                         created_at, updated_at, completed_at
                     )
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    VALUES (
+                        ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+                        ?, ?, ?, ?
+                    )
                     """,
                     (
                         render_job_id,
                         report_job_id,
                         render_package_version,
                         package_hash,
+                        snapshot_id,
+                        json.dumps(list(lineage_refs), separators=(",", ":")),
+                        json.dumps(list(disclosure_refs), separators=(",", ":")),
+                        requested_by,
+                        package_correlation_id,
+                        package_trace_id,
                         report_type,
                         template_id,
                         template_version,
@@ -344,12 +352,50 @@ def _dt_from_text(value: str | None) -> datetime | None:
     return datetime.fromisoformat(value.replace("Z", "+00:00"))
 
 
+_REQUIRED_RENDER_JOB_COLUMNS = {
+    "render_job_id",
+    "report_job_id",
+    "render_package_version",
+    "package_hash",
+    "snapshot_id",
+    "lineage_refs_json",
+    "disclosure_refs_json",
+    "requested_by",
+    "package_correlation_id",
+    "package_trace_id",
+    "report_type",
+    "template_id",
+    "template_version",
+    "output_format",
+    "status",
+    "runtime_engine",
+    "runtime_engine_version",
+    "created_at",
+    "updated_at",
+}
+
+
+def _json_tuple(value: str | None) -> tuple[str, ...]:
+    if not value:
+        return ()
+    payload = json.loads(value)
+    if not isinstance(payload, list):
+        return ()
+    return tuple(str(item) for item in payload)
+
+
 def _row_to_job(row: sqlite3.Row) -> StoredRenderJob:
     return StoredRenderJob(
         render_job_id=str(row["render_job_id"]),
         report_job_id=str(row["report_job_id"]),
         render_package_version=str(row["render_package_version"]),
         package_hash=str(row["package_hash"]),
+        snapshot_id=str(row["snapshot_id"]),
+        lineage_refs=_json_tuple(row["lineage_refs_json"]),
+        disclosure_refs=_json_tuple(row["disclosure_refs_json"]),
+        requested_by=str(row["requested_by"]),
+        package_correlation_id=str(row["package_correlation_id"]),
+        package_trace_id=str(row["package_trace_id"]),
         report_type=str(row["report_type"]),
         template_id=str(row["template_id"]),
         template_version=str(row["template_version"]),

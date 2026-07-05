@@ -76,6 +76,11 @@ and Typst foundation slices:
 - direct HTTP requests are bounded by trusted-host, request-body-size, and CORS configuration;
   browser-facing access remains platform-ingress governed by default
 - sqlite-backed governed render job store at `data/render-store.sqlite3` by default
+- versioned SQLite render-store migrations with schema readiness validation
+- support-safe render evidence persistence for snapshot identity, lineage refs, disclosure refs,
+  caller identity, and original package correlation/trace identifiers
+- `docker compose up --build` uses a named `lotus-render-data` volume and
+  `/var/lib/lotus-render/render-store.sqlite3` for local durable render-job state
 - internal render API surface:
   - `POST /renders`
   - `GET /renders/{render_job_id}`

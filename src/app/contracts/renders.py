@@ -149,6 +149,38 @@ class RenderSubmitResponse(BaseModel):
         description="Upstream lotus-report job identifier associated with this render attempt.",
         examples=["rjob_83ca965c50334c40a17d2b8cc94873a5"],
     )
+    snapshot_id: str = Field(
+        ...,
+        description="Support-safe upstream report snapshot identifier used for render evidence.",
+        examples=["rsnap_golden_portfolio_review_v1"],
+    )
+    lineage_refs: list[str] = Field(
+        ...,
+        description="Support-safe source lineage references retained from the render package.",
+        examples=[["rlineage_golden_portfolio_review_v1"]],
+    )
+    disclosure_refs: list[str] = Field(
+        ...,
+        description="Disclosure fragment identifiers required by the governed render package.",
+        examples=[["portfolio-review.standard-disclosures.v1"]],
+    )
+    requested_by: str = Field(
+        ...,
+        description="Support-safe caller identity supplied in the render package.",
+        examples=["advisor.sg@example.com"],
+    )
+    package_correlation_id: str = Field(
+        ...,
+        description=(
+            "Original render-package correlation identifier retained for audit traceability."
+        ),
+        examples=["corr-golden-portfolio-review-v1"],
+    )
+    package_trace_id: str = Field(
+        ...,
+        description="Original render-package trace identifier retained for audit traceability.",
+        examples=["trace-golden-portfolio-review-v1"],
+    )
     status: RenderJobStatus = Field(
         ...,
         description="Current render job status after submission handling.",
@@ -259,6 +291,38 @@ class RenderJobStatusResponse(BaseModel):
         ...,
         description="Upstream lotus-report job identifier associated with this render job.",
         examples=["rjob_83ca965c50334c40a17d2b8cc94873a5"],
+    )
+    snapshot_id: str = Field(
+        ...,
+        description="Support-safe upstream report snapshot identifier used for render evidence.",
+        examples=["rsnap_golden_portfolio_review_v1"],
+    )
+    lineage_refs: list[str] = Field(
+        ...,
+        description="Support-safe source lineage references retained from the render package.",
+        examples=[["rlineage_golden_portfolio_review_v1"]],
+    )
+    disclosure_refs: list[str] = Field(
+        ...,
+        description="Disclosure fragment identifiers required by the governed render package.",
+        examples=[["portfolio-review.standard-disclosures.v1"]],
+    )
+    requested_by: str = Field(
+        ...,
+        description="Support-safe caller identity supplied in the render package.",
+        examples=["advisor.sg@example.com"],
+    )
+    package_correlation_id: str = Field(
+        ...,
+        description=(
+            "Original render-package correlation identifier retained for audit traceability."
+        ),
+        examples=["corr-golden-portfolio-review-v1"],
+    )
+    package_trace_id: str = Field(
+        ...,
+        description="Original render-package trace identifier retained for audit traceability.",
+        examples=["trace-golden-portfolio-review-v1"],
     )
     status: RenderJobStatus = Field(
         ...,
