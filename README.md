@@ -38,7 +38,7 @@ docker compose up --build
 
 ## Standards
 
-- CI and governance: .github/workflows/
+- CI and governance: `.github/workflows/` and `.github/CODEOWNERS`
 - Engineering commands: Makefile
 - Platform standards docs: docs/standards/
 - Runtime configuration: docs/configuration.md
