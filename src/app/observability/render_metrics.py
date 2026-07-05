@@ -62,7 +62,6 @@ RENDER_OPERATION_STATUSES = frozenset(
         "not_ready",
         "rendered",
         "rendering",
-        "validating_package",
     }
 )
 RENDER_SUPPORTABILITY_STATES = frozenset({"ready", "degraded", "unavailable"})

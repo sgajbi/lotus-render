@@ -1,7 +1,7 @@
 import pytest
 
-import app.render_metrics as render_metrics
-from app.render_metrics import (
+import app.observability.render_metrics as render_metrics
+from app.observability.render_metrics import (
     FORBIDDEN_METRIC_LABELS,
     IMPLEMENTED_RENDER_OPERATIONS,
     RENDER_METRIC_CONTRACTS,

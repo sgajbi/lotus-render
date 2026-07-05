@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, Request, Response, status
+from fastapi import APIRouter, Response, status
 
 from app.contracts.system import HealthResponse, MetadataResponse, RenderSupportabilitySummary
-from app.render_metrics import record_render_supportability
-from app.services.render_foundation import RenderFoundationService
+from app.dependencies.container import ContainerDependency
+from app.observability.render_metrics import record_render_supportability
 
 router = APIRouter(tags=["system"])
 
@@ -15,8 +15,8 @@ router = APIRouter(tags=["system"])
     summary="Check service health",
     description="Returns the current liveness posture for lotus-render.",
 )
-async def health(request: Request) -> HealthResponse:
-    service: RenderFoundationService = request.app.state.render_foundation
+async def health(container: ContainerDependency) -> HealthResponse:
+    service = container.render_foundation
     metadata = service.metadata()
     return HealthResponse(status="ok", service=str(metadata["service"]))
 
@@ -42,15 +42,11 @@ async def health_live() -> HealthResponse:
         }
     },
 )
-async def health_ready(request: Request, response: Response) -> HealthResponse:
-    service: RenderFoundationService = request.app.state.render_foundation
-    render_store_ready = True
-    try:
-        request.app.state.render_store.check_ready()
-    except (AttributeError, RuntimeError):
-        render_store_ready = False
+async def health_ready(container: ContainerDependency, response: Response) -> HealthResponse:
+    service = container.render_foundation
+    render_store_ready = container.render_store_ready()
     status_code, payload = service.readiness_status(
-        is_draining=bool(getattr(request.app.state, "is_draining", False)),
+        is_draining=container.is_draining,
         render_store_ready=render_store_ready,
     )
     response.status_code = status_code
@@ -66,17 +62,13 @@ async def health_ready(request: Request, response: Response) -> HealthResponse:
         "and render-attempt lifecycle values."
     ),
 )
-async def metadata(request: Request) -> MetadataResponse:
-    service: RenderFoundationService = request.app.state.render_foundation
+async def metadata(container: ContainerDependency) -> MetadataResponse:
+    service = container.render_foundation
     foundation_metadata = service.metadata()
-    render_store_ready = True
-    try:
-        request.app.state.render_store.check_ready()
-    except (AttributeError, RuntimeError):
-        render_store_ready = False
-    template_registry_ready = bool(getattr(request.app.state, "template_registry", None))
+    render_store_ready = container.render_store_ready()
+    template_registry_ready = container.template_registry_ready()
     supportability = service.supportability_status(
-        is_draining=bool(getattr(request.app.state, "is_draining", False)),
+        is_draining=container.is_draining,
         render_store_ready=render_store_ready,
         template_registry_ready=template_registry_ready,
     )

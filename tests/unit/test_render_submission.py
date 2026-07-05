@@ -11,7 +11,8 @@ from app.contracts.render_package import RenderPackage
 from app.core.settings import Settings
 from app.domain.render_attempts.models import RenderAttempt
 from app.domain.rendering.models import RenderDiagnostic, RenderResult
-from app.render_store import RenderStore
+from app.infrastructure.render_store import RenderStore
+from app.services.render_ports import RenderRuntimeMetadata
 from app.services.render_submission import (
     RenderExecutionFailedError,
     RenderPackageInvalidError,
@@ -43,9 +44,18 @@ def _package_hash(render_package: RenderPackage) -> str:
 
 class _SuccessfulTypstService:
     def __init__(self) -> None:
-        self._settings = _settings()
+        self.calls = 0
+
+    @property
+    def runtime_metadata(self) -> RenderRuntimeMetadata:
+        settings = _settings()
+        return RenderRuntimeMetadata(
+            runtime_engine=settings.runtime_engine,
+            runtime_engine_version=settings.runtime_engine_version,
+        )
 
     def render(self, _render_package: RenderPackage) -> RenderResult:
+        self.calls += 1
         return RenderResult(
             attempt=RenderAttempt(
                 render_job_id="rdr_success",
@@ -77,8 +87,13 @@ class _SuccessfulTypstService:
 
 
 class _ValueErrorTypstService:
-    def __init__(self) -> None:
-        self._settings = _settings()
+    @property
+    def runtime_metadata(self) -> RenderRuntimeMetadata:
+        settings = _settings()
+        return RenderRuntimeMetadata(
+            runtime_engine=settings.runtime_engine,
+            runtime_engine_version=settings.runtime_engine_version,
+        )
 
     def render(self, _render_package: RenderPackage) -> RenderResult:
         raise ValueError("package payload invalid")
@@ -86,8 +101,15 @@ class _ValueErrorTypstService:
 
 class _RuntimeErrorTypstService:
     def __init__(self, message: str) -> None:
-        self._settings = _settings()
         self._message = message
+
+    @property
+    def runtime_metadata(self) -> RenderRuntimeMetadata:
+        settings = _settings()
+        return RenderRuntimeMetadata(
+            runtime_engine=settings.runtime_engine,
+            runtime_engine_version=settings.runtime_engine_version,
+        )
 
     def render(self, _render_package: RenderPackage) -> RenderResult:
         raise RuntimeError(self._message)
@@ -116,7 +138,7 @@ def test_render_submission_returns_existing_failed_job_without_retrying(tmp_path
 
     service = RenderSubmissionService(
         render_store=store,
-        typst_render_service=cast(Any, _SuccessfulTypstService()),
+        render_engine=cast(Any, _SuccessfulTypstService()),
     )
 
     response = service.submit(package)
@@ -130,7 +152,7 @@ def test_render_submission_marks_failed_for_package_value_error(tmp_path: Path) 
     store = RenderStore(tmp_path / "render-store.sqlite3")
     service = RenderSubmissionService(
         render_store=store,
-        typst_render_service=cast(Any, _ValueErrorTypstService()),
+        render_engine=cast(Any, _ValueErrorTypstService()),
     )
 
     with pytest.raises(RenderPackageInvalidError, match="package payload invalid"):
@@ -148,7 +170,7 @@ def test_render_submission_marks_engine_unavailable_for_runtime_dependency_failu
     store = RenderStore(tmp_path / "render-store.sqlite3")
     service = RenderSubmissionService(
         render_store=store,
-        typst_render_service=cast(
+        render_engine=cast(
             Any,
             _RuntimeErrorTypstService(
                 "Neither Docker nor Typst is installed in the current runtime"
@@ -156,9 +178,61 @@ def test_render_submission_marks_engine_unavailable_for_runtime_dependency_failu
         ),
     )
 
-    with pytest.raises(RenderExecutionFailedError, match="Neither Docker nor Typst"):
+    with pytest.raises(RenderExecutionFailedError, match="Render runtime is unavailable"):
         service.submit(_render_package(render_job_id="rdr_engine_unavailable"))
 
     stored = store.get("rdr_engine_unavailable")
     assert stored.status == "failed"
     assert stored.failure_category == "engine_unavailable"
+    assert (
+        stored.failure_message == "Render runtime is unavailable in the governed runtime envelope."
+    )
+
+
+def test_render_submission_returns_existing_in_progress_job_without_retrying(
+    tmp_path: Path,
+) -> None:
+    store = RenderStore(tmp_path / "render-store.sqlite3")
+    package = _render_package(render_job_id="rdr_in_progress")
+    existing = store.create_or_get(
+        render_job_id=package.render_job_id,
+        report_job_id=package.report_job_id,
+        render_package_version=package.render_package_version,
+        package_hash=_package_hash(package),
+        report_type=package.report_type,
+        template_id=package.template_id,
+        template_version=package.template_version,
+        output_format=package.output_format,
+        runtime_engine="typst",
+        runtime_engine_version="0.14.2",
+    )
+    store.mark_rendering(existing.render_job_id)
+    renderer = _SuccessfulTypstService()
+    service = RenderSubmissionService(render_store=store, render_engine=renderer)
+
+    response = service.submit(package)
+
+    assert response.status == "rendering"
+    assert response.artifact_base64 is None
+    assert renderer.calls == 0
+
+
+def test_render_submission_sanitizes_runtime_diagnostics_before_persistence(
+    tmp_path: Path,
+) -> None:
+    store = RenderStore(tmp_path / "render-store.sqlite3")
+    service = RenderSubmissionService(
+        render_store=store,
+        render_engine=_RuntimeErrorTypstService(
+            "typst failed near CLIENT_SENTINEL_ALICE_PRIVATE_NOTE trace-golden"
+        ),
+    )
+
+    with pytest.raises(RenderExecutionFailedError, match="governed runtime envelope"):
+        service.submit(_render_package(render_job_id="rdr_sensitive_failure"))
+
+    stored = store.get("rdr_sensitive_failure")
+    assert stored.status == "failed"
+    assert stored.failure_category == "template_render_failed"
+    assert stored.failure_message == "Render execution failed in the governed runtime envelope."
+    assert "CLIENT_SENTINEL" not in (stored.failure_message or "")

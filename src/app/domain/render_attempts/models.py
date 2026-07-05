@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from enum import StrEnum
 
@@ -32,8 +32,8 @@ class RenderAttempt:
     template_version: str
     output_format: str
     status: RenderAttemptStatus = RenderAttemptStatus.ACCEPTED
-    created_at: datetime = datetime.now(UTC)
-    updated_at: datetime = datetime.now(UTC)
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    updated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     artifact_sha256: str | None = None
     failure_category: RenderFailureCategory | None = None
     diagnostic_summary: str | None = None

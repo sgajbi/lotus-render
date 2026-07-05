@@ -5,17 +5,20 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 from prometheus_fastapi_instrumentator import Instrumentator
 
 from app.api.routes.renders import router as renders_router
 from app.api.routes.system import router as system_router
 from app.core.logging import configure_logging
 from app.core.settings import Settings, get_settings
+from app.dependencies.container import AppContainer
 from app.domain.templates.registry import TemplateRegistry
+from app.infrastructure.render_store import RenderStore
 from app.middleware.correlation import CorrelationIdMiddleware
 from app.middleware.request_logging import RequestLoggingMiddleware
-from app.render_metrics import validate_render_metric_contracts
-from app.render_store import RenderStore
+from app.observability.render_metrics import validate_render_metric_contracts
 from app.services.render_foundation import RenderFoundationService
 from app.services.render_intake import RenderIntakeService
 from app.services.render_submission import RenderSubmissionService
@@ -31,19 +34,27 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         configure_logging()
         app.state.settings = configured_settings
-        app.state.is_draining = False
-        app.state.template_registry = TemplateRegistry.load_from_directory(
+        template_registry = TemplateRegistry.load_from_directory(
             Path(configured_settings.template_registry_path)
         )
-        app.state.render_foundation = RenderFoundationService(configured_settings)
-        app.state.render_store = RenderStore(Path(configured_settings.render_store_path))
-        app.state.render_submission_service = RenderSubmissionService(
-            render_store=app.state.render_store,
-            typst_render_service=TypstRenderService(
-                configured_settings,
-                RenderIntakeService(app.state.template_registry),
+        render_store = RenderStore(Path(configured_settings.render_store_path))
+        app.state.container = AppContainer(
+            render_foundation=RenderFoundationService(configured_settings),
+            render_store=render_store,
+            render_submission_service=RenderSubmissionService(
+                render_store=render_store,
+                render_engine=TypstRenderService(
+                    configured_settings,
+                    RenderIntakeService(template_registry),
+                ),
             ),
+            template_registry=template_registry,
         )
+        app.state.is_draining = False
+        app.state.template_registry = template_registry
+        app.state.render_store = render_store
+        app.state.render_foundation = app.state.container.render_foundation
+        app.state.render_submission_service = app.state.container.render_submission_service
         yield
 
     app = FastAPI(
@@ -55,6 +66,28 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.add_middleware(RequestLoggingMiddleware, service_name=configured_settings.service_name)
     validate_render_metric_contracts()
     Instrumentator().instrument(app).expose(app)
+
+    @app.exception_handler(RequestValidationError)
+    async def request_validation_error_handler(request, exc):  # type: ignore[no-untyped-def]
+        field_paths = sorted(
+            {
+                ".".join(str(part) for part in error.get("loc", []) if part != "body")
+                for error in exc.errors()
+            }
+        )
+        return JSONResponse(
+            status_code=422,
+            content={
+                "detail": {
+                    "code": "render_package_invalid",
+                    "message": "Render request validation failed.",
+                    "field_paths": [path for path in field_paths if path],
+                    "correlation_id": getattr(request.state, "correlation_id", None),
+                    "trace_id": getattr(request.state, "trace_id", None),
+                }
+            },
+        )
+
     app.include_router(system_router)
     app.include_router(renders_router)
     return app

@@ -71,8 +71,9 @@ and Typst foundation slices:
   - `POST /renders`
   - `GET /renders/{render_job_id}`
   - `GET /renders/{render_job_id}/artifact-metadata`
-- idempotent render-job semantics: same `render_job_id` plus same package returns prior truth;
-  same `render_job_id` plus different package returns `409 render_job_conflict`
+- idempotent render-job semantics: same `render_job_id` plus same package returns prior stored
+  truth for `accepted`, `rendering`, `rendered`, and `failed` without rerunning the renderer; same
+  `render_job_id` plus different package returns `409 render_job_conflict`
 - `/health/ready` now reflects both runtime posture and render-store availability
 - RFC-0105 render metrics expose bounded render submission, status lookup, artifact metadata lookup,
   latency, failure-category, and artifact-size signals through `/metrics`

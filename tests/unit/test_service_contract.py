@@ -1,4 +1,5 @@
 from pathlib import Path
+from time import sleep
 
 from app.contracts.render_package import SUPPORTED_RENDER_PACKAGE_VERSION, RenderPackage
 from app.core.settings import Settings
@@ -93,6 +94,32 @@ def test_render_attempt_lifecycle_transitions() -> None:
     assert attempt.status.value == "rendered"
     assert attempt.artifact_sha256 == "abc123"
     assert attempt.failure_category is None
+
+
+def test_render_attempt_timestamps_are_per_instance_and_lifecycle_stable() -> None:
+    first = RenderAttempt(
+        render_job_id="rdr_first",
+        report_job_id="rpt_456",
+        attempt_number=1,
+        template_id="portfolio-review",
+        template_version="v1",
+        output_format="pdf",
+    )
+    sleep(0.001)
+    second = RenderAttempt(
+        render_job_id="rdr_second",
+        report_job_id="rpt_456",
+        attempt_number=1,
+        template_id="portfolio-review",
+        template_version="v1",
+        output_format="pdf",
+    )
+
+    assert second.created_at > first.created_at
+    created_at = second.created_at
+    second.mark_rendering()
+    assert second.created_at == created_at
+    assert second.updated_at > created_at
 
 
 def test_render_foundation_metadata_exposes_supported_statuses() -> None:

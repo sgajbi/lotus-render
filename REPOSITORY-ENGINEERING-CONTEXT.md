@@ -52,17 +52,19 @@ Current repository baseline:
 4. `src/app/core/`: settings and logging configuration.
 5. `src/app/domain/render_attempts/`: render-attempt lifecycle models.
 6. `src/app/domain/templates/`: template manifest models and registry compatibility rules.
-7. `src/app/services/`: foundation services, package intake, render submission, and Typst
-   orchestration.
-8. `src/app/middleware/`: correlation and structured request logging middleware.
-9. `templates/registry/`: PR-governed template source truth.
-10. `templates/typst/`: governed Typst template source.
-11. `tests/golden/`: golden render package and artifact proof inputs.
-12. `tests/unit`, `tests/integration`, `tests/e2e`: test pyramid baseline.
-13. `src/app/render_store.py`: sqlite-backed governed render job state for the first-wave
-    synchronous render lifecycle.
-14. `src/app/render_metrics.py`: RFC-0105 and RFC-0108 render metrics contracts and bounded
+7. `src/app/services/`: foundation services, package intake, render submission use case, Typst
+   orchestration, and render-engine ports.
+8. `src/app/dependencies/`: typed FastAPI dependency providers and the route-facing application
+   container.
+9. `src/app/infrastructure/`: concrete persistence adapters, including the sqlite-backed governed
+   render job state for the first-wave synchronous render lifecycle.
+10. `src/app/observability/`: RFC-0105 and RFC-0108 render metrics contracts and bounded
     Prometheus metric emitters.
+11. `src/app/middleware/`: correlation and structured request logging middleware.
+12. `templates/registry/`: PR-governed template source truth.
+13. `templates/typst/`: governed Typst template source.
+14. `tests/golden/`: golden render package and artifact proof inputs.
+15. `tests/unit`, `tests/integration`, `tests/e2e`: test pyramid baseline.
 
 ## Runtime And Integration Boundaries
 
@@ -136,6 +138,13 @@ Primary governing artifacts:
 7. Render metrics must remain bounded to operation, status, failure category, artifact-size, and
    supportability posture. Do not add render job, report job, portfolio, tenant, trace,
    correlation, raw package, or storage labels.
+8. HTTP routes should consume typed dependencies from `src/app/dependencies/` rather than reading
+   concrete adapters from raw `app.state`; route tests should use app-factory instances and
+   dependency overrides instead of the module-level singleton app.
+9. Persisted render job lifecycle updates are compare-and-set transitions. Same-package
+   `accepted`, `rendering`, `rendered`, and `failed` replays return prior truth without rerunning
+   the renderer; terminal states are immutable unless a future governed recovery workflow changes
+   that contract.
 
 ## Context Maintenance Rule
 

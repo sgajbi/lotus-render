@@ -30,12 +30,14 @@ Supported `operation` labels are:
 Supported `status` labels are bounded to render lifecycle and lookup states:
 
 - `accepted`
-- `validating_package`
 - `rendering`
 - `rendered`
 - `failed`
 - `not_ready`
 - `not_found`
+
+`validating_package` is a transient render-attempt phase exposed in `/metadata` as attempt
+vocabulary. It is not emitted as a persisted render job operation status.
 
 `failure_category` is normalized to lower-case snake case and falls back to `other` when an input
 is too long or contains unsupported characters.

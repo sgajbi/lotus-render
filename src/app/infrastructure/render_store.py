@@ -20,6 +20,10 @@ class RenderJobConflictError(ValueError):
     pass
 
 
+class RenderJobTransitionError(RuntimeError):
+    pass
+
+
 def utc_now() -> datetime:
     return datetime.now(UTC)
 
@@ -49,6 +53,12 @@ class StoredRenderJob:
     created_at: datetime
     updated_at: datetime
     completed_at: datetime | None
+
+
+@dataclass(slots=True)
+class CreateOrGetRenderJobResult:
+    job: StoredRenderJob
+    created: bool
 
 
 class RenderStore:
@@ -125,7 +135,10 @@ class RenderStore:
             raise RenderJobNotFoundError("render_job_not_found")
         return _row_to_job(row)
 
-    def create_or_get(
+    def create_or_get(self, **kwargs: str) -> StoredRenderJob:
+        return self.create_or_get_with_outcome(**kwargs).job
+
+    def create_or_get_with_outcome(
         self,
         *,
         render_job_id: str,
@@ -138,24 +151,14 @@ class RenderStore:
         output_format: str,
         runtime_engine: str,
         runtime_engine_version: str,
-    ) -> StoredRenderJob:
+    ) -> CreateOrGetRenderJobResult:
         with self._lock:
             with self._connect() as connection:
-                existing = connection.execute(
-                    "SELECT * FROM render_job WHERE render_job_id = ?",
-                    (render_job_id,),
-                ).fetchone()
-                if existing is not None:
-                    job = _row_to_job(existing)
-                    if job.package_hash != package_hash:
-                        raise RenderJobConflictError("render_job_conflict")
-                    return job
-
                 now = utc_now()
                 now_text = _dt_to_text(now)
-                connection.execute(
+                cursor = connection.execute(
                     """
-                    INSERT INTO render_job (
+                    INSERT OR IGNORE INTO render_job (
                         render_job_id, report_job_id, render_package_version, package_hash,
                         report_type, template_id, template_version, output_format, status,
                         failure_category, failure_message, runtime_engine, runtime_engine_version,
@@ -191,12 +194,16 @@ class RenderStore:
                         None,
                     ),
                 )
+                created = cursor.rowcount == 1
                 row = connection.execute(
                     "SELECT * FROM render_job WHERE render_job_id = ?",
                     (render_job_id,),
                 ).fetchone()
                 assert row is not None
-                return _row_to_job(row)
+                job = _row_to_job(row)
+                if job.package_hash != package_hash:
+                    raise RenderJobConflictError("render_job_conflict")
+                return CreateOrGetRenderJobResult(job=job, created=created)
 
     def mark_rendering(self, render_job_id: str) -> StoredRenderJob:
         return self._update(
@@ -212,6 +219,7 @@ class RenderStore:
             output_size_bytes=None,
             render_duration_ms=None,
             completed_at=None,
+            expected_statuses=("accepted",),
         )
 
     def mark_rendered(self, render_job_id: str, result: RenderResult) -> StoredRenderJob:
@@ -228,6 +236,7 @@ class RenderStore:
             output_size_bytes=result.diagnostic.output_size_bytes,
             render_duration_ms=result.diagnostic.render_duration_ms,
             completed_at=utc_now(),
+            expected_statuses=("rendering",),
         )
 
     def mark_failed(
@@ -250,6 +259,7 @@ class RenderStore:
             output_size_bytes=None,
             render_duration_ms=None,
             completed_at=utc_now(),
+            expected_statuses=("accepted", "rendering"),
         )
 
     def _update(
@@ -267,18 +277,20 @@ class RenderStore:
         output_size_bytes: int | None,
         render_duration_ms: int | None,
         completed_at: datetime | None,
+        expected_statuses: tuple[RenderJobStatus, ...],
     ) -> StoredRenderJob:
         with self._lock:
             with self._connect() as connection:
                 existing = connection.execute(
-                    "SELECT 1 FROM render_job WHERE render_job_id = ?",
+                    "SELECT status FROM render_job WHERE render_job_id = ?",
                     (render_job_id,),
                 ).fetchone()
                 if existing is None:
                     raise RenderJobNotFoundError("render_job_not_found")
                 now_text = _dt_to_text(utc_now())
                 completed_at_text = _dt_to_text(completed_at) if completed_at else None
-                connection.execute(
+                placeholders = ",".join("?" for _ in expected_statuses)
+                cursor = connection.execute(
                     """
                     UPDATE render_job
                     SET status = ?, failure_category = ?, failure_message = ?,
@@ -286,7 +298,11 @@ class RenderStore:
                         bounded_determinism_fingerprint = ?, artifact_sha256 = ?, mime_type = ?,
                         output_size_bytes = ?, render_duration_ms = ?, updated_at = ?,
                         completed_at = ?
-                    WHERE render_job_id = ?
+                    WHERE render_job_id = ? AND status IN (
+                    """
+                    + placeholders
+                    + """
+                    )
                     """,
                     (
                         status,
@@ -302,8 +318,14 @@ class RenderStore:
                         now_text,
                         completed_at_text,
                         render_job_id,
+                        *expected_statuses,
                     ),
                 )
+                if cursor.rowcount != 1:
+                    current_status = str(existing["status"])
+                    raise RenderJobTransitionError(
+                        f"invalid_render_job_transition:{current_status}->{status}"
+                    )
                 row = connection.execute(
                     "SELECT * FROM render_job WHERE render_job_id = ?",
                     (render_job_id,),
