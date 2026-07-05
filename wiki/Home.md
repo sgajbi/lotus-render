@@ -2,6 +2,15 @@
 
 Deterministic document rendering service for Lotus reporting.
 
+## Reader Map
+
+| Reader | Start Here | Current Evidence |
+| --- | --- | --- |
+| Business and product | [Current posture](#current-posture), [Template Registry](Template-Registry) | Supported render templates, upstream package boundaries, and presentation-only advisory scope. |
+| Operations and support | [Runtime and operations](#runtime-and-operations), [Configuration](Configuration) | Health/readiness, persisted render state, bounded diagnostics, supportability metadata, and Docker runtime posture. |
+| Engineering and agents | [Registry truth](#registry-truth), [Validation commands](#validation-commands), [Remote governance](#remote-governance) | Repo-native gates, golden proof artifacts, OpenAPI/template registry controls, and CI-only merge governance. |
+| Integration consumers | [Scope guardrails](#scope-guardrails), [Template Registry](Template-Registry) | Complete render-package input ownership, supported template/version tuples, and downstream artifact boundaries. |
+
 ## Current posture
 
 - separate deployable render service with its own Docker image and independently scalable runtime
