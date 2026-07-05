@@ -65,6 +65,10 @@ class RenderSupportabilitySummary(BaseModel):
         description="Whether the governed template registry is loaded.",
         examples=[True],
     )
+    runtimeAvailable: bool = Field(
+        description="Whether the configured Typst/Docker render runtime is executable.",
+        examples=[True],
+    )
     draining: bool = Field(
         description="Whether the service is currently draining.",
         examples=[False],

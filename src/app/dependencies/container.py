@@ -8,6 +8,7 @@ from fastapi import Depends, Request
 from app.domain.templates.registry import TemplateRegistry
 from app.infrastructure.render_store import RenderStore
 from app.services.render_foundation import RenderFoundationService
+from app.services.render_runtime import RenderRuntimeProbe
 from app.services.render_submission import RenderSubmissionService
 
 
@@ -16,6 +17,7 @@ class AppContainer:
     render_foundation: RenderFoundationService
     render_store: RenderStore
     render_submission_service: RenderSubmissionService
+    render_runtime_probe: RenderRuntimeProbe
     template_registry: TemplateRegistry
     is_draining: bool = False
 
@@ -28,6 +30,9 @@ class AppContainer:
 
     def template_registry_ready(self) -> bool:
         return self.template_registry is not None
+
+    def render_runtime_available(self) -> bool:
+        return self.render_runtime_probe.check_available().available
 
 
 def get_app_container(request: Request) -> AppContainer:

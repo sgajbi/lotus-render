@@ -48,6 +48,7 @@ async def health_ready(container: ContainerDependency, response: Response) -> He
     status_code, payload = service.readiness_status(
         is_draining=container.is_draining,
         render_store_ready=render_store_ready,
+        render_runtime_available=container.render_runtime_available(),
     )
     response.status_code = status_code
     return HealthResponse(**payload)
@@ -71,6 +72,7 @@ async def metadata(container: ContainerDependency) -> MetadataResponse:
         is_draining=container.is_draining,
         render_store_ready=render_store_ready,
         template_registry_ready=template_registry_ready,
+        render_runtime_available=container.render_runtime_available(),
     )
     record_render_supportability(
         state=supportability["state"],

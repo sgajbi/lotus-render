@@ -42,6 +42,7 @@ class RenderSupportability(TypedDict):
     supportedOutputFormats: list[str]
     renderStoreReady: bool
     templateRegistryReady: bool
+    runtimeAvailable: bool
     draining: bool
 
 
@@ -54,12 +55,15 @@ class RenderFoundationService:
         *,
         is_draining: bool,
         render_store_ready: bool,
+        render_runtime_available: bool,
     ) -> tuple[int, dict[str, str]]:
         if is_draining:
             return 503, {"status": "draining"}
         if not self._settings.supported_output_formats:
             return 503, {"status": "not_ready"}
         if not render_store_ready:
+            return 503, {"status": "not_ready"}
+        if not render_runtime_available:
             return 503, {"status": "not_ready"}
         return 200, {"status": "ready"}
 
@@ -69,12 +73,14 @@ class RenderFoundationService:
         is_draining: bool,
         render_store_ready: bool,
         template_registry_ready: bool,
+        render_runtime_available: bool,
     ) -> RenderSupportability:
         deterministic_output_supported = bool(
             self._settings.runtime_engine
             and self._settings.runtime_engine_version
             and self._settings.default_output_format
             and self._settings.supported_output_formats
+            and render_runtime_available
         )
         state: RenderSupportabilityState = "ready"
         reason: RenderSupportabilityReason = "render_supportability_ready"
@@ -90,6 +96,10 @@ class RenderFoundationService:
         elif not template_registry_ready:
             state = "unavailable"
             reason = "template_registry_unavailable"
+            freshness_bucket = "unknown"
+        elif not render_runtime_available:
+            state = "unavailable"
+            reason = "runtime_configuration_unavailable"
             freshness_bucket = "unknown"
         elif not deterministic_output_supported:
             state = "unavailable"
@@ -108,6 +118,7 @@ class RenderFoundationService:
             "supportedOutputFormats": list(self._settings.supported_output_formats),
             "renderStoreReady": render_store_ready,
             "templateRegistryReady": template_registry_ready,
+            "runtimeAvailable": render_runtime_available,
             "draining": is_draining,
         }
 

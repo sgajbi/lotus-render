@@ -6,6 +6,15 @@ from pytest import LogCaptureFixture
 
 from app.core.settings import Settings
 from app.main import create_app
+from app.services.render_runtime import RenderRuntimeAvailability
+
+
+class _UnavailableRuntimeProbe:
+    def check_available(self) -> RenderRuntimeAvailability:
+        return RenderRuntimeAvailability(
+            available=False,
+            reason="runtime_configuration_unavailable",
+        )
 
 
 def _build_client(tmp_path: Path) -> TestClient:
@@ -18,6 +27,20 @@ def test_health_endpoints(tmp_path: Path) -> None:
         assert client.get("/health").status_code == 200
         assert client.get("/health/live").status_code == 200
         assert client.get("/health/ready").status_code == 200
+
+
+def test_trusted_host_boundary_rejects_unknown_hosts(tmp_path: Path) -> None:
+    with _build_client(tmp_path) as client:
+        response = client.get("/health", headers={"host": "evil.example"})
+
+        assert response.status_code == 400
+
+
+def test_trusted_host_boundary_allows_configured_service_host(tmp_path: Path) -> None:
+    with _build_client(tmp_path) as client:
+        response = client.get("/health", headers={"host": "lotus-render"})
+
+        assert response.status_code == 200
 
 
 def test_correlation_and_trace_header_propagation(tmp_path: Path) -> None:
@@ -102,6 +125,18 @@ def test_readiness_reports_not_ready_when_render_store_is_unavailable(tmp_path: 
         assert response.json()["status"] == "not_ready"
 
 
+def test_readiness_reports_not_ready_when_render_runtime_is_unavailable(
+    tmp_path: Path,
+) -> None:
+    app = create_app(Settings(render_store_path=str(tmp_path / "render-store.sqlite3")))
+    with TestClient(app) as client:
+        app.state.container.render_runtime_probe = _UnavailableRuntimeProbe()
+        response = client.get("/health/ready")
+
+        assert response.status_code == 503
+        assert response.json()["status"] == "not_ready"
+
+
 def test_metadata_endpoint_reports_foundation_posture(tmp_path: Path) -> None:
     with _build_client(tmp_path) as client:
         response = client.get("/metadata")
@@ -130,5 +165,22 @@ def test_metadata_endpoint_reports_foundation_posture(tmp_path: Path) -> None:
             "supportedOutputFormats": ["pdf"],
             "renderStoreReady": True,
             "templateRegistryReady": True,
+            "runtimeAvailable": True,
             "draining": False,
         }
+
+
+def test_metadata_endpoint_reports_runtime_configuration_unavailable(
+    tmp_path: Path,
+) -> None:
+    app = create_app(Settings(render_store_path=str(tmp_path / "render-store.sqlite3")))
+    with TestClient(app) as client:
+        app.state.container.render_runtime_probe = _UnavailableRuntimeProbe()
+        response = client.get("/metadata")
+
+        assert response.status_code == 200
+        supportability = response.json()["supportability"]
+        assert supportability["state"] == "unavailable"
+        assert supportability["reason"] == "runtime_configuration_unavailable"
+        assert supportability["deterministicOutputSupported"] is False
+        assert supportability["runtimeAvailable"] is False

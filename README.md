@@ -40,6 +40,7 @@ docker compose up --build
 - CI and governance: .github/workflows/
 - Engineering commands: Makefile
 - Platform standards docs: docs/standards/
+- Runtime configuration: docs/configuration.md
 
 ## Current Implementation
 
@@ -66,6 +67,8 @@ and Typst foundation slices:
   fingerprint
 - request middleware propagates `X-Correlation-Id`, `X-Trace-Id`, and `traceparent` and includes
   correlation and trace identifiers in support-safe request logs
+- direct HTTP requests are bounded by trusted-host, request-body-size, and CORS configuration;
+  browser-facing access remains platform-ingress governed by default
 - sqlite-backed governed render job store at `data/render-store.sqlite3` by default
 - internal render API surface:
   - `POST /renders`
@@ -75,6 +78,8 @@ and Typst foundation slices:
   truth for `accepted`, `rendering`, `rendered`, and `failed` without rerunning the renderer; same
   `render_job_id` plus different package returns `409 render_job_conflict`
 - `/health/ready` now reflects both runtime posture and render-store availability
+- Typst/Docker compile execution is bounded by `LOTUS_RENDER_RENDER_COMPILE_TIMEOUT_SECONDS`;
+  timeouts persist as failed render jobs with category `timeout`
 - RFC-0105 render metrics expose bounded render submission, status lookup, artifact metadata lookup,
   latency, failure-category, and artifact-size signals through `/metrics`
 - RFC-0108 render supportability posture is published through `/metadata` as

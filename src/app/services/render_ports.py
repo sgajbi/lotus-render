@@ -51,3 +51,7 @@ class RenderEnginePort(Protocol):
     def runtime_metadata(self) -> RenderRuntimeMetadata: ...
 
     def render(self, render_package: RenderPackage) -> RenderResult: ...
+
+
+class RenderEngineTimeoutError(RuntimeError):
+    pass
