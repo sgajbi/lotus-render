@@ -28,6 +28,10 @@ signals without high-cardinality or sensitive labels. RFC-0108 render supportabi
 template-registry availability, and executable Typst/Docker runtime configuration. HTTP boundary
 configuration is explicit through the `LOTUS_RENDER_` settings contract, including trusted hosts,
 CORS allow-listing, request body limits, persistent-store enforcement, and compile timeouts.
+The render store now uses versioned SQLite migrations, readiness-time schema validation, and
+support-safe source evidence persistence for snapshot identity, lineage refs, disclosure refs,
+caller identity, and package correlation/trace identifiers. Local Docker Compose mounts the store
+on a named volume so render-job state survives container recreation in the supported local runtime.
 RFC40-WTBD-004 Slice 1 adds the
 first-wave `proof-pack v1` template and registry manifest for
 `dpm_proof_pack_report_input.v1`, establishing deterministic render-service support for
@@ -170,6 +174,10 @@ Primary governing artifacts:
     Required invalid configuration fails at service startup; runtime unavailability reports as
     `runtime_configuration_unavailable`; Typst/Docker compile timeouts persist as failed render
     jobs with category `timeout`.
+11. Render-store migrations are applied on startup and validated by readiness. The render store owns
+    render-stage lifecycle, idempotency, support-safe evidence, diagnostics, and artifact hashes;
+    archive retention, legal hold, retrieval, and distribution remain out of scope for
+    `lotus-render`.
 
 ## Context Maintenance Rule
 

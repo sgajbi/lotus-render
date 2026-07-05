@@ -6,8 +6,16 @@ services:
     env_file:
       - path: .env
         required: false
+    environment:
+      LOTUS_RENDER_RENDER_STORE_PATH: /var/lib/lotus-render/render-store.sqlite3
+      LOTUS_RENDER_REQUIRE_PERSISTENT_RENDER_STORE: "true"
+    volumes:
+      - lotus-render-data:/var/lib/lotus-render
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8310/health/ready')"]
       interval: 15s
       timeout: 3s
       retries: 10
+
+volumes:
+  lotus-render-data:

@@ -41,6 +41,23 @@ Replaying the exact same request returns the prior stored truth for `accepted`, 
 `rendered`, and `failed` jobs without rerunning the renderer. Reusing the same `render_job_id` with
 a different render package returns `409 render_job_conflict`.
 
+The persisted render job row retains support-safe render evidence from the governed package:
+`snapshot_id`, `lineage_refs`, `disclosure_refs`, `requested_by`, `package_correlation_id`, and
+`package_trace_id`. It does not store raw `report_data`, raw engine stderr, artifact bytes, client
+narrative content, archive retention truth, legal hold posture, or distribution commands.
+
+## Render Store Durability And Migrations
+
+`RenderStore` applies source-controlled SQLite migrations on startup and validates the expected
+schema version and required columns during readiness checks. Operators should treat
+`render_store_schema_version_outdated` or `render_store_schema_missing:*` as deployment-blocking
+conditions.
+
+Local Docker Compose stores render job state in the named `lotus-render-data` volume at
+`/var/lib/lotus-render/render-store.sqlite3` and sets
+`LOTUS_RENDER_REQUIRE_PERSISTENT_RENDER_STORE=true`. Removing the volume intentionally deletes local
+render-stage diagnostics and idempotency rows; it does not affect archive-owned document retention.
+
 ## Metrics Contract
 
 RFC-0105 first-wave render metrics are documented in

@@ -36,10 +36,21 @@ def test_submit_render_and_fetch_status_and_artifact_metadata(tmp_path: Path) ->
         submit_body = submit.json()
         assert submit_body["status"] == "rendered"
         assert submit_body["artifact_base64"]
+        assert submit_body["snapshot_id"] == "rsnap_golden_portfolio_review_v1"
+        assert submit_body["lineage_refs"] == ["rlineage_golden_portfolio_review_v1"]
+        assert submit_body["disclosure_refs"] == [
+            "portfolio-review.standard-disclosures.v1",
+        ]
+        assert submit_body["requested_by"] == "advisor.sg@example.com"
+        assert submit_body["package_correlation_id"] == "corr-golden-portfolio-review-v1"
+        assert submit_body["package_trace_id"] == "trace-golden-portfolio-review-v1"
 
         status_response = client.get(f"/renders/{submit_body['render_job_id']}")
         assert status_response.status_code == 200
-        assert status_response.json()["artifact_sha256"] == submit_body["artifact_sha256"]
+        status_body = status_response.json()
+        assert status_body["artifact_sha256"] == submit_body["artifact_sha256"]
+        assert status_body["snapshot_id"] == submit_body["snapshot_id"]
+        assert status_body["lineage_refs"] == submit_body["lineage_refs"]
 
         artifact_response = client.get(f"/renders/{submit_body['render_job_id']}/artifact-metadata")
         assert artifact_response.status_code == 200

@@ -24,6 +24,10 @@ degraded service mode.
 | `LOTUS_RENDER_RENDER_COMPILE_TIMEOUT_SECONDS` | `60` | Typst/Docker compile timeout. Timed-out renders persist as `failed` with category `timeout`. |
 | `LOTUS_RENDER_REQUIRE_PERSISTENT_RENDER_STORE` | `false` | Rejects `:memory:` render stores when an environment requires persistent render truth. |
 
+Docker Compose overrides `LOTUS_RENDER_RENDER_STORE_PATH` to
+`/var/lib/lotus-render/render-store.sqlite3`, mounts the named `lotus-render-data` volume there,
+and sets `LOTUS_RENDER_REQUIRE_PERSISTENT_RENDER_STORE=true`.
+
 ## Boundary Rules
 
 - `allowed_hosts` is a direct-service safety boundary, not an authentication mechanism.

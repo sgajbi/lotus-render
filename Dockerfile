@@ -7,6 +7,7 @@ COPY --from=typst /bin/typst /usr/local/bin/typst
 COPY pyproject.toml README.md ./
 COPY src ./src
 COPY scripts ./scripts
+COPY security ./security
 COPY templates ./templates
 RUN pip install --no-cache-dir --upgrade pip && pip install --no-cache-dir -e ".[dev]"
 

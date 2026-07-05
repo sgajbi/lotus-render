@@ -16,6 +16,11 @@ Deterministic document rendering service for Lotus reporting.
   is stable across environments
 - render jobs are persisted in the governed local store before readiness is reported as healthy for
   first-wave traffic
+- render-store schema is versioned through SQLite migrations and validated during readiness
+- local Docker Compose mounts render job state on the `lotus-render-data` volume at
+  `/var/lib/lotus-render/render-store.sqlite3`
+- persisted render jobs retain support-safe snapshot, lineage, disclosure, caller, correlation, and
+  trace evidence without storing raw report data or archive retention truth
 - direct HTTP traffic is bounded by trusted hosts, configured request body size, and disabled CORS
   by default; browser-facing access remains a platform-ingress concern
 - same-package render replays return the prior persisted `accepted`, `rendering`, `rendered`, or
