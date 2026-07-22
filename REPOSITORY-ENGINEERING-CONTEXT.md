@@ -43,12 +43,17 @@ before Typst context generation, and active report/template/version tuples are r
 explicit template-context registry instead of a fallback report-type switch. Every active template
 advertised through the registry now has a committed golden render package, expected PDF artifact,
 and producer-provenance fixture under `tests/golden/`; governance tests fail when template manifests,
-source contracts, or golden sample evidence drift.
+source contracts, nested source-contract variants, or golden sample evidence drift.
 RFC40-WTBD-004 Slice 1 adds the
 first-wave `proof-pack v1` template and registry manifest for
 `dpm_proof_pack_report_input.v1`, establishing deterministic render-service support for
 pre-trade proof-pack artifacts while keeping proof-pack truth and report-data assembly outside
-`lotus-render`. RFC-0042 outcome-review support is active through the `outcome-review v1` template
+`lotus-render`. RFC-0002 Slice 13 reviewed Idea evidence rendering is supported as a
+`lotus-report`-produced proof-pack package with nested
+`lotus_idea_evidence_pack_report_input.v1` source lineage, explicit
+`client_publication_authority_granted=false`, and a committed producer-backed golden PDF proof;
+Render does not own Idea evidence, report materialization, archive lifecycle, or client-publication
+authority. RFC-0042 outcome-review support is active through the `outcome-review v1` template
 and `dpm_outcome_report_input.v1` render package contract, establishing post-trade outcome-review
 artifact rendering while keeping outcome truth and report-data assembly upstream. RFC41-WTBD-008
 adds the first-wave `rebalance-wave v1` template and registry
@@ -99,7 +104,7 @@ whenever a template is added, deprecated, blocked, or moved across ownership bou
 | --- | --- | --- | --- | --- |
 | `portfolio-review` | `v1` | `portfolio_review.v1` | `lotus-report` | Client/advisor portfolio review presentation only. |
 | `outcome-review` | `v1` | `dpm_outcome_report_input.v1` | `lotus-report` with outcome evidence from `lotus-manage` | Post-trade outcome-review artifact rendering only. |
-| `proof-pack` | `v1` | `dpm_proof_pack_report_input.v1` | `lotus-report` with proof-pack evidence from `lotus-manage` | Pre-trade proof-pack artifact rendering only. |
+| `proof-pack` | `v1` | `dpm_proof_pack_report_input.v1`; accepts nested `lotus_idea_evidence_pack_report_input.v1` source lineage | `lotus-report` with proof-pack evidence from `lotus-manage` or reviewed Idea evidence from `lotus-idea` | Deterministic proof-pack presentation only; no report-data assembly, archive lifecycle, or client-publication authority. |
 | `rebalance-wave` | `v1` | `dpm_wave_report_input.v1` | `lotus-report` with wave evidence from `lotus-manage` | Rebalance wave evidence artifact rendering only. |
 
 ## Runtime And Integration Boundaries
@@ -174,8 +179,8 @@ Primary governing artifacts:
    hashes remain truthful, while bounded-determinism proof normalizes volatile PDF metadata fields.
 5. Committed golden PDFs for active templates are minted from the governed container-first Typst
    envelope so CI, local proof, and the future service image stay aligned; do not add an active
-   template without `tests/golden/<template>/<version>/render-package.json`, `expected.pdf`, and
-   `tests/golden/producer-fixtures.v1.json` provenance.
+   template or additional producer/source-contract sample without a committed
+   `render-package.json`, `expected.pdf`, and `tests/golden/producer-fixtures.v1.json` provenance.
 6. `/health/ready` should remain truthful for both runtime posture and render-store availability,
    because the first-wave render APIs depend on persisted render-job state.
 7. Render metrics must remain bounded to operation, status, failure category, artifact-size, and

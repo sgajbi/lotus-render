@@ -1,4 +1,5 @@
 import hashlib
+import json
 import subprocess
 from copy import deepcopy
 from pathlib import Path
@@ -18,6 +19,7 @@ from app.services.typst_rendering import (
 )
 
 GOLDEN_ROOT = Path("tests/golden")
+GOLDEN_PRODUCER_FIXTURES = GOLDEN_ROOT / "producer-fixtures.v1.json"
 
 
 def _golden_root(template_id: str, template_version: str = "v1") -> Path:
@@ -30,6 +32,19 @@ def _load_golden_package_for(template_id: str, template_version: str = "v1") -> 
             encoding="utf-8"
         )
     )
+
+
+def _load_golden_fixture_packages() -> list[tuple[dict[str, str], RenderPackage]]:
+    manifest = json.loads(GOLDEN_PRODUCER_FIXTURES.read_text(encoding="utf-8"))
+    return [
+        (
+            fixture,
+            RenderPackage.model_validate_json(
+                Path(fixture["package_path"]).read_text(encoding="utf-8")
+            ),
+        )
+        for fixture in manifest["fixtures"]
+    ]
 
 
 def _load_golden_package() -> RenderPackage:
@@ -238,6 +253,14 @@ def _proof_pack_package() -> RenderPackage:
     )
 
 
+def _idea_evidence_proof_pack_package() -> RenderPackage:
+    return RenderPackage.model_validate_json(
+        (
+            GOLDEN_ROOT / "proof-pack" / "v1" / "idea-evidence-pack" / "render-package.json"
+        ).read_text(encoding="utf-8")
+    )
+
+
 def _wave_package() -> RenderPackage:
     return RenderPackage.model_validate(
         {
@@ -316,27 +339,22 @@ def _build_service() -> TypstRenderService:
 
 
 @pytest.mark.parametrize(
-    ("template_id", "expected_report_data_contract_version"),
-    [
-        ("portfolio-review", "portfolio_review.v1"),
-        ("outcome-review", "dpm_outcome_report_input.v1"),
-        ("proof-pack", "dpm_proof_pack_report_input.v1"),
-        ("rebalance-wave", "dpm_wave_report_input.v1"),
-    ],
+    ("fixture", "render_package"),
+    _load_golden_fixture_packages(),
+    ids=lambda value: value.get("golden_sample_id", "") if isinstance(value, dict) else "",
 )
 def test_typst_render_service_renders_golden_pdf(
-    template_id: str, expected_report_data_contract_version: str
+    fixture: dict[str, str], render_package: RenderPackage
 ) -> None:
     service = _build_service()
-    expected_pdf = (_golden_root(template_id) / "expected.pdf").read_bytes()
-    render_package = _load_golden_package_for(template_id)
+    expected_pdf = Path(fixture["expected_pdf_path"]).read_bytes()
 
     result = service.render(render_package)
 
     assert result.attempt.status.value == "rendered"
     assert result.artifact_bytes.startswith(b"%PDF")
-    assert result.diagnostic.template_id == template_id
-    assert render_package.report_data_contract_version == expected_report_data_contract_version
+    assert result.diagnostic.template_id == render_package.template_id
+    assert render_package.report_data_contract_version == fixture["report_data_contract_version"]
     assert result.diagnostic.artifact_sha256 == hashlib.sha256(result.artifact_bytes).hexdigest()
     assert (
         result.diagnostic.bounded_determinism_fingerprint
@@ -498,10 +516,16 @@ def test_typst_render_service_routes_template_context_by_report_type() -> None:
 
     outcome_context = service._build_template_context(_outcome_review_package())
     proof_pack_context = service._build_template_context(_proof_pack_package())
+    idea_evidence_context = service._build_template_context(_idea_evidence_proof_pack_package())
     wave_context = service._build_template_context(_wave_package())
 
     assert outcome_context["OUTCOME_REVIEW_ID"] == "dor_001"
     assert proof_pack_context["PROOF_PACK_ID"] == "dpp_001"
+    assert idea_evidence_context["PROOF_PACK_ID"] == "irep_001"
+    assert (
+        idea_evidence_context["SOURCE_CONTRACT_VERSION"]
+        == "lotus_idea_evidence_pack_report_input.v1"
+    )
     assert wave_context["WAVE_ID"] == "dwv_001"
 
 
@@ -525,6 +549,20 @@ def test_typst_render_service_builds_proof_pack_context() -> None:
     assert "section-row(" in template_context["SECTION_ROWS"]
     assert "Mandate context" in template_context["SECTION_ROWS"]
     assert "sha256:report-input" in template_context["CONTENT_HASH"]
+
+
+def test_typst_render_service_builds_idea_evidence_proof_pack_context() -> None:
+    service = _build_service()
+    template_context = service._build_proof_pack_context(_idea_evidence_proof_pack_package())
+
+    assert template_context["PORTFOLIO_ID"] == "PB_SG_GLOBAL_BAL_001"
+    assert template_context["PROOF_PACK_ID"] == "irep_001"
+    assert template_context["CLIENT_PUBLICATION_AUTHORITY"] == "false"
+    assert (
+        "lotus_idea_evidence_pack_report_input.v1" in (template_context["SOURCE_CONTRACT_VERSION"])
+    )
+    assert "lotus-idea:IdeaEvidencePacket" in template_context["SOURCE_LINEAGE_ROWS"]
+    assert "ievp_001 / sha256:idea-evidence-content" in template_context["SOURCE_LINEAGE_ROWS"]
 
 
 def test_typst_render_service_builds_wave_context() -> None:
@@ -567,6 +605,7 @@ def test_typst_render_service_uses_proof_pack_fallback_rows() -> None:
     service = _build_service()
 
     assert "No section evidence supplied." in service._render_proof_pack_section_rows([])
+    assert "No source lineage supplied." in service._render_source_lineage_rows([])
     assert "not_available" in service._render_key_value_rows({})
 
 

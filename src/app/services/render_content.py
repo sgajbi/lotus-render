@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any, TypeVar
 
-from pydantic import BaseModel, ConfigDict, Field, ValidationError
+from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
 
 from app.contracts.render_package import RenderPackage
 
@@ -36,8 +36,26 @@ class ProofPackRenderContent(_RenderContentModel):
     decision_summary: dict[str, Any]
     supportability: dict[str, Any]
     sections: list[Any]
+    source_contract_version: str | None = None
+    source_hashes: dict[str, Any] = Field(default_factory=dict)
+    source_lineage: list[Any] = Field(default_factory=list)
     content_hash: str
     proof_pack_content_hash: str
+    client_publication_authority_granted: bool = False
+
+    @model_validator(mode="after")
+    def _validate_idea_evidence_boundary(self) -> "ProofPackRenderContent":
+        if self.source_contract_version != "lotus_idea_evidence_pack_report_input.v1":
+            return self
+        if self.client_publication_authority_granted:
+            raise ValueError("idea evidence proof-pack rendering cannot grant client publication")
+        if not self.source_lineage:
+            raise ValueError("idea evidence proof-pack rendering requires source_lineage")
+        if "idea_evidence_packet" not in self.source_hashes:
+            raise ValueError(
+                "idea evidence proof-pack rendering requires idea_evidence_packet hash"
+            )
+        return self
 
 
 class OutcomeReviewRenderContent(_RenderContentModel):
@@ -125,4 +143,6 @@ def _validation_message(exc: ValidationError) -> str:
     message = str(first_error.get("msg", "invalid value"))
     if loc == "review_observations" and "at least 1 item" in message:
         return "review_observations must be a non-empty list"
+    if error_type == "value_error" and message:
+        return message.removeprefix("Value error, ")
     return f"invalid report_data field: {loc}"

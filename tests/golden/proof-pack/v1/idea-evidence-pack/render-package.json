@@ -1,0 +1,90 @@
+{
+  "brand_variant": "private_banking",
+  "correlation_id": "corr-idea-evidence-render",
+  "disclosure_refs": [
+    "proof-pack.standard-disclosures.v1"
+  ],
+  "lineage_refs": [
+    "rjob_idea_evidence_pack_v1",
+    "irep_001",
+    "ievp_001",
+    "sha256:idea-evidence-content"
+  ],
+  "locale": "en-SG",
+  "output_format": "pdf",
+  "render_context": {
+    "timezone": "Asia/Singapore"
+  },
+  "render_job_id": "rdr_golden_idea_evidence_pack_v1",
+  "render_package_version": "render_package.v1",
+  "report_data": {
+    "as_of_date": "2026-06-24",
+    "client_publication_authority_granted": false,
+    "content_hash": "sha256:idea-evidence-content",
+    "decision_summary": {
+      "rationale": "HIGH_CASH_REVIEWED_FOR_REPORT",
+      "recommended_action": "review_opportunity_evidence"
+    },
+    "mandate_id": "MANDATE_PB_SG_GLOBAL_BAL_001",
+    "portfolio_id": "PB_SG_GLOBAL_BAL_001",
+    "proof_pack_content_hash": "sha256:idea-evidence-content",
+    "proof_pack_id": "irep_001",
+    "redaction_policy": "NO_RAW_PAYLOADS",
+    "retention_policy": "generated-report-standard",
+    "sections": [
+      {
+        "content_hash": "sha256:idea-evidence-content",
+        "evidence_refs": [
+          {
+            "as_of_date": "2026-06-24",
+            "product_id": "lotus-core:HoldingsAsOf:v1",
+            "product_version": "v1",
+            "source_system": "lotus-core"
+          }
+        ],
+        "reason_codes": [
+          "HIGH_CASH_REVIEWED_FOR_REPORT"
+        ],
+        "section_id": "idea_source_1",
+        "section_type": "IDEA_SOURCE_EVIDENCE",
+        "source_refs": [
+          {
+            "product_id": "lotus-core:HoldingsAsOf:v1",
+            "source_system": "lotus-core"
+          }
+        ],
+        "state": "READY",
+        "summary": "lotus-core:HoldingsAsOf:v1 v1 as of 2026-06-24: complete, fresh.",
+        "title": "lotus-core evidence summary"
+      }
+    ],
+    "source_contract_version": "lotus_idea_evidence_pack_report_input.v1",
+    "source_hashes": {
+      "idea_evidence_packet": "sha256:idea-evidence-content"
+    },
+    "source_lineage": [
+      {
+        "content_hash": "sha256:idea-evidence-content",
+        "source_id": "ievp_001",
+        "source_system": "lotus-idea",
+        "source_type": "IdeaEvidencePacket"
+      }
+    ],
+    "state": "READY_FOR_REPORT_MATERIALIZATION",
+    "supportability": {
+      "reason_codes": [
+        "HIGH_CASH_REVIEWED_FOR_REPORT"
+      ],
+      "status": "READY"
+    },
+    "title": "Idea Evidence Pack - irep_001"
+  },
+  "report_data_contract_version": "dpm_proof_pack_report_input.v1",
+  "report_job_id": "rjob_idea_evidence_pack_v1",
+  "report_type": "proof_pack",
+  "requested_by": "advisor-123",
+  "snapshot_id": "rsnap_idea_evidence_pack_v1",
+  "template_id": "proof-pack",
+  "template_version": "v1",
+  "trace_id": "trace-idea-evidence-render"
+}

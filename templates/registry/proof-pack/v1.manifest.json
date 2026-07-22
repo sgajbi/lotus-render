@@ -24,7 +24,8 @@
   "approved_at": "2026-05-07",
   "status": "active",
   "golden_sample_ids": [
-    "golden-proof-pack-en-SG-private-banking-v1"
+    "golden-proof-pack-en-SG-private-banking-v1",
+    "golden-idea-evidence-proof-pack-en-SG-private-banking-v1"
   ],
   "runtime_engine": "typst",
   "runtime_engine_version": "0.14.2"

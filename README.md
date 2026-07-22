@@ -67,10 +67,14 @@ and Typst foundation slices:
 - governed Typst templates under `templates/typst/portfolio-review/v1/`,
   `templates/typst/outcome-review/v1/`, `templates/typst/proof-pack/v1/`, and
   `templates/typst/rebalance-wave/v1/`
+- `proof-pack v1` deterministically renders reviewed `lotus-idea` evidence-pack packages when
+  `lotus-report` adapts them into `dpm_proof_pack_report_input.v1` with nested
+  `lotus_idea_evidence_pack_report_input.v1` source lineage
 - optional `portfolio-review v1` reviewed advisory narrative and advisor proposal memo rendering
   when `lotus-report` supplies included advisor-use packages from `lotus-advise`
 - producer-backed golden render packages and expected PDF proofs under `tests/golden/<template>/v1/`
-  for every active template, with provenance in `tests/golden/producer-fixtures.v1.json`
+  for every active template and governed source-contract sample, with provenance in
+  `tests/golden/producer-fixtures.v1.json`
 - docker-governed Typst rendering is preferred on developer and CI hosts so golden proof is minted
   from the same controlled runtime envelope
 - bounded-determinism fingerprinting that normalizes volatile PDF metadata while preserving raw
@@ -134,7 +138,9 @@ Supported report-data contract versions are parsed through render-safe content a
 Typst context generation. The adapters validate the active `portfolio_review.v1`,
 `dpm_outcome_report_input.v1`, `dpm_proof_pack_report_input.v1`, and
 `dpm_wave_report_input.v1` shapes without making `lotus-render` the owner of upstream domain
-calculations or source-data retrieval.
+calculations or source-data retrieval. Idea evidence packages are accepted only through the
+Report-owned proof-pack render package shape, with source lineage retained and
+`client_publication_authority_granted=false`.
 
 The supported determinism posture is explicit:
 
