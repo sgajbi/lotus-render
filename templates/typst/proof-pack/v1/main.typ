@@ -92,6 +92,13 @@ ${SECTION_ROWS}
 ${SOURCE_HASH_ROWS}
 
 #v(6pt)
+#text(size: 11pt, weight: "medium")[Source Authority Boundary]
+#v(3pt)
+#key-value-row([Source contract], [${SOURCE_CONTRACT_VERSION}])
+#key-value-row([Client publication authority], [${CLIENT_PUBLICATION_AUTHORITY}])
+${SOURCE_LINEAGE_ROWS}
+
+#v(6pt)
 #text(size: 11pt, weight: "medium")[Report Lineage]
 #v(3pt)
 #key-value-row([Report input], [${CONTENT_HASH}])

@@ -103,7 +103,7 @@ settings = Settings()
 registry = TemplateRegistry.load_from_directory(Path(settings.template_registry_path))
 service = TypstRenderService(settings, RenderIntakeService(registry))
 
-for package_path in sorted(Path("tests/golden").glob("*/v1/render-package.json")):
+for package_path in sorted(Path("tests/golden").glob("*/v1/**/render-package.json")):
     root = package_path.parent
     package = RenderPackage.model_validate_json(package_path.read_text(encoding="utf-8"))
     result = service.render(package)

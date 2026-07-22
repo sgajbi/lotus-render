@@ -45,6 +45,23 @@
       "provenance": "Generated from lotus-report ReportJobLedger and typed ProofPackReportJobRequest through _build_render_package."
     },
     {
+      "template_id": "proof-pack",
+      "template_version": "v1",
+      "golden_sample_id": "golden-idea-evidence-proof-pack-en-SG-private-banking-v1",
+      "report_data_contract_version": "dpm_proof_pack_report_input.v1",
+      "source_contract_version": "lotus_idea_evidence_pack_report_input.v1",
+      "package_path": "tests/golden/proof-pack/v1/idea-evidence-pack/render-package.json",
+      "expected_pdf_path": "tests/golden/proof-pack/v1/idea-evidence-pack/expected.pdf",
+      "producer_repository": "sgajbi/lotus-report",
+      "producer_source_paths": [
+        "src/app/idea_evidence_intake/service.py",
+        "src/app/reporting_render/package_builder.py",
+        "contracts/idea-evidence-materialization/lotus-report-idea-evidence-pack-materialization.v1.json",
+        "tests/integration/test_idea_evidence_intake_api.py"
+      ],
+      "provenance": "Mirrors lotus-report reviewed Idea evidence materialization, which adapts lotus_idea_evidence_pack_report_input.v1 into the governed proof-pack render package without granting client-publication or archive authority in lotus-render."
+    },
+    {
       "template_id": "rebalance-wave",
       "template_version": "v1",
       "golden_sample_id": "golden-rebalance-wave-en-SG-private-banking-v1",

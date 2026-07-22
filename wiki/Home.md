@@ -83,8 +83,9 @@ Deterministic document rendering service for Lotus reporting.
 - current active templates are `portfolio-review` version `v1`, `outcome-review` version `v1`,
   `proof-pack` version `v1`, and `rebalance-wave` version `v1`
 - current active-template golden proof lives under `tests/golden/<template>/v1/`; each active
-  registry golden sample must have `render-package.json`, `expected.pdf`, and provenance in
-  `tests/golden/producer-fixtures.v1.json`
+  registry golden sample, including nested producer/source-contract variants such as reviewed Idea
+  evidence packs rendered through `proof-pack v1`, must have `render-package.json`,
+  `expected.pdf`, and provenance in `tests/golden/producer-fixtures.v1.json`
 
 See [Template Registry](Template-Registry).
 

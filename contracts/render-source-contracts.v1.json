@@ -28,6 +28,10 @@
       "source_repository": "sgajbi/lotus-report",
       "source_path": "contracts/report-data/dpm_proof_pack_report_input.v1.json",
       "upstream_domain_owner": "lotus-manage",
+      "accepted_source_contract_versions": [
+        "dpm_proof_pack_report_input.v1",
+        "lotus_idea_evidence_pack_report_input.v1"
+      ],
       "compatibility_policy": "exact-version",
       "status": "active",
       "effective_from": "2026-04-23"

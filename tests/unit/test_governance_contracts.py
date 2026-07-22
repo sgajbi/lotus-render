@@ -82,12 +82,11 @@ def test_golden_samples_resolve_to_committed_packages_and_artifacts() -> None:
             package_path = Path(cast(str, fixture["package_path"]))
             expected_pdf_path = Path(cast(str, fixture["expected_pdf_path"]))
 
-            assert package_path == Path("tests/golden") / template_id / template_version / (
-                "render-package.json"
-            )
-            assert expected_pdf_path == Path("tests/golden") / template_id / template_version / (
-                "expected.pdf"
-            )
+            sample_root = Path("tests/golden") / template_id / template_version
+            assert package_path.is_relative_to(sample_root)
+            assert expected_pdf_path.is_relative_to(sample_root)
+            assert package_path.name == "render-package.json"
+            assert expected_pdf_path.name == "expected.pdf"
             assert package_path.exists()
             assert expected_pdf_path.exists()
             assert (
@@ -100,9 +99,10 @@ def test_golden_samples_resolve_to_committed_packages_and_artifacts() -> None:
 
 def test_golden_producer_fixtures_cover_active_source_contracts() -> None:
     source_contract = _load_contract("render-source-contracts.v1.json")
+    contract_entries = cast(list[dict[str, Any]], source_contract["contracts"])
     active_contract_versions = {
         entry["report_data_contract_version"]
-        for entry in cast(list[dict[str, str]], source_contract["contracts"])
+        for entry in contract_entries
         if entry["status"] == "active"
     }
     fixture_manifest = json.loads(GOLDEN_PRODUCER_FIXTURES.read_text(encoding="utf-8"))
@@ -116,6 +116,16 @@ def test_golden_producer_fixtures_cover_active_source_contracts() -> None:
         assert fixture["producer_repository"] == "sgajbi/lotus-report"
         assert fixture["producer_source_paths"]
         assert fixture["provenance"]
+
+    for entry in contract_entries:
+        if entry["status"] != "active" or "accepted_source_contract_versions" not in entry:
+            continue
+        fixture_source_versions = {
+            fixture.get("source_contract_version", fixture["report_data_contract_version"])
+            for fixture in fixture_manifest["fixtures"]
+            if fixture["report_data_contract_version"] == entry["report_data_contract_version"]
+        }
+        assert set(entry["accepted_source_contract_versions"]) <= fixture_source_versions
 
 
 def test_data_product_trust_contract_references_live_paths_and_metrics() -> None:

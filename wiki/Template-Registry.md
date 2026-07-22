@@ -49,6 +49,8 @@
 - `template_version`: `v1`
 - `report_type`: `proof_pack`
 - `report_data_contract_version`: `dpm_proof_pack_report_input.v1`
+- accepted nested source contract: `lotus_idea_evidence_pack_report_input.v1` when `lotus-report`
+  adapts reviewed Idea evidence into the proof-pack report package
 - `locale`: `en-SG`
 - `brand_variant`: `private_banking`
 - `output_format`: `pdf`
@@ -132,6 +134,13 @@ bounded `DpmProofPackReportInput` snapshot that `lotus-report` will materialize.
 render-service side of RFC40-WTBD-004 without making `lotus-render` a proof-pack or report-data
 authority.
 
+RFC-0002 Slice 13 uses the same render boundary for reviewed Idea evidence packs: `lotus-report`
+materializes reviewed `lotus-idea` evidence into `dpm_proof_pack_report_input.v1`, preserves nested
+`lotus_idea_evidence_pack_report_input.v1` source lineage, and submits a complete package for
+rendering. `lotus-render` validates and presents the package deterministically; it does not
+assemble report data, approve Idea evidence, create archive lifecycle records, or grant
+client-publication authority.
+
 Current document sections are sourced from render-package fields that include:
 
 - portfolio, mandate, proof-pack, and as-of identity
@@ -139,12 +148,14 @@ Current document sections are sourced from render-package fields that include:
 - decision summary action and rationale
 - report-safe proof-pack section summaries, section states, and reason codes
 - source hashes
+- nested source contract version and source-lineage rows when supplied by `lotus-report`
+- explicit client-publication authority flag, expected to remain `false` for Idea evidence packs
 - report-input and proof-pack content hashes
 - redaction policy and deterministic render metadata
 
 This template must not fetch, infer, or recompute proof-pack truth. `lotus-manage` owns the
-proof-pack authority; `lotus-report` will snapshot the bounded handoff and `lotus-render` presents
-it deterministically.
+proof-pack authority for DPM proof packs; `lotus-idea` owns reviewed Idea evidence; `lotus-report`
+snapshots the bounded handoff and `lotus-render` presents it deterministically.
 
 ## Rebalance wave contract shape
 

@@ -446,6 +446,7 @@ class TypstRenderService:
         decision_summary = self._mapping(report_data.get("decision_summary"))
         supportability = self._mapping(report_data.get("supportability"))
         source_hashes = self._mapping(report_data.get("source_hashes"))
+        source_contract_version = str(report_data.get("source_contract_version", "not_available"))
         return {
             "TITLE": self._escape_typst_text(str(report_data["title"])),
             "PORTFOLIO_ID": self._escape_typst_text(str(report_data["portfolio_id"])),
@@ -470,6 +471,13 @@ class TypstRenderService:
                 ", ".join(self._string_list(supportability.get("reason_codes"))) or "none"
             ),
             "SECTION_ROWS": self._render_proof_pack_section_rows(sections),
+            "SOURCE_CONTRACT_VERSION": self._escape_typst_text(source_contract_version),
+            "CLIENT_PUBLICATION_AUTHORITY": self._escape_typst_text(
+                str(bool(report_data.get("client_publication_authority_granted"))).lower()
+            ),
+            "SOURCE_LINEAGE_ROWS": self._render_source_lineage_rows(
+                report_data.get("source_lineage")
+            ),
             "SOURCE_HASH_ROWS": self._render_key_value_rows(source_hashes),
             "CONTENT_HASH": self._escape_typst_text(str(report_data["content_hash"])),
             "PROOF_PACK_CONTENT_HASH": self._escape_typst_text(
@@ -676,6 +684,24 @@ class TypstRenderService:
                 f"[{self._escape_typst_text(str(section.get('state', 'not_available')))}], "
                 f"[{self._escape_typst_text(str(section.get('summary', '')))}], "
                 f"[{self._escape_typst_text(reasons)}]"
+                ")"
+            )
+        return "\n".join(rows)
+
+    def _render_source_lineage_rows(self, source_lineage: object) -> str:
+        if not isinstance(source_lineage, list) or not source_lineage:
+            return "key-value-row([Source lineage], [No source lineage supplied.])"
+        rows = []
+        for item in source_lineage:
+            source_ref = self._mapping(item)
+            source_system = str(source_ref.get("source_system", "not_available"))
+            source_type = str(source_ref.get("source_type", "not_available"))
+            source_id = str(source_ref.get("source_id", "not_available"))
+            content_hash = str(source_ref.get("content_hash", "not_available"))
+            rows.append(
+                "key-value-row("
+                f"[{self._escape_typst_text(source_system + ':' + source_type)}], "
+                f"[{self._escape_typst_text(source_id + ' / ' + content_hash)}]"
                 ")"
             )
         return "\n".join(rows)

@@ -50,6 +50,10 @@
       "template_version": "v1",
       "report_types": ["proof_pack"],
       "report_data_contract_versions": ["dpm_proof_pack_report_input.v1"],
+      "accepted_source_contract_versions": [
+        "dpm_proof_pack_report_input.v1",
+        "lotus_idea_evidence_pack_report_input.v1"
+      ],
       "locales": ["en-SG"],
       "brand_variants": ["private_banking"],
       "output_formats": ["pdf"],

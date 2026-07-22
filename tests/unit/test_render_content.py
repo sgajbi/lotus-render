@@ -108,6 +108,53 @@ def test_proof_pack_content_adapter_validates_nested_sections() -> None:
         parse_proof_pack_content(invalid)
 
 
+def test_proof_pack_content_adapter_enforces_idea_evidence_boundary() -> None:
+    report_data = {
+        "title": "Idea Evidence Pack - irep_001",
+        "portfolio_id": "PB_SG_GLOBAL_BAL_001",
+        "proof_pack_id": "irep_001",
+        "state": "READY_FOR_REPORT_MATERIALIZATION",
+        "decision_summary": {"recommended_action": "review_opportunity_evidence"},
+        "supportability": {"status": "READY"},
+        "sections": [{"title": "Source summary", "state": "READY"}],
+        "source_contract_version": "lotus_idea_evidence_pack_report_input.v1",
+        "source_hashes": {"idea_evidence_packet": "sha256:idea-evidence-content"},
+        "source_lineage": [
+            {
+                "source_system": "lotus-idea",
+                "source_type": "IdeaEvidencePacket",
+                "source_id": "ievp_001",
+                "content_hash": "sha256:idea-evidence-content",
+            }
+        ],
+        "content_hash": "sha256:idea-evidence-content",
+        "proof_pack_content_hash": "sha256:idea-evidence-content",
+        "client_publication_authority_granted": False,
+    }
+    package = _package(
+        report_type="proof_pack",
+        contract_version="dpm_proof_pack_report_input.v1",
+        template_id="proof-pack",
+        report_data=report_data,
+    )
+
+    content = parse_proof_pack_content(package)
+
+    assert content.source_contract_version == "lotus_idea_evidence_pack_report_input.v1"
+
+    missing_lineage = package.model_copy(
+        update={"report_data": {**report_data, "source_lineage": []}}
+    )
+    with pytest.raises(RenderContentValidationError, match="source_lineage"):
+        parse_proof_pack_content(missing_lineage)
+
+    publication_claim = package.model_copy(
+        update={"report_data": {**report_data, "client_publication_authority_granted": True}}
+    )
+    with pytest.raises(RenderContentValidationError, match="client publication"):
+        parse_proof_pack_content(publication_claim)
+
+
 def test_outcome_review_content_adapter_validates_dimensions() -> None:
     package = _package(
         report_type="outcome_review",
