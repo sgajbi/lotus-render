@@ -6,6 +6,14 @@ from pydantic import ValidationError
 from app.core.settings import Settings
 
 
+def test_settings_include_governed_local_runtime_hosts() -> None:
+    settings = Settings()
+
+    assert "render.dev.lotus" in settings.allowed_hosts
+    assert "host.docker.internal" in settings.allowed_hosts
+    assert "*" not in settings.allowed_hosts
+
+
 def test_settings_rejects_blank_scalar_configuration() -> None:
     with pytest.raises(ValidationError, match="value must not be blank"):
         Settings(service_name=" ")

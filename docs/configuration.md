@@ -18,7 +18,7 @@ degraded service mode.
 | `LOTUS_RENDER_SUPPORTED_OUTPUT_FORMATS` | `["pdf"]` | Supported render output formats. `pdf` is required. |
 | `LOTUS_RENDER_TEMPLATE_REGISTRY_PATH` | `templates/registry` | Source-controlled template manifest registry path. |
 | `LOTUS_RENDER_RENDER_STORE_PATH` | `data/render-store.sqlite3` | SQLite render job store path. |
-| `LOTUS_RENDER_ALLOWED_HOSTS` | `["localhost","127.0.0.1","testserver","lotus-render"]` | Trusted Host boundary for direct HTTP requests. |
+| `LOTUS_RENDER_ALLOWED_HOSTS` | `["localhost","127.0.0.1","testserver","lotus-render","render.dev.lotus","host.docker.internal"]` | Trusted Host boundary for direct HTTP requests, including the governed local ingress host and Report-to-Render Docker host identity. |
 | `LOTUS_RENDER_CORS_ALLOWED_ORIGINS` | `[]` | CORS allow-list. Empty by default because browser ingress is platform-governed. |
 | `LOTUS_RENDER_MAX_REQUEST_BODY_BYTES` | `5242880` | Maximum accepted request body size for render API requests. |
 | `LOTUS_RENDER_RENDER_COMPILE_TIMEOUT_SECONDS` | `60` | Typst/Docker compile timeout. Timed-out renders persist as `failed` with category `timeout`. |
@@ -33,7 +33,10 @@ and sets `LOTUS_RENDER_REQUIRE_PERSISTENT_RENDER_STORE=true`.
 
 ## Boundary Rules
 
-- `allowed_hosts` is a direct-service safety boundary, not an authentication mechanism.
+- `allowed_hosts` is a direct-service safety boundary, not an authentication mechanism. The local
+  default intentionally allows `render.dev.lotus` for governed platform ingress validation and
+  `host.docker.internal` for the supported Report-to-Render Docker path; unknown hosts remain
+  rejected and production deployments should keep an explicit environment-scoped allowlist.
 - CORS is disabled by default. Client-facing browser access must flow through governed platform
   ingress and service-to-service policy.
 - Oversized request bodies return `413 request_body_too_large` with correlation and trace
