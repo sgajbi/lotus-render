@@ -5,7 +5,9 @@
 
 ## Operator-Relevant Controls
 
-- trusted hosts are enforced for direct service HTTP requests
+- trusted hosts are enforced for direct service HTTP requests; the local default allows
+  `render.dev.lotus` for governed platform ingress validation and `host.docker.internal` for the
+  supported Report-to-Render Docker path, while unknown hosts remain rejected
 - CORS is disabled by default and browser-facing access remains platform-ingress governed
 - render API body size is bounded by `LOTUS_RENDER_MAX_REQUEST_BODY_BYTES`
 - render execution concurrency is bounded by `LOTUS_RENDER_RENDER_EXECUTION_CONCURRENCY_LIMIT`

@@ -45,6 +45,22 @@ def test_trusted_host_boundary_allows_configured_service_host(tmp_path: Path) ->
         assert response.status_code == 200
 
 
+def test_trusted_host_boundary_allows_canonical_ingress_host(tmp_path: Path) -> None:
+    with _build_client(tmp_path) as client:
+        response = client.get("/health/ready", headers={"host": "render.dev.lotus"})
+
+        assert response.status_code == 200
+        assert response.json()["status"] == "ready"
+
+
+def test_trusted_host_boundary_allows_report_docker_host_identity(tmp_path: Path) -> None:
+    with _build_client(tmp_path) as client:
+        response = client.get("/metadata", headers={"host": "host.docker.internal"})
+
+        assert response.status_code == 200
+        assert response.json()["supportability"]["state"] == "ready"
+
+
 def test_correlation_and_trace_header_propagation(tmp_path: Path) -> None:
     with _build_client(tmp_path) as client:
         response = client.get(

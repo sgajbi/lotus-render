@@ -18,7 +18,14 @@ class Settings(BaseSettings):
     template_registry_path: str = Field(default="templates/registry")
     render_store_path: str = Field(default="data/render-store.sqlite3")
     allowed_hosts: tuple[str, ...] = Field(
-        default=("localhost", "127.0.0.1", "testserver", "lotus-render")
+        default=(
+            "localhost",
+            "127.0.0.1",
+            "testserver",
+            "lotus-render",
+            "render.dev.lotus",
+            "host.docker.internal",
+        )
     )
     cors_allowed_origins: tuple[str, ...] = Field(default=())
     max_request_body_bytes: int = Field(default=5_242_880, ge=1)
