@@ -139,3 +139,49 @@ def test_every_code_health_gate_is_in_the_blocking_lanes() -> None:
         assert "code-health-gates" in target.group(1).split(), (
             f"code-health-gates is not in the {lane} lane, so the gates would never run."
         )
+
+
+# Tools the code-health gates shell out to. A gate whose tool is not declared passes locally, where
+# the developer installed it by hand, and fails in CI, which installs from pyproject.toml only.
+GATE_TOOLS = ("radon", "vulture", "deptry")
+
+
+def test_every_tool_the_gates_invoke_is_declared_as_a_dev_dependency() -> None:
+    """Local validation must be evidence about CI, and it is not when a tool is undeclared.
+
+    This is not hypothetical: the first push of this change installed radon, vulture and deptry into
+    the local virtualenv by hand and never declared them. Every gate passed locally and
+    `PR Merge Gate / Tests (unit)` failed with `No module named radon`. Same defect class as
+    lotus-risk#218, committed while adding the gates that were supposed to prevent it.
+    """
+
+    import tomllib
+
+    dev = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))["project"][
+        "optional-dependencies"
+    ]["dev"]
+    declared = {re.split(r"[=<>!~]", entry, maxsplit=1)[0].strip().lower() for entry in dev}
+
+    missing = sorted(tool for tool in GATE_TOOLS if tool not in declared)
+    assert missing == [], (
+        f"These tools are invoked by the code-health gates but are not declared in the dev extras: "
+        f"{missing}. The gates would pass locally and fail in CI."
+    )
+
+
+def test_the_declared_gate_tools_are_pinned_exactly() -> None:
+    """A floored analyser changes the gate's verdict with no commit - lotus-risk#218."""
+
+    import tomllib
+
+    dev = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))["project"][
+        "optional-dependencies"
+    ]["dev"]
+
+    floored = sorted(
+        entry
+        for entry in dev
+        if re.split(r"[=<>!~]", entry, maxsplit=1)[0].strip().lower() in GATE_TOOLS
+        and "==" not in entry
+    )
+    assert floored == [], f"These gate tools are floored rather than pinned: {floored}"
