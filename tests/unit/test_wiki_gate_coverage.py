@@ -59,3 +59,33 @@ def test_the_wiki_names_every_gate_the_blocking_lanes_run() -> None:
         "which `make check` or `make ci` runs and which can fail a contributor's build: "
         f"{undocumented}. See issue #72."
     )
+
+
+def test_the_wiki_names_no_gate_the_blocking_lanes_have_stopped_running() -> None:
+    """The reverse direction, which is the one that misleads.
+
+    The check above fails when a gate is undocumented. It says nothing when a gate is REMOVED from
+    `check`/`ci` and its wiki entry stays — leaving the page claiming a control that no longer runs.
+
+    That is documentation overstating coverage, the same direction as a documented threshold looser
+    than the enforced one (lotus-performance#476, `969` published against an enforced `879`). Both
+    mislead toward believing a control exists. A reader cannot tell a stale entry from a live one,
+    and the wiki is the citable page.
+
+    Scoped to `*-gate` / `*-gates` names so it reads only what it can attribute: prose mentioning a
+    gate in passing is not an entry, and this test does not try to judge prose.
+    """
+
+    wiki = WIKI_HOME.read_text(encoding="utf-8")
+    live = _gate_targets()
+
+    named_in_wiki = {token.strip("`,.:;()") for token in re.findall(r"`[a-z0-9-]+-gates?`", wiki)}
+    named_in_wiki = {token.strip("`") for token in named_in_wiki}
+
+    stale = sorted(name for name in named_in_wiki if name not in live)
+
+    assert stale == [], (
+        "wiki/Home.md names these gates, but no blocking lane in the Makefile runs them any more. "
+        "A wiki entry outliving its gate claims a control that does not exist, which is the "
+        f"direction that misleads: {stale}. Remove the entry or restore the gate. See issue #72."
+    )

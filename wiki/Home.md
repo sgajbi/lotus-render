@@ -121,8 +121,15 @@ See [Template Registry](Template-Registry).
 
 - `main` branch protection requires strict PR Merge Gate contexts, conversation resolution, linear
   history, and admin enforcement
-- human approval is optional in the solo-developer baseline; required GitHub checks and truthful PR
-  evidence are the merge control
+- a pull request may not merge without an exact-head `VERDICT: mergeable` from the review lead,
+  written by someone other than the change's author (lotus-platform#718)
+- required GitHub checks and truthful PR evidence are the only **mechanically enforced** controls
+  today: `main` requires zero approving reviews, so the verdict requirement is a process rule that
+  GitHub does not enforce. That gap is a gap, not a permission — two merges on 2026-08-26 went
+  through it, one on a self-written verdict and one on no verdict at all after a rebase silently
+  voided the one that existed
+- human approval is optional in the solo-developer baseline in the sense that GitHub requests no
+  reviewer; it is not optional in the sense that a verdict may be skipped
 
 ## Scope guardrails
 
