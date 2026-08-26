@@ -49,6 +49,13 @@ def _gate_targets() -> set[str]:
     return reachable
 
 
+# Gate names as the wiki actually writes them: inside backticks, usually behind `make `. The first
+# version omitted the optional `make ` prefix and so matched NOTHING - 0 of 10 backticked gate
+# spellings on this page - which made the reverse check pass for every possible page content.
+# Requiring a hyphen before `gate` keeps prose words like "aggregate" out. See #77.
+_WIKI_GATE_NAME = re.compile(r"`(?:make\s+)?([a-z0-9]+(?:-[a-z0-9]+)*-gates?)`")
+
+
 def test_the_wiki_names_every_gate_the_blocking_lanes_run() -> None:
     wiki = WIKI_HOME.read_text(encoding="utf-8")
 
@@ -79,8 +86,16 @@ def test_the_wiki_names_no_gate_the_blocking_lanes_have_stopped_running() -> Non
     wiki = WIKI_HOME.read_text(encoding="utf-8")
     live = _gate_targets()
 
-    named_in_wiki = {token.strip("`,.:;()") for token in re.findall(r"`[a-z0-9-]+-gates?`", wiki)}
-    named_in_wiki = {token.strip("`") for token in named_in_wiki}
+    named_in_wiki = {match.group(1) for match in _WIKI_GATE_NAME.finditer(wiki)}
+
+    # The guard the first version omitted, and the reason it failed open. `_gate_targets` already
+    # asserts its own set is non-empty; the wiki-derived set had no such check, so the one side
+    # that could silently become empty was the one side left unguarded.
+    assert named_in_wiki, (
+        "No gate names were found in the wiki page. Either the page stopped naming gates - which "
+        "the forward check would also catch - or this pattern stopped matching how they are "
+        "written, in which case this check asserts nothing. Both are failures."
+    )
 
     stale = sorted(name for name in named_in_wiki if name not in live)
 
