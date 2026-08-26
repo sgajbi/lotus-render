@@ -185,3 +185,37 @@ def test_the_declared_gate_tools_are_pinned_exactly() -> None:
         and "==" not in entry
     )
     assert floored == [], f"These gate tools are floored rather than pinned: {floored}"
+
+
+def test_the_source_size_gate_fails_when_it_inspected_nothing(tmp_path: Path) -> None:
+    """A gate that inspected nothing must fail. Silence is never a pass.
+
+    An earlier version returned an empty violation list for an empty or absent source root and
+    printed `Source size gate passed`. Rename `src/`, restructure the package, or pass a wrong
+    `--source-root`, and it would have reported success for ever. It was the only one of the four
+    code-health gates that could not fail loudly - the other three shell out to tools that error
+    when they find nothing to do.
+    """
+
+    empty = tmp_path / "no-such-source"
+    empty.mkdir()
+
+    completed = _run("scripts/source_size_gate.py", f"--source-root={empty}", "--max-lines=450")
+
+    assert completed.returncode == 1, completed.stdout + completed.stderr
+    assert "inspected 0 files" in completed.stdout
+
+    absent = tmp_path / "does-not-exist-at-all"
+    missing = _run("scripts/source_size_gate.py", f"--source-root={absent}", "--max-lines=450")
+    assert missing.returncode == 1, missing.stdout + missing.stderr
+
+
+def test_the_source_size_gate_reports_what_it_inspected() -> None:
+    """The count is the only thing distinguishing 'nothing too long' from 'nothing to look at'."""
+
+    measured = _measured_max_source_lines()
+    completed = _run("scripts/source_size_gate.py", f"--max-lines={measured}")
+
+    assert completed.returncode == 0, completed.stdout + completed.stderr
+    assert "files inspected" in completed.stdout
+    assert " 0 files inspected" not in completed.stdout
