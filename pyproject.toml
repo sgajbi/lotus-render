@@ -50,3 +50,16 @@ source = ["src/app"]
 
 [tool.setuptools.package-data]
 "app.contracts" = ["examples/*.json"]
+
+[tool.deptry]
+# `app` is this repository's own package under `src`, not a third-party distribution. Without this
+# deptry reports every internal import as DEP003 "transitive dependency" - 86 findings, all false -
+# which is how a dependency gate ends up being switched off instead of configured.
+known_first_party = ["app", "scripts"]
+# The `dev` extra holds tooling, so it must not be judged against runtime imports.
+optional_dependencies_dev_groups = ["dev"]
+# `uvicorn` is the ASGI server, invoked from the command line and never imported. That is a
+# structural property of how the service starts, not a temporary allowance, so it carries no expiry.
+# `coverage` is a dev tool imported by a dev script (`scripts/coverage_gate.py`); deptry judges
+# `scripts/` as production code. Also structural, also no expiry. Both entries match lotus-risk.
+per_rule_ignores = { DEP002 = ["uvicorn"], DEP004 = ["coverage"] }

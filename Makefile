@@ -1,4 +1,12 @@
-.PHONY: install lint monetary-float-guard typecheck openapi-gate template-registry-gate test test-unit test-integration test-e2e test-coverage security-audit check ci docker-build clean
+.PHONY: install lint monetary-float-guard typecheck openapi-gate template-registry-gate test test-unit test-integration test-e2e test-coverage security-audit check ci docker-build clean complexity-gate source-size-gate dead-code-gate dependency-hygiene-gate code-health-gates
+
+# Code-health baselines, banked at the measured tree with no headroom. An allowance above the
+# measurement is slack the next change spends, so each of these equals what the tree measures today
+# and is asserted as such by tests/unit/test_code_health_gates.py. Reducing them is a separate,
+# reviewable change; raising one to go green is not an option. See issue #72.
+SOURCE_FILE_MAX_LINES ?= 1453
+MAX_CYCLOMATIC_COMPLEXITY ?= 20
+MAX_HIGH_COMPLEXITY_FUNCTIONS ?= 0
 
 VENV_DIR ?= .venv
 
@@ -51,9 +59,23 @@ test-coverage:
 security-audit:
 	$(VENV_PYTHON) scripts/pip_audit_gate.py
 
-check: lint typecheck openapi-gate template-registry-gate test
+complexity-gate:
+	python scripts/python_complexity_inventory.py --limit 20 --max-cc $(MAX_CYCLOMATIC_COMPLEXITY) --max-high-complexity $(MAX_HIGH_COMPLEXITY_FUNCTIONS)
 
-ci: lint typecheck openapi-gate template-registry-gate test-integration test-e2e test-coverage security-audit
+source-size-gate:
+	python scripts/source_size_gate.py --max-lines=$(SOURCE_FILE_MAX_LINES)
+
+dead-code-gate:
+	python -m vulture src tests --min-confidence 80
+
+dependency-hygiene-gate:
+	python -m deptry .
+
+code-health-gates: complexity-gate source-size-gate dead-code-gate dependency-hygiene-gate
+
+check: lint typecheck code-health-gates openapi-gate template-registry-gate test
+
+ci: lint typecheck code-health-gates openapi-gate template-registry-gate test-integration test-e2e test-coverage security-audit
 
 docker-build:
 	docker build -t backend-service:ci-test .
