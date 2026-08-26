@@ -70,6 +70,17 @@ Deterministic document rendering service for Lotus reporting.
 - `make openapi-gate` validates operation metadata, expected response codes, and canonical request
   example truth
 - `make security-audit` validates governed pip-audit exceptions before running dependency audit
+- `make code-health-gates` runs the four blocking code-health gates, and both `make check` and
+  `make ci` include it:
+  - `make complexity-gate` fails when maximum cyclomatic complexity rises above the banked value or
+    any rank D-F function appears
+  - `make source-size-gate` fails when any module grows past the banked line count
+  - `make dead-code-gate` fails on vulture findings at 80% confidence
+  - `make dependency-hygiene-gate` fails on deptry findings
+- code-health baselines are banked at the measured tree with no headroom, and
+  `tests/unit/test_code_health_gates.py` asserts each threshold *equals* the measurement, so an
+  improvement cannot go unbanked and a threshold cannot drift above the tree; the same tests assert
+  each gate is capable of failing, by running it one below its measured value
 - `contracts/render-supported-features.v1.json` publishes supported templates, API paths, and
   non-goals for consumers
 - `contracts/render-source-contracts.v1.json` binds manifest report-data contract versions to
