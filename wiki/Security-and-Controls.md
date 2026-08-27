@@ -33,6 +33,9 @@ deployed as one.
 | execution capacity | bounded limiter around the compile threadpool | over the limit, `429` rather than an unbounded queue of blocking work |
 | compile duration | `LOTUS_RENDER_RENDER_COMPILE_TIMEOUT_SECONDS` | an overrunning compile becomes a `failed` job with category `timeout`, not a held thread |
 
+These are blast-radius controls. None of them establishes who the caller is; they bound what a
+reachable caller can consume. Defaults and tuning live in [Configuration](./Configuration.md).
+
 ### Gap: the body cap depends on a declared length
 
 `RequestBodySizeLimitMiddleware` reads `Content-Length` and rejects the request when the declared
@@ -40,9 +43,6 @@ value exceeds the cap. When the header is absent — a chunked or streamed body 
 happens and the request proceeds unbounded. `lotus-report` enforces the same cap by streaming the
 body when no length is declared, so this is a divergence between siblings rather than a platform
 posture. Tracked as [#84](https://github.com/sgajbi/lotus-render/issues/84).
-
-These are blast-radius controls. None of them establishes who the caller is; they bound what a
-reachable caller can consume. Defaults and tuning live in [Configuration](./Configuration.md).
 
 ## Support-safe responses
 
