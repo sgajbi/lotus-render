@@ -34,7 +34,7 @@ deployed as one.
 | compile duration | `LOTUS_RENDER_RENDER_COMPILE_TIMEOUT_SECONDS` | an overrunning compile becomes a `failed` job with category `timeout`, not a held thread |
 
 These are blast-radius controls. None of them establishes who the caller is; they bound what a
-reachable caller can consume. Defaults and tuning live in [Configuration](./Configuration.md).
+reachable caller can consume. Defaults and tuning live in [Configuration](Configuration).
 
 ### Gap: the body cap depends on a declared length
 
@@ -117,6 +117,6 @@ that claim meaningful — changing it invalidates prior fingerprint comparisons.
 
 ## Read next
 
-1. [Configuration](./Configuration.md) — the boundary settings and their defaults
-2. [Operations](./Operations.md) — what the support-safe surfaces actually tell you
-3. [Development and Testing](./Development-and-Testing.md) — the gates that keep these properties true
+1. [Configuration](Configuration) — the boundary settings and their defaults
+2. [Operations](Operations) — what the support-safe surfaces actually tell you
+3. [Development and Testing](Development-and-Testing) — the gates that keep these properties true

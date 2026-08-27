@@ -25,7 +25,7 @@ operational.
 
 `/health/live` and `/health/ready` answer genuinely different questions: a process that is alive but
 whose render store or compile runtime is unavailable is **live and not ready**, and must not be sent
-render traffic. See [Operations](./Operations.md).
+render traffic. See [Operations](Operations).
 
 ## Submitting a render
 
@@ -41,7 +41,7 @@ needs; the service fetches no domain data of its own. The package carries:
 | evidence | `lineage_refs`, `disclosure_refs`, `requested_by`, `correlation_id`, `trace_id` |
 
 The template selection fields are matched against the governed manifest for that template — see
-[Template Registry](./Template-Registry.md). A combination the manifest does not support is
+[Template Registry](Template-Registry). A combination the manifest does not support is
 rejected; it never falls back to another template.
 
 ### Two success codes, and the difference matters
@@ -104,7 +104,7 @@ job's* identifiers, not the HTTP request's, and the two are kept distinct on pur
 
 Read responses are support-safe by construction. None of them returns raw `report_data`, raw engine
 stderr, artifact storage locations, archive retention truth, or upstream replay commands. That is a
-contract, not an omission — see [Security and Controls](./Security-and-Controls.md).
+contract, not an omission — see [Security and Controls](Security-and-Controls).
 
 ## Published consumer contracts
 
@@ -130,6 +130,6 @@ without a failing build.
 
 ## Read next
 
-1. [Architecture](./Architecture.md) — how a submission becomes a PDF
-2. [Operations](./Operations.md) — reading status, diagnostics and metrics
-3. [Template Registry](./Template-Registry.md) — what each template accepts
+1. [Architecture](Architecture) — how a submission becomes a PDF
+2. [Operations](Operations) — reading status, diagnostics and metrics
+3. [Template Registry](Template-Registry) — what each template accepts

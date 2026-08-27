@@ -43,7 +43,7 @@ A template is a governed artefact, so the work is not finished when it renders:
 Every active template must have golden proof, including nested producer variants such as reviewed
 Idea evidence rendered through `proof-pack v1`. Mint it from the container-first Typst runtime so
 the proof is stable across developer and CI hosts. See
-[Development and Testing](./Development-and-Testing.md#golden-proof).
+[Development and Testing](Development-and-Testing#golden-proof).
 
 Lifecycle changes are governed the same way: move a template to `deprecated_rerenderable`,
 `blocked_for_new_renders` or `blocked` in the manifest through PR review, never by local edit.
@@ -237,6 +237,6 @@ inventory and the RFC before they appear in the template.
 
 ## Read next
 
-1. [API Surface](./API-Surface.md) — the package contract a template is selected by
-2. [Architecture](./Architecture.md) — where template selection sits in the render path
-3. [Development and Testing](./Development-and-Testing.md) — golden proof and the registry gate
+1. [API Surface](API-Surface) — the package contract a template is selected by
+2. [Architecture](Architecture) — where template selection sits in the render path
+3. [Development and Testing](Development-and-Testing) — golden proof and the registry gate

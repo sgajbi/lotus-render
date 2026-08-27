@@ -73,7 +73,7 @@ A render job moves through a small set of states, all of which a caller can obse
 Two conditions are often mistaken for job states and are not: `404 render_job_not_found` for an
 unknown id, and `409 render_artifact_not_ready` when artifact metadata is requested before a
 successful render. Neither is a lifecycle value — call diagnostics for the same id to find out where
-the job actually is. See [API Surface](./API-Surface.md).
+the job actually is. See [API Surface](API-Surface).
 
 ### Submission is idempotent
 
@@ -89,7 +89,7 @@ Two windows decide when a job that is going nowhere becomes *visible* as such:
 `STALE_ACCEPTED_SECONDS` (default 300) for a job accepted but never started, and
 `STALE_RENDERING_SECONDS` (default 900) for a compile that has overrun. Without them a lost job
 would simply sit. Keep both larger than `RENDER_COMPILE_TIMEOUT_SECONDS`, or healthy work is flagged
-as stale — see [Configuration](./Configuration.md).
+as stale — see [Configuration](Configuration).
 
 ## State and durability
 
@@ -111,7 +111,7 @@ The service deliberately does not own:
 1. **the document's data** — the caller supplies it; `lotus-render` does not fetch domain state
 2. **the decision to produce a document** — that belongs to the requesting workflow
 3. **retention or distribution** — the artifact's durable home is `lotus-archive`
-4. **template authorship** — governed separately, see [Template Registry](./Template-Registry.md)
+4. **template authorship** — governed separately, see [Template Registry](Template-Registry)
 
 ## Current limitations
 
@@ -142,7 +142,7 @@ Recorded so that absent behaviour is not mistaken for behaviour that works.
 
 ## Read next
 
-1. [API Surface](./API-Surface.md) — the nine operations and their contracts
-2. [Configuration](./Configuration.md) — every setting and its default
-3. [Template Registry](./Template-Registry.md) — template rules and the active set
-4. [Operations](./Operations.md) — health, diagnostics and metrics
+1. [API Surface](API-Surface) — the nine operations and their contracts
+2. [Configuration](Configuration) — every setting and its default
+3. [Template Registry](Template-Registry) — template rules and the active set
+4. [Operations](Operations) — health, diagnostics and metrics
