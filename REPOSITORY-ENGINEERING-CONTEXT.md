@@ -193,7 +193,7 @@ Primary governing artifacts:
    `accepted`, `rendering`, `rendered`, and `failed` replays return prior truth without rerunning
    the renderer; terminal states are immutable unless a future governed recovery workflow changes
    that contract.
-10. Settings live behind the `LOTUS_RENDER_` contract documented in `docs/configuration.md`.
+10. Settings live behind the `LOTUS_RENDER_` contract catalogued in `wiki/Configuration.md`.
     Required invalid configuration fails at service startup; runtime unavailability reports as
     `runtime_configuration_unavailable`; Typst/Docker compile timeouts persist as failed render
     jobs with category `timeout`; render execution capacity exhaustion returns
