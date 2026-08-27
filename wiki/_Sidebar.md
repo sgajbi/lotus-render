@@ -1,17 +1,21 @@
 # lotus-render
 
-## Product And Scope
+## Start here
 
 - [Home](Home)
 - [Architecture](Architecture)
 
-## Engineering
+## Contracts
 
-- [Configuration](Configuration)
+- [API Surface](API-Surface)
 - [Template Registry](Template-Registry)
 
-## Operations
+## Run and operate
 
-- [Configuration - Operator Controls](Configuration#operator-relevant-controls)
-- [Home - Operator Checks](Home#operator-checks)
-- [Architecture - Current Limitations](Architecture#current-limitations)
+- [Configuration](Configuration)
+- [Operations](Operations)
+- [Security and Controls](Security-and-Controls)
+
+## Build
+
+- [Development and Testing](Development-and-Testing)
