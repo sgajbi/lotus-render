@@ -81,6 +81,18 @@ Errors return a `detail` object with `code` and `message`, plus `field_paths`, `
 `trace_id` where they apply. `429` is the one to retry unchanged; `409 render_job_conflict` and
 `422` are caller defects and retrying them changes nothing.
 
+## Events
+
+There are none. `lotus-render` publishes no events, consumes no queue, and holds no outbound
+integration other than the responses above — the compile runtime is the only process it invokes.
+Every interaction with this service is a synchronous HTTP call made by the caller.
+
+The runtime dependency list is the evidence: `fastapi`, `uvicorn`, `pydantic`,
+`pydantic-settings`, `starlette` and the two Prometheus packages. There is no HTTP client, message
+broker or cloud SDK among them, so there is no path by which the service could reach out even if a
+future change wanted one — adding an integration would mean adding a dependency, which the
+dependency-hygiene gate makes visible.
+
 ## Correlation
 
 `X-Correlation-Id`, `X-Trace-Id` and `traceparent` are propagated when supplied and appear in

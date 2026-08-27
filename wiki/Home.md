@@ -130,3 +130,4 @@ described in [Operations](./Operations.md).
 5. [Security and Controls](./Security-and-Controls.md) — what protects the service and what does not
 6. [Operations](./Operations.md) — health, diagnostics, metrics, incidents
 7. [Development and Testing](./Development-and-Testing.md) — building it, testing it, merging it
+8. [Glossary](./Glossary.md) — the vocabulary, and where each term is defined

@@ -21,6 +21,27 @@ GET  /health  /health/live  /health/ready  /metadata  /metrics
 It owns document *production*. It does not own the data in the document, the decision to produce it,
 or where the result is filed afterwards — those belong to the calling service and to `lotus-archive`.
 
+## Where a render fits
+
+A document is produced by three services in sequence, each with a different authority:
+
+```mermaid
+flowchart LR
+  SRC["domain services<br/>core · performance · risk<br/>manage · advise · idea"] --> RPT["lotus-report<br/>assembles immutable report data"]
+  RPT -- "render package" --> RND["lotus-render<br/>validates · compiles · hashes"]
+  RND -- "artifact + evidence" --> RPT
+  RPT --> ARC["lotus-archive<br/>retention · retrieval · legal hold"]
+```
+
+The sequencing rule is the important part: **`lotus-report` calls `POST /renders` only once the
+upstream data is already immutable and supportable.** A render is a presentation of a decision
+already made, never a step in making it. That is what allows the render service to hold no domain
+data and still produce an accountable document — everything worth disputing was settled before the
+package was built.
+
+The artifact returns to the caller inline; the durable home is `lotus-archive`. `lotus-render` keeps
+job evidence, not documents.
+
 ## Runtime shape
 
 ```mermaid
