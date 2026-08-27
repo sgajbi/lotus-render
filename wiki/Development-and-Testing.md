@@ -55,7 +55,7 @@ oversight to be noticed later.
 
 Because raw PDF bytes are not stable across renders, golden comparison uses the bounded determinism
 fingerprint rather than a file hash. See
-[Security and Controls](./Security-and-Controls.md#integrity-of-what-is-produced).
+[Security and Controls](Security-and-Controls#integrity-of-what-is-produced).
 
 ### Code-health baselines
 
@@ -116,6 +116,6 @@ change it describes, verify before merge and publish after, using
 
 ## Read next
 
-1. [Architecture](./Architecture.md) — the shape the gates are protecting
-2. [Template Registry](./Template-Registry.md) — what changes when a template does
-3. [API Surface](./API-Surface.md) — the contract the OpenAPI gate enforces
+1. [Architecture](Architecture) — the shape the gates are protecting
+2. [Template Registry](Template-Registry) — what changes when a template does
+3. [API Surface](API-Surface) — the contract the OpenAPI gate enforces

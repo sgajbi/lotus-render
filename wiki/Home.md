@@ -32,11 +32,11 @@ the services that own the data — and that is the property that makes it safe.
 
 | Reader | What matters | Start here |
 |---|---|---|
-| Business and product | which documents can be produced today, and what the service is not allowed to decide | [Capabilities](#what-it-produces-today), [Template Registry](./Template-Registry.md) |
-| Integration engineers | the package contract, idempotency, and error semantics | [API Surface](./API-Surface.md) |
-| Operations and support | readiness, stuck renders, diagnostics, alerts | [Operations](./Operations.md) |
-| Security and risk | what authenticates a caller, what is persisted, what an artefact proves | [Security and Controls](./Security-and-Controls.md) |
-| Engineers on the repo | how it is built, tested and gated | [Development and Testing](./Development-and-Testing.md), [Architecture](./Architecture.md) |
+| Business and product | which documents can be produced today, and what the service is not allowed to decide | [Capabilities](#what-it-produces-today), [Template Registry](Template-Registry) |
+| Integration engineers | the package contract, idempotency, and error semantics | [API Surface](API-Surface) |
+| Operations and support | readiness, stuck renders, diagnostics, alerts | [Operations](Operations) |
+| Security and risk | what authenticates a caller, what is persisted, what an artefact proves | [Security and Controls](Security-and-Controls) |
+| Engineers on the repo | how it is built, tested and gated | [Development and Testing](Development-and-Testing), [Architecture](Architecture) |
 
 `lotus-report` is the only production caller today: it assembles immutable report data and submits
 the complete package. `lotus-archive` owns the artefact's durable home afterwards.
@@ -58,7 +58,7 @@ memo when `lotus-report` includes an approved advisor-use package from `lotus-ad
 only, with client-ready publication still blocked upstream.
 
 Each template's contract shape, section list and source-ownership rules are in
-[Template Registry](./Template-Registry.md).
+[Template Registry](Template-Registry).
 
 ## What it does not own
 
@@ -116,18 +116,18 @@ from this page, and equally when this page names a gate the lanes no longer run.
 
 Baselines are banked at the measured tree with no headroom, and `tests/unit/test_code_health_gates.py`
 asserts each threshold equals the measurement. CI does not currently run the code-health gates — see
-[Development and Testing](./Development-and-Testing.md#the-hole-code-health-gates-do-not-run-in-ci).
+[Development and Testing](Development-and-Testing#the-hole-code-health-gates-do-not-run-in-ci).
 
 Operator-facing checks — `/health`, `/health/live`, `/health/ready`, `/metadata`, `/metrics` — are
-described in [Operations](./Operations.md).
+described in [Operations](Operations).
 
 ## The pages
 
-1. [Architecture](./Architecture.md) — how a submission becomes a PDF, and why state is local
-2. [API Surface](./API-Surface.md) — the nine operations and their contracts
-3. [Template Registry](./Template-Registry.md) — templates, lifecycle, per-template contract shapes
-4. [Configuration](./Configuration.md) — every setting, deployment, secrets
-5. [Security and Controls](./Security-and-Controls.md) — what protects the service and what does not
-6. [Operations](./Operations.md) — health, diagnostics, metrics, incidents
-7. [Development and Testing](./Development-and-Testing.md) — building it, testing it, merging it
-8. [Glossary](./Glossary.md) — the vocabulary, and where each term is defined
+1. [Architecture](Architecture) — how a submission becomes a PDF, and why state is local
+2. [API Surface](API-Surface) — the nine operations and their contracts
+3. [Template Registry](Template-Registry) — templates, lifecycle, per-template contract shapes
+4. [Configuration](Configuration) — every setting, deployment, secrets
+5. [Security and Controls](Security-and-Controls) — what protects the service and what does not
+6. [Operations](Operations) — health, diagnostics, metrics, incidents
+7. [Development and Testing](Development-and-Testing) — building it, testing it, merging it
+8. [Glossary](Glossary) — the vocabulary, and where each term is defined

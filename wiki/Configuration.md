@@ -44,7 +44,7 @@ Service name, version and rounding-policy version are published through `/metada
 | `LOTUS_RENDER_RUNTIME_ENGINE_VERSION` | `0.14.2` | reported in metadata; pin deliberately — it bounds the determinism claim |
 | `LOTUS_RENDER_DEFAULT_OUTPUT_FORMAT` | `pdf` | must appear in the supported list |
 | `LOTUS_RENDER_SUPPORTED_OUTPUT_FORMATS` | `("pdf",)` | must contain `pdf` |
-| `LOTUS_RENDER_TEMPLATE_REGISTRY_PATH` | `templates/registry` | see [Template Registry](./Template-Registry.md) |
+| `LOTUS_RENDER_TEMPLATE_REGISTRY_PATH` | `templates/registry` | see [Template Registry](Template-Registry) |
 
 Both output settings are cross-checked at startup: `default_output_format` must be one of
 `supported_output_formats`, and `pdf` must be present. A configuration that violates either fails to
@@ -86,7 +86,7 @@ healthy work as stuck.
 | `LOTUS_RENDER_MAX_REQUEST_BODY_BYTES` | `5242880` (5 MiB) |
 
 `allowed_hosts` is a blast-radius boundary, not authentication — see
-[Security and Controls](./Security-and-Controls.md) for what actually authenticates a caller. The
+[Security and Controls](Security-and-Controls) for what actually authenticates a caller. The
 local default deliberately admits `render.dev.lotus` for governed platform-ingress validation and
 `host.docker.internal` for the supported Report-to-Render Docker path. Production deployments should
 carry an explicit environment-scoped allowlist rather than inheriting this one.
@@ -134,6 +134,6 @@ The settings most likely to be changed in response to an incident:
 
 ## Read next
 
-1. [Operations](./Operations.md) — health, metrics and diagnostics
-2. [Security and Controls](./Security-and-Controls.md) — what the boundary settings do and do not do
-3. [Architecture](./Architecture.md) — why the store is local and what follows from it
+1. [Operations](Operations) — health, metrics and diagnostics
+2. [Security and Controls](Security-and-Controls) — what the boundary settings do and do not do
+3. [Architecture](Architecture) — why the store is local and what follows from it

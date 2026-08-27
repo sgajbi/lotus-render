@@ -99,6 +99,6 @@ registry, OpenAPI and dependency gates — is in the
 
 ## Read next
 
-1. [Configuration](./Configuration.md) — the controls behind these behaviours
-2. [API Surface](./API-Surface.md) — the status and error contracts
-3. [Architecture](./Architecture.md) — why a job belongs to one instance
+1. [Configuration](Configuration) — the controls behind these behaviours
+2. [API Surface](API-Surface) — the status and error contracts
+3. [Architecture](Architecture) — why a job belongs to one instance
