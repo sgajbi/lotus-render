@@ -1,137 +1,132 @@
-# lotus-render Wiki
+# lotus-render
 
-Deterministic document rendering service for Lotus reporting.
+The Lotus platform's document production service. Given a governed template and a complete package
+of already-approved data, it produces a **PDF** — deterministically, with evidence of what it
+produced and from what.
 
-## Reader Map
+## Why it exists
 
-| Reader | Start Here | Current Evidence |
-| --- | --- | --- |
-| Business and product | [Current posture](#current-posture), [Template Registry](Template-Registry) | Supported render templates, upstream package boundaries, and presentation-only advisory scope. |
-| Operations and support | [Runtime and operations](#runtime-and-operations), [Configuration](Configuration) | Health/readiness, persisted render state, bounded diagnostics, supportability metadata, and Docker runtime posture. |
-| Engineering and agents | [Registry truth](#registry-truth), [Validation commands](#validation-commands), [Remote governance](#remote-governance) | Repo-native gates, golden proof artifacts, OpenAPI/template registry controls, and CI-only merge governance. |
-| Integration consumers | [Scope guardrails](#scope-guardrails), [Template Registry](Template-Registry) | Complete render-package input ownership, supported template/version tuples, and downstream artifact boundaries. |
+A private bank's client-facing documents are a regulated output. The same portfolio review must look
+the same, say the same thing, and be reproducible months later when someone asks what the client was
+actually sent. Left inside each reporting workflow, document production drifts: layouts diverge,
+template changes ship without review, and nobody can prove which version of a document a client
+received.
+
+`lotus-render` isolates that concern in one service, with three deliberate consequences:
+
+- **Templates are governed artefacts, not code details.** Every template carries a manifest naming
+  its owner, approver, approval date, supported contracts, locales, brand variants and lifecycle
+  status. A render is accepted only against a combination that manifest supports.
+- **Production is separated from authority.** The service renders what it is given and holds no
+  client, portfolio or advisory data of its own. It cannot approve advice, grant publication
+  authority, or fill a gap in upstream data — so a rendering change can never quietly become a
+  business change.
+- **Every artefact is accountable.** Each render returns a truthful artifact hash, a bounded
+  determinism fingerprint, the engine version that produced it, and the lineage and disclosure
+  references it was rendered from.
+
+The trade is that `lotus-render` is deliberately incapable on its own. It is useful only alongside
+the services that own the data — and that is the property that makes it safe.
+
+## Who uses it
+
+| Reader | What matters | Start here |
+|---|---|---|
+| Business and product | which documents can be produced today, and what the service is not allowed to decide | [Capabilities](#what-it-produces-today), [Template Registry](./Template-Registry.md) |
+| Integration engineers | the package contract, idempotency, and error semantics | [API Surface](./API-Surface.md) |
+| Operations and support | readiness, stuck renders, diagnostics, alerts | [Operations](./Operations.md) |
+| Security and risk | what authenticates a caller, what is persisted, what an artefact proves | [Security and Controls](./Security-and-Controls.md) |
+| Engineers on the repo | how it is built, tested and gated | [Development and Testing](./Development-and-Testing.md), [Architecture](./Architecture.md) |
+
+`lotus-report` is the only production caller today: it assembles immutable report data and submits
+the complete package. `lotus-archive` owns the artefact's durable home afterwards.
+
+## What it produces today
+
+Four governed templates, all `active`, all PDF, all `en-SG` / `private_banking`:
+
+| template | document | data contract | upstream authority |
+|---|---|---|---|
+| `portfolio-review v1` | client portfolio review | `portfolio_review.v1` | `lotus-report` |
+| `outcome-review v1` | post-trade outcome review | `dpm_outcome_report_input.v1` | `lotus-manage` |
+| `proof-pack v1` | pre-trade proof pack | `dpm_proof_pack_report_input.v1` | `lotus-manage`, `lotus-idea` |
+| `rebalance-wave v1` | rebalance wave evidence | `dpm_wave_report_input.v1` | `lotus-manage` |
+
+`portfolio-review v1` renders the full client report by default and supports a caller-selected
+subset of sections. It can also render an optional reviewed advisory narrative or advisor proposal
+memo when `lotus-report` includes an approved advisor-use package from `lotus-advise` — presentation
+only, with client-ready publication still blocked upstream.
+
+Each template's contract shape, section list and source-ownership rules are in
+[Template Registry](./Template-Registry.md).
+
+## What it does not own
+
+Stated as prohibitions because each has been asked for at least once:
+
+- **domain data** — it fetches nothing; the package is the whole input
+- **advisory judgement** — it does not approve, rewrite, infer or fetch advisory facts
+- **publication authority** — proof-pack packages carry `client_publication_authority_granted=false`
+  and it stays false
+- **archive semantics** — retrieval, retention, legal hold, replay, rerender, regenerate and
+  distribution belong to `lotus-archive`
+- **template authorship** — templates are governed through manifests and PR review, not configured
+  at runtime
 
 ## Current posture
 
-- separate deployable render service with its own Docker image and independently scalable runtime
-- RFC-0102 first-wave implementation now covers health, readiness, metadata, structured request logging with correlation and trace identifiers, explicit render-attempt domain models, governed render package validation, template registry enforcement, the first real Typst PDF render path, and the first internal render API
-- `lotus-render` consumes complete render packages only and must not fetch business data directly
-- the `POST /renders` OpenAPI request example is sourced from the same canonical
-  portfolio-review render package used by regression tests
-- template lifecycle posture is explicit for `active`, `deprecated_rerenderable`, `blocked_for_new_renders`, and `blocked`
-- the current determinism claim is bounded to the governed Typst `0.14.2` runtime envelope
-- raw PDF bytes are not claimed to be stable across renders because PDF document ids and timestamps are reminted per artifact; support-safe repeatability uses the bounded determinism fingerprint
-- active-template golden proof is minted from the container-first Typst runtime on developer and CI
-  hosts so proof is stable across environments
-- render jobs are persisted in the governed local store before readiness is reported as healthy for
-  first-wave traffic
-- render-store schema is versioned through SQLite migrations and validated during readiness
-- local Docker Compose mounts render job state on the `lotus-render-data` volume at
-  `/var/lib/lotus-render/render-store.sqlite3`
-- persisted render jobs retain support-safe snapshot, lineage, disclosure, caller, correlation, and
-  trace evidence without storing raw report data or archive retention truth
-- direct HTTP traffic is bounded by trusted hosts, configured request body size, and disabled CORS
-  by default; browser-facing access remains a platform-ingress concern
-- `POST /renders` executes blocking Typst/Docker work through a bounded threadpool-backed runtime
-  path and returns `429 render_execution_capacity_exhausted` when configured capacity is exhausted
-- same-package render replays return the prior persisted `accepted`, `rendering`, `rendered`, or
-  `failed` truth without rerunning the renderer; different-package reuse of a render job id remains
-  a governed conflict
-- HTTP routes consume typed application dependencies while persistence and metrics live behind
-  explicit infrastructure and observability modules
-- `/metadata` now publishes source-backed RFC-0108 `render.observability.render_supportability`
-  posture derived from drain, render-store, template-registry, and runtime configuration state
-- Typst/Docker compile execution is timeout-bounded; timed-out renders persist as failed jobs with
-  category `timeout` and support-safe diagnostics
-- the active `portfolio-review v1` flow now renders structured mandate, performance, risk,
-  holdings, and governance sections from the governed render package rather than a thin text-only
-  summary payload
-- `portfolio-review v1` can render an optional reviewed advisory narrative page when `lotus-report`
-  supplies an included advisor-use package from `lotus-advise`; render remains presentation-only
-  and does not approve, rewrite, infer, or fetch advisory facts
-- `portfolio-review v1` can render an optional advisor proposal memo page when `lotus-report`
-  supplies an included advisor-use memo package from `lotus-advise`; client-ready memo publication
-  remains blocked upstream
-- RFC-0105 first-wave render metrics are implementation-backed for render submission, status
-  lookup, diagnostics lookup, artifact metadata lookup, latency, failure-category, artifact-size,
-  and source-backed stale in-flight render signals with bounded labels only
-- RFC-0108 render supportability metrics are implementation-backed through
-  `lotus_render_supportability_total` with bounded `state`, `reason`, and `freshness_bucket` labels
-  and recorder-level fallback for unknown label values
-- `/metadata` publishes aggregate `accepted` and `rendering` stale posture from the render store,
-  and `/renders/{render_job_id}/diagnostics` maps lifecycle/failure state to bounded recovery
-  actions and handoff owners without raw package or engine output
+Implemented and in use:
 
-## Registry truth
+- the internal render API — submit, status, diagnostics, artifact metadata
+- governed package validation against the template registry, with no fallback template
+- real Typst PDF rendering for all four active templates, with banked golden proof
+- persisted render jobs in a local SQLite store, schema-versioned and validated at readiness
+- idempotent submission, bounded execution capacity, bounded compile timeout
+- correlation and trace propagation, support-safe request logging, metrics and supportability
+  posture
 
-- manifests live under `templates/registry/`
-- `make template-registry-gate` validates registry structure and lifecycle metadata
-- remote feature, PR merge, and main releasability lanes run the template registry gate
-- `make openapi-gate` validates operation metadata, expected response codes, and canonical request
-  example truth
-- `make security-audit` validates governed pip-audit exceptions before running dependency audit
-- `make code-health-gates` runs the four blocking code-health gates, and both `make check` and
-  `make ci` include it:
-  - `make complexity-gate` fails when maximum cyclomatic complexity rises above the banked value or
-    any rank D-F function appears
-  - `make source-size-gate` fails when any module grows past the banked line count
-  - `make dead-code-gate` fails on vulture findings at 80% confidence
-  - `make dependency-hygiene-gate` fails on deptry findings
-- code-health baselines are banked at the measured tree with no headroom, and
-  `tests/unit/test_code_health_gates.py` asserts each threshold *equals* the measurement, so an
-  improvement cannot go unbanked and a threshold cannot drift above the tree; the same tests assert
-  each gate is capable of failing, by running it one below its measured value
-- `contracts/render-supported-features.v1.json` publishes supported templates, API paths, and
-  non-goals for consumers
-- `contracts/render-source-contracts.v1.json` binds manifest report-data contract versions to
-  source ownership/provenance
-- `contracts/render-data-product-trust.v1.json` declares support-safe render status, artifact
-  metadata, supportability, and metrics trust posture
-- active report-data contract versions are parsed through typed render content adapters before
-  Typst context generation
-- template context routing is explicit for active report/template/version tuples and unknown
-  combinations fail without falling back to portfolio review
-- current active templates are `portfolio-review` version `v1`, `outcome-review` version `v1`,
-  `proof-pack` version `v1`, and `rebalance-wave` version `v1`
-- current active-template golden proof lives under `tests/golden/<template>/v1/`; each active
-  registry golden sample, including nested producer/source-contract variants such as reviewed Idea
-  evidence packs rendered through `proof-pack v1`, must have `render-package.json`,
-  `expected.pdf`, and provenance in `tests/golden/producer-fixtures.v1.json`
+Submission is synchronous for first-wave consumers: `POST /renders` returns the artifact inline on
+the call that renders it. There is no queue and no background worker.
 
-See [Template Registry](Template-Registry).
+Not implemented today — recorded so that absence is not mistaken for capability:
 
-## Operator checks
+| gap | consequence | tracked |
+|---|---|---|
+| output formats other than PDF | a settings validator requires `pdf`; another format is a code change | — |
+| shared job state | the store is a local file, so one instance cannot report on another's jobs | — |
+| enforced durability by default | `REQUIRE_PERSISTENT_RENDER_STORE` is `false`; Docker Compose sets it `true`, bare deployments must too | [#83](https://github.com/sgajbi/lotus-render/issues/83) |
+| unconditional request-body cap | the cap is skipped when no `Content-Length` is declared | [#84](https://github.com/sgajbi/lotus-render/issues/84) |
+| code-health gates in CI | four gates run only from `make check` / `make ci`, which no workflow invokes | [#80](https://github.com/sgajbi/lotus-render/issues/80) |
 
-- `make check`
-- `make ci`
-- `make template-registry-gate`
-- `docker compose up --build`
-- `/health`
-- `/health/live`
-- `/health/ready`
-- `/metadata`
-- `/metrics`
-- `POST /renders`
-- `GET /renders/{render_job_id}`
-- `GET /renders/{render_job_id}/diagnostics`
-- `GET /renders/{render_job_id}/artifact-metadata`
-- `docs/configuration.md`
+## Validation commands
 
-## Remote governance
+The repo-native gates. This list is kept honest in both directions by
+`tests/unit/test_wiki_gate_coverage.py`, which fails when a gate the blocking lanes run is missing
+from this page, and equally when this page names a gate the lanes no longer run.
 
-- `main` branch protection requires strict PR Merge Gate contexts, conversation resolution, linear
-  history, and admin enforcement
-- a pull request may not merge without an exact-head `VERDICT: mergeable` from the review lead,
-  written by someone other than the change's author (lotus-platform#718)
-- required GitHub checks and truthful PR evidence are the only **mechanically enforced** controls
-  today: `main` requires zero approving reviews, so the verdict requirement is a process rule that
-  GitHub does not enforce. That gap is a gap, not a permission — two merges on 2026-08-26 went
-  through it, one on a self-written verdict and one on no verdict at all after a rebase silently
-  voided the one that existed
-- human approval is optional in the solo-developer baseline in the sense that GitHub requests no
-  reviewer; it is not optional in the sense that a verdict may be skipped
+| command | enforces |
+|---|---|
+| `make openapi-gate` | operation metadata, response codes, security-posture text, canonical example |
+| `make template-registry-gate` | manifest structure and lifecycle metadata |
+| `make code-health-gates` | the four gates below, as one target |
+| `make complexity-gate` | no rank D–F function, and maximum complexity at or below the banked value |
+| `make source-size-gate` | no module past its banked line count |
+| `make dead-code-gate` | no vulture finding at 80% confidence |
+| `make dependency-hygiene-gate` | no deptry finding |
 
-## Scope guardrails
+Baselines are banked at the measured tree with no headroom, and `tests/unit/test_code_health_gates.py`
+asserts each threshold equals the measurement. CI does not currently run the code-health gates — see
+[Development and Testing](./Development-and-Testing.md#the-hole-code-health-gates-do-not-run-in-ci).
 
-- `lotus-render` owns render execution, render status, artifact hash, and support-safe diagnostics
-- `lotus-render` does not own archive retrieval, retention, legal hold, replay, rerender, regenerate, or document distribution commands
+Operator-facing checks — `/health`, `/health/live`, `/health/ready`, `/metadata`, `/metrics` — are
+described in [Operations](./Operations.md).
+
+## The pages
+
+1. [Architecture](./Architecture.md) — how a submission becomes a PDF, and why state is local
+2. [API Surface](./API-Surface.md) — the nine operations and their contracts
+3. [Template Registry](./Template-Registry.md) — templates, lifecycle, per-template contract shapes
+4. [Configuration](./Configuration.md) — every setting, deployment, secrets
+5. [Security and Controls](./Security-and-Controls.md) — what protects the service and what does not
+6. [Operations](./Operations.md) — health, diagnostics, metrics, incidents
+7. [Development and Testing](./Development-and-Testing.md) — building it, testing it, merging it

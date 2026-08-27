@@ -49,8 +49,10 @@ A render job moves through a small set of states, all of which a caller can obse
 | `rendered` | artifact produced |
 | `failed` | compilation or validation failed; `diagnostics` carries a bounded reason |
 
-Two further values appear in read responses rather than as job states: `not_found` for an unknown
-id, and `not_ready` when an artifact is requested before compilation completes.
+Two conditions are often mistaken for job states and are not: `404 render_job_not_found` for an
+unknown id, and `409 render_artifact_not_ready` when artifact metadata is requested before a
+successful render. Neither is a lifecycle value — call diagnostics for the same id to find out where
+the job actually is. See [API Surface](./API-Surface.md).
 
 ### Submission is idempotent
 
@@ -76,8 +78,10 @@ database. Two consequences follow, and both matter when planning a deployment:
 1. **A job's lifecycle is local to the instance that accepted it.** Another replica cannot answer for
    it. Route follow-up reads to the same instance, or run a single instance per store.
 2. **Persistence is not enforced by default.** `REQUIRE_PERSISTENT_RENDER_STORE` is `false`, so a
-   deployment can run against `:memory:` and lose accepted jobs on restart. Set it `true` wherever an
-   accepted job must survive one — that turns the risky combination into a startup error.
+   bare deployment can run against `:memory:` and lose accepted jobs on restart. The supplied Docker
+   Compose file sets it `true` and mounts the store on a named volume; any deployment not using that
+   file must set it deliberately — that turns the risky combination into a startup error rather than
+   a silent one. Tracked as [#83](https://github.com/sgajbi/lotus-render/issues/83).
 
 ## Boundaries
 
@@ -96,7 +100,9 @@ Recorded so that absent behaviour is not mistaken for behaviour that works.
 |---|---|
 | **PDF only** | `SUPPORTED_OUTPUT_FORMATS` defaults to `("pdf",)` and a settings validator rejects any configuration omitting `pdf`. Another format is a code change, not configuration. |
 | **Single-instance job visibility** | the render store is a local SQLite file, so one replica cannot report on another's jobs |
-| **Persistence optional by default** | `REQUIRE_PERSISTENT_RENDER_STORE=false` permits `:memory:` and silent loss of accepted jobs on restart |
+| **Persistence optional by default** | `REQUIRE_PERSISTENT_RENDER_STORE=false` permits `:memory:` and silent loss of accepted jobs on restart; Docker Compose overrides it to `true` — [#83](https://github.com/sgajbi/lotus-render/issues/83) |
+| **Request-body cap needs a declared length** | the cap is enforced from `Content-Length`; a body with no declared length is not measured — [#84](https://github.com/sgajbi/lotus-render/issues/84) |
+| **No recovery of stale jobs** | the stale windows make a lost job visible; nothing resubmits it — recovery is an operator action |
 | **Engine must be present** | the runtime probe requires `docker` or `typst` on `PATH`; without one the service cannot compile |
 | **Four code-health gates do not run in CI** | `complexity-gate`, `source-size-gate`, `dead-code-gate` and `dependency-hygiene-gate` are reachable only from `make check` / `make ci`, which no workflow invokes — tracked as [#80](https://github.com/sgajbi/lotus-render/issues/80) |
 
@@ -115,6 +121,7 @@ Recorded so that absent behaviour is not mistaken for behaviour that works.
 
 ## Read next
 
-1. [Configuration](./Configuration.md) — every setting and its default
-2. [Template Registry](./Template-Registry.md) — template rules and the active set
-3. [Home](./Home.md) — posture, operator checks, scope guardrails
+1. [API Surface](./API-Surface.md) — the nine operations and their contracts
+2. [Configuration](./Configuration.md) — every setting and its default
+3. [Template Registry](./Template-Registry.md) — template rules and the active set
+4. [Operations](./Operations.md) — health, diagnostics and metrics

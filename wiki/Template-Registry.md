@@ -27,6 +27,27 @@
 - do not treat `deprecated_rerenderable` as acceptable for new production renders
 - do not bypass blocked posture with local edits outside governed PR review
 
+## Adding or changing a template
+
+A template is a governed artefact, so the work is not finished when it renders:
+
+1. author the manifest under `templates/registry/<template_id>/<version>.manifest.json` with owner,
+   approver, approval date, supported report types, contract versions, locales, brand variants,
+   output formats and required disclosure fragments
+2. register the template context explicitly for the report/template/version tuple — an unregistered
+   combination fails rather than falling back to portfolio review
+3. bank a golden sample at `tests/golden/<template>/<version>/` with `render-package.json` and
+   `expected.pdf`, and record its provenance in `tests/golden/producer-fixtures.v1.json`
+4. run `make template-registry-gate` after any manifest edit, and `make check` before pushing
+
+Every active template must have golden proof, including nested producer variants such as reviewed
+Idea evidence rendered through `proof-pack v1`. Mint it from the container-first Typst runtime so
+the proof is stable across developer and CI hosts. See
+[Development and Testing](./Development-and-Testing.md#golden-proof).
+
+Lifecycle changes are governed the same way: move a template to `deprecated_rerenderable`,
+`blocked_for_new_renders` or `blocked` in the manifest through PR review, never by local edit.
+
 ## Current active templates
 
 - `template_id`: `portfolio-review`
@@ -213,3 +234,9 @@ The source-backed attribute inventory is authored in
 business meaning, source application, source object or endpoint where known, current placement
 status, and source gaps. Desired report fields that are not yet source-backed must be added to that
 inventory and the RFC before they appear in the template.
+
+## Read next
+
+1. [API Surface](./API-Surface.md) — the package contract a template is selected by
+2. [Architecture](./Architecture.md) — where template selection sits in the render path
+3. [Development and Testing](./Development-and-Testing.md) — golden proof and the registry gate
