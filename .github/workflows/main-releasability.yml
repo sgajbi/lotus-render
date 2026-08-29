@@ -5,9 +5,12 @@ on:
     branches: [ "main" ]
   workflow_dispatch:
 
+# Key on the commit, not the ref: every push to main validates an immutable SHA, and a
+# ref-keyed group would let a newer commit silently cancel the run that was the only
+# releasability evidence for the previous one (issue #79).
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  group: ${{ github.workflow }}-${{ github.sha }}
+  cancel-in-progress: false
 
 permissions:
   contents: read
