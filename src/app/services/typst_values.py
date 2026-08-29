@@ -59,3 +59,10 @@ def parse_number(value: object) -> float:
         return float(raw)
     except ValueError:
         return 0.0
+
+
+def row_sequence(value: object) -> Sequence[object] | None:
+    """Rows are a real sequence; strings and bytes must not iterate as rows."""
+    if isinstance(value, Sequence) and not isinstance(value, (str, bytes, bytearray)):
+        return value
+    return None

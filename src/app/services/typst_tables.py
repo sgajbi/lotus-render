@@ -18,6 +18,7 @@ from app.services.typst_values import (
     parse_percent,
     percent_width_token,
     performance_width_token,
+    row_sequence,
 )
 
 
@@ -397,8 +398,30 @@ def render_dense_transaction_rows(transactions: object) -> str:
 
 
 def render_allocation_breakdown_rows(rows: object) -> str:
-    if not isinstance(rows, Sequence) or isinstance(rows, (str, bytes, bytearray)):
-        return "#text(size: 8pt, fill: rgb(104, 118, 132))[No allocation detail available.]"
+    empty = "#text(size: 8pt, fill: rgb(104, 118, 132))[No allocation detail available.]"
+    items = row_sequence(rows)
+    if items is None:
+        return empty
+    aggregates = _aggregated_allocation_buckets(items)
+    if not aggregates:
+        return empty
+    ordered = sorted(aggregates.items(), key=lambda entry: entry[1]["weight"], reverse=True)
+    rendered = [
+        '#compact-allocation-row("'
+        + escape_typst_text(name)
+        + '", "'
+        + escape_typst_text(f"{totals['weight']:.2f}%")
+        + '", "'
+        + escape_typst_text(f"{totals['value']:.2f}")
+        + '", '
+        + f"{min(max(totals['weight'], 8.0), 100.0):.2f}%"
+        + ")"
+        for name, totals in ordered
+    ]
+    return "\n#v(4pt)\n".join(rendered)
+
+
+def _aggregated_allocation_buckets(rows: Sequence[object]) -> dict[str, dict[str, float]]:
     aggregates: dict[str, dict[str, float]] = {}
     for item in rows:
         if not isinstance(item, Mapping):
@@ -411,23 +434,7 @@ def render_allocation_breakdown_rows(rows: object) -> str:
         bucket = aggregates.setdefault(bucket_name, {"weight": 0.0, "value": 0.0})
         bucket["weight"] += weight
         bucket["value"] += value
-    if not aggregates:
-        return "#text(size: 8pt, fill: rgb(104, 118, 132))[No allocation detail available.]"
-    ordered = sorted(aggregates.items(), key=lambda entry: entry[1]["weight"], reverse=True)
-    rendered: list[str] = []
-    for name, totals in ordered:
-        rendered.append(
-            '#compact-allocation-row("'
-            + escape_typst_text(name)
-            + '", "'
-            + escape_typst_text(f"{totals['weight']:.2f}%")
-            + '", "'
-            + escape_typst_text(f"{totals['value']:.2f}")
-            + '", '
-            + f"{min(max(totals['weight'], 8.0), 100.0):.2f}%"
-            + ")"
-        )
-    return "\n#v(4pt)\n".join(rendered)
+    return aggregates
 
 
 def supplemental_allocation_view(
