@@ -92,3 +92,23 @@ def test_a_missing_template_directory_fails_closed(tmp_path: Path) -> None:
         TemplateRegistry.load_from_directory(
             Path("templates/registry"), template_source_root=tmp_path / "absent"
         )
+
+
+def test_template_sources_are_line_ending_stable() -> None:
+    """The digest hashes file bytes, so a CRLF checkout would change it.
+
+    `.gitattributes` sets `* text=auto eol=lf`, which is what keeps the digest identical
+    on Windows and on CI. If that ever changed, the manifest would match on one platform
+    and fail closed on the other -- a confusing failure that would look like tampering.
+    """
+
+    offenders = [
+        str(path)
+        for path in sorted(Path("templates/typst").rglob("*.typ"))
+        if b"\r\n" in path.read_bytes()
+    ]
+
+    assert not offenders, (
+        "these template sources use CRLF, so their digest differs from a LF checkout and "
+        f"the registry would refuse to load on the other platform: {offenders}"
+    )
