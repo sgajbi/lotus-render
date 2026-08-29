@@ -124,6 +124,24 @@ class _RuntimeErrorTypstService:
         raise RuntimeError(self._message)
 
 
+class _UnexpectedErrorTypstService:
+    """Raises an exception outside the handled set (decimal.InvalidOperation is an
+    ArithmeticError, not a ValueError/RuntimeError) to exercise the fail-closed path."""
+
+    @property
+    def runtime_metadata(self) -> RenderRuntimeMetadata:
+        settings = _settings()
+        return RenderRuntimeMetadata(
+            runtime_engine=settings.runtime_engine,
+            runtime_engine_version=settings.runtime_engine_version,
+        )
+
+    def render(self, _render_package: RenderPackage) -> RenderResult:
+        from decimal import InvalidOperation
+
+        raise InvalidOperation("comparison with NaN")
+
+
 class _TimeoutTypstService:
     @property
     def runtime_metadata(self) -> RenderRuntimeMetadata:
@@ -333,6 +351,25 @@ def test_render_submission_marks_engine_unavailable_for_runtime_dependency_failu
     assert (
         stored.failure_message == "Render runtime is unavailable in the governed runtime envelope."
     )
+
+
+def test_render_submission_fail_closes_on_unexpected_exception(tmp_path: Path) -> None:
+    """No exception may leave the job at 'rendering'; an unexpected error fails it closed."""
+
+    store = RenderStore(tmp_path / "render-store.sqlite3")
+    service = RenderSubmissionService(
+        render_store=store,
+        render_engine=cast(Any, _UnexpectedErrorTypstService()),
+    )
+
+    with pytest.raises(RenderExecutionFailedError):
+        service.submit(_render_package(render_job_id="rdr_unexpected"))
+
+    stored = store.get("rdr_unexpected")
+    assert stored.status == "failed"
+    assert stored.status != "rendering"
+    assert stored.failure_category == "unexpected_render_error"
+    assert stored.failure_message == "Render execution failed in the governed runtime envelope."
 
 
 def test_render_submission_marks_failed_for_render_timeout(tmp_path: Path) -> None:

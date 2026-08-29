@@ -17,6 +17,7 @@ RenderFailureCategory = Literal[
     "artifact_validation_failed",
     "timeout",
     "operator_intervention_required",
+    "unexpected_render_error",
 ]
 RenderStaleState = Literal["fresh", "stale", "not_applicable"]
 RenderRecoveryAction = Literal[

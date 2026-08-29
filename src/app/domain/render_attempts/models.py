@@ -21,6 +21,7 @@ class RenderFailureCategory(StrEnum):
     ARTIFACT_VALIDATION_FAILED = "artifact_validation_failed"
     TIMEOUT = "timeout"
     OPERATOR_INTERVENTION_REQUIRED = "operator_intervention_required"
+    UNEXPECTED_RENDER_ERROR = "unexpected_render_error"
 
 
 @dataclass(slots=True)
