@@ -27,7 +27,12 @@ COMPOSE_FILE = Path("docker-compose.yml")
 # uvicorn and FastAPI, plus a rendered artifact held in memory and its base64 encoding on
 # the way out. The largest document measured in #168 was 5.4 MB, so the artifact side is
 # tens of megabytes; this is a floor for the runtime, not a measurement of a peak.
-SERVICE_MEMORY_HEADROOM_MB = 256
+#
+# Taken from the figure `docker-compose.yml` already documents beside `mem_limit`, rather
+# than chosen independently. A gate that enforces a different number from the one written
+# next to the value it guards leaves a reader two answers and no way to tell which is
+# authoritative -- and this one enforced the looser of the two.
+SERVICE_MEMORY_HEADROOM_MB = 400
 
 
 def _compose_memory_limit_mb() -> int:
@@ -74,4 +79,26 @@ def test_every_compile_slot_can_be_full_without_killing_the_container() -> None:
         f"{container_mb} MB container. Every in-flight render dies with it, which is the "
         "failure #128 removed. Raise mem_limit, or lower the concurrency limit or the "
         "per-compile bound."
+    )
+
+
+def test_the_headroom_the_gate_enforces_is_the_headroom_the_compose_file_documents() -> None:
+    """One number, not two.
+
+    `docker-compose.yml` explains its `mem_limit` as the concurrency limit times the
+    per-compile budget "plus ~400m for uvicorn, the app and one artifact held in memory
+    through its base64 response". That figure is the intent; a gate that quietly enforces
+    a smaller one passes configurations the documented reasoning would reject, and leaves
+    a reader two answers with no way to tell which is authoritative.
+    """
+
+    compose = COMPOSE_FILE.read_text(encoding="utf-8")
+    documented = re.search(r"plus ~(\d+)m", compose)
+    assert documented is not None, (
+        "docker-compose.yml no longer documents the service headroom its mem_limit "
+        "arithmetic rests on; the gate below is now the only statement of it."
+    )
+    assert int(documented.group(1)) == SERVICE_MEMORY_HEADROOM_MB, (
+        f"docker-compose.yml documents {documented.group(1)}m of service headroom and the "
+        f"gate enforces {SERVICE_MEMORY_HEADROOM_MB}m."
     )
