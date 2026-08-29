@@ -15,10 +15,12 @@ from app.services.portfolio_charts import (
 )
 from app.services.typst_values import (
     escape_typst_string,
+    mapping_entries,
     parse_number,
     parse_percent,
     percent_width_token,
-    performance_width_token,
+    performance_bar_domain,
+    performance_bar_geometry,
     row_sequence,
 )
 
@@ -131,35 +133,42 @@ def render_performance_summary_table(rows: object) -> str:
     )
 
 
+def _performance_chart_row(item: Mapping[str, object], domain: float) -> str:
+    geometry = performance_bar_geometry(item.get("twr_pct"), domain)
+    return (
+        'performance-chart-row("'
+        + escape_typst_string(str(item.get("period", "n/a")))
+        + '", "'
+        + escape_typst_string(str(item.get("twr_pct", "Not available")))
+        + '", "'
+        + escape_typst_string(str(item.get("cumulative_twr_pct", "Not available")))
+        + '", '
+        + geometry.magnitude
+        + ", "
+        + ("true" if geometry.is_negative else "false")
+        + ")"
+    )
+
+
 def render_performance_chart_rows(rows: object, *, two_column: bool = False) -> str:
     empty_message = '#empty-state("No performance history available.", size: 8pt)'
-    if not isinstance(rows, Sequence) or isinstance(rows, (str, bytes, bytearray)):
+    entries = mapping_entries(rows)
+    if not entries:
         return empty_message
-    rendered: list[str] = []
-    for item in rows:
-        if not isinstance(item, Mapping):
-            continue
-        rendered.append(
-            'performance-chart-row("'
-            + escape_typst_string(str(item.get("period", "n/a")))
-            + '", "'
-            + escape_typst_string(str(item.get("twr_pct", "Not available")))
-            + '", "'
-            + escape_typst_string(str(item.get("cumulative_twr_pct", "Not available")))
-            + '", '
-            + performance_width_token(item.get("twr_pct"))
-            + ")"
-        )
-    if not rendered:
-        return empty_message
+    # One domain for the whole series: bars are only comparable to each other if
+    # every bar in the chart is drawn against the same scale.
+    domain = performance_bar_domain(item.get("twr_pct") for item in entries)
+    rendered = [_performance_chart_row(item, domain) for item in entries]
+    scale_note = f'\n#v(4pt)\n#chart-scale-note("{domain:.2f}%")'
     if two_column:
         return (
             "#grid(columns: (1fr, 1fr), column-gutter: 12pt, row-gutter: 1.5pt,\n"
             + ",\n".join(rendered)
             + "\n)"
+            + scale_note
         )
     rendered = [f"#{row}" for row in rendered]
-    return "\n#v(1.5pt)\n".join(rendered)
+    return "\n#v(1.5pt)\n".join(rendered) + scale_note
 
 
 def render_performance_detail_rows(rows: object) -> str:

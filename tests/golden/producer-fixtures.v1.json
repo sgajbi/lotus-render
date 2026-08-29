@@ -15,7 +15,7 @@
         "src/app/contracts/examples/portfolio-review-render-package.v1.json"
       ],
       "provenance": "Portfolio review package is the canonical lotus-report render package example mirrored into the golden fixture tree for registry-to-artifact gating.",
-      "bounded_determinism_fingerprint": "080bd170329ce57d2bc5eaedaef84ecec4121d4c0c5a5c1635473413cde8233e"
+      "bounded_determinism_fingerprint": "e4fda81ba17e7577eb594d39145a152e0560e8aecfac86c529e012eea6a95ca6"
     },
     {
       "template_id": "outcome-review",
@@ -93,7 +93,7 @@
         "src/app/contracts/examples/portfolio-review-render-package.v1.json"
       ],
       "provenance": "Portfolio review carrying an approved advisor-use package so the reviewed advisory narrative section is rendered and banked; that section previously had no compiled proof (issue #118).",
-      "bounded_determinism_fingerprint": "c95ada7ee5bbd333066e62eb8af9d5d27cfb01883c8c3a1940dd43b0d9f1403b"
+      "bounded_determinism_fingerprint": "18e63a4649d26279161e3639c9527b1604b141cece6b22aa2b9598e33fc9f0ee"
     },
     {
       "template_id": "portfolio-review",
@@ -108,7 +108,7 @@
         "src/app/contracts/examples/portfolio-review-render-package.v1.json"
       ],
       "provenance": "Portfolio review carrying an approved advisor-use package so the advisor proposal memo section is rendered and banked; that section previously had no compiled proof (issue #118).",
-      "bounded_determinism_fingerprint": "f275bf16bdc809bda639fea1fe21614bab554e6cbee71e65f39d7dcf82eb61e9"
+      "bounded_determinism_fingerprint": "4cd3b22569346df96dbca8071e290ea469dbae3f4249654a304b3fe78965ac03"
     },
     {
       "template_id": "portfolio-review",

@@ -7,6 +7,12 @@
 #let accent-soft = rgb("#2C7A7B")
 #let gold = rgb("#C38B2E")
 
+// Direction carries meaning in a performance chart, so it gets its own tones.
+// Every bar used to draw in `accent`, which made a -38.4% year and a +18.4%
+// year the same blue. Named for what they mean, not for the hue.
+#let gain = rgb("#286446")
+#let loss = rgb("#A6321F")
+
 #let page-margin-x = 16mm
 #let page-margin-y = 16mm
 #let grid-gap = 16pt

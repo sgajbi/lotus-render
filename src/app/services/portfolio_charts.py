@@ -11,6 +11,7 @@ from decimal import Decimal, InvalidOperation
 from pathlib import Path
 
 from app.services.number_format import format_money
+from app.services.typst_values import row_sequence
 
 CHART_COLORS = {
     "navy": "#0B1F33",
@@ -71,7 +72,7 @@ def render_portfolio_chart_assets(
 def performance_series_from_report_data(
     report_data: Mapping[str, object],
 ) -> list[PerformancePoint]:
-    rows = _row_sequence(
+    rows = row_sequence(
         report_data.get("performance_series") or report_data.get("performance_monthly_history")
     )
     if rows is None:
@@ -104,9 +105,9 @@ def _performance_point(item: object) -> PerformancePoint | None:
 def allocation_items_from_report_data(report_data: Mapping[str, object]) -> list[AllocationSlice]:
     breakdowns = report_data.get("allocation_breakdowns")
     nested = breakdowns.get("by_asset_class") if isinstance(breakdowns, Mapping) else None
-    rows = _row_sequence(nested)
+    rows = row_sequence(nested)
     if rows is None:
-        rows = _row_sequence(report_data.get("allocation_items"))
+        rows = row_sequence(report_data.get("allocation_items"))
     if rows is None:
         return []
 
@@ -120,13 +121,6 @@ def allocation_items_from_report_data(report_data: Mapping[str, object]) -> list
         )
         for index, (label, weight, value) in enumerate(grouped)
     ]
-
-
-def _row_sequence(value: object) -> Sequence[object] | None:
-    """Rows are a real sequence; strings and bytes must not iterate as rows."""
-    if isinstance(value, Sequence) and not isinstance(value, (str, bytes, bytearray)):
-        return value
-    return None
 
 
 def _allocation_entry(item: object) -> tuple[str, Decimal, Decimal] | None:
