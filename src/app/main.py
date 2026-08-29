@@ -23,6 +23,7 @@ from app.domain.templates.registry import TemplateRegistry
 from app.infrastructure.render_store import RenderStore
 from app.middleware.correlation import CorrelationIdMiddleware
 from app.middleware.http_boundary import RequestBodySizeLimitMiddleware
+from app.middleware.metrics_posture import MetricsPostureMiddleware
 from app.middleware.request_logging import RequestLoggingMiddleware
 from app.observability.render_metrics import validate_render_metric_contracts
 from app.services.render_execution import RenderExecutionLimiter
@@ -120,6 +121,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.add_middleware(RequestLoggingMiddleware, service_name=configured_settings.service_name)
     validate_render_metric_contracts()
     Instrumentator().instrument(app).expose(app)
+    # Added after expose() so it wraps the /metrics route: the posture gauges are
+    # computed on the scrape that publishes them rather than by a route nothing
+    # calls, which is what made three alerts unfireable (issue #125).
+    app.add_middleware(MetricsPostureMiddleware)
 
     @app.exception_handler(RequestValidationError)
     async def request_validation_error_handler(request, exc):  # type: ignore[no-untyped-def]
