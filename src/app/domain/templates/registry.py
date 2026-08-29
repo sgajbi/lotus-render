@@ -4,7 +4,11 @@ import json
 from pathlib import Path
 
 from app.contracts.render_package import RenderPackage
-from app.domain.templates.digest import template_digest
+from app.domain.templates.digest import (
+    SHARED_TEMPLATE_ID,
+    SHARED_TEMPLATE_VERSION,
+    template_digest,
+)
 from app.domain.templates.models import TemplateLifecycleStatus, TemplateManifest
 
 DEFAULT_TEMPLATE_SOURCE_ROOT = Path("templates/typst")
@@ -139,6 +143,11 @@ def _require_renderable_status(manifest: TemplateManifest) -> None:
     )
 
 
+def shared_design_directory(source_root: Path = DEFAULT_TEMPLATE_SOURCE_ROOT) -> Path:
+    """The design module every family compiles against."""
+    return source_root / SHARED_TEMPLATE_ID / SHARED_TEMPLATE_VERSION
+
+
 def _verify_template_digest(manifest: TemplateManifest, source_root: Path) -> None:
     directory = source_root / manifest.template_id / manifest.template_version
     if not directory.is_dir():
@@ -146,7 +155,12 @@ def _verify_template_digest(manifest: TemplateManifest, source_root: Path) -> No
             f"template source missing for {manifest.template_id} "
             f"{manifest.template_version} at {directory}"
         )
-    measured = template_digest(directory)
+    shared = shared_design_directory(source_root)
+    if not shared.is_dir():
+        raise TemplateRegistryError(
+            f"shared design module missing at {shared}; every family compiles against it"
+        )
+    measured = template_digest(directory, shared_directory=shared)
     if measured != manifest.template_digest:
         raise TemplateRegistryError(
             f"template digest mismatch for {manifest.template_id} "

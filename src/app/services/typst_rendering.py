@@ -18,6 +18,7 @@ from app.domain.render_attempts.models import (
 )
 from app.domain.rendering.models import RenderDiagnostic, RenderResult
 from app.domain.templates.digest import template_digest
+from app.domain.templates.registry import shared_design_directory
 from app.services.portfolio_charts import render_portfolio_chart_assets
 from app.services.render_intake import RenderIntakeService
 from app.services.render_ports import RenderEngineTimeoutError, RenderRuntimeMetadata
@@ -221,7 +222,8 @@ class TypstRenderService:
         # What the template actually contained for this render. template_version names
         # a mutable directory, so the version alone cannot explain an output (#139).
         rendered_template_digest = template_digest(
-            Path("templates/typst") / manifest.template_id / manifest.template_version
+            Path("templates/typst") / manifest.template_id / manifest.template_version,
+            shared_directory=shared_design_directory(),
         )
         attempt.mark_rendering()
         started = perf_counter()
@@ -329,6 +331,14 @@ class TypstRenderService:
         template_directory = template_root.parent
         workspace_template_directory = workspace / "template"
         shutil.copytree(template_directory, workspace_template_directory, dirs_exist_ok=True)
+        # The shared design module lands beside the family's own files so a template
+        # imports it by name, exactly as it imports a sibling. It is hashed into every
+        # family's digest, so what compiles here is what the manifest attests to.
+        shutil.copytree(
+            shared_design_directory(),
+            workspace_template_directory,
+            dirs_exist_ok=True,
+        )
         if render_package.report_type == "portfolio_review":
             render_portfolio_chart_assets(
                 render_package.report_data,

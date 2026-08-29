@@ -30,7 +30,7 @@
         "tests/unit/reporting_render/test_service.py"
       ],
       "provenance": "Generated from lotus-report ReportJobLedger and typed OutcomeReviewReportJobRequest through _build_render_package.",
-      "bounded_determinism_fingerprint": "e1faa7b85878661e1e03e00b0dfeb164a5fd30f46ccfb8a1524b63fc265242ef"
+      "bounded_determinism_fingerprint": "426a485cf6489fb0498dd5c0bc74b648c7491f9eb83ef38eaf060734d13ed136"
     },
     {
       "template_id": "proof-pack",
@@ -45,7 +45,7 @@
         "tests/unit/reporting_render/test_service.py"
       ],
       "provenance": "Generated from lotus-report ReportJobLedger and typed ProofPackReportJobRequest through _build_render_package.",
-      "bounded_determinism_fingerprint": "2c895049dcd1aa824b89998baa6341336bbc368a395221e93bd5cfe320b52ec6"
+      "bounded_determinism_fingerprint": "bca22f8cf3ee8a068d1ce87eb4b4ed6a6b80ab8c0f769510ab174755df7e3ec1"
     },
     {
       "template_id": "proof-pack",
@@ -63,7 +63,7 @@
         "tests/integration/test_idea_evidence_intake_api.py"
       ],
       "provenance": "Mirrors lotus-report reviewed Idea evidence materialization, which adapts lotus_idea_evidence_pack_report_input.v1 into the governed proof-pack render package without granting client-publication or archive authority in lotus-render.",
-      "bounded_determinism_fingerprint": "c3dad355b738e6cf114328b4b258aa05757f6af248f1bde291a86b55456c7c1f"
+      "bounded_determinism_fingerprint": "cbfff2d7db72e9eebc5edfa1cf3e17b82c99e7d88090c1927956ba2fc25d0fc2"
     },
     {
       "template_id": "rebalance-wave",
@@ -78,7 +78,7 @@
         "tests/unit/reporting_render/test_service.py"
       ],
       "provenance": "Generated from lotus-report ReportJobLedger and typed WaveReportJobRequest through _build_render_package.",
-      "bounded_determinism_fingerprint": "5a9b5a004d7f85668c59d6dc07c5333fa1f2f7e884899dda9416f8640bc84a36"
+      "bounded_determinism_fingerprint": "13e110d1a132356dde51c1669a0046005b3edb10db9447f64b91926d602ea9e6"
     },
     {
       "template_id": "portfolio-review",

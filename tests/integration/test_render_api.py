@@ -14,6 +14,7 @@ from app.contracts.examples import PORTFOLIO_REVIEW_RENDER_PACKAGE_EXAMPLE_PATH
 from app.core.settings import Settings
 from app.dependencies.container import get_render_submission_service
 from app.domain.templates.digest import template_digest
+from app.domain.templates.registry import shared_design_directory
 from app.main import create_app
 from app.services.render_submission import RenderExecutionFailedError
 
@@ -476,9 +477,10 @@ def test_artifact_metadata_names_the_template_bytes_that_produced_it(tmp_path: P
     assert metadata.status_code == 200
     digest = metadata.json()["template_digest"]
     assert digest.startswith("sha256:"), f"no template digest was recorded: {digest!r}"
-    assert digest == template_digest(Path("templates/typst/portfolio-review/v1")), (
-        "the recorded digest does not match the template that rendered the document"
-    )
+    assert digest == template_digest(
+        Path("templates/typst/portfolio-review/v1"),
+        shared_directory=shared_design_directory(),
+    ), "the recorded digest does not match the template that rendered the document"
 
 
 def test_a_replay_is_not_rejected_when_execution_capacity_is_exhausted(tmp_path: Path) -> None:
