@@ -409,7 +409,6 @@ def test_typst_render_service_renders_golden_pdf(
     fixture: dict[str, str], render_package: RenderPackage
 ) -> None:
     service = _build_service()
-    expected_pdf = Path(fixture["expected_pdf_path"]).read_bytes()
 
     result = service.render(render_package)
 
@@ -418,13 +417,53 @@ def test_typst_render_service_renders_golden_pdf(
     assert result.diagnostic.template_id == render_package.template_id
     assert render_package.report_data_contract_version == fixture["report_data_contract_version"]
     assert result.diagnostic.artifact_sha256 == hashlib.sha256(result.artifact_bytes).hexdigest()
+    # Assert against the fingerprint banked in the manifest, not one recomputed by the
+    # production function under test: a weakened fingerprint would move the render output
+    # and a self-referential expected value together and pass silently (issue #108). The
+    # banked literal is an independent oracle - only the real render can match it.
     assert (
         result.diagnostic.bounded_determinism_fingerprint
-        == service._compute_bounded_determinism_fingerprint(expected_pdf)
+        == fixture["bounded_determinism_fingerprint"]
     )
     assert result.diagnostic.mime_type == "application/pdf"
     assert result.diagnostic.output_size_bytes == len(result.artifact_bytes)
     assert result.diagnostic.determinism_mode == "bounded_runtime_envelope"
+
+
+def test_bounded_determinism_fingerprint_ignores_volatile_fields_but_not_content() -> None:
+    """Prove the fingerprint discriminates: stable across timestamps/IDs, changed on content.
+
+    Banking a literal (test_typst_render_service_renders_golden_pdf) proves the render still
+    produces the banked bytes, but not that the fingerprint would notice if it did not. This
+    pins both halves of the "bounded" contract so a weakened normaliser cannot pass unnoticed
+    (issue #108).
+    """
+
+    fingerprint = TypstRenderService._compute_bounded_determinism_fingerprint
+    base = (
+        b"%PDF-1.7\n"
+        b"/CreationDate (D:20260101000000Z)\n"
+        b"/ModDate (D:20260101000000Z)\n"
+        b"/ID [<AAAA1111> <BBBB2222>]\n"
+        b"<xmp:CreateDate>2026-01-01T00:00:00Z</xmp:CreateDate>\n"
+        b"<xmpMM:DocumentID>uuid:1111</xmpMM:DocumentID>\n"
+        b"BT (Total portfolio value 1,234,567) Tj ET\n"
+    )
+    volatile_only = (
+        b"%PDF-1.7\n"
+        b"/CreationDate (D:20991231235959Z)\n"
+        b"/ModDate (D:20991231235959Z)\n"
+        b"/ID [<CCCC3333> <DDDD4444>]\n"
+        b"<xmp:CreateDate>2099-12-31T23:59:59Z</xmp:CreateDate>\n"
+        b"<xmpMM:DocumentID>uuid:9999</xmpMM:DocumentID>\n"
+        b"BT (Total portfolio value 1,234,567) Tj ET\n"
+    )
+    changed_content = base.replace(b"1,234,567", b"9,999,999")
+
+    # Volatile-only differences must collapse to the same fingerprint...
+    assert fingerprint(base) == fingerprint(volatile_only)
+    # ...but a one-figure change in the rendered content must not.
+    assert fingerprint(base) != fingerprint(changed_content)
 
 
 def test_typst_render_service_is_deterministic_within_runtime_envelope() -> None:
