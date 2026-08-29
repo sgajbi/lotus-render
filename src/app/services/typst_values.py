@@ -61,14 +61,21 @@ def mapping_entries(value: object) -> list[Mapping[str, object]]:
     return [item for item in value if isinstance(item, Mapping)]
 
 
-def percent_width_token(value: object) -> str:
-    raw = str(value).strip().replace("%", "")
-    try:
-        numeric = float(raw)
-    except ValueError:
-        return "8%"
-    clamped = min(max(numeric, 8.0), 100.0)
-    return f"{clamped:.2f}%"
+def weight_width_token(value: object) -> str:
+    """A weight as a share of the track, drawn at the size it actually is.
+
+    This used to floor at 8%, so a 1.64% liquidity sleeve drew the same bar as an 8%
+    one -- five times its true length, next to the number saying 1.64%. A reader
+    comparing bar lengths across the table was reading the floor, not the portfolio.
+
+    A negligible weight now draws a negligible bar, which is the honest rendering: the
+    figure is printed beside it, and a bar too small to see is a true statement about a
+    position too small to matter. An absent weight draws nothing at all.
+    """
+    parsed = optional_percent(value)
+    if parsed is None:
+        return "0%"
+    return f"{min(max(parsed, 0.0), 100.0):.2f}%"
 
 
 @dataclass(frozen=True)

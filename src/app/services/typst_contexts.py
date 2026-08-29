@@ -38,7 +38,6 @@ from app.services.typst_tables import (
     render_holding_bar_rows,
     render_holding_rows,
     render_observation_notes,
-    render_performance_bar_rows,
     render_performance_chart_rows,
     render_performance_chart_section,
     render_performance_detail_rows,
@@ -228,7 +227,6 @@ def build_portfolio_review_context(render_package: RenderPackage) -> dict[str, s
         "PERFORMANCE_MONTHLY_TABLE_ROWS": render_performance_detail_rows(
             report_data.get("performance_monthly_history")
         ),
-        "PERFORMANCE_BAR_ROWS": render_performance_bar_rows(report_data.get("performance_periods")),
         "PERFORMANCE_12M_CHART_SECTION": render_performance_chart_section(report_data),
         "HOLDING_ROWS": render_holding_rows(report_data.get("top_holdings")),
         "HOLDING_BAR_ROWS": render_holding_bar_rows(report_data.get("top_holdings")),

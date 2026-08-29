@@ -212,25 +212,6 @@
   #line(length: 100%, stroke: (paint: rule, thickness: 0.35pt))
 ]
 
-#let performance-bar-row(period, value, width) = [
-  #grid(
-    columns: (34pt, 1fr, 44pt),
-    column-gutter: 10pt,
-    [#body-muted(period)],
-    [
-      #block(
-        width: 100%,
-        inset: (y: 4pt),
-        fill: mist,
-        radius: 99pt,
-      )[
-        #rect(width: width, height: 8pt, radius: 99pt, fill: accent)
-      ]
-    ],
-    [#align(right)[#text(size: 8.8pt, weight: 500, fill: ink)[#value]]],
-  )
-]
-
 #let performance-summary-cell(label, value, annualized) = block(
   inset: 9pt,
   fill: white,

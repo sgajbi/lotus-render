@@ -68,10 +68,6 @@ ORPHANED_KEYS: dict[str, frozenset[str]] = {
             "HOLDING_ROWS",
             "OBSERVATION_NOTES",
             "PERFORMANCE_MONTHLY_CHART_ROWS",
-            # Blocked: `performance-bar-row` still scales with `percent_width_token`,
-            # which floors at 8% and drops the sign. Wiring it would put the defect
-            # #151 removed from the other charts back on the page (#154).
-            "PERFORMANCE_BAR_ROWS",
         }
     ),
     # All four families compute who asked for the document and print it on none of them
