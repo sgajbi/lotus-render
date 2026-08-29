@@ -441,43 +441,68 @@ def requested_section_keys(
     if not isinstance(requested_sections, Sequence) or isinstance(
         requested_sections, (str, bytes, bytearray)
     ):
-        if include_advisor_memo:
-            return list(DEFAULT_PORTFOLIO_REVIEW_SECTIONS_WITH_ADVISORY_MEMO)
-        if include_advisory_narrative:
-            return list(DEFAULT_PORTFOLIO_REVIEW_SECTIONS_WITH_ADVISORY_NARRATIVE)
-        return list(DEFAULT_PORTFOLIO_REVIEW_SECTIONS)
+        return _default_section_keys(
+            include_advisory_narrative=include_advisory_narrative,
+            include_advisor_memo=include_advisor_memo,
+        )
 
+    allowed = set(PORTFOLIO_REVIEW_SECTION_CALLS) - _excluded_section_keys(
+        include_advisory_narrative=include_advisory_narrative,
+        include_advisor_memo=include_advisor_memo,
+    )
     normalized: list[str] = []
     seen: set[str] = set()
     for item in requested_sections:
-        key = str(item).strip().lower().replace("_", "-")
-        key = {
-            "detailed-positions": "positions",
-            "holdings-appendix": "positions",
-            "asset-allocation": "allocation",
-            "scope-of-analysis": "overview",
-            "performance-review": "performance",
-            "transaction-list": "transactions",
-            "additional-information": "appendix",
-            "advisor-narrative": "advisory-narrative",
-            "advisory": "advisory-narrative",
-            "reviewed-advisory": "advisory-narrative",
-            "reviewed-advisory-narrative": "advisory-narrative",
-            "advisor-proposal-memo": "advisor-memo",
-            "proposal-memo": "advisor-memo",
-            "memo": "advisor-memo",
-        }.get(key, key)
-        key = key.replace("-", "_")
-        if key == "advisory_narrative" and not include_advisory_narrative:
-            continue
-        if key == "advisor_memo" and not include_advisor_memo:
-            continue
-        if key not in PORTFOLIO_REVIEW_SECTION_CALLS or key in seen:
+        key = _normalized_section_key(item)
+        if key not in allowed or key in seen:
             continue
         normalized.append(key)
         seen.add(key)
     if normalized:
         return normalized
+    return _default_section_keys(
+        include_advisory_narrative=include_advisory_narrative,
+        include_advisor_memo=include_advisor_memo,
+    )
+
+
+_SECTION_KEY_ALIASES = {
+    "detailed-positions": "positions",
+    "holdings-appendix": "positions",
+    "asset-allocation": "allocation",
+    "scope-of-analysis": "overview",
+    "performance-review": "performance",
+    "transaction-list": "transactions",
+    "additional-information": "appendix",
+    "advisor-narrative": "advisory-narrative",
+    "advisory": "advisory-narrative",
+    "reviewed-advisory": "advisory-narrative",
+    "reviewed-advisory-narrative": "advisory-narrative",
+    "advisor-proposal-memo": "advisor-memo",
+    "proposal-memo": "advisor-memo",
+    "memo": "advisor-memo",
+}
+
+
+def _normalized_section_key(item: object) -> str:
+    key = str(item).strip().lower().replace("_", "-")
+    return _SECTION_KEY_ALIASES.get(key, key).replace("-", "_")
+
+
+def _excluded_section_keys(
+    *, include_advisory_narrative: bool, include_advisor_memo: bool
+) -> set[str]:
+    excluded: set[str] = set()
+    if not include_advisory_narrative:
+        excluded.add("advisory_narrative")
+    if not include_advisor_memo:
+        excluded.add("advisor_memo")
+    return excluded
+
+
+def _default_section_keys(
+    *, include_advisory_narrative: bool, include_advisor_memo: bool
+) -> list[str]:
     if include_advisor_memo:
         return list(DEFAULT_PORTFOLIO_REVIEW_SECTIONS_WITH_ADVISORY_MEMO)
     if include_advisory_narrative:
