@@ -33,6 +33,7 @@ from app.domain.templates.registry import TemplateRegistry  # noqa: E402
 from app.services.render_intake import RenderIntakeService  # noqa: E402
 from app.services.typst_rendering import (  # noqa: E402
     TypstRenderService,
+    page_image_hashes,
     ungoverned_runtime_reason,
 )
 
@@ -43,6 +44,16 @@ def _build_service() -> TypstRenderService:
     settings = Settings()
     registry = TemplateRegistry.load_from_directory(Path(settings.template_registry_path))
     return TypstRenderService(settings, RenderIntakeService(registry))
+
+
+def _moved_pages(banked: list[str] | None, measured: list[str]) -> str:
+    """Which pages changed, so a moved golden points at the pages to look at."""
+    if banked is None:
+        return f"all {len(measured)} (no page hashes were banked)"
+    if len(banked) != len(measured):
+        return f"page count {len(banked)} -> {len(measured)}"
+    moved = [index for index, (a, b) in enumerate(zip(banked, measured, strict=True), 1) if a != b]
+    return ", ".join(str(page) for page in moved) if moved else "none"
 
 
 def main() -> int:
@@ -74,20 +85,33 @@ def main() -> int:
         fingerprint = result.diagnostic.bounded_determinism_fingerprint
         banked = fixture.get("bounded_determinism_fingerprint")
         sample_id = fixture["golden_sample_id"]
+        page_hashes = page_image_hashes(service, package)
+        banked_pages = fixture.get("page_image_hashes")
 
-        if fingerprint == banked:
+        if fingerprint == banked and page_hashes == banked_pages:
             print(f"unchanged  {sample_id}")
             continue
 
         drifted.append(sample_id)
+        moved = _moved_pages(banked_pages, page_hashes)
         if arguments.write:
-            Path(fixture["expected_pdf_path"]).write_bytes(result.artifact_bytes)
-            fixture["bounded_determinism_fingerprint"] = fingerprint
-            print(f"re-banked  {sample_id}\n           {banked} -> {fingerprint}")
+            # Only rewrite the artifact when the document actually changed. Raw PDF bytes
+            # differ on every render -- timestamps and ids the fingerprint strips -- so
+            # rewriting unconditionally would put a binary diff in the pull request for a
+            # document nobody altered, and hide the ones that matter among them.
+            if fingerprint != banked:
+                Path(fixture["expected_pdf_path"]).write_bytes(result.artifact_bytes)
+                fixture["bounded_determinism_fingerprint"] = fingerprint
+                print(f"re-banked  {sample_id}\n           {banked} -> {fingerprint}")
+            else:
+                print(f"re-banked  {sample_id} (pages only; the document is unchanged)")
+            fixture["page_image_hashes"] = page_hashes
+            print(f"           pages changed: {moved}")
         else:
             print(f"DRIFTED    {sample_id}")
             print(f"           banked={banked}")
             print(f"           actual={fingerprint}")
+            print(f"           pages changed: {moved}")
 
     if arguments.write:
         FIXTURES_PATH.write_text(
