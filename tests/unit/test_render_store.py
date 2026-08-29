@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import sqlite3
 from concurrent.futures import ThreadPoolExecutor
+from contextlib import closing
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
@@ -25,7 +26,7 @@ def _build_store(tmp_path: Path) -> RenderStore:
 def test_render_store_check_ready_reports_missing_schema(tmp_path: Path) -> None:
     store = _build_store(tmp_path)
 
-    with sqlite3.connect(tmp_path / "render-store.sqlite3") as connection:
+    with closing(sqlite3.connect(tmp_path / "render-store.sqlite3")) as connection, connection:
         connection.execute("DROP TABLE render_job")
         connection.commit()
 
@@ -36,7 +37,7 @@ def test_render_store_check_ready_reports_missing_schema(tmp_path: Path) -> None
 def test_render_store_check_ready_reports_outdated_schema_version(tmp_path: Path) -> None:
     db_path = tmp_path / "render-store.sqlite3"
     store = RenderStore(db_path)
-    with sqlite3.connect(db_path) as connection:
+    with closing(sqlite3.connect(db_path)) as connection, connection:
         connection.execute("PRAGMA user_version = 1")
         connection.commit()
 
@@ -46,7 +47,7 @@ def test_render_store_check_ready_reports_outdated_schema_version(tmp_path: Path
 
 def test_render_store_check_ready_reports_missing_required_column(tmp_path: Path) -> None:
     db_path = tmp_path / "render-store.sqlite3"
-    with sqlite3.connect(db_path) as connection:
+    with closing(sqlite3.connect(db_path)) as connection, connection:
         connection.execute("CREATE TABLE render_job (render_job_id TEXT PRIMARY KEY)")
         connection.execute(f"PRAGMA user_version = {CURRENT_RENDER_STORE_SCHEMA_VERSION}")
         connection.commit()
@@ -65,7 +66,7 @@ def test_render_store_get_unknown_job_raises_not_found(tmp_path: Path) -> None:
 
 def test_render_store_migrates_prior_schema_without_losing_rows(tmp_path: Path) -> None:
     db_path = tmp_path / "render-store.sqlite3"
-    with sqlite3.connect(db_path) as connection:
+    with closing(sqlite3.connect(db_path)) as connection, connection:
         connection.execute(
             """
             CREATE TABLE render_job (
@@ -125,7 +126,7 @@ def test_render_store_migrates_prior_schema_without_losing_rows(tmp_path: Path) 
 
     store = RenderStore(db_path)
 
-    with sqlite3.connect(db_path) as connection:
+    with closing(sqlite3.connect(db_path)) as connection, connection:
         assert connection.execute("PRAGMA user_version").fetchone()[0] == (
             CURRENT_RENDER_STORE_SCHEMA_VERSION
         )
@@ -210,7 +211,7 @@ def test_render_store_bounds_corrupt_json_lineage_fields(tmp_path: Path) -> None
         runtime_engine="typst",
         runtime_engine_version="0.14.2",
     )
-    with sqlite3.connect(db_path) as connection:
+    with closing(sqlite3.connect(db_path)) as connection, connection:
         connection.execute(
             "UPDATE render_job SET lineage_refs_json = ? WHERE render_job_id = ?",
             ('{"not":"a-list"}', job.render_job_id),
@@ -343,7 +344,7 @@ def test_render_store_reports_source_backed_in_flight_summaries(tmp_path: Path) 
     store.mark_rendered(rendered_id, _render_result(rendered_id))
 
     observed_at = datetime(2026, 7, 5, 12, 0, 0, tzinfo=UTC)
-    with sqlite3.connect(db_path) as connection:
+    with closing(sqlite3.connect(db_path)) as connection, connection:
         connection.execute(
             "UPDATE render_job SET updated_at = ? WHERE render_job_id = ?",
             (

@@ -1,5 +1,6 @@
 import logging
 import sqlite3
+from contextlib import closing
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
@@ -286,7 +287,7 @@ def test_metadata_endpoint_reports_stale_in_flight_render_store_posture(
             runtime_engine="typst",
             runtime_engine_version="0.14.2",
         )
-        with sqlite3.connect(tmp_path / "render-store.sqlite3") as connection:
+        with closing(sqlite3.connect(tmp_path / "render-store.sqlite3")) as connection, connection:
             connection.execute(
                 "UPDATE render_job SET updated_at = ? WHERE render_job_id = ?",
                 (
