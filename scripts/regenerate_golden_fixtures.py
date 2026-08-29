@@ -79,7 +79,9 @@ def main() -> int:
             print(f"           actual={fingerprint}")
 
     if arguments.write:
-        FIXTURES_PATH.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        FIXTURES_PATH.write_text(
+            json.dumps(manifest, indent=2) + "\n", encoding="utf-8", newline=""
+        )
         return 0
 
     if drifted:

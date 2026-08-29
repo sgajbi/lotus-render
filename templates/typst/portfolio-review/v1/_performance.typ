@@ -1,5 +1,5 @@
 #import "_theme.typ": empty-state, rule, section-subtitle, section-title, soft-rule
-#import "_components.typ": chart-card, chart-placeholder, page-header, performance-chart-row, performance-detail-row, performance-summary-cell, report-panel, section-marker, table-label
+#import "_components.typ": chart-card, chart-placeholder, chart-scale-note, page-header, performance-chart-row, performance-detail-row, performance-summary-cell, report-panel, section-marker, table-label
 
 #let performance-page() = [
   #section-marker("Performance", "Period returns, benchmark comparison, and return history")

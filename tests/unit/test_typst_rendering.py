@@ -60,7 +60,8 @@ from app.services.typst_values import (
     parse_number,
     parse_percent,
     percent_width_token,
-    performance_width_token,
+    performance_bar_domain,
+    performance_bar_geometry,
     string_list,
 )
 
@@ -1016,9 +1017,52 @@ def test_typst_render_service_maps_transaction_value_date_and_settlement_amount(
 
 def test_typst_render_service_numeric_fallback_helpers_cover_invalid_inputs() -> None:
     assert percent_width_token("bad") == "8%"
-    assert performance_width_token("bad") == "8%"
     assert parse_percent("bad") == 0.0
     assert parse_number("bad") == 0.0
+
+
+def test_an_absent_return_draws_no_bar_rather_than_a_minimum_one() -> None:
+    """ "No data" and "no movement" are different statements; neither is a gain."""
+
+    geometry = performance_bar_geometry("bad", performance_bar_domain(["bad"]))
+    assert geometry.magnitude == "0%"
+    assert geometry.is_negative is False
+
+
+def test_a_loss_and_a_gain_of_the_same_size_do_not_draw_the_same_bar() -> None:
+    """The bar is what the eye reads. It has to carry the sign the number carries."""
+
+    domain = performance_bar_domain(["-8.00%", "8.00%"])
+    loss = performance_bar_geometry("-8.00%", domain)
+    gain = performance_bar_geometry("8.00%", domain)
+
+    assert loss.magnitude == gain.magnitude, "equal moves should reach equally far"
+    assert loss.is_negative is True
+    assert gain.is_negative is False
+
+
+def test_bars_in_one_chart_stay_distinguishable_across_the_whole_series() -> None:
+    """The annual series of the golden package, which the fixed scale flattened.
+
+    `abs(value) * 8` clamped into [8%, 100%] drew +18.40%, -14.20% and -38.40% as
+    three identical full-width bars, and a series of sub-1% months as a column of
+    identical minimum-width ones. Scaled to the series, the worst year is the only
+    bar that fills the track and every other bar is a readable fraction of it.
+    """
+
+    annual = ["18.40%", "-14.20%", "-38.40%", "12.80%", "3.70%", "7.08%"]
+    domain = performance_bar_domain(annual)
+    magnitudes = [performance_bar_geometry(value, domain).magnitude for value in annual]
+
+    assert len(set(magnitudes)) == len(annual), f"bars collide: {magnitudes}"
+    assert magnitudes[2] == "100.00%", "the largest absolute move should fill the track"
+
+    monthly = ["0.44%", "-0.31%", "0.85%", "-0.43%", "1.18%", "0.61%"]
+    monthly_magnitudes = [
+        performance_bar_geometry(value, performance_bar_domain(monthly)).magnitude
+        for value in monthly
+    ]
+    assert len(set(monthly_magnitudes)) == len(monthly), f"bars collide: {monthly_magnitudes}"
 
 
 def test_typst_render_service_marks_template_failure_when_typst_compile_fails(

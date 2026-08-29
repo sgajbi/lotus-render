@@ -1,4 +1,4 @@
-#import "_theme.typ": accent, accent-soft, body-muted, body-strong, empty-state, grid-gap, hairline, ink, mist, navy, page-kicker, panel-radius, rule, section-subtitle, section-title, slate, small-caps, soft-rule
+#import "_theme.typ": accent, accent-soft, body-muted, body-strong, empty-state, gain, grid-gap, hairline, ink, loss, mist, navy, page-kicker, panel-radius, rule, section-subtitle, section-title, slate, small-caps, soft-rule
 
 #let page-header(title) = [
   #grid(
@@ -233,17 +233,46 @@
   #text(size: 6.8pt, fill: slate)[Ann. #annualized]
 ]
 
-#let performance-chart-row(period, value, cumulative, width) = [
+// A return runs either side of zero, so the track it is drawn on has a middle.
+// `magnitude` is the share of the half-track the bar fills; the caller scales it
+// against the series, so bar length is comparable within one chart.
+#let diverging-track(magnitude, negative, bar-height: 4.5pt) = block(
+  width: 100%,
+  inset: (y: 2pt),
+  fill: mist,
+  radius: 2pt,
+)[
+  #grid(
+    // The middle column is the zero baseline. Without a drawn zero, a reader has to
+    // guess where the bars start from, and a short loss looks like a short gain.
+    columns: (1fr, 0.6pt, 1fr),
+    [#align(right)[#if negative [
+      #rect(width: magnitude, height: bar-height, radius: (left: 99pt), fill: loss)
+    ] else [
+      #box(height: bar-height)
+    ]]],
+    [#rect(width: 0.6pt, height: bar-height + 3pt, fill: slate)],
+    [#align(left)[#if negative [
+      #box(height: bar-height)
+    ] else [
+      #rect(width: magnitude, height: bar-height, radius: (right: 99pt), fill: gain)
+    ]]],
+  )
+]
+
+// An auto-scaled bar with an unstated domain is only half-honest: two charts in one
+// document can share a visual language and not share a scale. Say what the track means.
+#let chart-scale-note(domain) = text(size: 6pt, fill: slate)[
+  Bars scaled to #sym.plus.minus#domain, the largest move in this series
+]
+
+#let performance-chart-row(period, value, cumulative, magnitude, negative) = [
   #grid(
     columns: (34pt, 1fr, 42pt, 42pt),
     column-gutter: 7pt,
     [#text(size: 6.2pt, fill: slate)[#period]],
-    [
-      #block(width: 100%, inset: (y: 2pt), fill: mist, radius: 99pt)[
-        #rect(width: width, height: 4.5pt, radius: 99pt, fill: accent)
-      ]
-    ],
-    [#align(right)[#text(size: 6.2pt, weight: 500, fill: ink)[#value]]],
+    [#diverging-track(magnitude, negative)],
+    [#align(right)[#text(size: 6.2pt, weight: 500, fill: if negative { loss } else { ink })[#value]]],
     [#align(right)[#text(size: 6.2pt, fill: slate)[#cumulative]]],
   )
 ]

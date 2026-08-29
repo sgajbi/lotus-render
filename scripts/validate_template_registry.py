@@ -48,7 +48,12 @@ def _rerecord_digests() -> int:
         print(f"re-approved {manifest['template_id']} {manifest['template_version']}")
         print(f"            {manifest.get('template_digest')} -> {measured}")
         manifest["template_digest"] = measured
-        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        # newline="" keeps LF on every platform. The digest this script records is
+        # taken over the working-tree bytes, so a CRLF rewrite here would bank a
+        # digest that no LF checkout could ever reproduce.
+        manifest_path.write_text(
+            json.dumps(manifest, indent=2) + "\n", encoding="utf-8", newline=""
+        )
         changed += 1
     if not changed:
         print("No template digest changed.")
