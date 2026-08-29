@@ -6,10 +6,15 @@ WORKDIR /app
 COPY --from=typst /bin/typst /usr/local/bin/typst
 COPY pyproject.toml README.md ./
 COPY src ./src
-COPY scripts ./scripts
-COPY security ./security
 COPY templates ./templates
-RUN pip install --no-cache-dir --upgrade pip && pip install --no-cache-dir -e ".[dev]"
+
+# Runtime dependencies only. The [dev] extra carries the CI toolchain - pip-audit and
+# its HTTP/resolver stack, a second HTTP client, a YAML parser, mypy, ruff, pytest -
+# none of which any module under src/ imports, and each of which is CVE surface and
+# patch burden in a container whose job is to compile untrusted Typst source.
+# Non-editable so the running code is an installed distribution rather than a mutable
+# source tree the service's own user can rewrite.
+RUN pip install --no-cache-dir --upgrade pip && pip install --no-cache-dir .
 
 # The compile child is fed untrusted report_data, and in this image it is a direct child
 # of the API process rather than a container, so it inherits this identity: run both as a
