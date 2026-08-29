@@ -16,7 +16,11 @@ from __future__ import annotations
 
 import logging
 
-from app.observability.log_context import current_correlation_id, current_trace_id
+from app.observability.log_context import (
+    current_correlation_id,
+    current_span_id,
+    current_trace_id,
+)
 
 LOGGER = logging.getLogger("lotus_render.render")
 
@@ -47,6 +51,9 @@ def _correlation_fields(package_correlation_id: str, package_trace_id: str) -> s
     return (
         f"correlation_id={current_correlation_id()} "
         f"trace_id={current_trace_id()} "
+        # The span the traceparent response advertised, so a log line joins to the
+        # span a tracing backend holds rather than only to the trace.
+        f"span_id={current_span_id()} "
         f"package_correlation_id={package_correlation_id} "
         f"package_trace_id={package_trace_id}"
     )

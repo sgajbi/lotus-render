@@ -1,4 +1,5 @@
 import logging
+import re
 import sqlite3
 from contextlib import closing
 from datetime import UTC, datetime, timedelta
@@ -23,6 +24,25 @@ class _UnavailableRuntimeProbe:
 def _build_client(tmp_path: Path) -> TestClient:
     app = create_app(Settings(render_store_path=str(tmp_path / "render-store.sqlite3")))
     return TestClient(app)
+
+
+_TRACEPARENT = re.compile(r"^00-([0-9a-f]{32})-([0-9a-f]{16})-01$")
+
+
+def _traceparent_span(header: str, expected_trace_id: str) -> bool:
+    """The response advertises this service's own span within the caller's trace.
+
+    The span id used to be the constant `0000000000000001` for every response of every
+    service, which leaves a tracing backend no tree to build: each response claims to be
+    the same span its caller should attach to. Asserted by shape rather than by value,
+    because a correct span id is different every time.
+    """
+    match = _TRACEPARENT.fullmatch(header)
+    assert match, f"not a W3C traceparent: {header!r}"
+    assert match.group(1) == expected_trace_id, "the caller's trace must be preserved"
+    assert match.group(2) != "0" * 16, "the all-zero span id is forbidden by the spec"
+    assert match.group(2) != "0000000000000001", "the constant span id is back"
+    return True
 
 
 def test_health_endpoints(tmp_path: Path) -> None:
@@ -82,7 +102,7 @@ def test_valid_x_trace_id_emits_traceparent(tmp_path: Path) -> None:
             headers={"X-Correlation-Id": "corr-123", "X-Trace-Id": trace_id},
         )
         assert response.status_code == 200
-        assert response.headers["traceparent"] == f"00-{trace_id}-0000000000000001-01"
+        assert _traceparent_span(response.headers["traceparent"], trace_id)
 
 
 def test_traceparent_header_preferred_for_trace_propagation(tmp_path: Path) -> None:
@@ -99,7 +119,7 @@ def test_traceparent_header_preferred_for_trace_propagation(tmp_path: Path) -> N
         assert response.status_code == 200
         assert response.headers["X-Correlation-Id"] == "corr-456"
         assert response.headers["X-Trace-Id"] == trace_id
-        assert response.headers["traceparent"] == f"00-{trace_id}-0000000000000001-01"
+        assert _traceparent_span(response.headers["traceparent"], trace_id)
 
 
 def test_invalid_traceparent_falls_back_to_trace_header(tmp_path: Path) -> None:
@@ -116,7 +136,7 @@ def test_invalid_traceparent_falls_back_to_trace_header(tmp_path: Path) -> None:
 
         assert response.status_code == 200
         assert response.headers["X-Trace-Id"] == trace_id
-        assert response.headers["traceparent"] == f"00-{trace_id}-0000000000000001-01"
+        assert _traceparent_span(response.headers["traceparent"], trace_id)
 
 
 def test_missing_trace_header_is_generated(tmp_path: Path) -> None:
@@ -330,3 +350,26 @@ def test_metadata_endpoint_reports_runtime_configuration_unavailable(
         assert supportability["reason"] == "runtime_configuration_unavailable"
         assert supportability["deterministicOutputSupported"] is False
         assert supportability["runtimeAvailable"] is False
+
+
+def test_each_response_advertises_a_span_of_its_own(tmp_path: Path) -> None:
+    """Two requests in one trace are two spans, and must not claim to be the same one.
+
+    This is the property the constant `0000000000000001` destroyed: with one span id for
+    every response, a tracing backend cannot tell which call produced which, and the
+    parent-child edges it builds the tree from all point at the same node.
+    """
+
+    trace_id = "0123456789abcdef0123456789abcdef"
+    with _build_client(tmp_path) as client:
+        headers = {"X-Correlation-Id": "corr-spans", "X-Trace-Id": trace_id}
+        first = client.get("/health", headers=headers).headers["traceparent"]
+        second = client.get("/health", headers=headers).headers["traceparent"]
+
+    first_span = _TRACEPARENT.fullmatch(first).group(2)  # type: ignore[union-attr]
+    second_span = _TRACEPARENT.fullmatch(second).group(2)  # type: ignore[union-attr]
+
+    assert first_span != second_span, (
+        "two requests reported the same span id, so their spans are indistinguishable "
+        f"to any tracing backend: {first_span}"
+    )

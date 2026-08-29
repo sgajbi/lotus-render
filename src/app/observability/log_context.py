@@ -15,11 +15,13 @@ _MISSING = "missing"
 
 _correlation_id: ContextVar[str] = ContextVar("lotus_render_correlation_id", default=_MISSING)
 _trace_id: ContextVar[str] = ContextVar("lotus_render_trace_id", default=_MISSING)
+_span_id: ContextVar[str] = ContextVar("lotus_render_span_id", default=_MISSING)
 
 
-def bind_request_identity(*, correlation_id: str, trace_id: str) -> None:
+def bind_request_identity(*, correlation_id: str, trace_id: str, span_id: str) -> None:
     _correlation_id.set(correlation_id)
     _trace_id.set(trace_id)
+    _span_id.set(span_id)
 
 
 def current_correlation_id() -> str:
@@ -28,3 +30,12 @@ def current_correlation_id() -> str:
 
 def current_trace_id() -> str:
     return _trace_id.get()
+
+
+def current_span_id() -> str:
+    """The span this request created, as advertised in its `traceparent` response.
+
+    A span id nobody can join to is only a header. Carrying it here is what lets a log
+    line name the same span a tracing backend holds.
+    """
+    return _span_id.get()
