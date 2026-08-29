@@ -6,6 +6,62 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 SUPPORTED_RENDER_PACKAGE_VERSION = "render_package.v1"
 
+# Structural ceilings for the open payload mappings.
+#
+# ``report_data`` is untrusted input whose size is attacker-influenced up to the request
+# body cap, and it is the only bound between the wire and the Typst compiler: rows are
+# emitted unbounded by the table emitters, and every scalar is copied once per placeholder
+# per template file. Without these ceilings a single in-cap request expands into a source
+# one to two orders of magnitude larger and holds one of two render slots for the whole
+# compile timeout (issue #107).
+#
+# The limits are far above any real report (the richest golden fixture has 12 rows in its
+# largest list and a 121-character longest string) and exist to make the pipeline's cost a
+# bounded function of documented input, not to shape legitimate payloads.
+MAX_PAYLOAD_DEPTH = 32
+MAX_PAYLOAD_LIST_ITEMS = 10_000
+MAX_PAYLOAD_STRING_LENGTH = 100_000
+MAX_PAYLOAD_NODES = 500_000
+
+
+def _children_within_ceilings(current: object, *, field_name: str) -> list[object] | None:
+    """Check one node against its own ceiling and return the children to walk next."""
+    if isinstance(current, str):
+        if len(current) > MAX_PAYLOAD_STRING_LENGTH:
+            raise ValueError(
+                f"{field_name} contains a string longer than {MAX_PAYLOAD_STRING_LENGTH} characters"
+            )
+        return None
+    if isinstance(current, dict):
+        return list(current.values())
+    if isinstance(current, (list, tuple)):
+        if len(current) > MAX_PAYLOAD_LIST_ITEMS:
+            raise ValueError(
+                f"{field_name} contains a list longer than {MAX_PAYLOAD_LIST_ITEMS} items"
+            )
+        return list(current)
+    return None
+
+
+def _assert_within_structural_ceilings(value: dict[str, Any], *, field_name: str) -> None:
+    """Reject payloads whose structure would make render cost unbounded.
+
+    Traversal is iterative: a recursive walk would raise ``RecursionError`` on exactly the
+    deeply nested payload this guard exists to reject.
+    """
+    stack: list[tuple[object, int]] = [(value, 0)]
+    nodes = 0
+    while stack:
+        current, depth = stack.pop()
+        nodes += 1
+        if nodes > MAX_PAYLOAD_NODES:
+            raise ValueError(f"{field_name} exceeds {MAX_PAYLOAD_NODES} values")
+        if depth > MAX_PAYLOAD_DEPTH:
+            raise ValueError(f"{field_name} nests deeper than {MAX_PAYLOAD_DEPTH} levels")
+        children = _children_within_ceilings(current, field_name=field_name)
+        if children:
+            stack.extend((child, depth + 1) for child in children)
+
 
 class RenderPackage(BaseModel):
     model_config = ConfigDict(extra="forbid")
@@ -132,4 +188,10 @@ class RenderPackage(BaseModel):
     def _must_not_be_empty_mapping(cls, value: dict[str, Any]) -> dict[str, Any]:
         if not value:
             raise ValueError("value must not be empty")
+        return value
+
+    @field_validator("render_context", "report_data")
+    @classmethod
+    def _must_be_within_structural_ceilings(cls, value: dict[str, Any]) -> dict[str, Any]:
+        _assert_within_structural_ceilings(value, field_name="value")
         return value
