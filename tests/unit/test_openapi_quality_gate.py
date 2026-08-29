@@ -87,3 +87,30 @@ def test_the_gate_rejects_an_undeclared_response() -> None:
 
     with pytest.raises(OpenApiQualityError, match="does not declare"):
         validate_openapi_spec(spec)
+
+
+def test_every_error_response_uses_the_governed_error_schema() -> None:
+    """An error the service can return must be documented in the shape it actually returns.
+
+    The three GET operations documented their 422 as FastAPI's `HTTPValidationError`
+    (`detail: [{loc, msg, type}]`), while this service's handler always answers with the
+    governed error object. A consumer generating a client from the spec would have parsed
+    the wrong shape (issue #126).
+    """
+
+    spec = _spec()
+    wrong: list[str] = []
+    for path, operations in spec["paths"].items():
+        for method, operation in operations.items():
+            for code, response in operation.get("responses", {}).items():
+                if not code.startswith(("4", "5")):
+                    continue
+                schema = response.get("content", {}).get("application/json", {}).get("schema", {})
+                if not schema:
+                    continue
+                if schema.get("$ref") != "#/components/schemas/ApiErrorResponse":
+                    wrong.append(f"{method.upper()} {path} {code} -> {schema}")
+
+    assert not wrong, (
+        f"these error responses are documented in a shape the service does not return: {wrong}"
+    )
