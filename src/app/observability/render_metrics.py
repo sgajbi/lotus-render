@@ -12,6 +12,7 @@ METRIC_STATE_LABEL = "state"
 METRIC_REASON_LABEL = "reason"
 METRIC_FRESHNESS_BUCKET_LABEL = "freshness_bucket"
 METRIC_STALE_STATE_LABEL = "stale_state"
+METRIC_TEMPLATE_LABEL = "template_id"
 
 RENDER_METRIC_LABELS = frozenset(
     {
@@ -22,6 +23,7 @@ RENDER_METRIC_LABELS = frozenset(
         METRIC_STATE_LABEL,
         METRIC_STATUS_LABEL,
         METRIC_FAILURE_CATEGORY_LABEL,
+        METRIC_TEMPLATE_LABEL,
     }
 )
 FORBIDDEN_METRIC_LABELS = frozenset(
@@ -150,6 +152,17 @@ RENDER_METRIC_CONTRACTS: tuple[RenderMetricContract, ...] = (
             "state without exposing job, report, portfolio, tenant, trace, or storage identifiers."
         ),
     ),
+    RenderMetricContract(
+        name="lotus_render_empty_content_blocks",
+        metric_type="histogram",
+        labels=(METRIC_TEMPLATE_LABEL,),
+        implemented=True,
+        description=(
+            "Counts the content blocks a render replaced with a not-available placeholder, "
+            "so a document assembled from thin report data is visible as such rather than "
+            "indistinguishable from a complete one."
+        ),
+    ),
 )
 
 _RENDER_OPERATIONS_TOTAL = Counter(
@@ -168,6 +181,14 @@ _RENDER_ARTIFACT_SIZE_BYTES = Histogram(
     RENDER_METRIC_CONTRACTS[2].description,
     [METRIC_STATUS_LABEL],
     buckets=(1_024, 10_240, 102_400, 1_048_576, 5_242_880, 10_485_760),
+)
+_RENDER_EMPTY_CONTENT_BLOCKS = Histogram(
+    "lotus_render_empty_content_blocks",
+    RENDER_METRIC_CONTRACTS[6].description,
+    [METRIC_TEMPLATE_LABEL],
+    # A document with one placeholder is worth noticing; one with ten is a different
+    # document from the one the caller expected.
+    buckets=(0, 1, 2, 5, 10, 20),
 )
 _RENDER_SUPPORTABILITY_TOTAL = Counter(
     "lotus_render_supportability_total",
@@ -223,6 +244,20 @@ def record_render_artifact_size(*, status: str, size_bytes: int | None) -> None:
     _RENDER_ARTIFACT_SIZE_BYTES.labels(status=_bounded_status(status)).observe(max(0, size_bytes))
 
 
+def record_render_empty_content_blocks(*, template_id: str, empty_blocks: int) -> None:
+    """How much of the document was a placeholder rather than content.
+
+    A render of thin report data succeeds and reports `rendered`, exactly like a complete
+    one: the golden degraded portfolio review returns 178 KB against the full document's
+    274 KB with eleven of its content blocks reading "not available", and nothing in the
+    response or the metrics distinguishes them. Whether that is publishable is the
+    caller's judgement -- Render measures what it emitted and does not make it.
+    """
+    _RENDER_EMPTY_CONTENT_BLOCKS.labels(template_id=_bounded_template_id(template_id)).observe(
+        max(0, empty_blocks)
+    )
+
+
 def record_render_supportability(
     *,
     state: str,
@@ -271,6 +306,22 @@ def _implemented_operation(operation: str) -> str:
     if operation not in IMPLEMENTED_RENDER_OPERATIONS:
         raise ValueError(f"unsupported_render_metric_operation:{operation}")
     return operation
+
+
+def _bounded_template_id(template_id: str) -> str:
+    """Bound the label's cardinality by shape.
+
+    A template must resolve in the registry before a render reaches this point, so the
+    value is already one of a handful. This is the belt to that braces -- and it must not
+    be `_bounded_status`, which maps anything it does not recognise to "failed" and would
+    have labelled every render that way.
+    """
+    normalized = template_id.strip().lower()
+    if not normalized or len(normalized) > 64:
+        return "other"
+    if not all(character.isalnum() or character in "-_" for character in normalized):
+        return "other"
+    return normalized
 
 
 def _bounded_status(status: str) -> str:

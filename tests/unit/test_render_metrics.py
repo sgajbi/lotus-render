@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import pytest
 
 import app.observability.render_metrics as render_metrics
@@ -75,7 +77,10 @@ def test_render_metric_contract_validation_rejects_forbidden_and_unsupported_lab
     unsupported_label_contract = RenderMetricContract(
         name="lotus_render_invalid_unsupported_label_total",
         metric_type="counter",
-        labels=("operation", "template_id"),
+        # A label that is neither declared nor forbidden. It was `template_id` until
+        # that became a declared label, which is the hazard with using a plausible
+        # name as the sentinel for "not declared".
+        labels=("operation", "never_a_declared_label"),
         implemented=True,
         description="invalid non-contract label",
     )
@@ -85,7 +90,7 @@ def test_render_metric_contract_validation_rejects_forbidden_and_unsupported_lab
         (unsupported_label_contract,),
     )
 
-    with pytest.raises(ValueError, match="unsupported_render_metric_label:template_id"):
+    with pytest.raises(ValueError, match="unsupported_render_metric_label:never_a_declared_label"):
         validate_render_metric_contracts()
 
 
@@ -209,3 +214,41 @@ def test_record_render_in_flight_summary_sanitizes_labels_before_gauges(
         {"status": "rendering"},
     ]
     assert observed == [0, 2, 0]
+
+
+def test_a_degraded_document_is_distinguishable_from_a_complete_one() -> None:
+    """Both render successfully and report `rendered`; only the measurement separates them.
+
+    The golden degraded portfolio review returns 178 KB against the complete document's
+    274 KB, with eleven of its content blocks reading "not available" -- and nothing in
+    the response, the status or the metrics told them apart. Publishing a near-empty
+    review to a client is a decision someone should be able to make; they could not see
+    it to make it.
+    """
+
+    from app.contracts.render_package import RenderPackage
+    from app.services.typst_contexts import (
+        build_portfolio_review_context,
+        count_empty_content_blocks,
+    )
+
+    def _blocks(path: str) -> int:
+        package = RenderPackage.model_validate_json(Path(path).read_text(encoding="utf-8"))
+        return count_empty_content_blocks(build_portfolio_review_context(package))
+
+    complete = _blocks("tests/golden/portfolio-review/v1/render-package.json")
+    degraded = _blocks("tests/golden/portfolio-review/v1/degraded/render-package.json")
+
+    assert complete == 0, f"the complete golden should have no placeholders, found {complete}"
+    assert degraded == 11, (
+        f"the degraded golden renders {degraded} placeholder blocks, banked at 11. If the "
+        "document genuinely changed, re-bank; if it did not, a content block silently "
+        "stopped rendering."
+    )
+
+
+def test_the_empty_block_metric_is_a_governed_contract() -> None:
+    """A metric nobody declared cannot be alerted on with any confidence."""
+
+    declared = {metric.name for metric in RENDER_METRIC_CONTRACTS if metric.implemented}
+    assert "lotus_render_empty_content_blocks" in declared
