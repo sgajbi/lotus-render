@@ -64,5 +64,7 @@ jobs:
           cache: "pip"
       - name: Install
         run: make install
+      - name: Verify Render Runtime
+        run: make render-runtime-gate
       - name: Run unit tests
         run: .venv/bin/python -m pytest tests/unit

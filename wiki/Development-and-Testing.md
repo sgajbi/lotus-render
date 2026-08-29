@@ -38,8 +38,8 @@ or e2e suites. Run `make ci` before opening a PR if the change touches the rende
 |---|---|
 | `tests/unit` | 19 modules — contracts, services, settings validation, HTTP-boundary controls, metrics contracts, and CI/code-health fitness functions |
 | `tests/integration` | the render API and health surfaces exercised through the running app |
-| `tests/e2e` | smoke coverage of the full submit-and-render path |
-| `tests/golden` | banked render packages and expected PDFs per active template |
+| `tests/e2e` | health and metadata smoke, plus every golden template submitted over HTTP and rendered end to end against its banked fingerprint |
+| `tests/golden` | banked render packages, expected PDFs and banked fingerprints per active template |
 
 Coverage is enforced at **99%** across the combined suites, computed from separately uploaded
 coverage data rather than a single run.
@@ -53,8 +53,18 @@ carry their own sample. A new active template without a golden sample is a gate 
 oversight to be noticed later.
 
 Because raw PDF bytes are not stable across renders, golden comparison uses the bounded determinism
-fingerprint rather than a file hash. See
-[Security and Controls](Security-and-Controls#integrity-of-what-is-produced).
+fingerprint rather than a file hash. The fingerprint is a SHA-256 over the whole PDF with the
+timestamp and identifier fields removed, so it is close to an exact byte comparison of a genuinely
+compiled document. Each fixture's expected fingerprint is **banked as a literal** in
+`producer-fixtures.v1.json`: recomputing it from `expected.pdf` with the same function under test
+would let a weakened fingerprint move both sides together and pass. A discrimination test asserts
+the fingerprint is stable across timestamp and identifier differences but changes on a content
+difference. See [Security and Controls](Security-and-Controls#integrity-of-what-is-produced).
+
+Those comparisons only mean something while a real Typst runtime is present, so `make
+render-runtime-gate` runs ahead of every suite that compiles and fails by name when neither Docker
+nor the Typst CLI is on `PATH`. The blocking workflows invoke it, and a fitness function asserts
+they keep doing so.
 
 ### Code-health baselines
 
