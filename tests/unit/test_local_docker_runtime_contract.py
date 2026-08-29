@@ -76,3 +76,28 @@ def test_shutdown_grace_period_outlasts_a_render_in_flight() -> None:
         f"stop_grace_period {grace!r} does not outlast the {compile_timeout}s compile "
         "timeout, so a render in flight is killed rather than drained."
     )
+
+
+def test_the_production_image_installs_runtime_dependencies_only() -> None:
+    """The CI toolchain must not ship in the container that compiles untrusted input.
+
+    `pip install -e ".[dev]"` put pip-audit and its HTTP/resolver stack, a second HTTP
+    client, a YAML parser, mypy, ruff and pytest into the runtime image. No module under
+    `src/` imports any of them, so each was pure CVE surface and patch burden in a
+    container whose job is to compile Typst source built from untrusted report data.
+    Removing the extra also took the image from 481 MB to 306 MB.
+    """
+
+    dockerfile = (ROOT / "Dockerfile").read_text(encoding="utf-8")
+
+    install_lines = [line for line in dockerfile.splitlines() if "pip install" in line]
+    assert install_lines, "the Dockerfile no longer installs the project."
+    for line in install_lines:
+        assert "[dev]" not in line, (
+            f"the production image installs the dev extra: {line.strip()!r}. "
+            "The CI toolchain belongs in CI, not in the runtime container."
+        )
+        assert " -e " not in line, (
+            f"the production image installs editable: {line.strip()!r}. The service should "
+            "run from an installed distribution, not a source tree its own user can rewrite."
+        )
