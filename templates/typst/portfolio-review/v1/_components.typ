@@ -313,30 +313,26 @@
   #line(length: 100%, stroke: (paint: rule, thickness: 0.3pt))
 ]
 
-#let dense-position-row(category, number_amount, description, classification, cost_basis, market_value, gain_loss, performance, weight) = [
-  #grid(
-    columns: (0.85fr, 1.9fr, 1.05fr, 1.02fr, 1.02fr, 1.02fr, 0.95fr, 0.52fr),
-    column-gutter: 7pt,
-    [
-      #text(size: 7.5pt, fill: slate)[#category]
-      #linebreak()
-      #stacked-cell(number_amount, placement: left, size: 7.15pt, fill: ink)
-    ],
-    [
-      #text(size: 8.1pt, fill: ink)[#description]
-      #linebreak()
-      #text(size: 7pt, fill: slate)[Sustainability / instrument details]
-    ],
-    [#stacked-cell(classification)],
-    [#stacked-cell(cost_basis, fill: ink)],
-    [#stacked-cell(market_value, fill: ink)],
-    [#stacked-cell(gain_loss)],
-    [#stacked-cell(performance, fill: accent, weight: 500)],
-    [#align(right)[#text(size: 7.35pt, fill: ink)[#weight]]],
-  )
-  #v(4.5pt)
-  #line(length: 100%, stroke: (paint: rule, thickness: 0.25pt))
-]
+// Returns table cells rather than a self-contained grid, so the positions table can be a
+// real #table with a repeating header and a stroke that belongs to the row (issue #138).
+#let dense-position-row(category, number_amount, description, classification, cost_basis, market_value, gain_loss, performance, weight) = (
+  [
+    #text(size: 7.5pt, fill: slate)[#category]
+    #linebreak()
+    #stacked-cell(number_amount, placement: left, size: 7.15pt, fill: ink)
+  ],
+  [
+    #text(size: 8.1pt, fill: ink)[#description]
+    #linebreak()
+    #text(size: 7pt, fill: slate)[Sustainability / instrument details]
+  ],
+  [#stacked-cell(classification)],
+  [#stacked-cell(cost_basis, fill: ink)],
+  [#stacked-cell(market_value, fill: ink)],
+  [#stacked-cell(gain_loss)],
+  [#stacked-cell(performance, fill: accent, weight: 500)],
+  [#align(right)[#text(size: 7.35pt, fill: ink)[#weight]]],
+)
 
 #let dense-transaction-row(trade_date, booking_text, amount, description, detail_primary, detail_secondary, price, gain, value) = [
   #grid(
