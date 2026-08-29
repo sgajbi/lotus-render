@@ -219,3 +219,43 @@ def test_the_source_size_gate_reports_what_it_inspected() -> None:
     assert completed.returncode == 0, completed.stdout + completed.stderr
     assert "files inspected" in completed.stdout
     assert " 0 files inspected" not in completed.stdout
+
+
+def test_the_complexity_gate_fails_when_it_inspects_no_blocks(tmp_path: Path) -> None:
+    empty = tmp_path / "empty-python-tree"
+    empty.mkdir()
+
+    completed = _run(
+        "scripts/python_complexity_inventory.py",
+        "--path",
+        str(empty),
+        "--max-cc",
+        "20",
+        "--max-high-complexity",
+        "0",
+    )
+
+    assert completed.returncode == 1, completed.stdout + completed.stderr
+    assert "inspected 0 code blocks" in completed.stderr
+    assert str(empty) in completed.stderr
+
+
+def test_the_dead_code_gate_fails_when_it_inspects_no_python_files(tmp_path: Path) -> None:
+    empty = tmp_path / "empty-python-tree"
+    empty.mkdir()
+
+    completed = _run("scripts/dead_code_gate.py", "--path", str(empty))
+
+    assert completed.returncode == 1, completed.stdout + completed.stderr
+    assert "inspected 0 Python files" in completed.stderr
+    assert str(empty) in completed.stderr
+
+
+def test_the_dead_code_gate_preserves_vulture_findings(tmp_path: Path) -> None:
+    source = tmp_path / "unused_symbol.py"
+    source.write_text("import definitely_unused_module\n", encoding="utf-8")
+
+    completed = _run("scripts/dead_code_gate.py", "--path", str(source))
+
+    assert completed.returncode != 0, completed.stdout + completed.stderr
+    assert "definitely_unused_module" in completed.stdout

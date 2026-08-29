@@ -66,7 +66,7 @@ source-size-gate:
 	python scripts/source_size_gate.py --max-lines=$(SOURCE_FILE_MAX_LINES)
 
 dead-code-gate:
-	python -m vulture src tests --min-confidence 80
+	python scripts/dead_code_gate.py
 
 dependency-hygiene-gate:
 	python -m deptry .

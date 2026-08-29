@@ -192,6 +192,12 @@ def main() -> int:
     paths = tuple(args.paths or DEFAULT_PATHS)
     complexity_findings = collect_complexity(paths)
     maintainability_findings = collect_maintainability(paths)
+    if not complexity_findings:
+        print(
+            "Complexity gate failed: inspected 0 code blocks under " + ", ".join(paths) + ".",
+            file=sys.stderr,
+        )
+        return 1
     print(render_markdown(complexity_findings, maintainability_findings, limit=args.limit))
 
     failures = complexity_gate_failures(
