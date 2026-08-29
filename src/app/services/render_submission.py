@@ -88,68 +88,58 @@ class RenderSubmissionService:
             )
             raise
         existing = create_result.job
-        if existing.status == "rendered":
+        if existing.status in ("rendered", "failed") or not create_result.created:
             self._record_submit_metric(existing, started_at=started_at)
             return self._to_submit_response(existing, artifact_base64=None)
-        if existing.status == "failed":
-            self._record_submit_metric(existing, started_at=started_at)
-            return self._to_submit_response(existing, artifact_base64=None)
-        if not create_result.created:
-            self._record_submit_metric(existing, started_at=started_at)
-            return self._to_submit_response(existing, artifact_base64=None)
+        return self._execute_render(render_package, started_at=started_at)
 
+    def _execute_render(
+        self, render_package: RenderPackage, *, started_at: float
+    ) -> RenderSubmitResponse:
         self._render_store.mark_rendering(render_package.render_job_id)
         try:
             result = self._render_engine.render(render_package)
         except RenderEngineTimeoutError as exc:
-            failure = self._mark_failed_or_current_truth(
+            return self._fail_submit(
                 render_package.render_job_id,
                 failure_category="timeout",
                 failure_message=_support_safe_render_failure_message("timeout"),
+                error_type=RenderExecutionFailedError,
+                fallback_message="render_failed",
+                cause=exc,
+                started_at=started_at,
             )
-            self._record_submit_metric(failure, started_at=started_at)
-            if failure.status != "failed":
-                return self._to_submit_response(failure, artifact_base64=None)
-            raise RenderExecutionFailedError(failure.failure_message or "render_failed") from exc
         except TemplateCompatibilityError as exc:
-            failure = self._mark_failed_or_current_truth(
+            return self._fail_submit(
                 render_package.render_job_id,
                 failure_category="template_not_supported",
                 failure_message=str(exc),
+                error_type=RenderPackageInvalidError,
+                fallback_message="template_not_supported",
+                cause=exc,
+                started_at=started_at,
             )
-            self._record_submit_metric(failure, started_at=started_at)
-            if failure.status != "failed":
-                return self._to_submit_response(failure, artifact_base64=None)
-            raise RenderPackageInvalidError(
-                failure.failure_message or "template_not_supported"
-            ) from exc
         except ValueError as exc:
-            failure = self._mark_failed_or_current_truth(
+            return self._fail_submit(
                 render_package.render_job_id,
                 failure_category="package_validation_failed",
                 failure_message=str(exc),
+                error_type=RenderPackageInvalidError,
+                fallback_message="package_validation_failed",
+                cause=exc,
+                started_at=started_at,
             )
-            self._record_submit_metric(failure, started_at=started_at)
-            if failure.status != "failed":
-                return self._to_submit_response(failure, artifact_base64=None)
-            raise RenderPackageInvalidError(
-                failure.failure_message or "package_validation_failed"
-            ) from exc
         except RuntimeError as exc:
-            failure_message = str(exc)
-            failure_category: RenderFailureCategory = "template_render_failed"
-            if "neither docker nor typst is installed" in failure_message.lower():
-                failure_category = "engine_unavailable"
-            safe_message = _support_safe_render_failure_message(failure_category)
-            failure = self._mark_failed_or_current_truth(
+            failure_category = _runtime_failure_category(str(exc))
+            return self._fail_submit(
                 render_package.render_job_id,
                 failure_category=failure_category,
-                failure_message=safe_message,
+                failure_message=_support_safe_render_failure_message(failure_category),
+                error_type=RenderExecutionFailedError,
+                fallback_message="render_failed",
+                cause=exc,
+                started_at=started_at,
             )
-            self._record_submit_metric(failure, started_at=started_at)
-            if failure.status != "failed":
-                return self._to_submit_response(failure, artifact_base64=None)
-            raise RenderExecutionFailedError(failure.failure_message or "render_failed") from exc
 
         try:
             stored = self._render_store.mark_rendered(render_package.render_job_id, result)
@@ -162,6 +152,28 @@ class RenderSubmissionService:
             stored,
             artifact_base64=base64.b64encode(result.artifact_bytes).decode("ascii"),
         )
+
+    def _fail_submit(
+        self,
+        render_job_id: str,
+        *,
+        failure_category: RenderFailureCategory,
+        failure_message: str,
+        error_type: type[Exception],
+        fallback_message: str,
+        cause: Exception,
+        started_at: float,
+    ) -> RenderSubmitResponse:
+        """Persist the failure, then raise -- unless a racing writer already holds the truth."""
+        failure = self._mark_failed_or_current_truth(
+            render_job_id,
+            failure_category=failure_category,
+            failure_message=failure_message,
+        )
+        self._record_submit_metric(failure, started_at=started_at)
+        if failure.status != "failed":
+            return self._to_submit_response(failure, artifact_base64=None)
+        raise error_type(failure.failure_message or fallback_message) from cause
 
     def get_status(self, render_job_id: str) -> RenderJobStatusResponse:
         started_at = perf_counter()
@@ -397,6 +409,12 @@ class RenderSubmissionService:
             duration_seconds=perf_counter() - started_at,
         )
         record_render_artifact_size(status=stored.status, size_bytes=stored.output_size_bytes)
+
+
+def _runtime_failure_category(failure_message: str) -> RenderFailureCategory:
+    if "neither docker nor typst is installed" in failure_message.lower():
+        return "engine_unavailable"
+    return "template_render_failed"
 
 
 def _support_safe_render_failure_message(failure_category: RenderFailureCategory) -> str:
