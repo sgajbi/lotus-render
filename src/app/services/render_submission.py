@@ -218,30 +218,15 @@ class RenderSubmissionService:
                 duration_seconds=perf_counter() - started_at,
             )
             raise ValueError("render_artifact_not_ready")
-        assert stored.artifact_sha256 is not None
-        assert stored.bounded_determinism_fingerprint is not None
-        assert stored.mime_type is not None
-        assert stored.output_size_bytes is not None
-        assert stored.render_duration_ms is not None
-        assert stored.determinism_mode is not None
+        response = _to_artifact_metadata_response(stored)
         record_render_operation(
             operation="artifact_metadata_lookup",
             status=stored.status,
             failure_category=stored.failure_category,
             duration_seconds=perf_counter() - started_at,
         )
-        record_render_artifact_size(status=stored.status, size_bytes=stored.output_size_bytes)
-        return RenderArtifactMetadataResponse(
-            render_job_id=stored.render_job_id,
-            status=stored.status,
-            output_format=stored.output_format,
-            artifact_sha256=stored.artifact_sha256,
-            bounded_determinism_fingerprint=stored.bounded_determinism_fingerprint,
-            mime_type=stored.mime_type,
-            output_size_bytes=stored.output_size_bytes,
-            render_duration_ms=stored.render_duration_ms,
-            determinism_mode=stored.determinism_mode,
-        )
+        record_render_artifact_size(status=stored.status, size_bytes=response.output_size_bytes)
+        return response
 
     def get_diagnostics(
         self,
@@ -409,6 +394,27 @@ class RenderSubmissionService:
             duration_seconds=perf_counter() - started_at,
         )
         record_render_artifact_size(status=stored.status, size_bytes=stored.output_size_bytes)
+
+
+def _to_artifact_metadata_response(stored: StoredRenderJob) -> RenderArtifactMetadataResponse:
+    """A rendered job always carries its artifact facts; anything else is store corruption."""
+    assert stored.artifact_sha256 is not None
+    assert stored.bounded_determinism_fingerprint is not None
+    assert stored.mime_type is not None
+    assert stored.output_size_bytes is not None
+    assert stored.render_duration_ms is not None
+    assert stored.determinism_mode is not None
+    return RenderArtifactMetadataResponse(
+        render_job_id=stored.render_job_id,
+        status=stored.status,
+        output_format=stored.output_format,
+        artifact_sha256=stored.artifact_sha256,
+        bounded_determinism_fingerprint=stored.bounded_determinism_fingerprint,
+        mime_type=stored.mime_type,
+        output_size_bytes=stored.output_size_bytes,
+        render_duration_ms=stored.render_duration_ms,
+        determinism_mode=stored.determinism_mode,
+    )
 
 
 def _runtime_failure_category(failure_message: str) -> RenderFailureCategory:
