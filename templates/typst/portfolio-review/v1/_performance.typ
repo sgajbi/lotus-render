@@ -1,5 +1,5 @@
 #import "_theme.typ": empty-state, rule, section-subtitle, section-title, soft-rule
-#import "_components.typ": chart-card, chart-placeholder, chart-scale-note, page-header, performance-chart-row, performance-detail-row, performance-summary-cell, report-panel, section-marker, table-label
+#import "_components.typ": chart-card, chart-placeholder, chart-scale-note, page-header, performance-chart-row, performance-detail-row, performance-summary-cell, period-row, report-panel, section-marker, table-label
 
 #let performance-page() = [
   #section-marker("Performance", "Period returns, benchmark comparison, and return history")
@@ -8,6 +8,26 @@
   #section-subtitle("Performance summary (TWR)")
   #v(7pt)
   ${PERFORMANCE_SUMMARY_TABLE}
+
+  // The section marker above promises a benchmark comparison. The render package has
+  // carried benchmark and relative return per period all along; nothing drew them.
+  #if "${HAS_PERFORMANCE_PERIODS}" == "yes" [
+    #v(15pt)
+    #section-subtitle("Performance against benchmark (TWR)")
+    #v(7pt)
+    #report-panel([
+      #grid(columns: (0.9fr, 1fr, 1fr, 1fr), column-gutter: 12pt,
+        [#table-label("Period")],
+        [#table-label("Portfolio", placement: right)],
+        [#table-label("Benchmark", placement: right)],
+        [#table-label("Relative", placement: right)],
+      )
+      #v(5pt)
+      #soft-rule()
+      #v(6pt)
+      ${PERFORMANCE_PERIOD_ROWS}
+    ])
+  ]
 
   #v(15pt)
   ${PERFORMANCE_12M_CHART_SECTION}

@@ -149,10 +149,22 @@ def test_a_report_with_no_data_is_shorter_than_a_full_one() -> None:
 COMPONENTS_TEMPLATE = TEMPLATE_ROOT / "_components.typ"
 # Small fixed-size cards. Splitting one shows a stroke with no bottom, or a label whose
 # value is on the next page.
-UNBREAKABLE_CARDS = ("note-panel", "metric-card", "review-note")
+#
+# The chart cards are here for a second reason: they pair a figure with the words that
+# say what it is. Left breakable, `chart-card` stranded the title "12-Month Cumulative
+# Performance" at the foot of one page and put the plot, unlabelled, at the top of the
+# next. A chart nobody can name is worse than no chart. This list did not cover them,
+# which is why that regression was reachable at all.
+UNBREAKABLE_CARDS = (
+    "note-panel",
+    "metric-card",
+    "review-note",
+    "chart-card",
+    "chart-placeholder",
+)
 
 
-def test_small_cards_cannot_split_across_a_page_break() -> None:
+def test_small_cards_and_captioned_figures_cannot_split_across_a_page_break() -> None:
     """Typst 0.14.2 has no widow or orphan control -- `#set par(widows:)` is rejected.
 
     `breakable: false` on the units that are always wrong to split is the mechanism the

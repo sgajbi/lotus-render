@@ -204,6 +204,7 @@ def build_portfolio_review_context(render_package: RenderPackage) -> dict[str, s
         # Whether a sub-page has anything to show. Each of these guards an
         # unconditional #pagebreak() that fired even for an all-empty report, so a
         # portfolio with no history still shipped three near-blank pages (issue #138).
+        "HAS_PERFORMANCE_PERIODS": _presence_flag(report_data.get("performance_periods")),
         "HAS_ANNUAL_PERFORMANCE": _presence_flag(report_data.get("performance_annual_history")),
         "HAS_MONTHLY_PERFORMANCE": _presence_flag(report_data.get("performance_monthly_history")),
         "HAS_RISK_PROFILE": _presence_flag(risk_summary),

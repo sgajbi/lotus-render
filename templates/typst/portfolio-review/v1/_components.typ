@@ -125,11 +125,15 @@
   #body-strong(value)
 ]
 
+// A chart and the words naming it are one unit. Left breakable, this card split at a
+// page boundary and stranded "12-Month Cumulative Performance" at the foot of one page
+// with an unlabelled plot at the top of the next -- a chart of nothing in particular.
 #let chart-card(title, chart-path, subtitle: none, note: none) = block(
   inset: 12pt,
   fill: white,
   stroke: (paint: rule, thickness: hairline),
   radius: panel-radius,
+  breakable: false,
 )[
   #text(size: 11.2pt, weight: 700, fill: navy)[#title]
   #if subtitle != none [
@@ -149,6 +153,7 @@
   fill: mist,
   stroke: (paint: rule, thickness: hairline),
   radius: panel-radius,
+  breakable: false,
 )[
   #text(size: 11.2pt, weight: 700, fill: navy)[#title]
   #v(8pt)
@@ -188,14 +193,20 @@
   )
 ]
 
-#let period-row(period, net, benchmark, relative) = [
+// Relative return is the answer to "did we beat the benchmark", so it is the one
+// figure on the row that carries its sign in colour rather than only in a minus.
+#let period-row(period, net, benchmark, relative, relative-negative) = [
   #grid(
     columns: (0.9fr, 1fr, 1fr, 1fr),
     column-gutter: 12pt,
     [#text(size: 9pt, fill: ink)[#period]],
     [#align(right)[#text(size: 9pt, fill: ink)[#net]]],
     [#align(right)[#text(size: 9pt, fill: slate)[#benchmark]]],
-    [#align(right)[#text(size: 9pt, weight: 500, fill: accent)[#relative]]],
+    [#align(right)[#text(
+      size: 9pt,
+      weight: 500,
+      fill: if relative-negative { loss } else { gain },
+    )[#relative]]],
   )
   #v(6pt)
   #line(length: 100%, stroke: (paint: rule, thickness: 0.35pt))
