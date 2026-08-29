@@ -541,7 +541,8 @@ def test_typst_render_service_builds_richer_portfolio_review_context() -> None:
     # markup blocks and carry no leading '#' (issue #138).
     assert "dense-position-row(" in template_context["DENSE_POSITION_ROWS"]
     assert "#dense-position-row(" not in template_context["DENSE_POSITION_ROWS"]
-    assert "#dense-transaction-row(" in template_context["DENSE_TRANSACTION_ROWS"]
+    assert "dense-transaction-row(" in template_context["DENSE_TRANSACTION_ROWS"]
+    assert "#dense-transaction-row(" not in template_context["DENSE_TRANSACTION_ROWS"]
     assert template_context["TRANSACTION_PERIOD_LABEL"] == "From 01.01.2026 to 23.04.2026"
     assert template_context["SUPPLEMENTAL_ALLOCATION_TITLE"] == "By currency"
     assert "Equity" in template_context["ASSET_CLASS_ROWS"]
