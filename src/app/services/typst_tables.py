@@ -19,10 +19,10 @@ from app.services.typst_values import (
     optional_percent,
     parse_number,
     parse_percent,
-    percent_width_token,
     performance_bar_domain,
     performance_bar_geometry,
     row_sequence,
+    weight_width_token,
 )
 
 
@@ -80,28 +80,6 @@ def render_performance_period_rows(periods: object) -> str:
             + '", '
             # Absent is not underperformance: without a number there is no sign to show.
             + ("true" if parsed_relative is not None and parsed_relative < 0 else "false")
-            + ")"
-        )
-    if not rendered:
-        return empty_message
-    return "\n#v(8pt)\n".join(rendered)
-
-
-def render_performance_bar_rows(periods: object) -> str:
-    empty_message = '#empty-state("No governed performance bars available.")'
-    if not isinstance(periods, Sequence) or isinstance(periods, (str, bytes, bytearray)):
-        return empty_message
-    rendered: list[str] = []
-    for item in periods:
-        if not isinstance(item, Mapping):
-            continue
-        rendered.append(
-            '#performance-bar-row("'
-            + escape_typst_string(str(item.get("period", "n/a")))
-            + '", "'
-            + escape_typst_string(group_digits(item.get("net_return_pct", "Not available")))
-            + '", '
-            + percent_width_token(item.get("net_return_pct"))
             + ")"
         )
     if not rendered:
@@ -249,7 +227,7 @@ def render_holding_bar_rows(holdings: object) -> str:
             + '", "'
             + escape_typst_string(group_digits(item.get("market_value", "Not available")))
             + '", '
-            + percent_width_token(item.get("weight_pct"))
+            + weight_width_token(item.get("weight_pct"))
             + ")"
         )
     if not rendered:

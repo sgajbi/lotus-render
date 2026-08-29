@@ -51,7 +51,6 @@ from app.services.typst_tables import (
     render_holding_bar_rows,
     render_holding_rows,
     render_observation_notes,
-    render_performance_bar_rows,
     render_performance_chart_rows,
     render_performance_chart_section,
     render_performance_detail_rows,
@@ -63,10 +62,10 @@ from app.services.typst_values import (
     mapping,
     parse_number,
     parse_percent,
-    percent_width_token,
     performance_bar_domain,
     performance_bar_geometry,
     string_list,
+    weight_width_token,
 )
 
 GOLDEN_ROOT = Path("tests/golden")
@@ -532,7 +531,6 @@ def test_typst_render_service_builds_richer_portfolio_review_context() -> None:
     assert "performance-chart-row(" in template_context["PERFORMANCE_MONTHLY_CHART_ROWS"]
     assert "#performance-chart-row(" in template_context["PERFORMANCE_ANNUAL_CHART_ROWS"]
     assert "#performance-detail-row(" in template_context["PERFORMANCE_MONTHLY_TABLE_ROWS"]
-    assert "#performance-bar-row(" in template_context["PERFORMANCE_BAR_ROWS"]
     assert "assets/charts/performance_12m.svg" in template_context["PERFORMANCE_12M_CHART_SECTION"]
     assert "#holding-row(" in template_context["HOLDING_ROWS"]
     assert "#allocation-row(" in template_context["HOLDING_BAR_ROWS"]
@@ -884,8 +882,6 @@ def test_typst_render_service_helper_fallbacks_cover_sparse_structures() -> None
     assert "No governed observations available." in render_observation_notes("bad")
     assert "No governed performance periods available." in render_performance_period_rows("bad")
     assert "No governed performance periods available." in render_performance_period_rows([123])
-    assert "No governed performance bars available." in render_performance_bar_rows("bad")
-    assert "No governed performance bars available." in render_performance_bar_rows([123])
     performance_summary_fallback = render_performance_summary_table("bad")
     assert "No governed performance summary available." in performance_summary_fallback
     assert "No governed performance summary available." in render_performance_summary_table([123])
@@ -1020,7 +1016,7 @@ def test_typst_render_service_maps_transaction_value_date_and_settlement_amount(
 
 
 def test_typst_render_service_numeric_fallback_helpers_cover_invalid_inputs() -> None:
-    assert percent_width_token("bad") == "8%"
+    assert weight_width_token("bad") == "0%"
     assert parse_percent("bad") == 0.0
     assert parse_number("bad") == 0.0
 
@@ -1549,3 +1545,28 @@ def test_a_negative_return_code_is_read_as_the_signal_it_is() -> None:
 
     assert category == RenderFailureCategory.RESOURCE_LIMIT_EXCEEDED
     assert "signal 9" in summary
+
+
+def test_a_small_weight_draws_a_small_bar() -> None:
+    """The bar must agree with the number printed beside it.
+
+    `percent_width_token` floored at 8%, so the golden package's 1.64% liquidity sleeve
+    drew the same bar as an 8% position -- five times its true length. A reader comparing
+    bar lengths across the table was reading the floor rather than the portfolio.
+    """
+
+    assert weight_width_token("1.64%") == "1.64%"
+    assert weight_width_token("60.00%") == "60.00%"
+    assert weight_width_token("0.30%") == "0.30%"
+    # Ordering is what a reader actually takes from a bar chart, and it must survive.
+    widths = [float(weight_width_token(w).rstrip("%")) for w in ("60.00", "28.00", "1.64")]
+    assert widths == sorted(widths, reverse=True)
+
+
+def test_a_weight_that_is_absent_or_impossible_draws_no_bar() -> None:
+    """A missing weight is not a small one, and nothing beyond the track is drawable."""
+
+    assert weight_width_token("bad") == "0%"
+    assert weight_width_token(None) == "0%"
+    assert weight_width_token("-5") == "0.00%"
+    assert weight_width_token("140") == "100.00%"
