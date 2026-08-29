@@ -20,33 +20,20 @@ import pytest
 ROOT = Path(__file__).resolve().parents[2]
 MAKEFILE = ROOT / "Makefile"
 WIKI_HOME = ROOT / "wiki" / "Home.md"
-
-
-def _targets_in(lane: str) -> list[str]:
-    match = re.search(rf"^{lane}: (.+)$", MAKEFILE.read_text(encoding="utf-8"), re.M)
-    assert match is not None, f"The {lane} lane is missing from the Makefile."
-    return match.group(1).split()
-
-
-def _is_gate(target: str) -> bool:
-    return target.endswith("-gate") or target.endswith("-gates")
+WORKFLOW_FILES = tuple((ROOT / ".github" / "workflows").glob("*.yml"))
 
 
 def _gate_targets() -> set[str]:
-    """Every `*-gate` target reachable from the blocking lanes, including aggregate members."""
+    """Every `*-gate` target actually reachable from a GitHub Actions workflow."""
 
-    makefile = MAKEFILE.read_text(encoding="utf-8")
-    reachable: set[str] = set()
-    for lane in ("check", "ci"):
-        for target in _targets_in(lane):
-            if not _is_gate(target):
-                continue
-            reachable.add(target)
-            aggregate = re.search(rf"^{re.escape(target)}: (.+)$", makefile, re.M)
-            if aggregate:
-                reachable.update(m for m in aggregate.group(1).split() if _is_gate(m))
+    from scripts.ci_gate_inventory import gate_targets_reachable_from_workflows
+
+    reachable = gate_targets_reachable_from_workflows(
+        MAKEFILE.read_text(encoding="utf-8"),
+        (path.read_text(encoding="utf-8") for path in WORKFLOW_FILES),
+    )
     assert reachable, (
-        "No gate targets found in the blocking lanes; this check would assert nothing."
+        "No gate targets are reachable from GitHub Actions; this check would assert nothing."
     )
     return reachable
 
@@ -69,14 +56,14 @@ def _wiki_gate_names(wiki: str) -> set[str]:
     return named_in_wiki
 
 
-def test_the_wiki_names_every_gate_the_blocking_lanes_run() -> None:
+def test_the_wiki_names_every_gate_the_blocking_workflows_run() -> None:
     wiki = WIKI_HOME.read_text(encoding="utf-8")
 
     undocumented = sorted(target for target in _gate_targets() if target not in wiki)
 
     assert undocumented == [], (
         "wiki/Home.md publishes the repo-native validation commands but does not name these gates, "
-        "which `make check` or `make ci` runs and which can fail a contributor's build: "
+        "which GitHub Actions runs and which can fail a contributor's build: "
         f"{undocumented}. See issue #72."
     )
 

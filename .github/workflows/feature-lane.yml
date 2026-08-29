@@ -43,6 +43,8 @@ jobs:
         run: make lint
       - name: Typecheck
         run: make typecheck
+      - name: Code Health Gates
+        run: make code-health-gates
       - name: OpenAPI Gate
         run: make openapi-gate
       - name: Template Registry Gate
