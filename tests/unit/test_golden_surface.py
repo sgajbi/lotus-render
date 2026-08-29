@@ -192,3 +192,28 @@ def test_every_listed_section_plants_a_marker_for_the_contents_page() -> None:
         "these section pages plant no marker, so the contents page cannot list them: "
         f"{sorted(listed - marked)}"
     )
+
+
+def test_no_emitter_hard_codes_a_colour() -> None:
+    """Colour belongs to the template's palette, not to the Python that feeds it.
+
+    Every "not available" line inlined `rgb(104, 118, 132)` -- a 21st colour matching no
+    theme token (`slate` is `#5B6770`), so the empty state was an off-palette grey no
+    template could restyle. The emitters now call an `empty-state` component and the
+    theme owns the colour.
+    """
+
+    emitters = (
+        Path("src/app/services/typst_tables.py"),
+        Path("src/app/services/typst_fragments.py"),
+        Path("src/app/services/typst_contexts.py"),
+    )
+    offenders: list[str] = []
+    for path in emitters:
+        for lineno, line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
+            if re.search(r"rgb\(|#[0-9a-fA-F]{6}", line):
+                offenders.append(f"{path.name}:{lineno} {line.strip()[:60]}")
+
+    assert not offenders, (
+        f"these emitters hard-code a colour instead of using a theme component: {offenders}"
+    )

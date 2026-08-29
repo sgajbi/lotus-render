@@ -1,4 +1,4 @@
-#import "_theme.typ": accent, rule, slate, soft-rule
+#import "_theme.typ": accent, empty-state, rule, slate, soft-rule
 #import "_components.typ": dense-transaction-row, page-header, report-panel, section-marker, stacked-table-label
 
 #let transactions-page() = [

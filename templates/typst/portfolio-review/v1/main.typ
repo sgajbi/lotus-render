@@ -1,4 +1,4 @@
-#import "_theme.typ": ink, page-margin-x, page-margin-y, rule, slate
+#import "_theme.typ": empty-state, ink, page-margin-x, page-margin-y, rule, slate
 
 #set page(
   paper: "a4",

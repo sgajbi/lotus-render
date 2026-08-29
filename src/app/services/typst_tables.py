@@ -51,7 +51,7 @@ def render_allocation_chart_section(report_data: Mapping[str, object]) -> str:
 
 def render_observation_notes(observations: object) -> str:
     if not isinstance(observations, Sequence) or isinstance(observations, (str, bytes, bytearray)):
-        return "#text(size: 9pt, fill: rgb(104, 118, 132))[No governed observations available.]"
+        return '#empty-state("No governed observations available.")'
     rendered: list[str] = []
     for item in observations:
         text = escape_typst_string(str(item))
@@ -60,9 +60,7 @@ def render_observation_notes(observations: object) -> str:
 
 
 def render_performance_period_rows(periods: object) -> str:
-    empty_message = (
-        "#text(size: 9pt, fill: rgb(104, 118, 132))[No governed performance periods available.]"
-    )
+    empty_message = '#empty-state("No governed performance periods available.")'
     if not isinstance(periods, Sequence) or isinstance(periods, (str, bytes, bytearray)):
         return empty_message
     rendered: list[str] = []
@@ -86,9 +84,7 @@ def render_performance_period_rows(periods: object) -> str:
 
 
 def render_performance_bar_rows(periods: object) -> str:
-    empty_message = (
-        "#text(size: 9pt, fill: rgb(104, 118, 132))[No governed performance bars available.]"
-    )
+    empty_message = '#empty-state("No governed performance bars available.")'
     if not isinstance(periods, Sequence) or isinstance(periods, (str, bytes, bytearray)):
         return empty_message
     rendered: list[str] = []
@@ -110,9 +106,7 @@ def render_performance_bar_rows(periods: object) -> str:
 
 
 def render_performance_summary_table(rows: object) -> str:
-    empty_message = (
-        "#text(size: 9pt, fill: rgb(104, 118, 132))[No governed performance summary available.]"
-    )
+    empty_message = '#empty-state("No governed performance summary available.")'
     if not isinstance(rows, Sequence) or isinstance(rows, (str, bytes, bytearray)):
         return empty_message
     rendered: list[str] = []
@@ -138,7 +132,7 @@ def render_performance_summary_table(rows: object) -> str:
 
 
 def render_performance_chart_rows(rows: object, *, two_column: bool = False) -> str:
-    empty_message = "#text(size: 8pt, fill: rgb(104, 118, 132))[No performance history available.]"
+    empty_message = '#empty-state("No performance history available.", size: 8pt)'
     if not isinstance(rows, Sequence) or isinstance(rows, (str, bytes, bytearray)):
         return empty_message
     rendered: list[str] = []
@@ -169,9 +163,7 @@ def render_performance_chart_rows(rows: object, *, two_column: bool = False) -> 
 
 
 def render_performance_detail_rows(rows: object) -> str:
-    empty_message = (
-        "#text(size: 8pt, fill: rgb(104, 118, 132))[No monthly performance detail available.]"
-    )
+    empty_message = '#empty-state("No monthly performance detail available.", size: 8pt)'
     if not isinstance(rows, Sequence) or isinstance(rows, (str, bytes, bytearray)):
         return empty_message
     rendered: list[str] = []
@@ -204,7 +196,7 @@ def render_performance_detail_rows(rows: object) -> str:
 
 def render_holding_rows(holdings: object) -> str:
     if not isinstance(holdings, Sequence) or isinstance(holdings, (str, bytes, bytearray)):
-        return "#text(size: 9pt, fill: rgb(104, 118, 132))[No governed holdings available.]"
+        return '#empty-state("No governed holdings available.")'
     rendered: list[str] = []
     for item in holdings:
         if not isinstance(item, Mapping):
@@ -225,13 +217,13 @@ def render_holding_rows(holdings: object) -> str:
             + '")'
         )
     if not rendered:
-        return "#text(size: 9pt, fill: rgb(104, 118, 132))[No governed holdings available.]"
+        return '#empty-state("No governed holdings available.")'
     return "\n#v(8pt)\n".join(rendered)
 
 
 def render_holding_bar_rows(holdings: object) -> str:
     if not isinstance(holdings, Sequence) or isinstance(holdings, (str, bytes, bytearray)):
-        return "#text(size: 9pt, fill: rgb(104, 118, 132))[No governed allocation rows available.]"
+        return '#empty-state("No governed allocation rows available.")'
     rendered: list[str] = []
     for item in holdings:
         if not isinstance(item, Mapping):
@@ -248,7 +240,7 @@ def render_holding_bar_rows(holdings: object) -> str:
             + ")"
         )
     if not rendered:
-        return "#text(size: 9pt, fill: rgb(104, 118, 132))[No governed allocation rows available.]"
+        return '#empty-state("No governed allocation rows available.")'
     return "\n#v(8pt)\n".join(rendered)
 
 
@@ -257,14 +249,14 @@ def render_holding_bar_rows(holdings: object) -> str:
 DENSE_POSITION_COLUMNS = 8
 _NO_POSITIONS_CELL = (
     f"table.cell(colspan: {DENSE_POSITION_COLUMNS})"
-    "[#text(size: 8pt, fill: rgb(104, 118, 132))[No position detail available.]],"
+    '[#empty-state("No position detail available.", size: 8pt)],'
 )
 
 
 DENSE_TRANSACTION_COLUMNS = 7
 _NO_TRANSACTIONS_CELL = (
     f"table.cell(colspan: {DENSE_TRANSACTION_COLUMNS})"
-    "[#text(size: 8pt, fill: rgb(104, 118, 132))[No transaction detail available.]],"
+    '[#empty-state("No transaction detail available.", size: 8pt)],'
 )
 
 
@@ -422,7 +414,7 @@ def render_dense_transaction_rows(transactions: object) -> str:
 
 
 def render_allocation_breakdown_rows(rows: object) -> str:
-    empty = "#text(size: 8pt, fill: rgb(104, 118, 132))[No allocation detail available.]"
+    empty = '#empty-state("No allocation detail available.", size: 8pt)'
     items = row_sequence(rows)
     if items is None:
         return empty

@@ -1,4 +1,4 @@
-#import "_theme.typ": accent, accent-soft, body-muted, body-strong, grid-gap, hairline, ink, mist, navy, page-kicker, panel-radius, rule, section-subtitle, section-title, slate, small-caps, soft-rule
+#import "_theme.typ": accent, accent-soft, body-muted, body-strong, empty-state, grid-gap, hairline, ink, mist, navy, page-kicker, panel-radius, rule, section-subtitle, section-title, slate, small-caps, soft-rule
 
 #let page-header(title) = [
   #grid(

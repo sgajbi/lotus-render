@@ -1,4 +1,4 @@
-#import "_theme.typ": rule, section-subtitle, soft-rule
+#import "_theme.typ": empty-state, rule, section-subtitle, soft-rule
 #import "_components.typ": dense-position-row, page-header, report-panel, section-marker, stacked-table-label, table-label
 
 #let observations-page() = [
