@@ -75,37 +75,16 @@ class RenderFoundationService:
         template_registry_ready: bool,
         render_runtime_available: bool,
     ) -> RenderSupportability:
-        deterministic_output_supported = bool(
-            self._settings.runtime_engine
-            and self._settings.runtime_engine_version
-            and self._settings.default_output_format
-            and self._settings.supported_output_formats
-            and render_runtime_available
+        deterministic_output_supported = self._deterministic_output_supported(
+            render_runtime_available
         )
-        state: RenderSupportabilityState = "ready"
-        reason: RenderSupportabilityReason = "render_supportability_ready"
-        freshness_bucket: RenderSupportabilityFreshness = "current"
-
-        if is_draining:
-            state = "degraded"
-            reason = "render_supportability_draining"
-        elif not render_store_ready:
-            state = "unavailable"
-            reason = "render_store_unavailable"
-            freshness_bucket = "unknown"
-        elif not template_registry_ready:
-            state = "unavailable"
-            reason = "template_registry_unavailable"
-            freshness_bucket = "unknown"
-        elif not render_runtime_available:
-            state = "unavailable"
-            reason = "runtime_configuration_unavailable"
-            freshness_bucket = "unknown"
-        elif not deterministic_output_supported:
-            state = "unavailable"
-            reason = "runtime_configuration_unavailable"
-            freshness_bucket = "unknown"
-
+        state, reason, freshness_bucket = _supportability_triage(
+            is_draining=is_draining,
+            render_store_ready=render_store_ready,
+            template_registry_ready=template_registry_ready,
+            render_runtime_available=render_runtime_available,
+            deterministic_output_supported=deterministic_output_supported,
+        )
         return {
             "featureKey": "render.observability.render_supportability",
             "state": state,
@@ -122,6 +101,15 @@ class RenderFoundationService:
             "draining": is_draining,
         }
 
+    def _deterministic_output_supported(self, render_runtime_available: bool) -> bool:
+        return bool(
+            self._settings.runtime_engine
+            and self._settings.runtime_engine_version
+            and self._settings.default_output_format
+            and self._settings.supported_output_formats
+            and render_runtime_available
+        )
+
     def metadata(self) -> FoundationMetadata:
         return {
             "service": self._settings.service_name,
@@ -134,3 +122,24 @@ class RenderFoundationService:
             "supportedOutputFormats": list(self._settings.supported_output_formats),
             "renderAttemptStatuses": [status.value for status in RenderAttemptStatus],
         }
+
+
+def _supportability_triage(
+    *,
+    is_draining: bool,
+    render_store_ready: bool,
+    template_registry_ready: bool,
+    render_runtime_available: bool,
+    deterministic_output_supported: bool,
+) -> tuple[RenderSupportabilityState, RenderSupportabilityReason, RenderSupportabilityFreshness]:
+    if is_draining:
+        return "degraded", "render_supportability_draining", "current"
+    if not render_store_ready:
+        return "unavailable", "render_store_unavailable", "unknown"
+    if not template_registry_ready:
+        return "unavailable", "template_registry_unavailable", "unknown"
+    if not render_runtime_available:
+        return "unavailable", "runtime_configuration_unavailable", "unknown"
+    if not deterministic_output_supported:
+        return "unavailable", "runtime_configuration_unavailable", "unknown"
+    return "ready", "render_supportability_ready", "current"
