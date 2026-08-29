@@ -15,7 +15,7 @@
         "src/app/contracts/examples/portfolio-review-render-package.v1.json"
       ],
       "provenance": "Portfolio review package is the canonical lotus-report render package example mirrored into the golden fixture tree for registry-to-artifact gating.",
-      "bounded_determinism_fingerprint": "3c380e6d9e3831afc51d465c73ece43c0ebc9d2a9dddde82e699f63b14bc50c7"
+      "bounded_determinism_fingerprint": "1fc2dc46a39f82857d33d6f4d16aa1a998927cd113cfbed71d08166f130487ee"
     },
     {
       "template_id": "outcome-review",
@@ -93,7 +93,7 @@
         "src/app/contracts/examples/portfolio-review-render-package.v1.json"
       ],
       "provenance": "Portfolio review carrying an approved advisor-use package so the reviewed advisory narrative section is rendered and banked; that section previously had no compiled proof (issue #118).",
-      "bounded_determinism_fingerprint": "1e45ef90ea2d0562bf19cdd4ae36cf35e9b3b209d732f3397149daf1df19ca94"
+      "bounded_determinism_fingerprint": "3bcf6ad0b2203f7830ba82d620b6dabda4870e9bc2d93929d07320b215887758"
     },
     {
       "template_id": "portfolio-review",
@@ -108,7 +108,7 @@
         "src/app/contracts/examples/portfolio-review-render-package.v1.json"
       ],
       "provenance": "Portfolio review carrying an approved advisor-use package so the advisor proposal memo section is rendered and banked; that section previously had no compiled proof (issue #118).",
-      "bounded_determinism_fingerprint": "fe3820e98d89fcd13268caa46090459186306d2447cd72a4927e20915730a570"
+      "bounded_determinism_fingerprint": "ef5d2eb35343cc9875268f2db05f2bd89720ce44b72bdadafb6d37895f338f87"
     },
     {
       "template_id": "portfolio-review",
@@ -123,7 +123,7 @@
         "src/app/contracts/examples/portfolio-review-render-package.v1.json"
       ],
       "provenance": "Portfolio review whose optional collections are all empty, so every degraded-path fallback is compiled and banked rather than asserted only as a Python string (#118).",
-      "bounded_determinism_fingerprint": "2cb588e7ca3834b95a9675ae576b6ba201371f1000f36ced46bf4157799d90a6"
+      "bounded_determinism_fingerprint": "95212f1fa2b4d83882a30c302bbc019f2c21ea1f41942d9875c6a08d8dfa284a"
     }
   ]
 }

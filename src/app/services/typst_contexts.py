@@ -10,6 +10,7 @@ from __future__ import annotations
 from collections.abc import Mapping, Sequence
 
 from app.contracts.render_package import RenderPackage
+from app.services.number_format import group_digits
 from app.services.render_content import (
     parse_outcome_review_content,
     parse_portfolio_review_content,
@@ -135,7 +136,7 @@ def build_portfolio_review_context(render_package: RenderPackage) -> dict[str, s
         "PORTFOLIO_NAME": escape_typst_string(str(report_data["portfolio_name"])),
         "AS_OF_DATE": escape_typst_string(str(report_data["as_of_date"])),
         "CURRENCY": escape_typst_string(str(report_data["currency"])),
-        "TOTAL_VALUE": escape_typst_string(str(report_data["total_value"])),
+        "TOTAL_VALUE": escape_typst_string(group_digits(report_data["total_value"])),
         "SUMMARY_PARAGRAPH": escape_typst_string(str(report_data["summary_paragraph"])),
         "REVIEW_PERIOD_LABEL": escape_typst_string(
             str(report_data.get("review_period_label", "YTD"))
@@ -149,10 +150,10 @@ def build_portfolio_review_context(render_package: RenderPackage) -> dict[str, s
         ),
         "ADVISOR_ID": escape_typst_string(str(mandate.get("advisor_id", "not_available"))),
         "INVESTED_VALUE": escape_typst_string(
-            str(portfolio_metrics.get("invested_value", "Not available"))
+            group_digits(portfolio_metrics.get("invested_value", "Not available"))
         ),
         "CASH_BALANCE": escape_typst_string(
-            str(portfolio_metrics.get("cash_balance", "Not available"))
+            group_digits(portfolio_metrics.get("cash_balance", "Not available"))
         ),
         "CASH_WEIGHT_PCT": escape_typst_string(
             str(portfolio_metrics.get("cash_weight_pct", "Not available"))
@@ -164,7 +165,9 @@ def build_portfolio_review_context(render_package: RenderPackage) -> dict[str, s
             str(allocation_summary.get("largest_asset_class_weight_pct", "Not available"))
         ),
         "ALLOCATION_LARGEST_VALUE": escape_typst_string(
-            str(allocation_summary.get("largest_asset_class_market_value", "Not available"))
+            group_digits(
+                allocation_summary.get("largest_asset_class_market_value", "Not available")
+            )
         ),
         "ALLOCATION_POSITION_COUNT": escape_typst_string(
             str(allocation_summary.get("largest_asset_class_position_count", "Not available"))

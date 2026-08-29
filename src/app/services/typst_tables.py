@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
 
-from app.services.number_format import format_money, format_percent
+from app.services.number_format import format_money, format_percent, group_digits
 from app.services.portfolio_charts import (
     allocation_items_from_report_data,
     performance_series_from_report_data,
@@ -72,9 +72,9 @@ def render_performance_period_rows(periods: object) -> str:
             '#period-row("'
             + escape_typst_string(str(item.get("period", "n/a")))
             + '", "'
-            + escape_typst_string(str(item.get("net_return_pct", "Not available")))
+            + escape_typst_string(group_digits(item.get("net_return_pct", "Not available")))
             + '", "'
-            + escape_typst_string(str(item.get("benchmark_return_pct", "Not available")))
+            + escape_typst_string(group_digits(item.get("benchmark_return_pct", "Not available")))
             + '", "'
             + escape_typst_string(str(relative if relative is not None else "Not available"))
             + '", '
@@ -99,7 +99,7 @@ def render_performance_bar_rows(periods: object) -> str:
             '#performance-bar-row("'
             + escape_typst_string(str(item.get("period", "n/a")))
             + '", "'
-            + escape_typst_string(str(item.get("net_return_pct", "Not available")))
+            + escape_typst_string(group_digits(item.get("net_return_pct", "Not available")))
             + '", '
             + percent_width_token(item.get("net_return_pct"))
             + ")"
@@ -121,9 +121,9 @@ def render_performance_summary_table(rows: object) -> str:
             'performance-summary-cell("'
             + escape_typst_string(str(item.get("label", "Period")))
             + '", "'
-            + escape_typst_string(str(item.get("net_return_pct", "Not available")))
+            + escape_typst_string(group_digits(item.get("net_return_pct", "Not available")))
             + '", "'
-            + escape_typst_string(str(item.get("annualized_return_pct", "n/a")))
+            + escape_typst_string(group_digits(item.get("annualized_return_pct", "n/a")))
             + '")'
         )
     if not rendered:
@@ -141,9 +141,9 @@ def _performance_chart_row(item: Mapping[str, object], domain: float) -> str:
         'performance-chart-row("'
         + escape_typst_string(str(item.get("period", "n/a")))
         + '", "'
-        + escape_typst_string(str(item.get("twr_pct", "Not available")))
+        + escape_typst_string(group_digits(item.get("twr_pct", "Not available")))
         + '", "'
-        + escape_typst_string(str(item.get("cumulative_twr_pct", "Not available")))
+        + escape_typst_string(group_digits(item.get("cumulative_twr_pct", "Not available")))
         + '", '
         + geometry.magnitude
         + ", "
@@ -185,19 +185,21 @@ def render_performance_detail_rows(rows: object) -> str:
             '#performance-detail-row("'
             + escape_typst_string(str(item.get("period", "n/a")))
             + '", "'
-            + escape_typst_string(str(item.get("final_value", "Not available")))
+            + escape_typst_string(group_digits(item.get("final_value", "Not available")))
             + '", "'
-            + escape_typst_string(str(item.get("inflows", "Not available")))
+            + escape_typst_string(group_digits(item.get("inflows", "Not available")))
             + '", "'
-            + escape_typst_string(str(item.get("outflows", "Not available")))
+            + escape_typst_string(group_digits(item.get("outflows", "Not available")))
             + '", "'
-            + escape_typst_string(str(item.get("performance_value", "Not available")))
+            + escape_typst_string(group_digits(item.get("performance_value", "Not available")))
             + '", "'
-            + escape_typst_string(str(item.get("twr_pct", "Not available")))
+            + escape_typst_string(group_digits(item.get("twr_pct", "Not available")))
             + '", "'
-            + escape_typst_string(str(item.get("cumulative_performance_value", "Not available")))
+            + escape_typst_string(
+                group_digits(item.get("cumulative_performance_value", "Not available"))
+            )
             + '", "'
-            + escape_typst_string(str(item.get("cumulative_twr_pct", "Not available")))
+            + escape_typst_string(group_digits(item.get("cumulative_twr_pct", "Not available")))
             + '")'
         )
     if not rendered:
@@ -218,13 +220,13 @@ def render_holding_rows(holdings: object) -> str:
             + '", "'
             + escape_typst_string(str(item.get("asset_class", "Not available")))
             + '", "'
-            + escape_typst_string(str(item.get("weight_pct", "Not available")))
+            + escape_typst_string(group_digits(item.get("weight_pct", "Not available")))
             + '", "'
-            + escape_typst_string(str(item.get("market_value", "Not available")))
+            + escape_typst_string(group_digits(item.get("market_value", "Not available")))
             + '", "'
-            + escape_typst_string(str(item.get("unrealized_pnl", "Not available")))
+            + escape_typst_string(group_digits(item.get("unrealized_pnl", "Not available")))
             + '", "'
-            + escape_typst_string(str(item.get("ytd_contribution_pct", "Not available")))
+            + escape_typst_string(group_digits(item.get("ytd_contribution_pct", "Not available")))
             + '")'
         )
     if not rendered:
@@ -243,9 +245,9 @@ def render_holding_bar_rows(holdings: object) -> str:
             '#allocation-row("'
             + escape_typst_string(str(item.get("security_name", "Unknown holding")))
             + '", "'
-            + escape_typst_string(str(item.get("weight_pct", "Not available")))
+            + escape_typst_string(group_digits(item.get("weight_pct", "Not available")))
             + '", "'
-            + escape_typst_string(str(item.get("market_value", "Not available")))
+            + escape_typst_string(group_digits(item.get("market_value", "Not available")))
             + '", '
             + percent_width_token(item.get("weight_pct"))
             + ")"
@@ -286,7 +288,7 @@ def render_dense_position_rows(holdings: object) -> str:
         if not isinstance(item, Mapping):
             continue
         number_amount = (
-            f"{item.get('quantity', 'Not available')} {item.get('currency', '')};"
+            f"{group_digits(item.get('quantity', 'Not available'))} {item.get('currency', '')};"
             f"{item.get('security_id', 'Not available')}"
         )
         description = (
@@ -297,13 +299,13 @@ def render_dense_position_rows(holdings: object) -> str:
         classification = (
             f"{item.get('rating', 'Not available')};"
             f"{item.get('sector', 'Not available')};"
-            f"{item.get('duration', 'Not available')};"
+            f"{group_digits(item.get('duration', 'Not available'))};"
             f"{item.get('yield_to_maturity', item.get('yield_pct', 'Not available'))}"
         )
         cost_basis = (
             f"{item.get('cost_price', item.get('average_cost_price', 'Not available'))};"
-            f"{item.get('exchange_rate', 'Not available')};"
-            f"{item.get('cost_basis_local', 'Not available')};"
+            f"{group_digits(item.get('exchange_rate', 'Not available'))};"
+            f"{group_digits(item.get('cost_basis_local', 'Not available'))};"
             f"{item.get('held_since_date', 'Not available')}"
         )
         market_price_date = item.get(
@@ -311,21 +313,23 @@ def render_dense_position_rows(holdings: object) -> str:
             item.get("price_date", item.get("position_date", "Not available")),
         )
         market_value = (
-            f"{item.get('market_price', 'Not available')};"
-            f"{item.get('exchange_rate', 'Not available')};"
+            f"{group_digits(item.get('market_price', 'Not available'))};"
+            f"{group_digits(item.get('exchange_rate', 'Not available'))};"
             f"{market_price_date};"
-            f"{item.get('ytd_total_return_pct', 'Not available')}"
+            f"{group_digits(item.get('ytd_total_return_pct', 'Not available'))}"
         )
         gain_loss = (
-            f"{item.get('unrealized_pnl_pct', 'Not available')};"
+            f"{group_digits(item.get('unrealized_pnl_pct', 'Not available'))};"
             f"{item.get('currency', 'Not available')};"
-            f"{item.get('unrealized_pnl', 'Not available')}"
+            f"{group_digits(item.get('unrealized_pnl', 'Not available'))}"
         )
         accrued_interest = item.get(
             "accrued_interest",
             item.get("accrued_interest_reporting_currency", "Not available"),
         )
-        performance = f"{item.get('market_value', 'Not available')};{accrued_interest}"
+        performance = (
+            f"{group_digits(item.get('market_value', 'Not available'))};{accrued_interest}"
+        )
         rendered.append(
             'dense-position-row("'
             + escape_typst_string(str(item.get("asset_class", "Not available")))
@@ -344,7 +348,7 @@ def render_dense_position_rows(holdings: object) -> str:
             + '", "'
             + escape_typst_string(performance)
             + '", "'
-            + escape_typst_string(str(item.get("weight_pct", "Not available")))
+            + escape_typst_string(group_digits(item.get("weight_pct", "Not available")))
             + '"),'
         )
     if not rendered:
@@ -379,24 +383,24 @@ def render_dense_transaction_rows(transactions: object) -> str:
             f"{item.get('display_label', 'Not available')}"
         )
         price = (
-            f"{item.get('price', 'Not available')};"
+            f"{group_digits(item.get('price', 'Not available'))};"
             f"{item.get('reporting_currency', '')};"
-            f"{item.get('gross_amount_reporting_currency', 'Not available')};"
+            f"{group_digits(item.get('gross_amount_reporting_currency', 'Not available'))};"
             f"{item.get('place_of_execution', '')}"
         )
         gain = (
-            f"{item.get('price', 'Not available')};"
+            f"{group_digits(item.get('price', 'Not available'))};"
             f"{item.get('reporting_currency', '')};"
-            f"{item.get('gain_loss', 'Not available')}"
+            f"{group_digits(item.get('gain_loss', 'Not available'))}"
         )
         settlement_amount = item.get(
             "settlement_amount_reporting_currency",
             item.get("settlement_amount", "Not available"),
         )
         value = (
-            f"{item.get('transaction_value', 'Not available')};"
-            f"{item.get('net_interest_amount_reporting_currency', 'Not available')};"
-            f"{settlement_amount}"
+            f"{group_digits(item.get('transaction_value', 'Not available'))};"
+            f"{group_digits(item.get('net_interest_amount_reporting_currency', 'Not available'))};"
+            f"{group_digits(settlement_amount)}"
         )
         rendered.append(
             'dense-transaction-row("'
@@ -404,7 +408,7 @@ def render_dense_transaction_rows(transactions: object) -> str:
             + '", "'
             + escape_typst_string(booking_text)
             + '", "'
-            + escape_typst_string(str(item.get("amount", "Not available")))
+            + escape_typst_string(group_digits(item.get("amount", "Not available")))
             + '", "'
             + escape_typst_string(str(item.get("description", "Not available")))
             + '", "'
