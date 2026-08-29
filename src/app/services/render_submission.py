@@ -25,6 +25,7 @@ from app.infrastructure.render_store import (
     RenderJobTransitionError,
     StoredRenderJob,
 )
+from app.observability.render_log import log_render_accepted, log_render_failed
 from app.observability.render_metrics import record_render_artifact_size, record_render_operation
 from app.services.render_ports import (
     RenderEnginePort,
@@ -95,6 +96,13 @@ class RenderSubmissionService:
             )
             raise
         existing = create_result.job
+        log_render_accepted(
+            render_job_id=render_package.render_job_id,
+            template_id=render_package.template_id,
+            template_version=render_package.template_version,
+            package_correlation_id=render_package.correlation_id,
+            package_trace_id=render_package.trace_id,
+        )
         if existing.status in ("rendered", "failed"):
             self._record_submit_metric(existing, started_at=started_at)
             return self._to_submit_response(existing, artifact_base64=None)
@@ -211,6 +219,13 @@ class RenderSubmissionService:
         started_at: float,
     ) -> RenderSubmitResponse:
         """Persist the failure, then raise -- unless a racing writer already holds the truth."""
+        # The support-safe message is what gets persisted and returned; the engine's own
+        # diagnostic is only available here, on `cause`, and is otherwise discarded (#129).
+        log_render_failed(
+            render_job_id=render_job_id,
+            failure_category=failure_category,
+            diagnostic=str(cause),
+        )
         failure = self._mark_failed_or_current_truth(
             render_job_id,
             failure_category=failure_category,
