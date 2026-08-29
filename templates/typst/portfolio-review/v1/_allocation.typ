@@ -71,20 +71,23 @@
       ])
     ],
   )
-  #pagebreak()
-  #page-header("Asset allocation")
-  #v(10pt)
-  #section-subtitle("Risk profile")
-  #v(8pt)
-  #grid(
-    columns: (1fr, 1fr, 1fr),
-    row-gutter: 10pt,
-    column-gutter: 12pt,
-    [#note-panel("Volatility", "${RISK_VOLATILITY}")],
-    [#note-panel("Beta", "${RISK_BETA}")],
-    [#note-panel("Tracking error", "${RISK_TRACKING_ERROR}")],
-    [#note-panel("Information ratio", "${RISK_INFORMATION_RATIO}")],
-    [#note-panel("Value at risk", "${RISK_VAR}")],
-    [#note-panel("Review period", "${REVIEW_PERIOD_LABEL}")],
-  )
+  // Guarded so a report with no risk summary does not ship a near-blank page (#138).
+  #if "${HAS_RISK_PROFILE}" == "yes" [
+    #pagebreak()
+    #page-header("Asset allocation")
+    #v(10pt)
+    #section-subtitle("Risk profile")
+    #v(8pt)
+    #grid(
+      columns: (1fr, 1fr, 1fr),
+      row-gutter: 10pt,
+      column-gutter: 12pt,
+      [#note-panel("Volatility", "${RISK_VOLATILITY}")],
+      [#note-panel("Beta", "${RISK_BETA}")],
+      [#note-panel("Tracking error", "${RISK_TRACKING_ERROR}")],
+      [#note-panel("Information ratio", "${RISK_INFORMATION_RATIO}")],
+      [#note-panel("Value at risk", "${RISK_VAR}")],
+      [#note-panel("Review period", "${REVIEW_PERIOD_LABEL}")],
+    )
+  ]
 ]
