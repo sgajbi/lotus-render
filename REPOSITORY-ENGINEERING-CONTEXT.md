@@ -149,9 +149,12 @@ Key expectations:
 
 1. local fast gate: `make check`
 2. repo-native full gate: `make ci`
-3. Docker build must stay green because the service is independently deployable
-4. OpenAPI quality, strict typing, coverage gate, and security audit are all part of baseline CI
-5. `main` branch protection requires strict PR Merge Gate status checks, conversation resolution,
+3. feature, pull-request, and exact-main workflows explicitly run `make code-health-gates`; unit
+   fitness tests reject any gate advertised by `make check` / `make ci` but unreachable from GitHub
+   Actions, and complexity/dead-code scanners fail closed on empty governed input
+4. Docker build must stay green because the service is independently deployable
+5. OpenAPI quality, strict typing, coverage gate, and security audit are all part of baseline CI
+6. `main` branch protection requires strict PR Merge Gate status checks, conversation resolution,
    linear history, and admin enforcement. Human approval is optional in the solo-developer baseline;
    required GitHub checks and truthful PR evidence are the merge control.
 

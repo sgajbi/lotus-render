@@ -46,6 +46,8 @@ make ci      # the above plus integration, e2e, coverage and security audit
 Note that `make check` runs unit tests only. Run `make ci` before opening a PR that touches the
 render path. The individual gates and what each enforces are listed in
 [Home](https://github.com/sgajbi/lotus-render/wiki/Home#validation-commands).
+The feature, pull-request, and exact-main workflows each invoke `make code-health-gates` explicitly;
+the unit suite fails if a gate advertised by the local aggregate lanes becomes unreachable in CI.
 
 ## Repository documentation
 

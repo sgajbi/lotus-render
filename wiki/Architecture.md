@@ -125,7 +125,6 @@ Recorded so that absent behaviour is not mistaken for behaviour that works.
 | **Request-body cap needs a declared length** | the cap is enforced from `Content-Length`; a body with no declared length is not measured — [#84](https://github.com/sgajbi/lotus-render/issues/84) |
 | **No recovery of stale jobs** | the stale windows make a lost job visible; nothing resubmits it — recovery is an operator action |
 | **Engine must be present** | the runtime probe requires `docker` or `typst` on `PATH`; without one the service cannot compile |
-| **Four code-health gates do not run in CI** | `complexity-gate`, `source-size-gate`, `dead-code-gate` and `dependency-hygiene-gate` are reachable only from `make check` / `make ci`, which no workflow invokes — tracked as [#80](https://github.com/sgajbi/lotus-render/issues/80) |
 
 ## Source map
 

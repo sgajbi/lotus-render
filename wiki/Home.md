@@ -96,12 +96,11 @@ Not implemented today — recorded so that absence is not mistaken for capabilit
 | shared job state | the store is a local file, so one instance cannot report on another's jobs | — |
 | enforced durability by default | `REQUIRE_PERSISTENT_RENDER_STORE` is `false`; Docker Compose sets it `true`, bare deployments must too | [#83](https://github.com/sgajbi/lotus-render/issues/83) |
 | unconditional request-body cap | the cap is skipped when no `Content-Length` is declared | [#84](https://github.com/sgajbi/lotus-render/issues/84) |
-| code-health gates in CI | four gates run only from `make check` / `make ci`, which no workflow invokes | [#80](https://github.com/sgajbi/lotus-render/issues/80) |
 
 ## Validation commands
 
 The repo-native gates. This list is kept honest in both directions by
-`tests/unit/test_wiki_gate_coverage.py`, which fails when a gate the blocking lanes run is missing
+`tests/unit/test_wiki_gate_coverage.py`, which fails when a gate the blocking workflows run is missing
 from this page, and equally when this page names a gate the lanes no longer run.
 
 | command | enforces |
@@ -115,8 +114,9 @@ from this page, and equally when this page names a gate the lanes no longer run.
 | `make dependency-hygiene-gate` | no deptry finding |
 
 Baselines are banked at the measured tree with no headroom, and `tests/unit/test_code_health_gates.py`
-asserts each threshold equals the measurement. CI does not currently run the code-health gates — see
-[Development and Testing](Development-and-Testing#the-hole-code-health-gates-do-not-run-in-ci).
+asserts each threshold equals the measurement and that empty scans fail closed. All three blocking
+workflows run the aggregate; a separate liveness fitness test rejects workflow/Make reachability
+drift. See [Development and Testing](Development-and-Testing#code-health-gate-liveness).
 
 Operator-facing checks — `/health`, `/health/live`, `/health/ready`, `/metadata`, `/metrics` — are
 described in [Operations](Operations).
