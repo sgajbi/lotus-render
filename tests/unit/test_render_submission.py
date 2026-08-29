@@ -367,7 +367,6 @@ def test_render_submission_fail_closes_on_unexpected_exception(tmp_path: Path) -
 
     stored = store.get("rdr_unexpected")
     assert stored.status == "failed"
-    assert stored.status != "rendering"
     assert stored.failure_category == "unexpected_render_error"
     assert stored.failure_message == "Render execution failed in the governed runtime envelope."
 
