@@ -5,15 +5,32 @@ Pure functions that turn governed report data into Typst source fragments.
 
 from __future__ import annotations
 
-from collections.abc import Mapping, Sequence
+from collections.abc import Iterable, Mapping, Sequence
 
 from app.services.typst_values import escape_typst_text, mapping, string_list
+
+
+def markup_calls(fragments: Iterable[str], *, separator: str = "\n") -> str:
+    """Join call fragments so each is invoked at a markup substitution site.
+
+    In Typst markup, a bare ``name(...)`` is text, not a call. Every fragment here is
+    substituted into markup, and every one of them omitted the ``#`` -- so three
+    families printed their main content tables as their own source. The outcome
+    review's dimension evidence read, on the page::
+
+        dimension-row([PERFORMANCE], [READY], [4.10], [4.22], [0.12], [...])
+
+    Emitters whose output is spliced into a *code* context -- the dense position and
+    transaction rows, which land inside ``..( ... ).flatten()`` -- must not use this:
+    there a ``#`` is a syntax error, not a fix.
+    """
+    return separator.join(f"#{fragment}" for fragment in fragments)
 
 
 def render_wave_item_rows(items: object) -> str:
     if not isinstance(items, list) or not items:
         return (
-            "wave-item-row([Not available], [not_available], [not_available], "
+            "#wave-item-row([Not available], [not_available], [not_available], "
             "[not_available], [not_available], [No item evidence supplied.])"
         )
     rows = []
@@ -31,12 +48,12 @@ def render_wave_item_rows(items: object) -> str:
             f"[{escape_typst_text(reasons)}]"
             ")"
         )
-    return "\n".join(rows)
+    return markup_calls(rows)
 
 
 def render_wave_event_rows(events: object) -> str:
     if not isinstance(events, list) or not events:
-        return "key-value-row([Latest event], [No event evidence supplied.])"
+        return "#key-value-row([Latest event], [No event evidence supplied.])"
     rows = []
     for item in events:
         event = mapping(item)
@@ -47,13 +64,13 @@ def render_wave_event_rows(events: object) -> str:
             f"{event.get('created_at', 'not_available')}"
         )
         rows.append(f"key-value-row([{escape_typst_text(label)}], [{escape_typst_text(value)}])")
-    return "\n".join(rows)
+    return markup_calls(rows)
 
 
 def render_outcome_dimension_rows(dimensions: object) -> str:
     if not isinstance(dimensions, list) or not dimensions:
         return (
-            "dimension-row([Not available], [not_available], [not_available], "
+            "#dimension-row([Not available], [not_available], [not_available], "
             "[not_available], [not_available], [No dimension evidence supplied.])"
         )
     rows = []
@@ -69,13 +86,13 @@ def render_outcome_dimension_rows(dimensions: object) -> str:
             f"[{escape_typst_text(str(dimension.get('explanation', '')))}]"
             ")"
         )
-    return "\n".join(rows)
+    return markup_calls(rows)
 
 
 def render_proof_pack_section_rows(sections: object) -> str:
     if not isinstance(sections, list) or not sections:
         return (
-            "section-row([Not available], [not_available], [not_available], "
+            "#section-row([Not available], [not_available], [not_available], "
             "[No section evidence supplied.], [none])"
         )
     rows = []
@@ -91,12 +108,12 @@ def render_proof_pack_section_rows(sections: object) -> str:
             f"[{escape_typst_text(reasons)}]"
             ")"
         )
-    return "\n".join(rows)
+    return markup_calls(rows)
 
 
 def render_source_lineage_rows(source_lineage: object) -> str:
     if not isinstance(source_lineage, list) or not source_lineage:
-        return "key-value-row([Source lineage], [No source lineage supplied.])"
+        return "#key-value-row([Source lineage], [No source lineage supplied.])"
     rows = []
     for item in source_lineage:
         source_ref = mapping(item)
@@ -110,13 +127,13 @@ def render_source_lineage_rows(source_lineage: object) -> str:
             f"[{escape_typst_text(source_id + ' / ' + content_hash)}]"
             ")"
         )
-    return "\n".join(rows)
+    return markup_calls(rows)
 
 
 def render_key_value_rows(values: Mapping[str, object]) -> str:
     if not values:
-        return "key-value-row([Not available], [not_available])"
-    return "\n".join(
+        return "#key-value-row([Not available], [not_available])"
+    return markup_calls(
         f"key-value-row([{escape_typst_text(str(key))}], [{escape_typst_text(str(value))}])"
         for key, value in sorted(values.items())
     )
@@ -157,7 +174,7 @@ def render_advisory_fact_rows(facts: Mapping[str, object]) -> str:
             f"[{escape_typst_text(str(value if value is not None else 'not_available'))}]"
             ")"
         )
-    return "\n".join(rows)
+    return markup_calls(rows)
 
 
 def render_advisor_memo_fact_rows(memo: Mapping[str, object]) -> str:
@@ -184,7 +201,7 @@ def render_advisor_memo_fact_rows(memo: Mapping[str, object]) -> str:
 def render_advisor_memo_section_blocks(sections: object) -> str:
     if not isinstance(sections, Sequence) or isinstance(sections, (str, bytes, bytearray)):
         return (
-            "advisory-narrative-block([No advisor memo section supplied.], "
+            "#advisory-narrative-block([No advisor memo section supplied.], "
             "[No advisor proposal memo body was included in the render package.])"
         )
     blocks: list[str] = []
@@ -203,16 +220,16 @@ def render_advisor_memo_section_blocks(sections: object) -> str:
         )
     if not blocks:
         return (
-            "advisory-narrative-block([No advisor memo section supplied.], "
+            "#advisory-narrative-block([No advisor memo section supplied.], "
             "[No advisor proposal memo body was included in the render package.])"
         )
-    return "\n#v(8pt)\n".join(blocks)
+    return markup_calls(blocks, separator="\n#v(8pt)\n")
 
 
 def render_advisory_narrative_blocks(sections: object) -> str:
     if not isinstance(sections, Sequence) or isinstance(sections, (str, bytes, bytearray)):
         return (
-            "advisory-narrative-block([No approved narrative section supplied.], "
+            "#advisory-narrative-block([No approved narrative section supplied.], "
             "[No reviewed narrative body was included in the render package.])"
         )
     blocks: list[str] = []
@@ -227,10 +244,10 @@ def render_advisory_narrative_blocks(sections: object) -> str:
         )
     if not blocks:
         return (
-            "advisory-narrative-block([No approved narrative section supplied.], "
+            "#advisory-narrative-block([No approved narrative section supplied.], "
             "[No reviewed narrative body was included in the render package.])"
         )
-    return "\n#v(8pt)\n".join(blocks)
+    return markup_calls(blocks, separator="\n#v(8pt)\n")
 
 
 def render_advisory_disclosure_blocks(disclosures: object) -> str:
@@ -239,7 +256,7 @@ def render_advisory_disclosure_blocks(disclosures: object) -> str:
         (str, bytes, bytearray),
     ):
         return (
-            "advisory-disclosure-block([not_available], "
+            "#advisory-disclosure-block([not_available], "
             "[No reviewed narrative disclosure text supplied.])"
         )
     blocks: list[str] = []
@@ -257,7 +274,7 @@ def render_advisory_disclosure_blocks(disclosures: object) -> str:
         )
     if not blocks:
         return (
-            "advisory-disclosure-block([not_available], "
+            "#advisory-disclosure-block([not_available], "
             "[No reviewed narrative disclosure text supplied.])"
         )
     return "\n#v(6pt)\n".join(blocks)

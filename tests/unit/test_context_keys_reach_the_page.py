@@ -134,3 +134,76 @@ def test_every_token_a_template_references_is_produced(fixture: dict[str, str]) 
         f"{template_id} templates reference tokens nothing produces: {sorted(missing)}. "
         "These survive substitution and print as literal ${TOKEN} in the document."
     )
+
+
+CALL_FRAGMENT = re.compile(r"^[a-z][a-z0-9-]*\(")
+
+
+def _substitution_contexts(template_id: str, template_version: str) -> dict[str, set[str]]:
+    """Where each key is substituted: Typst markup, or inside a code expression.
+
+    A key spliced into `..( ... ).flatten()` sits in code, where a call is written bare.
+    Anywhere else is markup, where a bare call is text.
+    """
+    directory = TEMPLATE_ROOT / template_id / template_version
+    found: dict[str, set[str]] = {}
+    for path in sorted(directory.rglob("*.typ")):
+        lines = path.read_text(encoding="utf-8").splitlines()
+        for index, line in enumerate(lines):
+            for match in re.finditer(r"\$\{([A-Z0-9_]+)\}", line):
+                before = line[: match.start()].strip()
+                previous = next(
+                    (lines[i].strip() for i in range(index - 1, -1, -1) if lines[i].strip()),
+                    "",
+                )
+                in_code = before.endswith(("(", ",")) or (
+                    not before and previous.endswith(("(", ","))
+                )
+                found.setdefault(match.group(1), set()).add("code" if in_code else "markup")
+    return found
+
+
+@pytest.mark.parametrize("fixture", _fixtures(), ids=lambda fixture: fixture["template_id"])
+def test_a_fragment_is_invoked_where_it_lands_rather_than_printed(
+    fixture: dict[str, str],
+) -> None:
+    """In Typst markup a bare `name(...)` is text, so the page prints the source.
+
+    Three families shipped that way. The outcome review's dimension evidence -- the
+    substance of the document -- read on the page as
+
+        dimension-row([PERFORMANCE], [READY], [4.10], [4.22], [0.12], [...])
+
+    and every golden fingerprint was green over it, because a document that prints its
+    own source is byte-identical to itself.
+
+    The rule runs both ways: a `#` is equally wrong in a code context, where it is a
+    syntax error rather than a cosmetic problem.
+    """
+
+    template_id = fixture["template_id"]
+    package = RenderPackage.model_validate_json(
+        Path(fixture["package_path"]).read_text(encoding="utf-8")
+    )
+    context = CONTEXT_BUILDERS[template_id](package)
+    contexts = _substitution_contexts(template_id, fixture["template_version"])
+
+    printed_as_text: list[str] = []
+    invalid_in_code: list[str] = []
+    for key, where in contexts.items():
+        fragment = context.get(key, "").lstrip()
+        if not fragment:
+            continue
+        if "markup" in where and CALL_FRAGMENT.match(fragment):
+            printed_as_text.append(f"{key}: {fragment[:60]}")
+        if "code" in where and fragment.startswith("#"):
+            invalid_in_code.append(f"{key}: {fragment[:60]}")
+
+    assert not printed_as_text, (
+        f"{template_id} substitutes these into markup as bare calls, so the document "
+        f"prints them as its own source: {printed_as_text}"
+    )
+    assert not invalid_in_code, (
+        f"{template_id} substitutes these into a code context with a leading '#', "
+        f"which will not compile: {invalid_in_code}"
+    )
