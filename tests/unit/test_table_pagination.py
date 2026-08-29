@@ -144,3 +144,40 @@ def test_a_report_with_no_data_is_shorter_than_a_full_one() -> None:
         f"an all-empty report renders {degraded} pages against {full} for a full one; "
         "the section breaks are still firing without content behind them"
     )
+
+
+COMPONENTS_TEMPLATE = TEMPLATE_ROOT / "_components.typ"
+# Small fixed-size cards. Splitting one shows a stroke with no bottom, or a label whose
+# value is on the next page.
+UNBREAKABLE_CARDS = ("note-panel", "metric-card", "review-note")
+
+
+def test_small_cards_cannot_split_across_a_page_break() -> None:
+    """Typst 0.14.2 has no widow or orphan control -- `#set par(widows:)` is rejected.
+
+    `breakable: false` on the units that are always wrong to split is the mechanism the
+    engine does offer (issue #138). Verified against typst 0.14.2: a card straddling a
+    boundary renders across 3 pages breakable and 2 unbreakable.
+    """
+
+    source = COMPONENTS_TEMPLATE.read_text(encoding="utf-8")
+
+    for card in UNBREAKABLE_CARDS:
+        start = source.index(f"#let {card}(")
+        declaration = source[start : source.index("[", start)]
+        assert "breakable: false" in declaration, (
+            f"{card} can split across a page break, which always looks broken for a bordered card"
+        )
+
+
+def test_panels_that_wrap_long_tables_stay_breakable() -> None:
+    """The guard must not be applied where it would prevent pagination entirely."""
+
+    source = COMPONENTS_TEMPLATE.read_text(encoding="utf-8")
+
+    start = source.index("#let report-panel(")
+    declaration = source[start : source.index("[", start)]
+    assert "breakable: false" not in declaration, (
+        "report-panel wraps the positions and transactions tables; making it unbreakable "
+        "would stop a long statement paginating at all"
+    )
