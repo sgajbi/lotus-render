@@ -479,3 +479,63 @@ def test_artifact_metadata_names_the_template_bytes_that_produced_it(tmp_path: P
     assert digest == template_digest(Path("templates/typst/portfolio-review/v1")), (
         "the recorded digest does not match the template that rendered the document"
     )
+
+
+def test_a_replay_is_not_rejected_when_execution_capacity_is_exhausted(tmp_path: Path) -> None:
+    """A submission that renders nothing must not be refused for lack of capacity.
+
+    The execution slot used to be acquired in the route, around the whole submit, so a
+    caller retrying an already-finished render could exhaust capacity and 429 itself and
+    genuine work alike (issue #115). The slot now wraps only work that actually renders.
+    """
+
+    payload = PORTFOLIO_REVIEW_RENDER_PACKAGE_EXAMPLE_PATH.read_text(encoding="utf-8")
+
+    app = create_app(Settings(render_store_path=str(tmp_path / "render-store.sqlite3")))
+    with TestClient(app) as client:
+        first = client.post(
+            "/renders", content=payload, headers={"Content-Type": "application/json"}
+        )
+        assert first.status_code == 201, first.text
+
+        limiter = app.state.container.render_execution_limiter
+        held = [limiter.acquire() for _ in range(limiter.concurrency_limit)]
+        assert all(held), "could not saturate the execution limiter"
+        try:
+            replay = client.post(
+                "/renders", content=payload, headers={"Content-Type": "application/json"}
+            )
+        finally:
+            for _ in held:
+                limiter.release()
+
+    assert replay.status_code == 200, (
+        f"a replay was rejected with {replay.status_code} while capacity was busy; "
+        "an already-terminal job renders nothing and must not need a slot"
+    )
+    assert replay.json()["artifact_base64"] is None
+
+
+def test_a_new_render_is_still_rejected_when_capacity_is_exhausted(tmp_path: Path) -> None:
+    """Decoupling replays from the slot must not remove the bound on real work."""
+
+    payload = PORTFOLIO_REVIEW_RENDER_PACKAGE_EXAMPLE_PATH.read_text(encoding="utf-8")
+
+    app = create_app(Settings(render_store_path=str(tmp_path / "render-store.sqlite3")))
+    with TestClient(app) as client:
+        limiter = app.state.container.render_execution_limiter
+        held = [limiter.acquire() for _ in range(limiter.concurrency_limit)]
+        assert all(held), "could not saturate the execution limiter"
+        try:
+            rejected = client.post(
+                "/renders", content=payload, headers={"Content-Type": "application/json"}
+            )
+        finally:
+            for _ in held:
+                limiter.release()
+
+    assert rejected.status_code == 429, (
+        f"a render needing a slot was admitted with {rejected.status_code} while capacity "
+        "was exhausted; the bound on real work is gone"
+    )
+    assert rejected.json()["detail"]["code"] == "render_execution_capacity_exhausted"

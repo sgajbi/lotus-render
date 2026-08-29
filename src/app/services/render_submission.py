@@ -27,6 +27,7 @@ from app.infrastructure.render_store import (
 )
 from app.observability.render_log import log_render_accepted, log_render_failed
 from app.observability.render_metrics import record_render_artifact_size, record_render_operation
+from app.services.render_execution import RenderExecutionLimiter
 from app.services.render_ports import (
     RenderEnginePort,
     RenderEngineTimeoutError,
@@ -42,6 +43,10 @@ class RenderExecutionFailedError(RuntimeError):
     pass
 
 
+class RenderCapacityExhaustedError(RuntimeError):
+    """No execution slot was free for a render that actually needed one."""
+
+
 class RenderSubmissionService:
     def __init__(
         self,
@@ -49,6 +54,7 @@ class RenderSubmissionService:
         render_store: RenderJobStorePort,
         render_engine: RenderEnginePort,
         rendering_stale_seconds: int,
+        execution_limiter: RenderExecutionLimiter,
     ) -> None:
         self._render_store = render_store
         self._render_engine = render_engine
@@ -57,6 +63,10 @@ class RenderSubmissionService:
         # diagnostics surface calls stale, or operators would be told to resubmit a job the
         # service still refuses to re-render.
         self._rendering_stale_seconds = rendering_stale_seconds
+        # Held only around work that actually renders. Acquiring it around the whole
+        # submit meant an idempotent replay - which does no rendering at all - could
+        # exhaust capacity and 429 a genuine render (issue #115).
+        self._execution_limiter = execution_limiter
 
     def submit(self, render_package: RenderPackage) -> RenderSubmitResponse:
         started_at = perf_counter()
@@ -121,7 +131,22 @@ class RenderSubmissionService:
         The claim and the fail-closed handlers below live in the same method deliberately:
         the transition to 'rendering' and the guarantee that a terminal state is reached
         are one invariant, and splitting them leaves a window that strands the job (#104).
+
+        The execution slot is taken *before* the claim, so a capacity rejection leaves the
+        row at 'accepted' rather than 'rendering'. That is safe because an 'accepted' job
+        is always claimable, so the next submission simply renders it (issue #115); it was
+        not safe before #105, when a non-terminal row could not be re-executed at all.
         """
+        if not self._execution_limiter.acquire():
+            raise RenderCapacityExhaustedError("render_execution_capacity_exhausted")
+        try:
+            return self._claim_and_render(render_package, started_at=started_at, current=current)
+        finally:
+            self._execution_limiter.release()
+
+    def _claim_and_render(
+        self, render_package: RenderPackage, *, started_at: float, current: StoredRenderJob
+    ) -> RenderSubmitResponse:
         claimed = self._render_store.claim_for_rendering(
             render_package.render_job_id,
             rendering_stale_seconds=self._rendering_stale_seconds,

@@ -19,6 +19,7 @@ from app.dependencies.container import ContainerDependency, RenderSubmissionDepe
 from app.infrastructure.render_store import RenderJobConflictError, RenderJobNotFoundError
 from app.observability.render_metrics import record_render_operation
 from app.services.render_submission import (
+    RenderCapacityExhaustedError,
     RenderExecutionFailedError,
     RenderPackageInvalidError,
 )
@@ -130,7 +131,11 @@ async def submit_render(
     container: ContainerDependency,
     service: RenderSubmissionDependency,
 ) -> RenderSubmitResponse:
-    if not container.render_execution_limiter.acquire():
+    try:
+        result = await run_in_threadpool(service.submit, request_payload)
+    except RenderCapacityExhaustedError as exc:
+        # The slot is taken inside the service, around work that actually renders, so a
+        # replay or an already-terminal job can no longer exhaust capacity (issue #115).
         record_render_operation(
             operation="render_submission",
             status="rejected",
@@ -139,9 +144,7 @@ async def submit_render(
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
             detail=API_ERROR_RESPONSE_EXAMPLES["render_execution_capacity_exhausted"]["detail"],
-        )
-    try:
-        result = await run_in_threadpool(service.submit, request_payload)
+        ) from exc
     except RenderJobConflictError as exc:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
@@ -163,8 +166,6 @@ async def submit_render(
                 "message": str(exc),
             },
         ) from exc
-    finally:
-        container.render_execution_limiter.release()
 
     if result.artifact_base64 is None:
         response.status_code = status.HTTP_200_OK

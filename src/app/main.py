@@ -47,16 +47,18 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             Path(configured_settings.template_registry_path)
         )
         render_store = RenderStore(Path(configured_settings.render_store_path))
+        execution_limiter = RenderExecutionLimiter(
+            configured_settings.render_execution_concurrency_limit
+        )
         app.state.container = AppContainer(
             settings=configured_settings,
             render_foundation=RenderFoundationService(configured_settings),
             render_store=render_store,
-            render_execution_limiter=RenderExecutionLimiter(
-                configured_settings.render_execution_concurrency_limit
-            ),
+            render_execution_limiter=execution_limiter,
             render_submission_service=RenderSubmissionService(
                 render_store=render_store,
                 rendering_stale_seconds=configured_settings.stale_rendering_seconds,
+                execution_limiter=execution_limiter,
                 render_engine=TypstRenderService(
                     configured_settings,
                     RenderIntakeService(template_registry),
