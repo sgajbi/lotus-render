@@ -15,7 +15,7 @@ import re
 from pathlib import Path
 
 from app.contracts.render_package import RenderPackage
-from app.services.number_format import format_money, format_percent
+from app.services.number_format import format_money, format_percent, group_digits
 from app.services.portfolio_charts import (
     _format_currency,
     _format_decimal,
@@ -83,4 +83,64 @@ def test_no_emitter_formats_a_monetary_value_with_a_bare_f_string() -> None:
 
     assert not offenders, (
         f"these emitters format a monetary value directly instead of via number_format: {offenders}"
+    )
+
+
+def test_grouping_never_changes_the_number_it_groups() -> None:
+    """Separators are presentation. Precision is the owning service's decision.
+
+    `format_money` quantizes, which is right where Render chooses the precision and
+    wrong where it is passing a figure through: rounding a quantity or an exchange
+    rate to two places would be Render altering a number it does not own.
+    """
+
+    assert group_digits("9140740.73") == "9,140,740.73"
+    assert group_digits("-1234567.5") == "-1,234,567.5"
+    assert group_digits("1000") == "1,000"
+    # Precision beyond two places survives; `format_money` would have destroyed it.
+    assert group_digits("12.3456789") == "12.3456789"
+    assert format_money("12.3456789") == "12.35"
+    # A percent keeps its suffix, a date is not a number, and neither is a word.
+    assert group_digits("-38.40%") == "-38.40%"
+    assert group_digits("2026-04-23") == "2026-04-23"
+    assert group_digits("Not available") == "Not available"
+    # Already grouped input is left alone rather than mangled.
+    assert group_digits("1,234.50") == "1,234.50"
+    # A labelled amount is still an amount; producers send both forms.
+    assert group_digits("USD 450000.00") == "USD 450,000.00"
+    # Digits welded to letters, or carrying a leading zero, are a code and not a
+    # quantity: grouping one would also silently drop the zero.
+    assert group_digits("ISIN US0378331005") == "ISIN US0378331005"
+    assert group_digits("0378331005") == "0378331005"
+
+
+# A number with four or more integer digits and a decimal fraction, ungrouped. Dates
+# have no fraction and identifiers have no decimal point, so neither is matched.
+UNGROUPED_AMOUNT = re.compile(r"(?<![\d,.])\d{4,}\.\d+(?![\d])")
+
+
+def test_no_amount_reaches_the_page_ungrouped() -> None:
+    """A property of the output, because the source-scanning guard above cannot see this.
+
+    That guard matches *bad formatting* -- an f-string with a `:.2f`. The emitters were
+    not formatting badly; they were passing the producer's string through untouched, so
+    the guard read green while the document showed `USD 14984567.89`, `9140740.73` in
+    the portfolio scope table, and 60 more in the monthly performance table. Ninety
+    amounts in one private-banking review, spelled the way a machine emitted them.
+
+    Asserting on the built context cannot be evaded by not formatting at all.
+    """
+
+    package = RenderPackage.model_validate_json(GOLDEN_PACKAGE.read_text(encoding="utf-8"))
+    context = build_portfolio_review_context(package)
+
+    offenders = {
+        key: UNGROUPED_AMOUNT.findall(value)
+        for key, value in context.items()
+        if UNGROUPED_AMOUNT.search(value)
+    }
+
+    assert not offenders, (
+        "these context values reach the document with ungrouped amounts: "
+        f"{ {key: hits[:4] for key, hits in offenders.items()} }"
     )

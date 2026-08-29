@@ -553,10 +553,10 @@ def test_typst_render_service_builds_richer_portfolio_review_context() -> None:
     assert "EQ-1" in template_context["DENSE_POSITION_ROWS"]
     assert "US0000000001" in template_context["DENSE_POSITION_ROWS"]
     assert (
-        "Not available;Not available;8118290.51;2024-01-15"
+        "Not available;Not available;8,118,290.51;2024-01-15"
         in template_context["DENSE_POSITION_ROWS"]
     )
-    assert "9140740.73;Not available" in template_context["DENSE_POSITION_ROWS"]
+    assert "9,140,740.73;Not available" in template_context["DENSE_POSITION_ROWS"]
     assert "Cost value" not in template_context["DENSE_POSITION_ROWS"]
     assert "Average weight" not in template_context["DENSE_POSITION_ROWS"]
     assert "TXN-20260109-BUY-001" in template_context["DENSE_TRANSACTION_ROWS"]
@@ -564,7 +564,7 @@ def test_typst_render_service_builds_richer_portfolio_review_context() -> None:
     assert "Reference TXN-20260109-BUY-001" in template_context["DENSE_TRANSACTION_ROWS"]
     assert "Instrument INST-EQ-1" in template_context["DENSE_TRANSACTION_ROWS"]
     assert "09.01.2026;Not available" in template_context["DENSE_TRANSACTION_ROWS"]
-    assert "NAV 102.35;;450000.00;" in template_context["DENSE_TRANSACTION_ROWS"]
+    assert "NAV 102.35;;450,000.00;" in template_context["DENSE_TRANSACTION_ROWS"]
     assert "#review-note(" in template_context["OBSERVATION_NOTES"]
 
 
@@ -977,9 +977,9 @@ def test_typst_render_service_maps_dense_position_lifecycle_fields() -> None:
     )
 
     assert "A;Financials;4.20;5.10%" in rows
-    assert "98.40;1.3520;9840.00;2024-01-15" in rows
+    assert "98.40;1.3520;9,840.00;2024-01-15" in rows
     assert "101.25;1.3520;2026-04-23;3.10%" in rows
-    assert "10125.00;42.25" in rows
+    assert "10,125.00;42.25" in rows
     assert "product_type" not in rows
     assert "liquidity_tier" not in rows
 
@@ -1012,7 +1012,7 @@ def test_typst_render_service_maps_transaction_value_date_and_settlement_amount(
     )
 
     assert "2026-04-21;2026-04-23" in rows
-    assert "10125.00;42.25;10167.25" in rows
+    assert "10,125.00;42.25;10,167.25" in rows
     assert "2026-04-21;2026-04-21" not in rows
     assert "10125.00;42.25;10125.00" not in rows
 
