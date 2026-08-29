@@ -38,6 +38,8 @@ from app.services.typst_rendering import (
     DOCKER_ISOLATION_FLAGS,
     DOCKER_TYPST_IMAGE,
     TypstRenderService,
+    _bounded_local_command,
+    ungoverned_runtime_reason,
 )
 from app.services.typst_tables import (
     render_allocation_breakdown_rows,
@@ -1390,6 +1392,11 @@ def test_the_in_process_compile_branch_is_resource_bounded(
     source_path = tmp_path / "main.typ"
     source_path.write_text("test", encoding="utf-8")
 
+    # The shipped image is Linux, and the bound is a Linux `ulimit`. Pinning the platform
+    # is what makes this test describe that image rather than whichever host runs it: on
+    # Windows it used to pass only because Git Bash supplies an `sh` that cannot bound
+    # anything, so the assertion held while the real behaviour was a failed compile.
+    monkeypatch.setattr("app.services.typst_rendering.sys.platform", "linux")
     monkeypatch.setattr(
         "app.services.typst_rendering.shutil.which",
         lambda binary: {"typst": "/usr/local/bin/typst", "sh": "/bin/sh"}.get(binary),
@@ -1430,3 +1437,58 @@ def test_the_compile_falls_back_unwrapped_where_there_is_no_shell(
 
     assert command[0] == "C:/typst.exe"
     assert command[1] == "compile"
+
+
+def test_a_windows_host_does_not_wrap_the_compile_in_a_shell_that_cannot_bound_it(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The bound is a Linux `ulimit`, and the test for it must be the platform.
+
+    Git Bash puts an `sh` on PATH on Windows, so a shell-presence test wraps the
+    compile in a shell that answers `ulimit: cpu time: cannot modify limit: Invalid
+    argument` and fails the render outright instead of bounding it.
+    """
+    monkeypatch.setattr("app.services.typst_rendering.sys.platform", "win32")
+    monkeypatch.setattr(
+        "app.services.typst_rendering.shutil.which", lambda binary: "C:/Git/usr/bin/sh.exe"
+    )
+
+    command = ["typst", "compile", "render.typ", "rendered.pdf"]
+    assert _bounded_local_command(command) == command
+
+
+def test_a_linux_host_still_bounds_the_compile(monkeypatch: pytest.MonkeyPatch) -> None:
+    """The deployment that matters keeps the bound it was given in #128."""
+    monkeypatch.setattr("app.services.typst_rendering.sys.platform", "linux")
+    monkeypatch.setattr("app.services.typst_rendering.shutil.which", lambda binary: "/bin/sh")
+
+    bounded = _bounded_local_command(["typst", "compile", "render.typ", "rendered.pdf"])
+
+    assert bounded[0] == "/bin/sh"
+    assert "ulimit -v" in bounded[2] and "ulimit -t" in bounded[2]
+
+
+def test_golden_evidence_may_only_be_banked_from_a_runtime_that_renders_like_production(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A fingerprint is a claim about the service, not about the machine that ran it.
+
+    Measured: the same `main.typ` compiled by `ghcr.io/typst/typst:0.14.2` and by that
+    image's binary copied into `python:3.12-slim` -- the shipped runtime -- both produce
+    `e4fda81ba17e7577eb594d39145a152e0560e8aecfac86c529e012eea6a95ca6`, which is the
+    banked golden. The same Typst 0.14.2 on Windows produces
+    `ace7681ae6647db8b28e28057cb9bdefb47d0f241822831faf2fe01862d86ad4`. Banking the
+    second would record evidence CI could never reproduce.
+    """
+    monkeypatch.setattr(
+        "app.services.typst_rendering.shutil.which", lambda binary: "/usr/bin/docker"
+    )
+    assert ungoverned_runtime_reason() is None, "the pinned container is the governed runtime"
+
+    monkeypatch.setattr("app.services.typst_rendering.shutil.which", lambda binary: None)
+    monkeypatch.setattr("app.services.typst_rendering.sys.platform", "linux")
+    assert ungoverned_runtime_reason() is None, "a local binary on Linux is what production runs"
+
+    monkeypatch.setattr("app.services.typst_rendering.sys.platform", "win32")
+    reason = ungoverned_runtime_reason()
+    assert reason is not None and "Linux" in reason
