@@ -15,6 +15,7 @@ from app.core.settings import Settings
 from app.dependencies.container import get_render_submission_service
 from app.main import create_app
 from app.services.render_submission import RenderExecutionFailedError
+from app.services.typst_rendering import template_digest
 
 
 def _build_client(tmp_path: Path) -> TestClient:
@@ -452,3 +453,29 @@ def test_submit_render_extra_field_validation_is_support_safe(tmp_path: Path) ->
         assert body["detail"]["correlation_id"] == "corr-extra-field"
         assert "sha256:not-contract" not in response.text
         assert payload["report_data"]["client_name"] not in response.text
+
+
+def test_artifact_metadata_names_the_template_bytes_that_produced_it(tmp_path: Path) -> None:
+    """The evidence chain needs the template link to carry proof, not just a version.
+
+    `template_version` names a mutable directory, so the version alone cannot explain an
+    output after the fact (issue #139).
+    """
+
+    payload = PORTFOLIO_REVIEW_RENDER_PACKAGE_EXAMPLE_PATH.read_text(encoding="utf-8")
+
+    with _build_client(tmp_path) as client:
+        submitted = client.post(
+            "/renders", content=payload, headers={"Content-Type": "application/json"}
+        )
+        assert submitted.status_code == 201, submitted.text
+        job_id = submitted.json()["render_job_id"]
+
+        metadata = client.get(f"/renders/{job_id}/artifact-metadata")
+
+    assert metadata.status_code == 200
+    digest = metadata.json()["template_digest"]
+    assert digest.startswith("sha256:"), f"no template digest was recorded: {digest!r}"
+    assert digest == template_digest(Path("templates/typst/portfolio-review/v1")), (
+        "the recorded digest does not match the template that rendered the document"
+    )

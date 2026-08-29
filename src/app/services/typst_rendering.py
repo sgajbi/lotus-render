@@ -62,6 +62,30 @@ COMPILE_ADDRESS_SPACE_LIMIT_KB = 512 * 1024
 COMPILE_CPU_SECONDS = 60
 
 
+def template_digest(template_directory: Path) -> str:
+    """A content hash of the template that produced a document.
+
+    ``template_version`` names a directory, and that directory is mutable: nothing binds
+    v1 to the bytes it held when a job rendered. Recording the digest makes a divergence
+    detectable and explainable afterwards, which is what the evidence chain needs -- and
+    it matters more because a rendered artifact is not re-fetchable, so re-obtaining a
+    document means re-rendering against whatever the directory contains today (#139).
+
+    Paths are relative and sorted so the digest is stable across machines and checkouts.
+    """
+    digest = hashlib.sha256()
+    for path in sorted(p for p in template_directory.rglob("*") if p.is_file()):
+        # Length-prefixed so no separator byte can appear in a path or a file and
+        # make two different template trees hash alike.
+        name = path.relative_to(template_directory).as_posix().encode("utf-8")
+        content = path.read_bytes()
+        digest.update(str(len(name)).encode("ascii"))
+        digest.update(name)
+        digest.update(str(len(content)).encode("ascii"))
+        digest.update(content)
+    return f"sha256:{digest.hexdigest()}"
+
+
 def _compile_container_name(workspace: Path) -> str:
     """Name the run after its workspace so the timeout path can stop that container.
 
@@ -186,6 +210,11 @@ class TypstRenderService:
             attempt.mark_failed(RenderFailureCategory.PACKAGE_VALIDATION_FAILED, str(exc))
             raise
 
+        # What the template actually contained for this render. template_version names
+        # a mutable directory, so the version alone cannot explain an output (#139).
+        rendered_template_digest = template_digest(
+            Path("templates/typst") / manifest.template_id / manifest.template_version
+        )
         attempt.mark_rendering()
         started = perf_counter()
         deterministic_statement = (
@@ -260,6 +289,7 @@ class TypstRenderService:
             determinism_mode=DETERMINISM_MODE,
             determinism_statement=deterministic_statement,
             bounded_determinism_fingerprint=bounded_determinism_fingerprint,
+            template_digest=rendered_template_digest,
             artifact_sha256=artifact_sha256,
             render_duration_ms=duration_ms,
             mime_type=PDF_MIME_TYPE,

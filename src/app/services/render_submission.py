@@ -471,6 +471,7 @@ def _to_artifact_metadata_response(stored: StoredRenderJob) -> RenderArtifactMet
         output_format=stored.output_format,
         artifact_sha256=stored.artifact_sha256,
         bounded_determinism_fingerprint=stored.bounded_determinism_fingerprint,
+        template_digest=stored.template_digest or "",
         mime_type=stored.mime_type,
         output_size_bytes=stored.output_size_bytes,
         render_duration_ms=stored.render_duration_ms,

@@ -503,6 +503,16 @@ class RenderArtifactMetadataResponse(BaseModel):
         description="Bounded-determinism fingerprint for the produced artifact.",
         examples=[RENDER_STATUS_RESPONSE_EXAMPLE["bounded_determinism_fingerprint"]],
     )
+    template_digest: str = Field(
+        default="",
+        description=(
+            "Content hash of the template that produced this artifact. `template_version` "
+            "names a directory whose contents can change, so the version alone cannot "
+            "explain an output after the fact. Empty for artifacts rendered before the "
+            "digest was recorded."
+        ),
+        examples=["sha256:ab7835d9dee0715480a2f458af7c0f1e"],
+    )
     mime_type: str = Field(
         ...,
         description="Artifact MIME type.",

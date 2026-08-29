@@ -3,7 +3,7 @@ from __future__ import annotations
 import sqlite3
 from collections.abc import Callable
 
-CURRENT_RENDER_STORE_SCHEMA_VERSION = 2
+CURRENT_RENDER_STORE_SCHEMA_VERSION = 3
 
 Migration = Callable[[sqlite3.Connection], None]
 
@@ -90,6 +90,18 @@ def _add_lineage_columns(connection: sqlite3.Connection) -> None:
     )
 
 
+def _add_template_digest_column(connection: sqlite3.Connection) -> None:
+    """Record which template bytes produced a document.
+
+    template_version names a mutable directory, so the version alone cannot explain an
+    output after the fact; the digest can (issue #139). Existing rows keep an empty
+    value: they were rendered before the digest was recorded, and claiming a digest
+    for them would be worse than admitting it is unknown.
+    """
+    columns = render_store_columns(connection)
+    _add_column_if_missing(connection, columns, "template_digest", "TEXT NOT NULL DEFAULT ''")
+
+
 def _add_column_if_missing(
     connection: sqlite3.Connection,
     columns: set[str],
@@ -105,4 +117,5 @@ def _add_column_if_missing(
 _MIGRATIONS: tuple[tuple[int, Migration], ...] = (
     (1, _create_base_schema),
     (2, _add_lineage_columns),
+    (3, _add_template_digest_column),
 )
