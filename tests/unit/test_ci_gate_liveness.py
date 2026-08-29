@@ -92,3 +92,22 @@ def test_make_dependency_inventory_does_not_cross_target_boundaries() -> None:
     )
 
     assert parsed == {"first": (), "second": ("dependency",)}
+
+
+def test_every_compiling_test_job_declares_the_render_runtime() -> None:
+    """The golden suites compile real PDFs; that dependency must be declared, not assumed.
+
+    Before issue #109 no workflow installed or checked for Typst or Docker: the compiles
+    happened only because GitHub's runner image ships Docker on PATH. A runner image
+    change would have turned real rendering into confusing collection errors, and a
+    change that stopped reaching the runtime would have looked like a faster green lane.
+    """
+
+    for path in WORKFLOW_FILES:
+        text = path.read_text(encoding="utf-8")
+        if "pytest" not in text:
+            continue
+        assert "make render-runtime-gate" in text, (
+            f"{path.name} runs pytest but never verifies the render runtime is present, so a "
+            "runner without docker or typst would fail confusingly instead of by name."
+        )

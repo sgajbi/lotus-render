@@ -111,6 +111,7 @@ from this page, and equally when this page names a gate the lanes no longer run.
 | `make source-size-gate` | no module past its banked line count |
 | `make dead-code-gate` | no vulture finding at 80% confidence |
 | `make dependency-hygiene-gate` | no deptry finding |
+| `make render-runtime-gate` | a real Typst runtime (Docker or the CLI) is present, so the suites that compile golden PDFs cannot silently stop compiling |
 
 Baselines are banked at the measured tree with no headroom, and `tests/unit/test_code_health_gates.py`
 asserts each threshold equals the measurement and that empty scans fail closed. All three blocking

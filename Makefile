@@ -1,4 +1,4 @@
-.PHONY: install lint monetary-float-guard typecheck openapi-gate template-registry-gate test test-unit test-integration test-e2e test-coverage security-audit check ci docker-build clean complexity-gate source-size-gate dead-code-gate dependency-hygiene-gate code-health-gates
+.PHONY: install lint monetary-float-guard typecheck openapi-gate template-registry-gate test test-unit test-integration test-e2e test-coverage security-audit check ci docker-build clean complexity-gate source-size-gate dead-code-gate dependency-hygiene-gate code-health-gates render-runtime-gate
 
 # Code-health baselines, banked at the measured tree with no headroom. An allowance above the
 # measurement is slack the next change spends, so each of these equals what the tree measures today
@@ -41,20 +41,23 @@ template-registry-gate:
 test:
 	$(MAKE) test-unit
 
-test-unit:
+test-unit: render-runtime-gate
 	$(VENV_PYTHON) -m pytest tests/unit
 
-test-integration:
+test-integration: render-runtime-gate
 	$(VENV_PYTHON) -m pytest tests/integration
 
-test-e2e:
+test-e2e: render-runtime-gate
 	$(VENV_PYTHON) -m pytest tests/e2e
 
-test-coverage:
+test-coverage: render-runtime-gate
 	COVERAGE_FILE=.coverage.unit $(VENV_PYTHON) -m pytest tests/unit --cov=src --cov-report=
 	COVERAGE_FILE=.coverage.integration $(VENV_PYTHON) -m pytest tests/integration --cov=src --cov-report=
 	COVERAGE_FILE=.coverage.e2e $(VENV_PYTHON) -m pytest tests/e2e --cov=src --cov-report=
 	$(VENV_PYTHON) scripts/coverage_gate.py
+
+render-runtime-gate:
+	$(VENV_PYTHON) scripts/render_runtime_gate.py
 
 security-audit:
 	$(VENV_PYTHON) scripts/pip_audit_gate.py

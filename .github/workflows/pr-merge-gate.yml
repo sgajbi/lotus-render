@@ -73,6 +73,8 @@ jobs:
           cache: "pip"
       - name: Install
         run: make install
+      - name: Verify Render Runtime
+        run: make render-runtime-gate
       - name: Run tests with coverage data
         env:
           COVERAGE_FILE: .coverage.${{ matrix.suite }}
