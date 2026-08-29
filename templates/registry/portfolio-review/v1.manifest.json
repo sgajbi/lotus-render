@@ -24,7 +24,10 @@
   "approved_at": "2026-04-23",
   "status": "active",
   "golden_sample_ids": [
-    "golden-portfolio-review-en-SG-private-banking-v1"
+    "golden-portfolio-review-en-SG-private-banking-v1",
+    "golden-portfolio-review-advisory-narrative-en-SG-private-banking-v1",
+    "golden-portfolio-review-advisor-memo-en-SG-private-banking-v1",
+    "golden-portfolio-review-degraded-en-SG-private-banking-v1"
   ],
   "runtime_engine": "typst",
   "runtime_engine_version": "0.14.2"

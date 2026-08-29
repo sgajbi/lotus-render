@@ -61,6 +61,18 @@ would let a weakened fingerprint move both sides together and pass. A discrimina
 the fingerprint is stable across timestamp and identifier differences but changes on a content
 difference. See [Security and Controls](Security-and-Controls#integrity-of-what-is-produced).
 
+When a template change is intended, restate the proof rather than weakening it:
+`make golden-fixtures` reports which fixtures no longer match their banked artefact, and
+`python scripts/regenerate_golden_fixtures.py --write` re-renders them and re-banks their
+fingerprints. The resulting PDF diff is the review surface, so a change nobody intended
+shows up in the pull request. It is a tool rather than a lane gate, because the golden unit
+tests already assert every banked fingerprint on each run.
+
+The banked surface deliberately covers more than the default happy path: the two advisory
+sections and an all-empty degraded package each carry their own sample, because those are
+the portfolio-review paths most exposed to change and they previously had no compiled proof
+at all.
+
 Those comparisons only mean something while a real Typst runtime is present, so `make
 render-runtime-gate` runs ahead of every suite that compiles and fails by name when neither Docker
 nor the Typst CLI is on `PATH`. The blocking workflows invoke it, and a fitness function asserts
