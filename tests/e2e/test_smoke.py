@@ -29,3 +29,19 @@ def test_metadata_endpoint(tmp_path: Path) -> None:
             "rendered",
             "failed",
         ]
+
+
+def test_shutdown_marks_the_service_draining(tmp_path: Path) -> None:
+    """`is_draining` was initialised False and never set True anywhere (issue #105).
+
+    Readiness, supportability and the operator surfaces all read it, so the drain state
+    was declared posture with no activation path. Shutdown must actually flip it.
+    """
+
+    app = create_app(Settings(render_store_path=str(tmp_path / "render-store.sqlite3")))
+    with TestClient(app) as client:
+        assert client.get("/health/ready").json()["status"] == "ready"
+        assert app.state.container.is_draining is False
+
+    # The TestClient context exit runs lifespan shutdown.
+    assert app.state.container.is_draining is True

@@ -39,6 +39,13 @@ class RenderJobStorePort(Protocol):
 
     def mark_rendering(self, render_job_id: str) -> StoredRenderJob: ...
 
+    def claim_for_rendering(
+        self,
+        render_job_id: str,
+        *,
+        rendering_stale_seconds: int,
+    ) -> StoredRenderJob | None: ...
+
     def mark_rendered(self, render_job_id: str, result: RenderResult) -> StoredRenderJob: ...
 
     def mark_failed(

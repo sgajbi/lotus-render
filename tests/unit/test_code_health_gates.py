@@ -354,9 +354,10 @@ def test_string_literal_emitters_do_not_use_the_markup_escaper() -> None:
 def test_render_execution_fail_closes_after_marking_rendering() -> None:
     """A job moved to 'rendering' must reach a terminal state on every path.
 
-    ``mark_rendering`` is written before the compile; if any later exception escapes,
-    the row is stranded at 'rendering' where resubmit is a no-op (issue #104). Every
-    method that calls ``mark_rendering`` must therefore also carry a fail-closed
+    The job is moved to 'rendering' before the compile; if any later exception escapes,
+    the row is stranded there (issue #104) until a resubmission reclaims it (issue #105).
+    Every method that performs that transition -- ``mark_rendering`` or the
+    ``claim_for_rendering`` that superseded it -- must therefore also carry a fail-closed
     catch-all (``except Exception``) that transitions the job to 'failed'.
     """
 
@@ -369,7 +370,7 @@ def test_render_execution_fail_closes_after_marking_rendering() -> None:
         return any(
             isinstance(call, ast.Call)
             and isinstance(call.func, ast.Attribute)
-            and call.func.attr == "mark_rendering"
+            and call.func.attr in {"mark_rendering", "claim_for_rendering"}
             for call in ast.walk(node)
         )
 

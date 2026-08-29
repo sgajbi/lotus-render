@@ -17,6 +17,7 @@ from app.contracts.renders import (
     RenderStaleState,
     RenderSubmitResponse,
 )
+from app.domain.rendering.models import RenderResult
 from app.domain.templates.registry import TemplateCompatibilityError
 from app.infrastructure.render_store import (
     RenderJobConflictError,
@@ -46,9 +47,15 @@ class RenderSubmissionService:
         *,
         render_store: RenderJobStorePort,
         render_engine: RenderEnginePort,
+        rendering_stale_seconds: int,
     ) -> None:
         self._render_store = render_store
         self._render_engine = render_engine
+        # How long a job may sit at 'rendering' before a resubmission is allowed to take it
+        # over. Recovery policy, not a per-request choice: it must be the same window the
+        # diagnostics surface calls stale, or operators would be told to resubmit a job the
+        # service still refuses to re-render.
+        self._rendering_stale_seconds = rendering_stale_seconds
 
     def submit(self, render_package: RenderPackage) -> RenderSubmitResponse:
         started_at = perf_counter()
@@ -88,15 +95,32 @@ class RenderSubmissionService:
             )
             raise
         existing = create_result.job
-        if existing.status in ("rendered", "failed") or not create_result.created:
+        if existing.status in ("rendered", "failed"):
             self._record_submit_metric(existing, started_at=started_at)
             return self._to_submit_response(existing, artifact_base64=None)
-        return self._execute_render(render_package, started_at=started_at)
+        return self._execute_render(render_package, started_at=started_at, current=existing)
 
     def _execute_render(
-        self, render_package: RenderPackage, *, started_at: float
+        self, render_package: RenderPackage, *, started_at: float, current: StoredRenderJob
     ) -> RenderSubmitResponse:
-        self._render_store.mark_rendering(render_package.render_job_id)
+        """Claim the job and render it, or report the truth if it cannot be claimed.
+
+        Claiming, rather than short-circuiting on "the row already existed", is what makes
+        the documented recovery action real: a job whose worker died sits at 'rendering'
+        forever and is taken over here once it goes stale (issue #105). A job someone is
+        genuinely still rendering is not claimable, and its current truth is returned.
+
+        The claim and the fail-closed handlers below live in the same method deliberately:
+        the transition to 'rendering' and the guarantee that a terminal state is reached
+        are one invariant, and splitting them leaves a window that strands the job (#104).
+        """
+        claimed = self._render_store.claim_for_rendering(
+            render_package.render_job_id,
+            rendering_stale_seconds=self._rendering_stale_seconds,
+        )
+        if claimed is None:
+            self._record_submit_metric(current, started_at=started_at)
+            return self._to_submit_response(current, artifact_base64=None)
         try:
             result = self._render_engine.render(render_package)
         except RenderEngineTimeoutError as exc:
@@ -132,8 +156,8 @@ class RenderSubmissionService:
         except Exception as exc:
             # Fail-closed: RuntimeError and every other unexpected error (ArithmeticError
             # from malformed numerics, OSError, OverflowError, sqlite failures, ...) must
-            # move the job to 'failed'. Nothing may leave it at 'rendering', where resubmit
-            # is a no-op and only a reaper (#105) could rescue it.
+            # move the job to 'failed'. Nothing may leave it at 'rendering': a stranded job
+            # is only recoverable once it goes stale and a resubmission reclaims it (#105).
             failure_category = _unexpected_failure_category(exc)
             return self._fail_submit(
                 render_package.render_job_id,
@@ -145,6 +169,12 @@ class RenderSubmissionService:
                 started_at=started_at,
             )
 
+        return self._record_render_result(render_package, result, started_at=started_at)
+
+    def _record_render_result(
+        self, render_package: RenderPackage, result: RenderResult, *, started_at: float
+    ) -> RenderSubmitResponse:
+        """Persist a successful render, or fail the job closed if persisting it fails."""
         try:
             stored = self._render_store.mark_rendered(render_package.render_job_id, result)
         except RenderJobTransitionError:

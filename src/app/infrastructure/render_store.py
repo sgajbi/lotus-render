@@ -5,7 +5,7 @@ import sqlite3
 import threading
 from contextlib import contextmanager
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any, Iterator, Literal, cast
 
@@ -274,6 +274,54 @@ class RenderStore:
                 if job.package_hash != package_hash:
                     raise RenderJobConflictError("render_job_conflict")
                 return CreateOrGetRenderJobResult(job=job, created=created)
+
+    def claim_for_rendering(
+        self,
+        render_job_id: str,
+        *,
+        rendering_stale_seconds: int,
+        now: datetime | None = None,
+    ) -> StoredRenderJob | None:
+        """Take exclusive ownership of a job so this caller may render it.
+
+        A job sitting at ``accepted`` is always claimable: nobody is rendering it yet.
+        A job at ``rendering`` is claimable only once it is stale, which means the worker
+        that owned it died without reaching a terminal state -- before this, such a row
+        stayed at ``rendering`` forever because resubmission short-circuited (issue #105).
+
+        Returns ``None`` when the job is not claimable, which is the ordinary outcome for
+        a concurrent duplicate submission of a render that is genuinely still running.
+        The claim is a single conditional UPDATE, so exactly one caller can win it.
+        """
+        observed_at = now or utc_now()
+        stale_cutoff = _dt_to_text(observed_at - timedelta(seconds=rendering_stale_seconds))
+        with self._lock:
+            with self._connect() as connection:
+                existing = connection.execute(
+                    "SELECT status FROM render_job WHERE render_job_id = ?",
+                    (render_job_id,),
+                ).fetchone()
+                if existing is None:
+                    raise RenderJobNotFoundError("render_job_not_found")
+                cursor = connection.execute(
+                    """
+                    UPDATE render_job
+                    SET status = 'rendering', updated_at = ?
+                    WHERE render_job_id = ?
+                      AND (
+                        status = 'accepted'
+                        OR (status = 'rendering' AND updated_at <= ?)
+                      )
+                    """,
+                    (_dt_to_text(observed_at), render_job_id, stale_cutoff),
+                )
+                if cursor.rowcount != 1:
+                    return None
+                row = connection.execute(
+                    "SELECT * FROM render_job WHERE render_job_id = ?",
+                    (render_job_id,),
+                ).fetchone()
+        return _row_to_job(row)
 
     def mark_rendering(self, render_job_id: str) -> StoredRenderJob:
         return self._update(

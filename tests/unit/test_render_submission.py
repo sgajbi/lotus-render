@@ -19,6 +19,7 @@ from app.domain.rendering.models import RenderDiagnostic, RenderResult
 from app.domain.templates.registry import TemplateCompatibilityError
 from app.infrastructure.render_store import (
     CreateOrGetRenderJobResult,
+    RenderJobNotFoundError,
     RenderJobTransitionError,
     RenderStore,
     StoredRenderJob,
@@ -226,6 +227,11 @@ class _RacingRenderStore:
         self.current = _stored_job(render_job_id=render_job_id, status="rendering")
         return self.current
 
+    def claim_for_rendering(
+        self, render_job_id: str, *, rendering_stale_seconds: int
+    ) -> StoredRenderJob | None:
+        return self.mark_rendering(render_job_id)
+
     def mark_rendered(self, render_job_id: str, _result: RenderResult) -> StoredRenderJob:
         if self._fail_mark_rendered:
             raise RenderJobTransitionError("rendering->rendered raced")
@@ -261,6 +267,11 @@ class _StaticRenderStore:
         return CreateOrGetRenderJobResult(job=self._job, created=False)
 
     def mark_rendering(self, _render_job_id: str) -> StoredRenderJob:
+        return self._job
+
+    def claim_for_rendering(
+        self, _render_job_id: str, *, rendering_stale_seconds: int
+    ) -> StoredRenderJob | None:
         return self._job
 
     def mark_rendered(self, _render_job_id: str, _result: RenderResult) -> StoredRenderJob:
@@ -301,6 +312,7 @@ def test_render_submission_returns_existing_failed_job_without_retrying(tmp_path
     )
 
     service = RenderSubmissionService(
+        rendering_stale_seconds=_settings().stale_rendering_seconds,
         render_store=store,
         render_engine=cast(Any, _SuccessfulTypstService()),
     )
@@ -315,6 +327,7 @@ def test_render_submission_returns_existing_failed_job_without_retrying(tmp_path
 def test_render_submission_marks_failed_for_package_value_error(tmp_path: Path) -> None:
     store = RenderStore(tmp_path / "render-store.sqlite3")
     service = RenderSubmissionService(
+        rendering_stale_seconds=_settings().stale_rendering_seconds,
         render_store=store,
         render_engine=cast(Any, _ValueErrorTypstService()),
     )
@@ -333,6 +346,7 @@ def test_render_submission_marks_engine_unavailable_for_runtime_dependency_failu
 ) -> None:
     store = RenderStore(tmp_path / "render-store.sqlite3")
     service = RenderSubmissionService(
+        rendering_stale_seconds=_settings().stale_rendering_seconds,
         render_store=store,
         render_engine=cast(
             Any,
@@ -358,6 +372,7 @@ def test_render_submission_fail_closes_on_unexpected_exception(tmp_path: Path) -
 
     store = RenderStore(tmp_path / "render-store.sqlite3")
     service = RenderSubmissionService(
+        rendering_stale_seconds=_settings().stale_rendering_seconds,
         render_store=store,
         render_engine=cast(Any, _UnexpectedErrorTypstService()),
     )
@@ -374,6 +389,7 @@ def test_render_submission_fail_closes_on_unexpected_exception(tmp_path: Path) -
 def test_render_submission_marks_failed_for_render_timeout(tmp_path: Path) -> None:
     store = RenderStore(tmp_path / "render-store.sqlite3")
     service = RenderSubmissionService(
+        rendering_stale_seconds=_settings().stale_rendering_seconds,
         render_store=store,
         render_engine=cast(Any, _TimeoutTypstService()),
     )
@@ -401,6 +417,7 @@ def test_render_submission_returns_current_truth_when_failure_transition_races(
 ) -> None:
     store = _RacingRenderStore(fail_mark_failed=True)
     service = RenderSubmissionService(
+        rendering_stale_seconds=_settings().stale_rendering_seconds,
         render_store=store,
         render_engine=cast(Any, _ExceptionTypstService(exc)),
     )
@@ -414,6 +431,7 @@ def test_render_submission_returns_current_truth_when_failure_transition_races(
 def test_render_submission_returns_current_truth_when_rendered_transition_races() -> None:
     store = _RacingRenderStore(fail_mark_rendered=True)
     service = RenderSubmissionService(
+        rendering_stale_seconds=_settings().stale_rendering_seconds,
         render_store=store,
         render_engine=cast(Any, _SuccessfulTypstService()),
     )
@@ -443,7 +461,11 @@ def test_render_submission_returns_existing_in_progress_job_without_retrying(
     )
     store.mark_rendering(existing.render_job_id)
     renderer = _SuccessfulTypstService()
-    service = RenderSubmissionService(render_store=store, render_engine=renderer)
+    service = RenderSubmissionService(
+        render_store=store,
+        render_engine=renderer,
+        rendering_stale_seconds=_settings().stale_rendering_seconds,
+    )
 
     response = service.submit(package)
 
@@ -487,6 +509,7 @@ def test_render_submission_diagnostics_reports_stale_in_progress_handoff(
         )
         connection.commit()
     service = RenderSubmissionService(
+        rendering_stale_seconds=_settings().stale_rendering_seconds,
         render_store=store,
         render_engine=cast(Any, _SuccessfulTypstService()),
     )
@@ -511,6 +534,7 @@ def test_render_submission_diagnostics_maps_failed_runtime_without_raw_message(
 ) -> None:
     store = RenderStore(tmp_path / "render-store.sqlite3")
     service = RenderSubmissionService(
+        rendering_stale_seconds=_settings().stale_rendering_seconds,
         render_store=store,
         render_engine=cast(Any, _TimeoutTypstService()),
     )
@@ -610,6 +634,7 @@ def test_render_submission_diagnostics_maps_recovery_actions(
     expected_handoff_owner: str,
 ) -> None:
     service = RenderSubmissionService(
+        rendering_stale_seconds=_settings().stale_rendering_seconds,
         render_store=cast(Any, _StaticRenderStore(job)),
         render_engine=cast(Any, _SuccessfulTypstService()),
     )
@@ -631,6 +656,7 @@ def test_render_submission_sanitizes_runtime_diagnostics_before_persistence(
 ) -> None:
     store = RenderStore(tmp_path / "render-store.sqlite3")
     service = RenderSubmissionService(
+        rendering_stale_seconds=_settings().stale_rendering_seconds,
         render_store=store,
         render_engine=_RuntimeErrorTypstService(
             "typst failed near CLIENT_SENTINEL_ALICE_PRIVATE_NOTE trace-golden"
@@ -645,3 +671,116 @@ def test_render_submission_sanitizes_runtime_diagnostics_before_persistence(
     assert stored.failure_category == "template_render_failed"
     assert stored.failure_message == "Render execution failed in the governed runtime envelope."
     assert "CLIENT_SENTINEL" not in (stored.failure_message or "")
+
+
+def _seed_job(store: RenderStore, package: RenderPackage) -> StoredRenderJob:
+    return store.create_or_get(
+        render_job_id=package.render_job_id,
+        report_job_id=package.report_job_id,
+        render_package_version=package.render_package_version,
+        package_hash=_package_hash(package),
+        snapshot_id=package.snapshot_id,
+        lineage_refs=tuple(package.lineage_refs),
+        disclosure_refs=tuple(package.disclosure_refs),
+        requested_by=package.requested_by,
+        package_correlation_id=package.correlation_id,
+        package_trace_id=package.trace_id,
+        report_type=package.report_type,
+        template_id=package.template_id,
+        template_version=package.template_version,
+        output_format=package.output_format,
+        runtime_engine="typst",
+        runtime_engine_version="0.14.2",
+    )
+
+
+def _age_job(db_path: Path, render_job_id: str, *, seconds: int) -> None:
+    with closing(sqlite3.connect(db_path)) as connection, connection:
+        connection.execute(
+            "UPDATE render_job SET updated_at = ? WHERE render_job_id = ?",
+            (
+                (datetime.now(UTC) - timedelta(seconds=seconds)).isoformat().replace("+00:00", "Z"),
+                render_job_id,
+            ),
+        )
+
+
+def test_resubmitting_a_stale_rendering_job_actually_re_renders_it(tmp_path: Path) -> None:
+    """The documented recovery action must do something.
+
+    A worker that died mid-render leaves the row at 'rendering'. Resubmission used to
+    echo that status and never re-execute, so the runbook's
+    'resubmit_identical_package_or_escalate_runtime' was a no-op and the only way out was
+    editing SQLite by hand (issue #105).
+    """
+
+    db_path = tmp_path / "render-store.sqlite3"
+    store = RenderStore(db_path)
+    package = _render_package(render_job_id="rdr_stale_recoverable")
+    existing = _seed_job(store, package)
+    store.mark_rendering(existing.render_job_id)
+    _age_job(db_path, existing.render_job_id, seconds=_settings().stale_rendering_seconds + 1)
+
+    renderer = _SuccessfulTypstService()
+    service = RenderSubmissionService(
+        render_store=store,
+        render_engine=cast(Any, renderer),
+        rendering_stale_seconds=_settings().stale_rendering_seconds,
+    )
+
+    response = service.submit(package)
+
+    assert renderer.calls == 1, "a stale abandoned job must be re-rendered, not echoed"
+    assert response.status == "rendered"
+    assert store.get(existing.render_job_id).status == "rendered"
+
+
+def test_resubmitting_a_live_rendering_job_does_not_render_twice(tmp_path: Path) -> None:
+    """Recovery must not become a way to double-render a job that is genuinely running."""
+
+    db_path = tmp_path / "render-store.sqlite3"
+    store = RenderStore(db_path)
+    package = _render_package(render_job_id="rdr_live_rendering")
+    existing = _seed_job(store, package)
+    store.mark_rendering(existing.render_job_id)
+
+    renderer = _SuccessfulTypstService()
+    service = RenderSubmissionService(
+        render_store=store,
+        render_engine=cast(Any, renderer),
+        rendering_stale_seconds=_settings().stale_rendering_seconds,
+    )
+
+    response = service.submit(package)
+
+    assert renderer.calls == 0
+    assert response.status == "rendering"
+    assert response.artifact_base64 is None
+
+
+def test_only_one_caller_can_claim_a_stale_job(tmp_path: Path) -> None:
+    """The claim is a single conditional UPDATE, so concurrent recoveries cannot both win."""
+
+    db_path = tmp_path / "render-store.sqlite3"
+    store = RenderStore(db_path)
+    package = _render_package(render_job_id="rdr_contended")
+    existing = _seed_job(store, package)
+    store.mark_rendering(existing.render_job_id)
+    _age_job(db_path, existing.render_job_id, seconds=_settings().stale_rendering_seconds + 1)
+
+    stale_seconds = _settings().stale_rendering_seconds
+    first = store.claim_for_rendering(existing.render_job_id, rendering_stale_seconds=stale_seconds)
+    second = store.claim_for_rendering(
+        existing.render_job_id, rendering_stale_seconds=stale_seconds
+    )
+
+    assert first is not None, "the stale job must be claimable once"
+    assert first.status == "rendering"
+    assert second is None, "a job just claimed is fresh again and must not be claimable"
+
+
+def test_claiming_an_unknown_job_is_reported_as_missing(tmp_path: Path) -> None:
+    store = RenderStore(tmp_path / "render-store.sqlite3")
+
+    with pytest.raises(RenderJobNotFoundError):
+        store.claim_for_rendering("rdr_absent", rendering_stale_seconds=900)
