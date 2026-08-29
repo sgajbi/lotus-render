@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
 
+from app.services.number_format import format_money, format_percent
 from app.services.portfolio_charts import (
     allocation_items_from_report_data,
     performance_series_from_report_data,
@@ -433,9 +434,9 @@ def render_allocation_breakdown_rows(rows: object) -> str:
         '#compact-allocation-row("'
         + escape_typst_string(name)
         + '", "'
-        + escape_typst_string(f"{totals['weight']:.2f}%")
+        + escape_typst_string(format_percent(totals["weight"]))
         + '", "'
-        + escape_typst_string(f"{totals['value']:.2f}")
+        + escape_typst_string(format_money(totals["value"]))
         + '", '
         + f"{min(max(totals['weight'], 8.0), 100.0):.2f}%"
         + ")"

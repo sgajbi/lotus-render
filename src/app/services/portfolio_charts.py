@@ -7,8 +7,10 @@ import math
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
 from datetime import datetime
-from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
+from decimal import Decimal, InvalidOperation
 from pathlib import Path
+
+from app.services.number_format import format_money
 
 CHART_COLORS = {
     "navy": "#0B1F33",
@@ -457,7 +459,7 @@ def _donut_segment(
 
 
 def _format_currency(value: Decimal) -> str:
-    return f"{value.quantize(Decimal('1'), rounding=ROUND_HALF_UP):,.0f}"
+    return format_money(value, decimals=0)
 
 
 def _compact_value(value: Decimal | int) -> str:
@@ -471,8 +473,8 @@ def _compact_value(value: Decimal | int) -> str:
 
 
 def _format_decimal(value: Decimal) -> str:
-    return f"{value.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP):,.2f}"
+    return format_money(value, decimals=2)
 
 
 def _format_one_decimal(value: Decimal) -> str:
-    return f"{value.quantize(Decimal('0.1'), rounding=ROUND_HALF_UP):,.1f}"
+    return format_money(value, decimals=1)
