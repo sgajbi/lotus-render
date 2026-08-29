@@ -183,6 +183,25 @@ class RenderPackage(BaseModel):
             raise ValueError("value must not be blank")
         return normalized
 
+    @field_validator("render_package_version")
+    @classmethod
+    def _must_be_a_supported_envelope(cls, value: str) -> str:
+        """Reject an envelope version this service does not implement.
+
+        ``report_data_contract_version`` already fails closed against the template
+        manifest, but the envelope version -- the other half of the pair the API calls
+        contract identity -- was only ever used as an OpenAPI example. An unknown or
+        newer package was accepted and rendered under v1 semantics, so a producer that
+        changed the meaning of an existing field would have rendered silently and
+        wrongly rather than being turned away.
+        """
+        if value.strip() != SUPPORTED_RENDER_PACKAGE_VERSION:
+            raise ValueError(
+                f"unsupported render_package_version {value!r}; "
+                f"this service implements {SUPPORTED_RENDER_PACKAGE_VERSION}"
+            )
+        return value.strip()
+
     @field_validator("render_context", "report_data")
     @classmethod
     def _must_not_be_empty_mapping(cls, value: dict[str, Any]) -> dict[str, Any]:

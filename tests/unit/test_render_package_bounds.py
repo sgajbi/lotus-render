@@ -20,6 +20,7 @@ from app.contracts.render_package import (
     MAX_PAYLOAD_LIST_ITEMS,
     MAX_PAYLOAD_STRING_LENGTH,
     RenderPackage,
+    SUPPORTED_RENDER_PACKAGE_VERSION,
 )
 
 
@@ -75,3 +76,27 @@ def test_render_context_is_bounded_like_report_data() -> None:
 
     with pytest.raises(ValidationError, match="string longer than"):
         RenderPackage.model_validate(payload)
+
+
+def test_render_package_rejects_an_unsupported_envelope_version() -> None:
+    """The envelope version must fail closed, like the report-data contract version.
+
+    It was declared as SUPPORTED_RENDER_PACKAGE_VERSION and then used only as an OpenAPI
+    example, never compared, so an unknown or newer package was accepted and rendered
+    under v1 semantics.
+    """
+
+    payload = _package_payload()
+    payload["render_package_version"] = "render_package.v99"
+
+    with pytest.raises(ValidationError, match="unsupported render_package_version"):
+        RenderPackage.model_validate(payload)
+
+
+def test_render_package_accepts_the_supported_envelope_version() -> None:
+    payload = _package_payload()
+    payload["render_package_version"] = SUPPORTED_RENDER_PACKAGE_VERSION
+
+    assert RenderPackage.model_validate(payload).render_package_version == (
+        SUPPORTED_RENDER_PACKAGE_VERSION
+    )
