@@ -181,10 +181,19 @@ async def submit_render(
     ),
     responses={
         **_error_response(
+            status.HTTP_422_UNPROCESSABLE_CONTENT,
+            example_key="render_package_invalid",
+            description=(
+                "Returned if the path identifier fails validation. FastAPI documents this "
+                "for any operation with a path parameter; this service always answers with "
+                "the governed error object rather than the framework's default array shape."
+            ),
+        ),
+        **_error_response(
             status.HTTP_404_NOT_FOUND,
             example_key="render_job_not_found",
             description="Returned when the requested render job identifier does not exist.",
-        )
+        ),
     },
 )
 async def get_render_status(
@@ -212,10 +221,19 @@ async def get_render_status(
     ),
     responses={
         **_error_response(
+            status.HTTP_422_UNPROCESSABLE_CONTENT,
+            example_key="render_package_invalid",
+            description=(
+                "Returned if the path identifier fails validation. FastAPI documents this "
+                "for any operation with a path parameter; this service always answers with "
+                "the governed error object rather than the framework's default array shape."
+            ),
+        ),
+        **_error_response(
             status.HTTP_404_NOT_FOUND,
             example_key="render_job_not_found",
             description="Returned when the requested render job identifier does not exist.",
-        )
+        ),
     },
 )
 async def get_render_diagnostics(
@@ -245,6 +263,15 @@ async def get_render_diagnostics(
         "without retrieving archive or distribution semantics."
     ),
     responses={
+        **_error_response(
+            status.HTTP_422_UNPROCESSABLE_CONTENT,
+            example_key="render_package_invalid",
+            description=(
+                "Returned if the path identifier fails validation. FastAPI documents this "
+                "for any operation with a path parameter; this service always answers with "
+                "the governed error object rather than the framework's default array shape."
+            ),
+        ),
         **_error_response(
             status.HTTP_404_NOT_FOUND,
             example_key="render_job_not_found",
