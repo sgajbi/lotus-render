@@ -48,8 +48,8 @@
   val,
 )
 
-#let label(value) = text(size: 6.9pt, fill: muted, weight: "semibold", upper(value))
-#let value(value) = text(size: 9.2pt, fill: ink, weight: "medium", value)
+#let label(value) = text(size: 6.8pt, fill: muted, weight: "semibold", upper(value))
+#let value(value) = text(size: 9.5pt, fill: ink, weight: "medium", value)
 
 // --- Direction ----------------------------------------------------------------
 // Named for meaning, not hue. `gain` must mean "this number went up" everywhere, which
@@ -57,3 +57,32 @@
 // `accent` frees the value for the one meaning it should have.
 #let gain = rgb("#286446")
 #let loss = rgb("#A6321F")
+
+// --- Type scale -----------------------------------------------------------------
+// The templates carried 159 size declarations across 53 distinct values, many separated
+// by less than a tenth of a point: 6.55, 6.6, 6.75, 6.8, 6.85, 6.9 all appeared, and no
+// reader could tell them apart. That is not a scale, it is an accumulation, and it makes
+// "make the small text slightly larger" a search across fifty numbers.
+//
+// Nine steps cover the body range, none closer than 0.6pt so each is a decision a reader
+// could actually perceive. Snapping to them moved 80 of 146 declarations, by at most
+// 0.5pt and usually less than 0.2pt.
+//
+// The display sizes are deliberately not on this scale: 16, 17, 18, 19, 20.5 and 28pt are
+// eight declarations across cover titles and section headings, each chosen for a specific
+// piece of furniture rather than drawn from a range, and forcing them onto shared steps
+// would change the one thing on a page a reader looks at first.
+#let text-micro = 6.1pt
+#let text-caption = 6.8pt
+#let text-fine = 7.4pt
+#let text-small = 8.1pt
+#let text-body = 8.8pt
+#let text-body-strong = 9.5pt
+#let text-lead = 11pt
+#let text-subhead = 12pt
+#let text-head = 13pt
+
+#let TYPE_SCALE = (
+  text-micro, text-caption, text-fine, text-small, text-body,
+  text-body-strong, text-lead, text-subhead, text-head,
+)

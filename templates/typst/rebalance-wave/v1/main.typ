@@ -7,14 +7,14 @@
     #v(5pt)
     #grid(
       columns: (1fr, auto),
-      [#text(size: 6.6pt, fill: muted)[#"${WAVE_ID}" / #"${WAVE_STATE}"]],
+      [#text(size: 6.8pt, fill: muted)[#"${WAVE_ID}" / #"${WAVE_STATE}"]],
       [#text(size: 6.8pt, fill: ink)[#counter(page).display("1 / 1")]],
     )
   ],
   footer-descent: 38%,
 )
 
-#set text(size: 9pt, fill: ink)
+#set text(size: 8.8pt, fill: ink)
 #set par(leading: 1.1em, spacing: 0.45em)
 
 #let wave-item-row(portfolio, state, proof-pack, proof-state, alternative, reasons) = block(
@@ -35,7 +35,7 @@
 
 #text(size: 18pt, weight: "medium", fill: ink)[#"${TITLE}"]
 #v(4pt)
-#text(size: 8pt, fill: muted)[Governed rebalance-wave evidence report / #"${WAVE_STATE}"]
+#text(size: 8.1pt, fill: muted)[Governed rebalance-wave evidence report / #"${WAVE_STATE}"]
 
 #v(10pt)
 #grid(

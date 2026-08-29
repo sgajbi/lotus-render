@@ -168,3 +168,55 @@ def test_a_shared_file_cannot_overwrite_a_family_file() -> None:
             f"{family} has files whose names collide with the shared module: {sorted(clashes)}. "
             "At render time the shared copy would silently replace the family's own."
         )
+
+
+SIZE_DECLARATION = re.compile(r"size:\s*([0-9.]+)pt")
+SCALE_STEP = re.compile(r"#let (text-[a-z-]+) = ([0-9.]+)pt")
+
+# Chosen for specific furniture rather than drawn from a range: cover titles and section
+# headings. Eight declarations, each the first thing a reader looks at on its page.
+DISPLAY_SIZES = frozenset({16.0, 17.0, 18.0, 19.0, 20.5, 28.0})
+
+
+def _declared_scale() -> set[float]:
+    source = DESIGN_MODULE.read_text(encoding="utf-8")
+    return {float(size) for _, size in SCALE_STEP.findall(source)}
+
+
+def test_every_size_on_a_page_comes_from_the_scale() -> None:
+    """159 declarations across 53 values is an accumulation, not a scale.
+
+    Values sat less than a tenth of a point apart -- 6.55, 6.6, 6.75, 6.8, 6.85, 6.9 all
+    appeared -- so no reader could tell them apart and "make the small text larger" meant
+    searching fifty numbers. Nine steps now cover the body range.
+    """
+
+    scale = _declared_scale()
+    assert scale, "the design system declares no type scale"
+
+    offenders: dict[str, set[float]] = {}
+    for family in FAMILIES:
+        for path in _family_files(family):
+            sizes = {float(size) for size in SIZE_DECLARATION.findall(path.read_text("utf-8"))}
+            stray = sizes - scale - DISPLAY_SIZES
+            if stray:
+                offenders.setdefault(family, set()).update(stray)
+
+    assert not offenders, (
+        f"these sizes are on no step of the scale: {offenders}. Add a step deliberately, "
+        "or use the nearest one -- a value chosen ad hoc is how the previous 53 accrued."
+    )
+
+
+def test_the_scale_steps_are_far_enough_apart_to_be_choices() -> None:
+    """A step a reader cannot perceive is duplication wearing a name.
+
+    Optimising purely for how little the documents moved produced steps 0.2pt apart --
+    which minimises change and consolidates nothing, because it preserves exactly the
+    near-duplicates the scale exists to remove.
+    """
+
+    steps = sorted(_declared_scale())
+    # Not strict: an offset zip is meant to be one shorter.
+    gaps = [round(b - a, 4) for a, b in zip(steps, steps[1:])]  # noqa: B905
+    assert min(gaps) >= 0.6, f"these steps are closer than 0.6pt apart: {list(zip(steps, gaps))}"
