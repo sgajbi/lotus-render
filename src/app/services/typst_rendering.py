@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import os
 import re
 import shutil
 import subprocess
@@ -30,6 +31,70 @@ from app.services.typst_values import escape_typst_text
 DETERMINISM_MODE = "bounded_runtime_envelope"
 DOCKER_TYPST_IMAGE = "ghcr.io/typst/typst:0.14.2"
 PDF_MIME_TYPE = "application/pdf"
+
+# Confinement for the compile container. The Typst source is built from untrusted
+# report_data, so the process that compiles it gets no network, no capabilities, no
+# privilege escalation, and bounded memory and process count (issue #106). A compile
+# needs none of them: fonts and assets are materialised into the mounted workspace.
+DOCKER_ISOLATION_FLAGS = (
+    "--network",
+    "none",
+    "--cap-drop",
+    "ALL",
+    "--security-opt",
+    "no-new-privileges",
+    "--memory",
+    "512m",
+    "--pids-limit",
+    "256",
+)
+# Killing `docker run` reaps the client, not the container it started, so a timed-out
+# compile would keep burning CPU with the workspace bind-mounted while Python deletes it.
+# The run is named so the timeout path can stop the container itself.
+DOCKER_CONTAINER_NAME_PREFIX = "lotus-render-compile-"
+DOCKER_KILL_TIMEOUT_SECONDS = 10
+
+
+def _compile_container_name(workspace: Path) -> str:
+    """Name the run after its workspace so the timeout path can stop that container.
+
+    The workspace is a per-render ``TemporaryDirectory``, so the name is unique for the
+    lifetime of the container and needs no clock or random source.
+    """
+    return f"{DOCKER_CONTAINER_NAME_PREFIX}{workspace.name}"
+
+
+def _docker_user_flags() -> tuple[str, ...]:
+    """Run the compile as the invoking user where the platform has one.
+
+    Without this the container runs as root and writes root-owned files into the
+    bind-mounted workspace. Windows has no uid/gid to map, so the flag is omitted there.
+    """
+    get_uid = getattr(os, "getuid", None)
+    get_gid = getattr(os, "getgid", None)
+    if get_uid is None or get_gid is None:
+        return ()
+    return ("--user", f"{get_uid()}:{get_gid()}")
+
+
+def _kill_compile_container(workspace: Path) -> None:
+    """Stop a container left running by a timed-out ``docker run``.
+
+    Best effort: the container may already be gone, and the compile has failed either
+    way, so a failure here must not mask the timeout being reported to the caller.
+    """
+    docker_binary = shutil.which("docker")
+    if docker_binary is None:
+        return
+    try:
+        subprocess.run(
+            [docker_binary, "kill", _compile_container_name(workspace)],
+            capture_output=True,
+            check=False,
+            timeout=DOCKER_KILL_TIMEOUT_SECONDS,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return
 
 
 class TypstRenderService:
@@ -125,6 +190,10 @@ class TypstRenderService:
                     timeout=self._settings.render_compile_timeout_seconds,
                 )
             except subprocess.TimeoutExpired as exc:
+                # subprocess reaped the `docker run` client; the container it started is
+                # still compiling with this workspace bind-mounted, so stop it before the
+                # TemporaryDirectory is torn down underneath it.
+                _kill_compile_container(temp_dir)
                 attempt.mark_failed(
                     RenderFailureCategory.TIMEOUT,
                     "Render execution timed out in the governed runtime envelope.",
@@ -222,6 +291,10 @@ class TypstRenderService:
                 docker_binary,
                 "run",
                 "--rm",
+                "--name",
+                _compile_container_name(workspace),
+                *DOCKER_ISOLATION_FLAGS,
+                *_docker_user_flags(),
                 "-v",
                 f"{workspace.resolve()}:/workspace",
                 "-w",

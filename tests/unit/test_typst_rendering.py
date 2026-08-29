@@ -31,7 +31,12 @@ from app.services.typst_fragments import (
     render_wave_event_rows,
     render_wave_item_rows,
 )
-from app.services.typst_rendering import DOCKER_TYPST_IMAGE, TypstRenderService
+from app.services.typst_rendering import (
+    DOCKER_CONTAINER_NAME_PREFIX,
+    DOCKER_ISOLATION_FLAGS,
+    DOCKER_TYPST_IMAGE,
+    TypstRenderService,
+)
 from app.services.typst_tables import (
     render_allocation_breakdown_rows,
     render_allocation_chart_section,
@@ -1056,6 +1061,105 @@ def test_typst_render_service_raises_typed_timeout_when_compile_times_out(
         service.render(render_package)
 
 
+def test_docker_user_flags_map_the_invoking_identity_where_the_platform_has_one(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """On POSIX the compile runs as the invoking user; Windows has no uid to map.
+
+    Without the flag the container runs as root and writes root-owned files into the
+    bind-mounted workspace (issue #106). The helper is platform-dependent, so both
+    shapes are pinned here rather than only the one this machine happens to be.
+    """
+
+    import app.services.typst_rendering as rendering
+
+    class _Posix:
+        @staticmethod
+        def getuid() -> int:
+            return 10001
+
+        @staticmethod
+        def getgid() -> int:
+            return 10002
+
+    monkeypatch.setattr(rendering, "os", _Posix)
+    assert rendering._docker_user_flags() == ("--user", "10001:10002")
+
+    class _NoIdentity:
+        pass
+
+    monkeypatch.setattr(rendering, "os", _NoIdentity)
+    assert rendering._docker_user_flags() == ()
+
+
+def test_typst_render_service_kills_the_compile_container_on_timeout(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A timed-out `docker run` reaps only the client; the container must be stopped too.
+
+    Otherwise it keeps compiling with the workspace bind-mounted while Python tears that
+    directory down underneath it (issue #106).
+    """
+
+    service = _build_service()
+    render_package = _load_golden_package()
+    killed: list[list[str]] = []
+
+    monkeypatch.setattr(
+        service,
+        "_build_compile_command",
+        lambda **_: ["docker", "run", "--rm", DOCKER_TYPST_IMAGE],
+    )
+    monkeypatch.setattr(
+        "app.services.typst_rendering.shutil.which",
+        lambda binary: "/usr/bin/docker" if binary == "docker" else None,
+    )
+
+    def _fake_run(command: list[str], **kwargs: object) -> object:
+        if command[1:2] == ["kill"]:
+            killed.append(command)
+            return subprocess.CompletedProcess(command, 0, "", "")
+        raise subprocess.TimeoutExpired(cmd=command, timeout=1)
+
+    monkeypatch.setattr("app.services.typst_rendering.subprocess.run", _fake_run)
+
+    with pytest.raises(RenderEngineTimeoutError, match="render_timeout"):
+        service.render(render_package)
+
+    assert killed, "the timed-out compile container was never killed"
+    assert killed[0][:2] == ["/usr/bin/docker", "kill"]
+    assert killed[0][2].startswith(DOCKER_CONTAINER_NAME_PREFIX)
+
+
+def test_compile_container_kill_failure_does_not_mask_the_timeout(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The compile already failed; a docker kill that itself fails must not change that."""
+
+    service = _build_service()
+    render_package = _load_golden_package()
+
+    monkeypatch.setattr(
+        service,
+        "_build_compile_command",
+        lambda **_: ["docker", "run", "--rm", DOCKER_TYPST_IMAGE],
+    )
+    monkeypatch.setattr(
+        "app.services.typst_rendering.shutil.which",
+        lambda binary: "/usr/bin/docker" if binary == "docker" else None,
+    )
+
+    def _fake_run(command: list[str], **kwargs: object) -> object:
+        if command[1:2] == ["kill"]:
+            raise OSError("docker daemon unreachable")
+        raise subprocess.TimeoutExpired(cmd=command, timeout=1)
+
+    monkeypatch.setattr("app.services.typst_rendering.subprocess.run", _fake_run)
+
+    with pytest.raises(RenderEngineTimeoutError, match="render_timeout"):
+        service.render(render_package)
+
+
 def test_typst_render_service_uses_docker_fallback_when_local_typst_missing(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
@@ -1079,14 +1183,17 @@ def test_typst_render_service_uses_docker_fallback_when_local_typst_missing(
         output_path=output_path,
     )
 
-    assert command[:5] == [
-        "/usr/bin/docker",
-        "run",
-        "--rm",
-        "-v",
-        f"{tmp_path.resolve()}:/workspace",
-    ]
+    assert command[:3] == ["/usr/bin/docker", "run", "--rm"]
+    assert f"{tmp_path.resolve()}:/workspace" in command
     assert DOCKER_TYPST_IMAGE in command
+    # The compile is confined: untrusted Typst source gets no network, no capabilities,
+    # no privilege escalation and bounded memory/process count (issue #106). Asserting
+    # the whole flag set means dropping one fails here rather than silently in production.
+    for flag in DOCKER_ISOLATION_FLAGS:
+        assert flag in command, f"missing isolation flag {flag!r}"
+    # Named so a timed-out compile can stop the container rather than orphan it.
+    assert "--name" in command
+    assert f"{DOCKER_CONTAINER_NAME_PREFIX}{tmp_path.name}" in command
 
 
 def test_typst_render_service_uses_relative_source_path_for_nested_template_under_docker(
