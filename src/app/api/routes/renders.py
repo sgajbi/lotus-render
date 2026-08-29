@@ -76,6 +76,18 @@ def _error_response(
         }
     },
     responses={
+        # The idempotent-replay branch: the job already reached a terminal state, so the
+        # render is not repeated and no artifact bytes are returned. The wiki calls this
+        # the caller's first trap - "a client that assumes artifact_base64 is always
+        # present will break on its first retry" - and it was missing from the machine
+        # readable contract consumers generate clients from (issue #126).
+        status.HTTP_200_OK: {
+            "model": RenderSubmitResponse,
+            "description": (
+                "The render job already existed in a terminal state; the stored outcome is "
+                "returned and artifact_base64 is null."
+            ),
+        },
         **_error_response(
             status.HTTP_400_BAD_REQUEST,
             example_key="invalid_content_length",
