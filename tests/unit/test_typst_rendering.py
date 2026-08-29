@@ -8,6 +8,7 @@ import pytest
 
 from app.contracts.render_package import RenderPackage
 from app.core.settings import Settings
+from app.domain.render_attempts.models import RenderFailureCategory
 from app.domain.templates.registry import TemplateRegistry
 from app.services.render_intake import RenderIntakeService
 from app.services.render_ports import RenderEngineTimeoutError
@@ -39,6 +40,7 @@ from app.services.typst_rendering import (
     DOCKER_TYPST_IMAGE,
     TypstRenderService,
     _bounded_local_command,
+    _classify_compile_failure,
     ungoverned_runtime_reason,
 )
 from app.services.typst_tables import (
@@ -1492,3 +1494,58 @@ def test_golden_evidence_may_only_be_banked_from_a_runtime_that_renders_like_pro
     monkeypatch.setattr("app.services.typst_rendering.sys.platform", "win32")
     reason = ungoverned_runtime_reason()
     assert reason is not None and "Linux" in reason
+
+
+def _completed(
+    returncode: int, stderr: str = "", stdout: str = ""
+) -> subprocess.CompletedProcess[str]:
+    return subprocess.CompletedProcess(
+        args=["typst", "compile"], returncode=returncode, stdout=stdout, stderr=stderr
+    )
+
+
+def test_a_document_too_large_to_compile_is_not_reported_as_a_broken_template() -> None:
+    """A kill and a template error both arrive as a non-zero exit, and differ in response.
+
+    Measured on a portfolio review: 1,000 positions and 1,000 transactions render in about
+    four seconds; 2,500 of each exits **137 with completely empty stderr** -- the compile
+    killed for exceeding the 512m bound before it could say anything. That used to be
+    reported as `template_render_failed` with the summary "typst compile failed", which is
+    what a genuinely broken template says too, so an operator could not tell a capacity
+    problem from a correctness one.
+    """
+
+    category, summary = _classify_compile_failure(_completed(137))
+
+    assert category == RenderFailureCategory.RESOURCE_LIMIT_EXCEEDED
+    assert "signal 9" in summary
+    assert "too large" in summary
+
+
+def test_a_template_error_keeps_its_diagnosis_and_its_category() -> None:
+    """Whatever Typst actually said is the most useful thing to report."""
+
+    category, summary = _classify_compile_failure(
+        _completed(1, stderr="error: unknown variable: period-row")
+    )
+
+    assert category == RenderFailureCategory.TEMPLATE_RENDER_FAILED
+    assert summary == "error: unknown variable: period-row"
+
+
+def test_a_silent_non_zero_exit_that_is_not_a_kill_stays_a_template_failure() -> None:
+    """Only a signal exit is evidence of a kill; an ordinary failure is not reclassified."""
+
+    category, summary = _classify_compile_failure(_completed(1))
+
+    assert category == RenderFailureCategory.TEMPLATE_RENDER_FAILED
+    assert summary == "typst compile failed"
+
+
+def test_a_negative_return_code_is_read_as_the_signal_it_is() -> None:
+    """POSIX `subprocess` reports a killed child as a negative code, Docker as 128+n."""
+
+    category, summary = _classify_compile_failure(_completed(-9))
+
+    assert category == RenderFailureCategory.RESOURCE_LIMIT_EXCEEDED
+    assert "signal 9" in summary
