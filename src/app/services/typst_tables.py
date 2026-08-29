@@ -13,7 +13,7 @@ from app.services.portfolio_charts import (
     performance_series_from_report_data,
 )
 from app.services.typst_values import (
-    escape_typst_text,
+    escape_typst_string,
     parse_number,
     parse_percent,
     percent_width_token,
@@ -53,7 +53,7 @@ def render_observation_notes(observations: object) -> str:
         return "#text(size: 9pt, fill: rgb(104, 118, 132))[No governed observations available.]"
     rendered: list[str] = []
     for item in observations:
-        text = escape_typst_text(str(item))
+        text = escape_typst_string(str(item))
         rendered.append(f'#review-note("{text}")')
     return "\n#v(8pt)\n".join(rendered)
 
@@ -70,13 +70,13 @@ def render_performance_period_rows(periods: object) -> str:
             continue
         rendered.append(
             '#period-row("'
-            + escape_typst_text(str(item.get("period", "n/a")))
+            + escape_typst_string(str(item.get("period", "n/a")))
             + '", "'
-            + escape_typst_text(str(item.get("net_return_pct", "Not available")))
+            + escape_typst_string(str(item.get("net_return_pct", "Not available")))
             + '", "'
-            + escape_typst_text(str(item.get("benchmark_return_pct", "Not available")))
+            + escape_typst_string(str(item.get("benchmark_return_pct", "Not available")))
             + '", "'
-            + escape_typst_text(str(item.get("relative_return_pct", "Not available")))
+            + escape_typst_string(str(item.get("relative_return_pct", "Not available")))
             + '")'
         )
     if not rendered:
@@ -96,9 +96,9 @@ def render_performance_bar_rows(periods: object) -> str:
             continue
         rendered.append(
             '#performance-bar-row("'
-            + escape_typst_text(str(item.get("period", "n/a")))
+            + escape_typst_string(str(item.get("period", "n/a")))
             + '", "'
-            + escape_typst_text(str(item.get("net_return_pct", "Not available")))
+            + escape_typst_string(str(item.get("net_return_pct", "Not available")))
             + '", '
             + percent_width_token(item.get("net_return_pct"))
             + ")"
@@ -120,11 +120,11 @@ def render_performance_summary_table(rows: object) -> str:
             continue
         rendered.append(
             'performance-summary-cell("'
-            + escape_typst_text(str(item.get("label", "Period")))
+            + escape_typst_string(str(item.get("label", "Period")))
             + '", "'
-            + escape_typst_text(str(item.get("net_return_pct", "Not available")))
+            + escape_typst_string(str(item.get("net_return_pct", "Not available")))
             + '", "'
-            + escape_typst_text(str(item.get("annualized_return_pct", "n/a")))
+            + escape_typst_string(str(item.get("annualized_return_pct", "n/a")))
             + '")'
         )
     if not rendered:
@@ -146,11 +146,11 @@ def render_performance_chart_rows(rows: object, *, two_column: bool = False) -> 
             continue
         rendered.append(
             'performance-chart-row("'
-            + escape_typst_text(str(item.get("period", "n/a")))
+            + escape_typst_string(str(item.get("period", "n/a")))
             + '", "'
-            + escape_typst_text(str(item.get("twr_pct", "Not available")))
+            + escape_typst_string(str(item.get("twr_pct", "Not available")))
             + '", "'
-            + escape_typst_text(str(item.get("cumulative_twr_pct", "Not available")))
+            + escape_typst_string(str(item.get("cumulative_twr_pct", "Not available")))
             + '", '
             + performance_width_token(item.get("twr_pct"))
             + ")"
@@ -179,21 +179,21 @@ def render_performance_detail_rows(rows: object) -> str:
             continue
         rendered.append(
             '#performance-detail-row("'
-            + escape_typst_text(str(item.get("period", "n/a")))
+            + escape_typst_string(str(item.get("period", "n/a")))
             + '", "'
-            + escape_typst_text(str(item.get("final_value", "Not available")))
+            + escape_typst_string(str(item.get("final_value", "Not available")))
             + '", "'
-            + escape_typst_text(str(item.get("inflows", "Not available")))
+            + escape_typst_string(str(item.get("inflows", "Not available")))
             + '", "'
-            + escape_typst_text(str(item.get("outflows", "Not available")))
+            + escape_typst_string(str(item.get("outflows", "Not available")))
             + '", "'
-            + escape_typst_text(str(item.get("performance_value", "Not available")))
+            + escape_typst_string(str(item.get("performance_value", "Not available")))
             + '", "'
-            + escape_typst_text(str(item.get("twr_pct", "Not available")))
+            + escape_typst_string(str(item.get("twr_pct", "Not available")))
             + '", "'
-            + escape_typst_text(str(item.get("cumulative_performance_value", "Not available")))
+            + escape_typst_string(str(item.get("cumulative_performance_value", "Not available")))
             + '", "'
-            + escape_typst_text(str(item.get("cumulative_twr_pct", "Not available")))
+            + escape_typst_string(str(item.get("cumulative_twr_pct", "Not available")))
             + '")'
         )
     if not rendered:
@@ -210,17 +210,17 @@ def render_holding_rows(holdings: object) -> str:
             continue
         rendered.append(
             '#holding-row("'
-            + escape_typst_text(str(item.get("security_name", "Unknown holding")))
+            + escape_typst_string(str(item.get("security_name", "Unknown holding")))
             + '", "'
-            + escape_typst_text(str(item.get("asset_class", "Not available")))
+            + escape_typst_string(str(item.get("asset_class", "Not available")))
             + '", "'
-            + escape_typst_text(str(item.get("weight_pct", "Not available")))
+            + escape_typst_string(str(item.get("weight_pct", "Not available")))
             + '", "'
-            + escape_typst_text(str(item.get("market_value", "Not available")))
+            + escape_typst_string(str(item.get("market_value", "Not available")))
             + '", "'
-            + escape_typst_text(str(item.get("unrealized_pnl", "Not available")))
+            + escape_typst_string(str(item.get("unrealized_pnl", "Not available")))
             + '", "'
-            + escape_typst_text(str(item.get("ytd_contribution_pct", "Not available")))
+            + escape_typst_string(str(item.get("ytd_contribution_pct", "Not available")))
             + '")'
         )
     if not rendered:
@@ -237,11 +237,11 @@ def render_holding_bar_rows(holdings: object) -> str:
             continue
         rendered.append(
             '#allocation-row("'
-            + escape_typst_text(str(item.get("security_name", "Unknown holding")))
+            + escape_typst_string(str(item.get("security_name", "Unknown holding")))
             + '", "'
-            + escape_typst_text(str(item.get("weight_pct", "Not available")))
+            + escape_typst_string(str(item.get("weight_pct", "Not available")))
             + '", "'
-            + escape_typst_text(str(item.get("market_value", "Not available")))
+            + escape_typst_string(str(item.get("market_value", "Not available")))
             + '", '
             + percent_width_token(item.get("weight_pct"))
             + ")"
@@ -301,23 +301,23 @@ def render_dense_position_rows(holdings: object) -> str:
         performance = f"{item.get('market_value', 'Not available')};{accrued_interest}"
         rendered.append(
             '#dense-position-row("'
-            + escape_typst_text(str(item.get("asset_class", "Not available")))
+            + escape_typst_string(str(item.get("asset_class", "Not available")))
             + '", "'
-            + escape_typst_text(number_amount)
+            + escape_typst_string(number_amount)
             + '", "'
-            + escape_typst_text(description)
+            + escape_typst_string(description)
             + '", "'
-            + escape_typst_text(classification)
+            + escape_typst_string(classification)
             + '", "'
-            + escape_typst_text(cost_basis)
+            + escape_typst_string(cost_basis)
             + '", "'
-            + escape_typst_text(market_value)
+            + escape_typst_string(market_value)
             + '", "'
-            + escape_typst_text(gain_loss)
+            + escape_typst_string(gain_loss)
             + '", "'
-            + escape_typst_text(performance)
+            + escape_typst_string(performance)
             + '", "'
-            + escape_typst_text(str(item.get("weight_pct", "Not available")))
+            + escape_typst_string(str(item.get("weight_pct", "Not available")))
             + '")'
         )
     if not rendered:
@@ -373,23 +373,23 @@ def render_dense_transaction_rows(transactions: object) -> str:
         )
         rendered.append(
             '#dense-transaction-row("'
-            + escape_typst_text(trade_date)
+            + escape_typst_string(trade_date)
             + '", "'
-            + escape_typst_text(booking_text)
+            + escape_typst_string(booking_text)
             + '", "'
-            + escape_typst_text(str(item.get("amount", "Not available")))
+            + escape_typst_string(str(item.get("amount", "Not available")))
             + '", "'
-            + escape_typst_text(str(item.get("description", "Not available")))
+            + escape_typst_string(str(item.get("description", "Not available")))
             + '", "'
-            + escape_typst_text(detail_primary)
+            + escape_typst_string(detail_primary)
             + '", "'
-            + escape_typst_text(detail_secondary)
+            + escape_typst_string(detail_secondary)
             + '", "'
-            + escape_typst_text(price)
+            + escape_typst_string(price)
             + '", "'
-            + escape_typst_text(gain)
+            + escape_typst_string(gain)
             + '", "'
-            + escape_typst_text(value)
+            + escape_typst_string(value)
             + '")'
         )
     if not rendered:
@@ -408,11 +408,11 @@ def render_allocation_breakdown_rows(rows: object) -> str:
     ordered = sorted(aggregates.items(), key=lambda entry: entry[1]["weight"], reverse=True)
     rendered = [
         '#compact-allocation-row("'
-        + escape_typst_text(name)
+        + escape_typst_string(name)
         + '", "'
-        + escape_typst_text(f"{totals['weight']:.2f}%")
+        + escape_typst_string(f"{totals['weight']:.2f}%")
         + '", "'
-        + escape_typst_text(f"{totals['value']:.2f}")
+        + escape_typst_string(f"{totals['value']:.2f}")
         + '", '
         + f"{min(max(totals['weight'], 8.0), 100.0):.2f}%"
         + ")"

@@ -325,3 +325,26 @@ def test_sqlite_connections_are_close_bounded_everywhere() -> None:
         "sqlite3.connect used as a bare context manager never closes the connection; "
         f"wrap in contextlib.closing: {offenders}"
     )
+
+
+def test_string_literal_emitters_do_not_use_the_markup_escaper() -> None:
+    """The Typst string-literal emitters must escape for their delimiter context.
+
+    ``typst_tables.py`` builds ``#component("value", ...)`` markup where every
+    report-derived argument sits between ``"`` delimiters. ``escape_typst_text``
+    neutralises markup tokens but leaves ``"`` live, so a quote in the data
+    breaks out of the literal into Typst code (issue #103, reproduced against a
+    real 0.14.2 compile). This module must therefore route every value through
+    ``escape_typst_string``; using the markup escaper here is the regression.
+    """
+
+    tables = (ROOT / "src" / "app" / "services" / "typst_tables.py").read_text(encoding="utf-8")
+
+    assert "escape_typst_string" in tables, (
+        "typst_tables.py must escape its string-literal arguments with escape_typst_string."
+    )
+    assert "escape_typst_text(" not in tables, (
+        "typst_tables.py emits Typst string literals; escape_typst_text leaves the closing "
+        'quote live so a value containing a double-quote breaks the compile. Use '
+        "escape_typst_string for every argument emitted between \" delimiters."
+    )
