@@ -7,7 +7,7 @@ here too, since the requested sections decide which fragments are emitted.
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 
 from app.contracts.render_package import RenderPackage
 from app.services.render_content import (
@@ -201,6 +201,12 @@ def build_portfolio_review_context(render_package: RenderPackage) -> dict[str, s
         "RISK_VAR": escape_typst_string(
             str(risk_summary.get("value_at_risk_pct", "Not available"))
         ),
+        # Whether a sub-page has anything to show. Each of these guards an
+        # unconditional #pagebreak() that fired even for an all-empty report, so a
+        # portfolio with no history still shipped three near-blank pages (issue #138).
+        "HAS_ANNUAL_PERFORMANCE": _presence_flag(report_data.get("performance_annual_history")),
+        "HAS_MONTHLY_PERFORMANCE": _presence_flag(report_data.get("performance_monthly_history")),
+        "HAS_RISK_PROFILE": _presence_flag(risk_summary),
         "OBSERVATION_NOTES": render_observation_notes(observations),
         "PERFORMANCE_PERIOD_ROWS": render_performance_period_rows(
             report_data.get("performance_periods")
@@ -423,6 +429,19 @@ def build_wave_context(render_package: RenderPackage) -> dict[str, str]:
         "REQUESTED_BY": escape_typst_string(str(render_package.requested_by)),
         "TIMEZONE": escape_typst_string(str(render_context.get("timezone", "unknown"))),
     }
+
+
+def _presence_flag(value: object) -> str:
+    """ "yes" when a sub-page has content to render, else "no".
+
+    Compared as a string in the template because the substitution is textual; the
+    value is produced here, never from report data, so it cannot carry untrusted text.
+    """
+    if isinstance(value, Mapping):
+        return "yes" if value else "no"
+    if isinstance(value, Sequence) and not isinstance(value, (str, bytes, bytearray)):
+        return "yes" if len(value) else "no"
+    return "yes" if value else "no"
 
 
 def render_report_sections(

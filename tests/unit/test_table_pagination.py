@@ -110,3 +110,37 @@ def test_a_long_statement_paginates_and_still_renders() -> None:
     assert result.attempt.status.value == "rendered"
     pages = len(re.findall(rb"/Type\s*/Page[^s]", result.artifact_bytes))
     assert pages > 20, f"a 200-position statement rendered only {pages} pages"
+
+
+def _render(package_path: str) -> bytes:
+    settings = Settings()
+    service = TypstRenderService(
+        settings,
+        RenderIntakeService(
+            TemplateRegistry.load_from_directory(Path(settings.template_registry_path))
+        ),
+    )
+    package = RenderPackage.model_validate_json(Path(package_path).read_text(encoding="utf-8"))
+    return service.render(package).artifact_bytes
+
+
+def _page_count(pdf: bytes) -> int:
+    return len(re.findall(rb"/Type\s*/Page[^s]", pdf))
+
+
+def test_a_report_with_no_data_is_shorter_than_a_full_one() -> None:
+    """Intra-section page breaks fired unconditionally, padding an empty report.
+
+    The performance section broke twice and the allocation section once regardless of
+    content, so a portfolio with no history still shipped three near-blank pages -- and
+    an all-empty report was exactly as long as a full one (issue #138). The appendix's
+    static definition pages are constant by design and are not affected.
+    """
+
+    full = _page_count(_render("tests/golden/portfolio-review/v1/render-package.json"))
+    degraded = _page_count(_render("tests/golden/portfolio-review/v1/degraded/render-package.json"))
+
+    assert degraded < full, (
+        f"an all-empty report renders {degraded} pages against {full} for a full one; "
+        "the section breaks are still firing without content behind them"
+    )
