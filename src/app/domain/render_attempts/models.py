@@ -17,6 +17,10 @@ class RenderFailureCategory(StrEnum):
     PACKAGE_VALIDATION_FAILED = "package_validation_failed"
     TEMPLATE_NOT_SUPPORTED = "template_not_supported"
     TEMPLATE_RENDER_FAILED = "template_render_failed"
+    # The compile was killed for exceeding its memory or CPU bound. Distinct from a
+    # template error because the response is different: a smaller document or a larger
+    # envelope, not a fix. Both used to arrive as `template_render_failed`.
+    RESOURCE_LIMIT_EXCEEDED = "resource_limit_exceeded"
     ENGINE_UNAVAILABLE = "engine_unavailable"
     ARTIFACT_VALIDATION_FAILED = "artifact_validation_failed"
     TIMEOUT = "timeout"

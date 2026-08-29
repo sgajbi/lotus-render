@@ -157,6 +157,42 @@ def ungoverned_runtime_reason() -> str | None:
     )
 
 
+def _classify_compile_failure(
+    process: "subprocess.CompletedProcess[str]",
+) -> tuple[RenderFailureCategory, str]:
+    """Tell a document that was too big from a template that was wrong.
+
+    Both arrive as a non-zero exit. A compile killed for exceeding its memory bound
+    exits ``128 + SIGKILL`` with **empty stderr**, so it used to be reported as
+    ``template_render_failed`` with the summary "typst compile failed" -- the same
+    words a broken template produces, and nothing an operator could act on. Measured:
+    a portfolio review of 2,500 positions and 2,500 transactions exits 137 with no
+    output at all, while 1,000 of each renders in about four seconds.
+
+    The distinction matters because the two have opposite responses. A template error
+    needs a fix and will fail again identically; a document over the bound needs a
+    smaller document or a larger envelope, and says something about capacity rather
+    than correctness.
+    """
+    diagnostic = process.stderr.strip() or process.stdout.strip()
+    if diagnostic:
+        return RenderFailureCategory.TEMPLATE_RENDER_FAILED, diagnostic
+
+    # No output at all: the process did not get to report anything, which on this path
+    # means it was killed rather than that it disagreed with the source.
+    if process.returncode < 0 or process.returncode > 128:
+        signal_number = -process.returncode if process.returncode < 0 else process.returncode - 128
+        return (
+            RenderFailureCategory.RESOURCE_LIMIT_EXCEEDED,
+            (
+                f"the compile was killed by signal {signal_number} without producing "
+                "diagnostics, which is what exceeding the render memory or CPU bound looks "
+                "like. The document is too large for the governed envelope."
+            ),
+        )
+    return RenderFailureCategory.TEMPLATE_RENDER_FAILED, "typst compile failed"
+
+
 def _bounded_local_command(command: list[str]) -> list[str]:
     """Bound a compile that runs as a child of this process rather than in a container.
 
@@ -326,13 +362,8 @@ class TypstRenderService:
                 )
                 raise RenderEngineTimeoutError("render_timeout") from exc
             if process.returncode != 0:
-                diagnostic_summary = (
-                    process.stderr.strip() or process.stdout.strip() or "typst compile failed"
-                )
-                attempt.mark_failed(
-                    RenderFailureCategory.TEMPLATE_RENDER_FAILED,
-                    diagnostic_summary,
-                )
+                category, diagnostic_summary = _classify_compile_failure(process)
+                attempt.mark_failed(category, diagnostic_summary)
                 raise RuntimeError(diagnostic_summary)
 
             artifact_bytes = output_path.read_bytes()
