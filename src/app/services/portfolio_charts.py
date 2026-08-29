@@ -22,6 +22,9 @@ CHART_COLORS = {
     "muted": "#8A96A3",
 }
 ALLOCATION_PALETTE = ("#1F5AA6", "#2C7A7B", "#C38B2E", "#6B7280", "#7C5C99", "#8AA6A3")
+LEGEND_TOP = 38
+LEGEND_ROW_HEIGHT = 26
+LEGEND_BOTTOM_MARGIN = 12
 
 
 @dataclass(frozen=True)
@@ -271,7 +274,11 @@ def _benchmark_layer(
 
 def render_allocation_donut_svg(items: Sequence[AllocationSlice]) -> str:
     width = 520
-    height = 180
+    # The legend lists one row per slice at LEGEND_ROW_HEIGHT apart. A fixed 180pt canvas
+    # dropped every row past the fifth off the bottom, silently - and the palette wraps at
+    # six, so a seven-category allocation lost legend entries it had colours for. Grow the
+    # canvas to fit what there is instead.
+    height = max(180, LEGEND_TOP + LEGEND_ROW_HEIGHT * len(items) + LEGEND_BOTTOM_MARGIN)
     cx = 132
     cy = 91
     outer = 54
@@ -288,7 +295,7 @@ def render_allocation_donut_svg(items: Sequence[AllocationSlice]) -> str:
 
     legend = []
     for index, item in enumerate(items):
-        y = 38 + index * 26
+        y = LEGEND_TOP + index * LEGEND_ROW_HEIGHT
         legend.append(
             f'<rect x="340" y="{y - 9}" width="11" height="11" rx="2" fill="{item.color}" />'
             f'<text x="360" y="{y}" class="legend-label">{html.escape(item.label)}</text>'
@@ -360,11 +367,38 @@ def _month_label(value: str) -> str:
     return html.escape(value)
 
 
+def _nice_step(span: float, count: int) -> float:
+    """The smallest 1/2/2.5/5 x 10^n step that fits the span in `count` gridlines."""
+    if span <= 0 or count <= 1:
+        return 1.0
+    rough = span / (count - 1)
+    magnitude = 10.0 ** math.floor(math.log10(rough))
+    for multiplier in (1.0, 2.0, 2.5, 5.0, 10.0):
+        if rough <= magnitude * multiplier:
+            return magnitude * multiplier
+    return magnitude * 10.0
+
+
 def _nice_ticks(y_min: float, y_max: float, count: int) -> list[float]:
+    """Gridlines at round multiples, so a line labelled 0% is actually at zero.
+
+    Interpolating linearly between the bounds put ticks at arbitrary values and then
+    printed them with no decimals: a series of 12-45% produced gridlines labelled
+    -7%, 8%, 22%, 37%, 52%, and a line labelled "0%" sat at +0.5. On a performance
+    chart that is not a cosmetic problem - the axis was misstating the numbers.
+    """
     if count <= 1:
         return [y_min, y_max]
-    step = (y_max - y_min) / (count - 1)
-    return [y_min + step * index for index in range(count)]
+    step = _nice_step(y_max - y_min, count)
+    first = math.floor(y_min / step) * step
+    ticks: list[float] = []
+    tick = first
+    while tick <= y_max + step * 0.5:
+        # Snap values that are zero to within floating error, so the baseline test and
+        # the printed label agree on which line is the zero line.
+        ticks.append(0.0 if abs(tick) < step * 1e-9 else tick)
+        tick += step
+    return ticks
 
 
 def _polyline(points: Sequence[tuple[float, float]]) -> str:
@@ -381,6 +415,19 @@ def _point_on_circle(cx: float, cy: float, radius: float, angle: float) -> tuple
     return cx + radius * math.cos(radians), cy + radius * math.sin(radians)
 
 
+def _donut_ring(cx: float, cy: float, outer_radius: float, inner_radius: float, color: str) -> str:
+    """A closed ring, for the case where one slice is the whole circle."""
+    return (
+        f'<path d="M {cx - outer_radius:.2f} {cy:.2f} '
+        f"a {outer_radius} {outer_radius} 0 1 0 {outer_radius * 2} 0 "
+        f"a {outer_radius} {outer_radius} 0 1 0 {-outer_radius * 2} 0 Z "
+        f"M {cx - inner_radius:.2f} {cy:.2f} "
+        f"a {inner_radius} {inner_radius} 0 1 1 {inner_radius * 2} 0 "
+        f'a {inner_radius} {inner_radius} 0 1 1 {-inner_radius * 2} 0 Z" '
+        f'fill="{color}" fill-rule="evenodd" stroke="#FFFFFF" stroke-width="2" />'
+    )
+
+
 def _donut_segment(
     cx: float,
     cy: float,
@@ -390,7 +437,12 @@ def _donut_segment(
     end_angle: float,
     color: str,
 ) -> str:
-    large_arc = 1 if end_angle - start_angle > 180 else 0
+    sweep = end_angle - start_angle
+    if sweep >= 359.999:
+        # A single 100% holding: start and end coincide, and SVG omits an arc whose
+        # endpoints are identical, so the donut rendered blank. Draw it as a ring.
+        return _donut_ring(cx, cy, outer_radius, inner_radius, color)
+    large_arc = 1 if sweep > 180 else 0
     outer_start = _point_on_circle(cx, cy, outer_radius, start_angle)
     outer_end = _point_on_circle(cx, cy, outer_radius, end_angle)
     inner_end = _point_on_circle(cx, cy, inner_radius, end_angle)
