@@ -1,4 +1,4 @@
-.PHONY: install lint monetary-float-guard typecheck openapi-gate template-registry-gate test test-unit test-integration test-e2e test-coverage security-audit check ci docker-build clean complexity-gate source-size-gate dead-code-gate dependency-hygiene-gate code-health-gates render-runtime-gate golden-fixtures
+.PHONY: install lint monetary-float-guard typecheck openapi-gate template-registry-gate test test-unit test-integration test-e2e test-coverage security-audit check ci docker-build clean complexity-gate source-size-gate dead-code-gate dependency-hygiene-gate code-health-gates render-runtime-gate golden-fixtures main-gate-coverage
 
 # Code-health baselines, banked at the measured tree with no headroom. An allowance above the
 # measurement is slack the next change spends, so each of these equals what the tree measures today
@@ -60,6 +60,12 @@ test-coverage: render-runtime-gate
 # fingerprint. This reports drift, and --write re-banks after an intended change.
 golden-fixtures:
 	$(VENV_PYTHON) scripts/regenerate_golden_fixtures.py
+
+# Reporting, not a lane gate: it asks GitHub which commits the releasability
+# workflow actually evaluated, so it needs network and a token and must not sit in
+# `check`. A push carrying two commits fires that workflow once, for the head.
+main-gate-coverage:
+	$(VENV_PYTHON) scripts/audit_main_gate_coverage.py
 
 render-runtime-gate:
 	$(VENV_PYTHON) scripts/render_runtime_gate.py
