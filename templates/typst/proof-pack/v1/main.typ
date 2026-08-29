@@ -1,4 +1,4 @@
-#import "_design.typ": accent, ink, muted, rule
+#import "_design.typ": accent, ink, key-value-row, label, muted, rule, value
 #set page(
   paper: "a4",
   margin: (x: 18mm, y: 16mm),
@@ -16,17 +16,6 @@
 
 #set text(size: 9pt, fill: ink)
 #set par(leading: 1.1em, spacing: 0.45em)
-
-#let label(value) = text(size: 6.9pt, fill: muted, weight: "semibold", upper(value))
-#let value(value) = text(size: 9.2pt, fill: ink, weight: "medium", value)
-
-#let key-value-row(key, val) = grid(
-  columns: (38mm, 1fr),
-  gutter: 5mm,
-  row-gutter: 2pt,
-  key,
-  val,
-)
 
 #let section-row(title, section-type, state, summary, reasons) = block(
   below: 5pt,
