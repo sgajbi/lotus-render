@@ -9,14 +9,14 @@
     #v(5pt)
     #grid(
       columns: (1fr, auto),
-      [#text(size: 6.4pt, fill: slate)[#"${PORTFOLIO_NAME}"]],
+      [#text(size: 6.1pt, fill: slate)[#"${PORTFOLIO_NAME}"]],
       [#text(size: 6.8pt, fill: ink)[#counter(page).display("1 / 1")]],
     )
   ],
   footer-descent: 38%,
 )
 
-#set text(size: 8.9pt, fill: ink)
+#set text(size: 8.8pt, fill: ink)
 #set par(leading: 1.08em, spacing: 0.42em)
 
 #import "_allocation.typ": allocation-page

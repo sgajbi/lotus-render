@@ -15,25 +15,25 @@
         "src/app/contracts/examples/portfolio-review-render-package.v1.json"
       ],
       "provenance": "Portfolio review package is the canonical lotus-report render package example mirrored into the golden fixture tree for registry-to-artifact gating.",
-      "bounded_determinism_fingerprint": "50721fe79cad711009a31e5d0fccab1bc73e341f4d63f0ade04e62773df47d96",
+      "bounded_determinism_fingerprint": "ff9846d9db2071e3e369d2571318533e693abab521506c22f8250ca8dac651c2",
       "page_image_hashes": [
-        "32da88ec14540fe4cdb88de97f007bc4acbed2c437efe26c866b6500f59f9bbd",
-        "1e4cf4dce3158982105c828b5d802e079369f2f8136653b566d544ac76000875",
-        "865efb4257d291709004cd3876e453a5dd70ade5d9cf1324fc18d0cc523ce8b7",
-        "187b71c1983a6521998541a64059c0b52b24390d439e7675da8f60b2390bba5a",
-        "90bdd87758ede7526ffddc4f3abab21c919af5a88c4f0d5faf1b22d6f27d6d75",
-        "76209d22a9cea0cbeab4c31bd884e53d9f233fa1a66a19e9103f525e1f3382ab",
-        "b384b7848445aa0419e6808be608c63368cb6bd081f6a06797cacffeae44f772",
-        "292728ba426dfdbe71e20b1339a0f6d9995cc22f39dbd26aeeb7373fc33c3ba9",
-        "c98043aafba31b88b1c61b93061b0a93c83c130bb230e8786662a3cee48a88fa",
-        "cbbd20ad28b45ffa0f24aeedda558498fd82667d2100d3c0a4a6d3ef273a86eb",
-        "594f5dc040e7488369a5190a7a981174cb1c4cae26b046b2c97d394fa40dbb4c",
-        "5013503cdc69b93730f0e8d19c66431d9053275da476b8d3b1683d423ed2b649",
-        "1c1a2b87e8413bf4a5fabada3b6c0c36fac4bff7e5dede0abb6ccfa6ab4cf763",
-        "3e3fbea9e51183f094e7b2cbecc3a1fda5420927c0cc117d5ffe9a25c5ff8626",
-        "79b09d60029d09f09e41417d9a77fd3411dd44d07249694bdd8c82b9b3bb1fb6",
-        "a93d33fb8b8ca0aaff64477f203d228f9c41a17f21392cd03b68ebdd200a070c",
-        "6345283c1ffc8a4f18667175eb90b730e123ffdc84c022301843c71e861514a5"
+        "3a1d799ea79a8948ac7c8a02055788a8ff6385aa5493ef1121cd620dbc2bfdad",
+        "454d84575b38454c6d84a9457286c82c9a243817da4c62ce793b3cfe64a071bf",
+        "8fbf12f68a5f1ed238d8a4e63a76680d25324df65e59a977ff0c7b1504da2388",
+        "b69145c5ec7077b150fcb91632817398c6101f6fc6d4526d9d466382bf2e1f8c",
+        "f79694b9d39a2933d8de0274b1ce5829ca2b3c6b296860f454138cf5ff414b13",
+        "116a205f41b15c3d1e060e12ed7127e278481edac8de2577d4faf57adda2a1c4",
+        "98fde49934774e1ca7c65fc6c1ce2388f2080e9e92ead08066080dcf14097528",
+        "d7adfb026928ae35fea8456dc4fd8561df09072a4768d379311136d8bd4e8215",
+        "1e3a12407a7868851418c7361a6d25a3b267133c29006d94df4495c42d2e596f",
+        "65b1b3ec87ddc12cf31eb339d3f04ca1e1f91dca8e44ff5a5ae36947e0d2d10e",
+        "19392cad23dfe3df01dee8fa007da94b9a034f2cc70613ade955f53d200bbc51",
+        "48bd499527e977f8431a5b40dac304f4a8dc48c5d08d42c5f7bd19c381056958",
+        "d954bca1aa70cf2852a910d078be10424068dc7a28528f6906922e81729c9f9e",
+        "9275c65aaa585f8dd5e9c00dd0f80fccecf3ae1227f01e0ecc866685ffc10dfd",
+        "32d44e830b07b1af0c8a8b69ddf5f931c3a87e9fee49a49399823e1b39be1466",
+        "de7a16655bfea0b153e1bc6a02244aa77bee15c0c75f44b5868d936c096f38a1",
+        "d0654e024e9441a3705e7a60d3ecb6b1d3c742c2bd1bd4fac12afc28f45254d6"
       ]
     },
     {
@@ -49,9 +49,9 @@
         "tests/unit/reporting_render/test_service.py"
       ],
       "provenance": "Generated from lotus-report ReportJobLedger and typed OutcomeReviewReportJobRequest through _build_render_package.",
-      "bounded_determinism_fingerprint": "e4d553a6aee47d33a1747e681fe10c8ee8ec42bce89b79b8a9eda90be91689cd",
+      "bounded_determinism_fingerprint": "77f6bc2b387d90536dd1a85fe7c48238ee97864616885c3c198b8702c82b2fc1",
       "page_image_hashes": [
-        "ae8bdfdb7a092a16730a457134404616304f848dee89fabb4a31550de2c7609b"
+        "fd46b2d5c3777ef0539b6ae4970a932827f3ce1f95f09dd2ec2a8c1e3184c271"
       ]
     },
     {
@@ -67,9 +67,9 @@
         "tests/unit/reporting_render/test_service.py"
       ],
       "provenance": "Generated from lotus-report ReportJobLedger and typed ProofPackReportJobRequest through _build_render_package.",
-      "bounded_determinism_fingerprint": "67deab4439a7e8d9b8e5ce94f1a1a5ebf19954bfe4b821a951cc4505130059ee",
+      "bounded_determinism_fingerprint": "06ae8bbf318f79a3392638c265809f9cf7ce995735f2f7c76b20991ed49a1180",
       "page_image_hashes": [
-        "a9cd75eb7b1df9964a8598e33e38438aca00cfc7de718b8a421a7fb5e56774eb"
+        "58972db7afc48f8bc9d62cb2b4e48f0abad03491019cf3a5dee1b54e87150e23"
       ]
     },
     {
@@ -88,9 +88,9 @@
         "tests/integration/test_idea_evidence_intake_api.py"
       ],
       "provenance": "Mirrors lotus-report reviewed Idea evidence materialization, which adapts lotus_idea_evidence_pack_report_input.v1 into the governed proof-pack render package without granting client-publication or archive authority in lotus-render.",
-      "bounded_determinism_fingerprint": "e984a340f56a2c695303f9686e130503d1386d385e5a867ce3cc5f71f4ba4f06",
+      "bounded_determinism_fingerprint": "3dc00db71429dd2669d193a7aa4b87e7b9ac14554a2322198bb7367b8615e0dc",
       "page_image_hashes": [
-        "d1564154ea00a80afab684f2bfe432a91557d428bed103d8860d80cbda5e009e"
+        "5b5fad7b775899ad2970dc7e36e94bbd0b48880a22cf5b4163a7752e179bf47f"
       ]
     },
     {
@@ -106,9 +106,9 @@
         "tests/unit/reporting_render/test_service.py"
       ],
       "provenance": "Generated from lotus-report ReportJobLedger and typed WaveReportJobRequest through _build_render_package.",
-      "bounded_determinism_fingerprint": "08da3f13e97142c507b8d83c6672861512a6b283f5dfc133a92db4a4fe3361f3",
+      "bounded_determinism_fingerprint": "99f365d1eaafd402fcb1cc39289a0baf4d5c4bbf7138796e0846fe124629842a",
       "page_image_hashes": [
-        "9c977a3b0de2896908aad5c8b4ff18a6c061993db7094f3f5a85ec58790d586e"
+        "08eb3ef02bb38708b7ffd53a4077edbb3b0ed1c683a3fdf93319a7d667423c2d"
       ]
     },
     {
@@ -124,26 +124,26 @@
         "src/app/contracts/examples/portfolio-review-render-package.v1.json"
       ],
       "provenance": "Portfolio review carrying an approved advisor-use package so the reviewed advisory narrative section is rendered and banked; that section previously had no compiled proof (issue #118).",
-      "bounded_determinism_fingerprint": "5062859478d3215d8f3834f40c481f9f6b39d1e25b89e0fa6277a7ed26c5fe33",
+      "bounded_determinism_fingerprint": "2531e56f9cd9c3aa63d8e6a55455c98c49ef50c65c1021e43d7ba410b8f3f707",
       "page_image_hashes": [
-        "32da88ec14540fe4cdb88de97f007bc4acbed2c437efe26c866b6500f59f9bbd",
-        "1eb8948e45a2e5d57f65e7fd4352689dca9ab460b42e8d2db60fb0558dfc041a",
-        "865efb4257d291709004cd3876e453a5dd70ade5d9cf1324fc18d0cc523ce8b7",
-        "187b71c1983a6521998541a64059c0b52b24390d439e7675da8f60b2390bba5a",
-        "90bdd87758ede7526ffddc4f3abab21c919af5a88c4f0d5faf1b22d6f27d6d75",
-        "76209d22a9cea0cbeab4c31bd884e53d9f233fa1a66a19e9103f525e1f3382ab",
-        "b384b7848445aa0419e6808be608c63368cb6bd081f6a06797cacffeae44f772",
-        "292728ba426dfdbe71e20b1339a0f6d9995cc22f39dbd26aeeb7373fc33c3ba9",
-        "c98043aafba31b88b1c61b93061b0a93c83c130bb230e8786662a3cee48a88fa",
-        "cbbd20ad28b45ffa0f24aeedda558498fd82667d2100d3c0a4a6d3ef273a86eb",
-        "594f5dc040e7488369a5190a7a981174cb1c4cae26b046b2c97d394fa40dbb4c",
-        "920473c9e987cdc1a05673aa0895c283a5462754a6a4908cfdf27025be753cf0",
-        "d2a969abf62ed20a0a2c4e284f3818807d83fc54290f8ffd33dde0435620441a",
-        "5efc20bbf5ad5296f5be7cc8d67623e3f292fff89dab7f69337529df203e1c09",
-        "28e7a096ecf7946fdf7a657ecbec16ff24799b51c259727d5c0abbf478bbc1de",
-        "23275755eeee41b07b03335573783cb3aff55777c7668892cf9b5aefda86d308",
-        "a2083d99c84a184e1fc00c6c198546164978382835dcb42404dd9f427511a14c",
-        "48a01afa687ca5777cfc1cf3e94872cdd1ba691be0217b457dbc42d799a2c41b"
+        "3a1d799ea79a8948ac7c8a02055788a8ff6385aa5493ef1121cd620dbc2bfdad",
+        "a64aefcb50b3d3d9a96c6cf579d0b023920d927cda6837adce0174b589dce434",
+        "8fbf12f68a5f1ed238d8a4e63a76680d25324df65e59a977ff0c7b1504da2388",
+        "b69145c5ec7077b150fcb91632817398c6101f6fc6d4526d9d466382bf2e1f8c",
+        "f79694b9d39a2933d8de0274b1ce5829ca2b3c6b296860f454138cf5ff414b13",
+        "116a205f41b15c3d1e060e12ed7127e278481edac8de2577d4faf57adda2a1c4",
+        "98fde49934774e1ca7c65fc6c1ce2388f2080e9e92ead08066080dcf14097528",
+        "d7adfb026928ae35fea8456dc4fd8561df09072a4768d379311136d8bd4e8215",
+        "1e3a12407a7868851418c7361a6d25a3b267133c29006d94df4495c42d2e596f",
+        "65b1b3ec87ddc12cf31eb339d3f04ca1e1f91dca8e44ff5a5ae36947e0d2d10e",
+        "19392cad23dfe3df01dee8fa007da94b9a034f2cc70613ade955f53d200bbc51",
+        "ab7a1ad45f46cc8048524e35767e4f3ee0bed21117ffd2a5a2b985f51673c948",
+        "8d0079175be778d495389001fb49c1baed0f7cca88190a62eaa7f70ba94e810c",
+        "dae0a03df3ca5baa613ec5450a1094235260f933f0c1f1df816fa0d628fb3c14",
+        "0d1722072c3812b4729ca6c913dd6d768072b6f1c13f7feef7ecafda997f6fa8",
+        "07d184968fbffc429e4e82c5516994f1c4bbd54834e8978cdd0fcb5bad15cf18",
+        "7f525fd694b1c717412059fef2a81a3ecea43d80a2fc5af5fcb61498890a1673",
+        "9ea9eac2a59250ed7eba9e1466afa6af06b50d1a72b8106791c2c99b1d55ef41"
       ]
     },
     {
@@ -159,26 +159,26 @@
         "src/app/contracts/examples/portfolio-review-render-package.v1.json"
       ],
       "provenance": "Portfolio review carrying an approved advisor-use package so the advisor proposal memo section is rendered and banked; that section previously had no compiled proof (issue #118).",
-      "bounded_determinism_fingerprint": "d1201d4fb4557ed16199c8c7f463908b1281347e92fa31dc94ebcfcf5ac9f838",
+      "bounded_determinism_fingerprint": "e1a153745ad274bd6d26fd77ada26070432830151249839ba5cc4978dea42953",
       "page_image_hashes": [
-        "32da88ec14540fe4cdb88de97f007bc4acbed2c437efe26c866b6500f59f9bbd",
-        "23dd39c7369e4147f370b4c3c00e3e7c5a4d672d67959d2966d75ebfc8100126",
-        "865efb4257d291709004cd3876e453a5dd70ade5d9cf1324fc18d0cc523ce8b7",
-        "187b71c1983a6521998541a64059c0b52b24390d439e7675da8f60b2390bba5a",
-        "90bdd87758ede7526ffddc4f3abab21c919af5a88c4f0d5faf1b22d6f27d6d75",
-        "76209d22a9cea0cbeab4c31bd884e53d9f233fa1a66a19e9103f525e1f3382ab",
-        "b384b7848445aa0419e6808be608c63368cb6bd081f6a06797cacffeae44f772",
-        "292728ba426dfdbe71e20b1339a0f6d9995cc22f39dbd26aeeb7373fc33c3ba9",
-        "c98043aafba31b88b1c61b93061b0a93c83c130bb230e8786662a3cee48a88fa",
-        "cbbd20ad28b45ffa0f24aeedda558498fd82667d2100d3c0a4a6d3ef273a86eb",
-        "594f5dc040e7488369a5190a7a981174cb1c4cae26b046b2c97d394fa40dbb4c",
-        "14e0d6c005e28bd663a5e16476b82ae8d56c2d4a26163ce0393a8d9b6efb4f3b",
-        "d2a969abf62ed20a0a2c4e284f3818807d83fc54290f8ffd33dde0435620441a",
-        "5efc20bbf5ad5296f5be7cc8d67623e3f292fff89dab7f69337529df203e1c09",
-        "28e7a096ecf7946fdf7a657ecbec16ff24799b51c259727d5c0abbf478bbc1de",
-        "23275755eeee41b07b03335573783cb3aff55777c7668892cf9b5aefda86d308",
-        "a2083d99c84a184e1fc00c6c198546164978382835dcb42404dd9f427511a14c",
-        "48a01afa687ca5777cfc1cf3e94872cdd1ba691be0217b457dbc42d799a2c41b"
+        "3a1d799ea79a8948ac7c8a02055788a8ff6385aa5493ef1121cd620dbc2bfdad",
+        "fecfde23587f774d41b5ece8c07105c2256c67dd655a8c6d625091c9796eaac6",
+        "8fbf12f68a5f1ed238d8a4e63a76680d25324df65e59a977ff0c7b1504da2388",
+        "b69145c5ec7077b150fcb91632817398c6101f6fc6d4526d9d466382bf2e1f8c",
+        "f79694b9d39a2933d8de0274b1ce5829ca2b3c6b296860f454138cf5ff414b13",
+        "116a205f41b15c3d1e060e12ed7127e278481edac8de2577d4faf57adda2a1c4",
+        "98fde49934774e1ca7c65fc6c1ce2388f2080e9e92ead08066080dcf14097528",
+        "d7adfb026928ae35fea8456dc4fd8561df09072a4768d379311136d8bd4e8215",
+        "1e3a12407a7868851418c7361a6d25a3b267133c29006d94df4495c42d2e596f",
+        "65b1b3ec87ddc12cf31eb339d3f04ca1e1f91dca8e44ff5a5ae36947e0d2d10e",
+        "19392cad23dfe3df01dee8fa007da94b9a034f2cc70613ade955f53d200bbc51",
+        "759b907ebff3288f0beb64a4f5c2b897871b4142a7bb8a7cbd636af8ba89cb91",
+        "8d0079175be778d495389001fb49c1baed0f7cca88190a62eaa7f70ba94e810c",
+        "dae0a03df3ca5baa613ec5450a1094235260f933f0c1f1df816fa0d628fb3c14",
+        "0d1722072c3812b4729ca6c913dd6d768072b6f1c13f7feef7ecafda997f6fa8",
+        "07d184968fbffc429e4e82c5516994f1c4bbd54834e8978cdd0fcb5bad15cf18",
+        "7f525fd694b1c717412059fef2a81a3ecea43d80a2fc5af5fcb61498890a1673",
+        "9ea9eac2a59250ed7eba9e1466afa6af06b50d1a72b8106791c2c99b1d55ef41"
       ]
     },
     {
@@ -194,21 +194,21 @@
         "src/app/contracts/examples/portfolio-review-render-package.v1.json"
       ],
       "provenance": "Portfolio review whose optional collections are all empty, so every degraded-path fallback is compiled and banked rather than asserted only as a Python string (#118).",
-      "bounded_determinism_fingerprint": "95212f1fa2b4d83882a30c302bbc019f2c21ea1f41942d9875c6a08d8dfa284a",
+      "bounded_determinism_fingerprint": "5c1dbf7d661259f4f58623cf376d337255caac2769ea2b8b70addaf82f7f77ec",
       "page_image_hashes": [
-        "929aaeed043d33bb18e7e1944144c50e79ffeda49a1d23f528861138e4242e09",
-        "b50615acafe46c4956126bbe64706ed22680fbe8580e8146875af7875b9ae90f",
-        "7324569ff6ca0c6269ea5604310ca17466dc62f300a6a6160d9e691f60564fcf",
-        "46396173957979f8c7ab6501aa47d575f7168f05bbbef2c5869c31b74f2d5cf2",
-        "22ea0a04679d9f914c41c3a1e6e5210b673de923ec8c199e9796b9cdfe144790",
-        "47d417ef529f26cb71ff9947bb4ab488161c026ebb1642db6588ae371cdbae6a",
-        "830586758d5a546dfccdab954f785abcd006812163589ff8cc8cec693ee8287e",
-        "f5458588da9efbac8a14cad9a9270351b61628f5cf9b588b581815675343efb7",
-        "c995db70477562ad13ad6a040bac78daef32332d8fd8909831ae156a1061f714",
-        "a231e6f03af64e33c4ffaf3560f418474e7dce19167a7cd01e45c719cc48e09a",
-        "86cb5201d7c3d3d9b8dedbbf0338e53c4b732860ac481cea82daf449ca7140fa",
-        "a1919e509610cecd42e224c021b6304629237c1ba145a6b2de89c4c3f5a2653a",
-        "afcd46a47a984eecbda045e05f943e5e8726f31a9331a87ce3d0a6dbc69748f1"
+        "334a3e2dca1db0617f5cbe2658cef993f32bddd3cd5b20f9b99d767c2507002c",
+        "6e8918daa2afa0e265e51d4bdf47f410414307c12ba278f6fc7e677bdca227af",
+        "5d33f2e4ab0cea1a853a9bda7cdf2c92d779aeab6fc20b98fb3ad6c745a25627",
+        "7ffcbb1e58d0cb8627d06ee90a9120cd7924e268e01c2c891f3763f1f2ab5a80",
+        "ec8df74b508a03fdc0d5f7c72b6b4da054a8245bbf0f062571b38cd893820c4d",
+        "a6e25e5a8096093d7cef64a2281f3ebb6206a216818f5432d27782c2867bbc3f",
+        "e76ed866ef257ffb639efaa90183a7804ec1faa3b5015d6eece15cbcc300496e",
+        "72d4a5ad5c5357c22a23a11cdb8e27e5af46eb8515b3e43e4e8dab9b02aa6cc0",
+        "9be7de36c2191531a239bc3394c2626d5700cfe4867bebf5abddf52cc6543bab",
+        "3acd9928904e458c47bf4c7888f32891a3b1357bd4bb4ec6b8484a89bfe83b51",
+        "7ae07b3620982dec087e18ed77955d5f2d68c33cdac0332b16707a74ca1758a6",
+        "32a8f73b5cbe9f0834e7726377827f7ac253dbebca582a21c3f5a2a3dbbb3edf",
+        "b6953e50d4d2925ecbb8b4f2024b7258aa6d840a6a98a222856cd64a71489fe4"
       ]
     }
   ]

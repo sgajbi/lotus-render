@@ -20,15 +20,15 @@
     [
       #align(right)[
         #set par(leading: 0.84em)
-        #text(size: 7.1pt, weight: 600, fill: ink)[Overview]
+        #text(size: 6.8pt, weight: 600, fill: ink)[Overview]
         #linebreak()
-        #text(size: 7.1pt, weight: 600, fill: ink)[Asset evaluations]
+        #text(size: 6.8pt, weight: 600, fill: ink)[Asset evaluations]
         #linebreak()
-        #text(size: 7.1pt, weight: 600, fill: ink)[Detailed positions]
+        #text(size: 6.8pt, weight: 600, fill: ink)[Detailed positions]
         #linebreak()
-        #text(size: 7.1pt, weight: 600, fill: ink)[Transactions]
+        #text(size: 6.8pt, weight: 600, fill: ink)[Transactions]
         #linebreak()
-        #text(size: 7.1pt, weight: 600, fill: accent)[Additional information]
+        #text(size: 6.8pt, weight: 600, fill: accent)[Additional information]
       ]
     ],
   )
@@ -37,7 +37,7 @@
 
 #let appendix-section-title(title) = [
   #v(4pt)
-  #text(size: 7.6pt, weight: 650, fill: ink)[#title]
+  #text(size: 7.4pt, weight: 650, fill: ink)[#title]
   #v(2pt)
   #soft-rule()
   #v(4pt)
@@ -82,7 +82,7 @@
 ]
 
 #let fx-cell(name, base, quote, rate, reverse) = [
-  #text(size: 8.4pt, weight: 650, fill: ink)[#name]
+  #text(size: 8.1pt, weight: 650, fill: ink)[#name]
   #v(2pt)
   #grid(
     columns: (0.34fr, 0.22fr, 0.34fr, 0.46fr),
@@ -132,9 +132,9 @@
     [#rect(width: 24pt, height: 24pt, radius: 1pt, fill: color)[#align(center + horizon)[#text(size: 9.5pt, weight: 700, fill: white)[#code]]]],
     [
       #set par(leading: 0.82em)
-      #text(size: 7.45pt, weight: 700, fill: ink)[#title]
+      #text(size: 7.4pt, weight: 700, fill: ink)[#title]
       #linebreak()
-      #text(size: 6.55pt, fill: ink)[#body]
+      #text(size: 6.8pt, fill: ink)[#body]
       #v(3pt)
       #grid(
         columns: (1fr, 70pt),

@@ -7,14 +7,14 @@
     #v(5pt)
     #grid(
       columns: (1fr, auto),
-      [#text(size: 6.6pt, fill: muted)[#"${PORTFOLIO_ID}" / #"${PROOF_PACK_ID}"]],
+      [#text(size: 6.8pt, fill: muted)[#"${PORTFOLIO_ID}" / #"${PROOF_PACK_ID}"]],
       [#text(size: 6.8pt, fill: ink)[#counter(page).display("1 / 1")]],
     )
   ],
   footer-descent: 38%,
 )
 
-#set text(size: 9pt, fill: ink)
+#set text(size: 8.8pt, fill: ink)
 #set par(leading: 1.1em, spacing: 0.45em)
 
 #let section-row(title, section-type, state, summary, reasons) = block(
@@ -34,7 +34,7 @@
 
 #text(size: 18pt, weight: "medium", fill: ink)[#"${TITLE}"]
 #v(4pt)
-#text(size: 8pt, fill: muted)[Governed pre-trade proof-pack report / #"${STATE}"]
+#text(size: 8.1pt, fill: muted)[Governed pre-trade proof-pack report / #"${STATE}"]
 
 #v(10pt)
 #grid(

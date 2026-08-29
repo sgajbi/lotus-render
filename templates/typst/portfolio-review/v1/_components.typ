@@ -35,7 +35,7 @@
 #let section-lead(title, body) = report-panel([
   #section-subtitle(title)
   #v(5pt)
-  #text(size: 9pt, fill: ink)[#body]
+  #text(size: 8.8pt, fill: ink)[#body]
 ], fill: mist)
 
 #let metric-card(label, value, detail: none, tone: mist) = block(
@@ -47,7 +47,7 @@
 )[
   #small-caps(label)
   #v(4pt)
-  #text(size: 11.2pt, weight: 650, fill: ink)[#value]
+  #text(size: 11pt, weight: 650, fill: ink)[#value]
   #if detail != none [
     #v(3pt)
     #body-muted(detail)
@@ -69,7 +69,7 @@
 )[
   #small-caps(title)
   #v(4pt)
-  #text(size: 8.35pt, fill: ink)[#body]
+  #text(size: 8.1pt, fill: ink)[#body]
 ]
 
 #let spotlight-panel(title, body) = block(
@@ -80,7 +80,7 @@
 )[
   #small-caps(title)
   #v(5pt)
-  #text(size: 9pt, fill: ink)[#body]
+  #text(size: 8.8pt, fill: ink)[#body]
 ]
 
 #let content-item(index, title, detail) = [
@@ -89,7 +89,7 @@
     column-gutter: 11pt,
     [#text(size: 19pt, weight: 300, fill: accent)[#index]],
     [
-      #text(size: 10pt, weight: 600, fill: ink)[#title]
+      #text(size: 9.5pt, weight: 600, fill: ink)[#title]
       #v(2pt)
       #body-muted(detail)
     ],
@@ -135,16 +135,16 @@
   radius: panel-radius,
   breakable: false,
 )[
-  #text(size: 11.2pt, weight: 700, fill: navy)[#title]
+  #text(size: 11pt, weight: 700, fill: navy)[#title]
   #if subtitle != none [
     #v(2pt)
-    #text(size: 8pt, fill: slate)[#subtitle]
+    #text(size: 8.1pt, fill: slate)[#subtitle]
   ]
   #v(8pt)
   #image(chart-path, width: 100%)
   #if note != none [
     #v(6pt)
-    #text(size: 7.5pt, fill: slate)[#note]
+    #text(size: 7.4pt, fill: slate)[#note]
   ]
 ]
 
@@ -155,9 +155,9 @@
   radius: panel-radius,
   breakable: false,
 )[
-  #text(size: 11.2pt, weight: 700, fill: navy)[#title]
+  #text(size: 11pt, weight: 700, fill: navy)[#title]
   #v(8pt)
-  #text(size: 8.5pt, fill: slate)[#message]
+  #text(size: 8.8pt, fill: slate)[#message]
 ]
 
 #let table-label(value, placement: left) = align(placement)[#small-caps(value)]
@@ -170,7 +170,7 @@
   ]
 ]
 
-#let stacked-cell(values, placement: right, size: 7.25pt, fill: slate, weight: 400) = align(placement)[
+#let stacked-cell(values, placement: right, size: 7.4pt, fill: slate, weight: 400) = align(placement)[
   #set par(leading: 0.86em)
   #for value in values.split(";") [
     #text(size: size, weight: weight, fill: fill)[#value]
@@ -189,7 +189,7 @@
     columns: (10pt, 1fr),
     column-gutter: 8pt,
     [#rect(width: 6pt, height: 6pt, radius: 2pt, fill: accent)],
-    [#text(size: 9pt, fill: ink)[#body]],
+    [#text(size: 8.8pt, fill: ink)[#body]],
   )
 ]
 
@@ -199,11 +199,11 @@
   #grid(
     columns: (0.9fr, 1fr, 1fr, 1fr),
     column-gutter: 12pt,
-    [#text(size: 9pt, fill: ink)[#period]],
-    [#align(right)[#text(size: 9pt, fill: ink)[#net]]],
-    [#align(right)[#text(size: 9pt, fill: slate)[#benchmark]]],
+    [#text(size: 8.8pt, fill: ink)[#period]],
+    [#align(right)[#text(size: 8.8pt, fill: ink)[#net]]],
+    [#align(right)[#text(size: 8.8pt, fill: slate)[#benchmark]]],
     [#align(right)[#text(
-      size: 9pt,
+      size: 8.8pt,
       weight: 500,
       fill: if relative-negative { loss } else { gain },
     )[#relative]]],
@@ -218,9 +218,9 @@
   stroke: (paint: rule, thickness: hairline),
   radius: panel-radius,
 )[
-  #text(size: 7.3pt, fill: slate)[#label]
+  #text(size: 7.4pt, fill: slate)[#label]
   #linebreak()
-  #text(size: 10pt, weight: 600, fill: ink)[#value]
+  #text(size: 9.5pt, weight: 600, fill: ink)[#value]
   #linebreak()
   #text(size: 6.8pt, fill: slate)[Ann. #annualized]
 ]
@@ -254,7 +254,7 @@
 
 // An auto-scaled bar with an unstated domain is only half-honest: two charts in one
 // document can share a visual language and not share a scale. Say what the track means.
-#let chart-scale-note(domain) = text(size: 6pt, fill: slate)[
+#let chart-scale-note(domain) = text(size: 6.1pt, fill: slate)[
   Bars scaled to #sym.plus.minus#domain, the largest move in this series
 ]
 
@@ -262,10 +262,10 @@
   #grid(
     columns: (34pt, 1fr, 42pt, 42pt),
     column-gutter: 7pt,
-    [#text(size: 6.2pt, fill: slate)[#period]],
+    [#text(size: 6.1pt, fill: slate)[#period]],
     [#diverging-track(magnitude, negative)],
-    [#align(right)[#text(size: 6.2pt, weight: 500, fill: if negative { loss } else { ink })[#value]]],
-    [#align(right)[#text(size: 6.2pt, fill: slate)[#cumulative]]],
+    [#align(right)[#text(size: 6.1pt, weight: 500, fill: if negative { loss } else { ink })[#value]]],
+    [#align(right)[#text(size: 6.1pt, fill: slate)[#cumulative]]],
   )
 ]
 
@@ -290,7 +290,7 @@
   #grid(
     columns: (1.25fr, 1.4fr, 0.6fr, 0.75fr),
     column-gutter: 10pt,
-    [#text(size: 8.7pt, fill: ink)[#name]],
+    [#text(size: 8.8pt, fill: ink)[#name]],
     [
       #block(
         width: 100%,
@@ -301,8 +301,8 @@
         #rect(width: width, height: 8pt, radius: 99pt, fill: accent-soft)
       ]
     ],
-    [#align(right)[#text(size: 8.6pt, fill: ink)[#weight]]],
-    [#align(right)[#text(size: 8.6pt, fill: slate)[#value]]],
+    [#align(right)[#text(size: 8.8pt, fill: ink)[#weight]]],
+    [#align(right)[#text(size: 8.8pt, fill: slate)[#value]]],
   )
 ]
 
@@ -310,7 +310,7 @@
   #grid(
     columns: (1.15fr, 1.15fr, 0.55fr, 0.75fr),
     column-gutter: 8pt,
-    [#text(size: 8pt, fill: ink)[#name]],
+    [#text(size: 8.1pt, fill: ink)[#name]],
     [
       #block(
         width: 100%,
@@ -321,8 +321,8 @@
         #rect(width: width, height: 6pt, radius: 99pt, fill: accent-soft)
       ]
     ],
-    [#align(right)[#text(size: 7.75pt, fill: ink)[#weight]]],
-    [#align(right)[#text(size: 7.75pt, fill: slate)[#value]]],
+    [#align(right)[#text(size: 7.4pt, fill: ink)[#weight]]],
+    [#align(right)[#text(size: 7.4pt, fill: slate)[#value]]],
   )
   #v(3.5pt)
   #line(length: 100%, stroke: (paint: rule, thickness: 0.25pt))
@@ -347,39 +347,39 @@
 // real #table with a repeating header and a stroke that belongs to the row (issue #138).
 #let dense-position-row(category, number_amount, description, classification, cost_basis, market_value, gain_loss, performance, weight) = (
   [
-    #text(size: 7.5pt, fill: slate)[#category]
+    #text(size: 7.4pt, fill: slate)[#category]
     #linebreak()
-    #stacked-cell(number_amount, placement: left, size: 7.15pt, fill: ink)
+    #stacked-cell(number_amount, placement: left, size: 7.4pt, fill: ink)
   ],
   [
     #text(size: 8.1pt, fill: ink)[#description]
     #linebreak()
-    #text(size: 7pt, fill: slate)[Sustainability / instrument details]
+    #text(size: 6.8pt, fill: slate)[Sustainability / instrument details]
   ],
   [#stacked-cell(classification)],
   [#stacked-cell(cost_basis, fill: ink)],
   [#stacked-cell(market_value, fill: ink)],
   [#stacked-cell(gain_loss)],
   [#stacked-cell(performance, fill: accent, weight: 500)],
-  [#align(right)[#text(size: 7.35pt, fill: ink)[#weight]]],
+  [#align(right)[#text(size: 7.4pt, fill: ink)[#weight]]],
 )
 
 // Table cells rather than a self-contained grid, so the transaction table can repeat its
 // header and own its row separator (issue #138), matching the positions table.
 #let dense-transaction-row(trade_date, booking_text, amount, description, detail_primary, detail_secondary, price, gain, value) = (
   [
-    #stacked-cell(trade_date, placement: left, size: 7.25pt, fill: ink)
+    #stacked-cell(trade_date, placement: left, size: 7.4pt, fill: ink)
   ],
   [
-    #stacked-cell(booking_text, placement: left, size: 7.25pt, fill: ink)
+    #stacked-cell(booking_text, placement: left, size: 7.4pt, fill: ink)
   ],
   [#stacked-cell(amount, fill: ink)],
   [
-    #text(size: 8pt, fill: ink)[#description]
+    #text(size: 8.1pt, fill: ink)[#description]
     #linebreak()
-    #stacked-cell(detail_primary, placement: left, size: 7.05pt, fill: slate)
+    #stacked-cell(detail_primary, placement: left, size: 6.8pt, fill: slate)
     #linebreak()
-    #stacked-cell(detail_secondary, placement: left, size: 6.85pt, fill: slate)
+    #stacked-cell(detail_secondary, placement: left, size: 6.8pt, fill: slate)
   ],
   [#stacked-cell(price, fill: ink)],
   [#stacked-cell(gain)],
@@ -388,7 +388,7 @@
 
 #let appendix-term(title, body) = [
   #text(size: 8.1pt, weight: 500, fill: ink)[#title]
-  #text(size: 7.9pt, fill: ink)[[: #body]]
+  #text(size: 8.1pt, fill: ink)[[: #body]]
 ]
 
 #let appendix-section(title, left, middle, right) = [
