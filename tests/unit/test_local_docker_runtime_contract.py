@@ -1,6 +1,9 @@
+import re
 from pathlib import Path
 
 import yaml
+
+from app.core.settings import Settings
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -31,4 +34,45 @@ def test_service_image_does_not_run_as_root() -> None:
     assert user_directives, "Dockerfile has no USER directive, so the service runs as root."
     assert user_directives[-1] != "root", (
         f"the final USER directive is {user_directives[-1]!r}; the service must not run as root."
+    )
+
+
+def _duration_seconds(value: str) -> float:
+    """Parse the compose duration forms this file uses (e.g. '75s', '2m')."""
+
+    match = re.fullmatch(r"(\d+(?:\.\d+)?)(ms|s|m|h)", value.strip())
+    assert match, f"unrecognised compose duration {value!r}"
+    magnitude, unit = float(match.group(1)), match.group(2)
+    return magnitude * {"ms": 0.001, "s": 1.0, "m": 60.0, "h": 3600.0}[unit]
+
+
+def test_shutdown_grace_period_outlasts_a_render_in_flight() -> None:
+    """A grace period below the compile timeout silently defeats the drain.
+
+    Shutdown marks the instance draining and waits for in-flight renders for up to
+    `render_compile_timeout_seconds` before exiting (issue #105). Compose's default grace
+    period is 10 seconds, so without this the platform SIGKILLs the very render the drain
+    is waiting for and strands its job -- the exact failure the drain exists to prevent.
+    """
+
+    compose = yaml.safe_load((ROOT / "docker-compose.yml").read_text(encoding="utf-8"))
+    grace = compose["services"]["lotus-render"].get("stop_grace_period")
+    assert grace, (
+        "docker-compose.yml sets no stop_grace_period, so the 10s default applies and the "
+        "shutdown drain cannot complete."
+    )
+
+    # Honour a compose-level override: Configuration.md tells operators to raise the
+    # compile timeout for large documents, and doing so must not silently outgrow the
+    # grace period while this test keeps reading the default.
+    service = compose["services"]["lotus-render"]
+    configured = (service.get("environment") or {}).get(
+        "LOTUS_RENDER_RENDER_COMPILE_TIMEOUT_SECONDS"
+    )
+    compile_timeout = (
+        int(configured) if configured is not None else Settings().render_compile_timeout_seconds
+    )
+    assert _duration_seconds(str(grace)) > compile_timeout, (
+        f"stop_grace_period {grace!r} does not outlast the {compile_timeout}s compile "
+        "timeout, so a render in flight is killed rather than drained."
     )
