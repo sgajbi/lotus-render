@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import sqlite3
 import threading
+from contextlib import closing
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
@@ -232,7 +233,7 @@ def test_render_diagnostics_reports_stale_in_progress_without_raw_identifiers(
             runtime_engine_version="0.14.2",
         )
         store.mark_rendering("rdr_stale_api")
-        with sqlite3.connect(tmp_path / "render-store.sqlite3") as connection:
+        with closing(sqlite3.connect(tmp_path / "render-store.sqlite3")) as connection, connection:
             connection.execute(
                 "UPDATE render_job SET updated_at = ? WHERE render_job_id = ?",
                 (

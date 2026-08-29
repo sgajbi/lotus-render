@@ -297,3 +297,31 @@ def test_vulture_whitelist_entries_resolve_to_live_symbols() -> None:
     """Executing the itemized expressions makes stale suppressions fail at review time."""
 
     runpy.run_path(str(ROOT / "vulture_whitelist.py"))
+
+
+def test_sqlite_connections_are_close_bounded_everywhere() -> None:
+    """`with sqlite3.connect(...)` manages the transaction, not the close.
+
+    Each such connection leaks until garbage collection and surfaces as an
+    unattributable ResourceWarning late in the suite (issue #90). The warning's
+    finalizer timing makes a -W error gate flaky, so the pattern itself is the
+    deterministic gate: every connect must be wrapped in contextlib.closing or
+    own an explicit close boundary.
+    """
+
+    offenders: list[str] = []
+    for base in ("src", "tests", "scripts"):
+        for path in sorted((ROOT / base).rglob("*.py")):
+            text = path.read_text(encoding="utf-8")
+            for lineno, line in enumerate(text.splitlines(), start=1):
+                if "sqlite3.connect(" not in line:
+                    continue
+                if (
+                    line.lstrip().startswith("with sqlite3.connect(")
+                    and "closing(sqlite3.connect(" not in line
+                ):
+                    offenders.append(f"{path.relative_to(ROOT)}:{lineno}")
+    assert not offenders, (
+        "sqlite3.connect used as a bare context manager never closes the connection; "
+        f"wrap in contextlib.closing: {offenders}"
+    )
