@@ -157,6 +157,15 @@ def ungoverned_runtime_reason() -> str | None:
     )
 
 
+def page_image_hashes(service: "TypstRenderService", render_package: RenderPackage) -> list[str]:
+    """One hash per page, in page order.
+
+    PNG export carries no timestamp, so unlike the PDF this needs no patterns stripped
+    before it is stable -- what is hashed is exactly what a reader would see.
+    """
+    return [hashlib.sha256(page).hexdigest() for page in service.render_page_images(render_package)]
+
+
 def _classify_compile_failure(
     process: "subprocess.CompletedProcess[str]",
 ) -> tuple[RenderFailureCategory, str]:
@@ -292,6 +301,60 @@ class TypstRenderService:
             runtime_engine=self._settings.runtime_engine,
             runtime_engine_version=self.runtime_engine_version,
         )
+
+    def render_page_images(self, render_package: RenderPackage) -> list[bytes]:
+        """One PNG per page of the document this package would produce.
+
+        The artifact fingerprint answers "did anything change". It cannot answer "what
+        changed", and it cannot answer "is this right" -- a sign-blind bar, a gridline
+        drawn off-canvas, a chart card severed from its title and a document printing its
+        own source were all byte-identical to themselves, so every golden was green over
+        them for as long as they existed. Each was found by looking at a page.
+
+        Page images give the missing granularity: banked per page, a moved golden names
+        the pages that moved instead of only the document. They are exported by the same
+        pinned Typst container that produces the PDF, so this adds no dependency, and PNG
+        output carries no timestamp -- a plain hash is stable where the PDF needs eight
+        patterns stripped from it first.
+        """
+        manifest = self._intake_service.validate_package(render_package)
+        template_context = self._build_template_context(render_package)
+
+        with TemporaryDirectory(prefix="lotus-render-pages-") as temp_dir_name:
+            temp_dir = Path(temp_dir_name)
+            source_path = self._materialize_template(
+                template_root=Path("templates/typst")
+                / manifest.template_id
+                / manifest.template_version
+                / "main.typ",
+                workspace=temp_dir,
+                render_package=render_package,
+                template_context=template_context,
+                determinism_statement="",
+            )
+            command = self._build_compile_command(
+                workspace=temp_dir,
+                source_path=source_path,
+                output_path=temp_dir / "page-{p}.png",
+            )
+            # `--format png` sits between `compile` and its arguments.
+            command.insert(command.index("compile") + 1, "--format")
+            command.insert(command.index("--format") + 1, "png")
+            process = subprocess.run(  # noqa: S603
+                command,
+                capture_output=True,
+                text=True,
+                timeout=self._settings.render_compile_timeout_seconds,
+                check=False,
+            )
+            if process.returncode != 0:
+                _, summary = _classify_compile_failure(process)
+                raise RuntimeError(f"page image export failed: {summary}")
+            pages = sorted(
+                temp_dir.glob("page-*.png"),
+                key=lambda path: int(path.stem.removeprefix("page-")),
+            )
+            return [page.read_bytes() for page in pages]
 
     def render(self, render_package: RenderPackage) -> RenderResult:
         attempt = RenderAttempt(
