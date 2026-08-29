@@ -345,6 +345,6 @@ def test_string_literal_emitters_do_not_use_the_markup_escaper() -> None:
     )
     assert "escape_typst_text(" not in tables, (
         "typst_tables.py emits Typst string literals; escape_typst_text leaves the closing "
-        'quote live so a value containing a double-quote breaks the compile. Use '
-        "escape_typst_string for every argument emitted between \" delimiters."
+        "quote live so a value containing a double-quote breaks the compile. Use "
+        'escape_typst_string for every argument emitted between " delimiters.'
     )
