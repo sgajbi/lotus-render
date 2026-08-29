@@ -11,6 +11,11 @@ services:
       LOTUS_RENDER_REQUIRE_PERSISTENT_RENDER_STORE: "true"
     volumes:
       - lotus-render-data:/var/lib/lotus-render
+    # Shutdown drains in-flight renders for up to LOTUS_RENDER_RENDER_COMPILE_TIMEOUT_SECONDS
+    # (60s) before exiting. Compose's default grace period is 10s, which would SIGKILL the
+    # very render the drain is waiting for and strand its job. Keep this above the compile
+    # timeout; tests/unit/test_local_docker_runtime_contract.py enforces the relationship.
+    stop_grace_period: 75s
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8310/health/ready')"]
       interval: 15s
