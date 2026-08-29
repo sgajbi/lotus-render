@@ -111,3 +111,60 @@ def test_a_shared_file_cannot_be_confused_with_a_family_file(tmp_path: Path) -> 
     assert template_digest(family, shared_directory=shared) != template_digest(
         swapped_family, shared_directory=swapped_shared
     )
+
+
+COMPONENT_DEFINITION = re.compile(r"#let\s+([a-z][a-z0-9-]*)\s*\(")
+
+
+def test_no_component_is_defined_by_more_than_one_family() -> None:
+    """Three copies of a primitive is the arrangement that produced four palettes.
+
+    `key-value-row`, `label` and `value` were each defined three times -- once in each
+    single-file family -- byte-identical, with nothing keeping them in step. They had
+    not drifted yet. The colours in the same files had.
+    """
+
+    defined_in: dict[str, set[str]] = {}
+    for family in FAMILIES:
+        for path in _family_files(family):
+            for name in COMPONENT_DEFINITION.findall(path.read_text(encoding="utf-8")):
+                defined_in.setdefault(name, set()).add(family)
+
+    duplicated = {
+        name: sorted(families) for name, families in defined_in.items() if len(families) > 1
+    }
+    assert not duplicated, (
+        "these components are defined by more than one family, so nothing keeps the "
+        f"copies in step: {duplicated}. Move them into the design system."
+    )
+
+    # Shadowing is the same defect arriving one family at a time, and the check above
+    # cannot see it: a single family redefining a shared primitive is not "duplicated
+    # across families" until a second one does the same.
+    shared_names = set(COMPONENT_DEFINITION.findall(DESIGN_MODULE.read_text(encoding="utf-8")))
+    shadowed = {
+        name: sorted(families) for name, families in defined_in.items() if name in shared_names
+    }
+    assert not shadowed, (
+        f"these families redefine a primitive the design system already owns: {shadowed}. "
+        "A local copy is free to drift from the shared one, which is how this started."
+    )
+
+
+def test_a_shared_file_cannot_overwrite_a_family_file() -> None:
+    """The shared module is copied into the workspace *beside* the family's own files.
+
+    `shutil.copytree(shared, workspace_template_directory, dirs_exist_ok=True)` means a
+    shared file whose name matches a family file silently replaces it at render time --
+    and portfolio-review already has a `_components.typ`. The digest would not notice:
+    it hashes both trees, so the bytes are all accounted for, while the document
+    compiled against only one of them.
+    """
+
+    shared_names = {path.name for path in shared_design_directory().rglob("*") if path.is_file()}
+    for family in FAMILIES:
+        clashes = shared_names & {path.name for path in _family_files(family)}
+        assert not clashes, (
+            f"{family} has files whose names collide with the shared module: {sorted(clashes)}. "
+            "At render time the shared copy would silently replace the family's own."
+        )

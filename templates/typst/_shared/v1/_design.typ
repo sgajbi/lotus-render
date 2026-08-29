@@ -32,6 +32,25 @@
 #let accent-soft = rgb("#2C7A7B")
 #let gold = rgb("#C38B2E")
 
+// --- Shared primitives ----------------------------------------------------------
+// Defined once here because they were defined three times: proof-pack, outcome-review
+// and rebalance-wave each carried their own byte-identical copy, with nothing keeping
+// them in step. That is exactly the arrangement that let the palettes drift into four
+// values of `accent`, so it is closed before it does the same again.
+
+// A field and its value, side by side. The width is fixed so that stacked rows align
+// down the page rather than each row finding its own column.
+#let key-value-row(key, val) = grid(
+  columns: (38mm, 1fr),
+  gutter: 5mm,
+  row-gutter: 2pt,
+  key,
+  val,
+)
+
+#let label(value) = text(size: 6.9pt, fill: muted, weight: "semibold", upper(value))
+#let value(value) = text(size: 9.2pt, fill: ink, weight: "medium", value)
+
 // --- Direction ----------------------------------------------------------------
 // Named for meaning, not hue. `gain` must mean "this number went up" everywhere, which
 // it could not while #286446 was simultaneously proof-pack's brand accent; unifying
