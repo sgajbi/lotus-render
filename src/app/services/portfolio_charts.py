@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import html
 import math
-from collections.abc import Mapping, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
 from datetime import datetime
 from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
@@ -165,20 +165,7 @@ def render_performance_svg(points: Sequence[PerformancePoint]) -> str:
     bottom = 44
     plot_width = width - left - right
     plot_height = height - top - bottom
-
-    values = [point.cumulative_twr for point in points]
-    benchmark_values = [
-        point.benchmark_cumulative_twr
-        for point in points
-        if point.benchmark_cumulative_twr is not None
-    ]
-    values.extend(value for value in benchmark_values if value is not None)
-    values.append(0.0)
-    min_value = min(values)
-    max_value = max(values)
-    padding = max((max_value - min_value) * 0.15, 0.8)
-    y_min = math.floor(min_value - padding)
-    y_max = math.ceil(max_value + padding)
+    y_min, y_max = _chart_value_bounds(points)
 
     def x_at(index: int) -> float:
         if len(points) == 1:
@@ -188,26 +175,10 @@ def render_performance_svg(points: Sequence[PerformancePoint]) -> str:
     def y_at(value: float) -> float:
         return top + ((y_max - value) / (y_max - y_min)) * plot_height
 
-    grid_lines = []
-    for tick in _nice_ticks(y_min, y_max, 5):
-        y = y_at(tick)
-        stroke = CHART_COLORS["slate"] if abs(tick) < 0.0001 else CHART_COLORS["border"]
-        thickness = "1.1" if abs(tick) < 0.0001 else "0.7"
-        grid_lines.append(
-            f'<line x1="{left}" y1="{y:.2f}" x2="{width - right}" y2="{y:.2f}" stroke="{stroke}" stroke-width="{thickness}" opacity="0.75" />'
-            f'<text x="{left - 12}" y="{y + 4:.2f}" text-anchor="end" class="axis">{tick:.0f}%</text>'
-        )
-
+    grid_lines = _grid_line_markup(y_min, y_max, y_at=y_at, left=left, right_edge=width - right)
     portfolio_path = _polyline(
         [(x_at(index), y_at(point.cumulative_twr)) for index, point in enumerate(points)]
     )
-    benchmark_points = [
-        (x_at(index), y_at(point.benchmark_cumulative_twr))
-        for index, point in enumerate(points)
-        if point.benchmark_cumulative_twr is not None
-    ]
-    benchmark_path = _polyline(benchmark_points) if len(benchmark_points) >= 2 else ""
-
     point_markers = "\n".join(
         f'<circle cx="{x_at(index):.2f}" cy="{y_at(point.cumulative_twr):.2f}" r="4" fill="#FFFFFF" stroke="{CHART_COLORS["blue"]}" stroke-width="2" />'
         for index, point in enumerate(points)
@@ -216,11 +187,7 @@ def render_performance_svg(points: Sequence[PerformancePoint]) -> str:
         f'<text x="{x_at(index):.2f}" y="{height - 18}" text-anchor="middle" class="axis">{_month_label(point.month)}</text>'
         for index, point in enumerate(points)
     )
-    benchmark_markup = (
-        f'<path d="{benchmark_path}" fill="none" stroke="{CHART_COLORS["teal"]}" stroke-width="1.8" stroke-dasharray="6 5" opacity="0.72" />'
-        if benchmark_path
-        else ""
-    )
+    benchmark_markup, benchmark_legend = _benchmark_layer(points, x_at=x_at, y_at=y_at, width=width)
 
     return f'''<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}">
   <style>
@@ -229,7 +196,7 @@ def render_performance_svg(points: Sequence[PerformancePoint]) -> str:
     .legend {{ fill: {CHART_COLORS["text"]}; font-size: 12px; font-weight: 600; }}
   </style>
   <rect width="100%" height="100%" fill="#FFFFFF" />
-  {"".join(grid_lines)}
+  {grid_lines}
   <line x1="{left}" y1="{top}" x2="{left}" y2="{height - bottom}" stroke="{CHART_COLORS["border"]}" stroke-width="0.8" />
   <line x1="{left}" y1="{height - bottom}" x2="{width - right}" y2="{height - bottom}" stroke="{CHART_COLORS["border"]}" stroke-width="0.8" />
   {benchmark_markup}
@@ -238,8 +205,62 @@ def render_performance_svg(points: Sequence[PerformancePoint]) -> str:
   {month_labels}
   <circle cx="{width - 186}" cy="24" r="4" fill="#FFFFFF" stroke="{CHART_COLORS["blue"]}" stroke-width="2" />
   <text x="{width - 174}" y="28" class="legend">Portfolio</text>
-  {('<line x1="' + str(width - 92) + '" y1="24" x2="' + str(width - 62) + '" y2="24" stroke="' + CHART_COLORS["teal"] + '" stroke-width="1.8" stroke-dasharray="6 5" opacity="0.72" /><text x="' + str(width - 54) + '" y="28" class="legend">Benchmark</text>') if benchmark_path else ""}
+  {benchmark_legend}
 </svg>'''
+
+
+def _chart_value_bounds(points: Sequence[PerformancePoint]) -> tuple[int, int]:
+    """Integer axis bounds padded so the series never touches the plot edge."""
+    values = [point.cumulative_twr for point in points]
+    values.extend(
+        point.benchmark_cumulative_twr
+        for point in points
+        if point.benchmark_cumulative_twr is not None
+    )
+    values.append(0.0)
+    min_value = min(values)
+    max_value = max(values)
+    padding = max((max_value - min_value) * 0.15, 0.8)
+    return math.floor(min_value - padding), math.ceil(max_value + padding)
+
+
+def _grid_line_markup(
+    y_min: float, y_max: float, *, y_at: Callable[[float], float], left: int, right_edge: int
+) -> str:
+    grid_lines = []
+    for tick in _nice_ticks(y_min, y_max, 5):
+        y = y_at(tick)
+        stroke = CHART_COLORS["slate"] if abs(tick) < 0.0001 else CHART_COLORS["border"]
+        thickness = "1.1" if abs(tick) < 0.0001 else "0.7"
+        grid_lines.append(
+            f'<line x1="{left}" y1="{y:.2f}" x2="{right_edge}" y2="{y:.2f}" stroke="{stroke}" stroke-width="{thickness}" opacity="0.75" />'
+            f'<text x="{left - 12}" y="{y + 4:.2f}" text-anchor="end" class="axis">{tick:.0f}%</text>'
+        )
+    return "".join(grid_lines)
+
+
+def _benchmark_layer(
+    points: Sequence[PerformancePoint],
+    *,
+    x_at: Callable[[int], float],
+    y_at: Callable[[float], float],
+    width: int,
+) -> tuple[str, str]:
+    """Dashed benchmark path and its legend entry, or empty strings without one."""
+    benchmark_points = [
+        (x_at(index), y_at(point.benchmark_cumulative_twr))
+        for index, point in enumerate(points)
+        if point.benchmark_cumulative_twr is not None
+    ]
+    if len(benchmark_points) < 2:
+        return "", ""
+    benchmark_path = _polyline(benchmark_points)
+    markup = f'<path d="{benchmark_path}" fill="none" stroke="{CHART_COLORS["teal"]}" stroke-width="1.8" stroke-dasharray="6 5" opacity="0.72" />'
+    legend = (
+        f'<line x1="{width - 92}" y1="24" x2="{width - 62}" y2="24" stroke="{CHART_COLORS["teal"]}" stroke-width="1.8" stroke-dasharray="6 5" opacity="0.72" />'
+        f'<text x="{width - 54}" y="28" class="legend">Benchmark</text>'
+    )
+    return markup, legend
 
 
 def render_allocation_donut_svg(items: Sequence[AllocationSlice]) -> str:
