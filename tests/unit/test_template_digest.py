@@ -13,7 +13,10 @@ from __future__ import annotations
 import shutil
 from pathlib import Path
 
-from app.services.typst_rendering import template_digest
+import pytest
+
+from app.domain.templates.digest import template_digest
+from app.domain.templates.registry import TemplateRegistry, TemplateRegistryError
 
 PORTFOLIO = Path("templates/typst/portfolio-review/v1")
 
@@ -52,3 +55,40 @@ def test_the_digest_covers_file_names_not_only_contents(tmp_path: Path) -> None:
     (renamed / "_theme.typ").rename(renamed / "_palette.typ")
 
     assert template_digest(original) != template_digest(renamed)
+
+
+def test_the_registry_refuses_a_template_that_no_longer_matches_its_manifest(
+    tmp_path: Path,
+) -> None:
+    """An unreviewed template edit must never be served.
+
+    The manifest now names the bytes it describes, so a published template changed
+    without its manifest being updated fails at load rather than being discovered later
+    from a diverged render digest. Before this the registry gate never read
+    `templates/typst` at all (issue #139).
+    """
+
+    source = tmp_path / "typst"
+    shutil.copytree("templates/typst", source)
+    theme = source / "portfolio-review" / "v1" / "_theme.typ"
+    theme.write_text(theme.read_text(encoding="utf-8") + "\n// unreviewed edit\n", encoding="utf-8")
+
+    with pytest.raises(TemplateRegistryError, match="template digest mismatch"):
+        TemplateRegistry.load_from_directory(
+            Path("templates/registry"), template_source_root=source
+        )
+
+
+def test_the_registry_loads_when_every_manifest_matches_its_template() -> None:
+    registry = TemplateRegistry.load_from_directory(Path("templates/registry"))
+
+    assert registry.export_manifests(), "the registry loaded no manifests"
+
+
+def test_a_missing_template_directory_fails_closed(tmp_path: Path) -> None:
+    """A manifest describing a directory that is not there cannot be honoured."""
+
+    with pytest.raises(TemplateRegistryError, match="template source missing"):
+        TemplateRegistry.load_from_directory(
+            Path("templates/registry"), template_source_root=tmp_path / "absent"
+        )

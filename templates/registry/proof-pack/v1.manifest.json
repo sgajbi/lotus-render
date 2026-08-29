@@ -28,5 +28,6 @@
     "golden-idea-evidence-proof-pack-en-SG-private-banking-v1"
   ],
   "runtime_engine": "typst",
-  "runtime_engine_version": "0.14.2"
+  "runtime_engine_version": "0.14.2",
+  "template_digest": "sha256:a7cdfcc1aa02ab739993043142fd4d8b2c17906d13c76463708262a354d3466d"
 }

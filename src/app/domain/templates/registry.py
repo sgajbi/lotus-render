@@ -4,7 +4,10 @@ import json
 from pathlib import Path
 
 from app.contracts.render_package import RenderPackage
+from app.domain.templates.digest import template_digest
 from app.domain.templates.models import TemplateLifecycleStatus, TemplateManifest
+
+DEFAULT_TEMPLATE_SOURCE_ROOT = Path("templates/typst")
 
 
 class TemplateRegistryError(RuntimeError):
@@ -22,13 +25,26 @@ class TemplateRegistry:
         self._manifests = manifests
 
     @classmethod
-    def load_from_directory(cls, root: Path) -> "TemplateRegistry":
+    def load_from_directory(
+        cls,
+        root: Path,
+        *,
+        template_source_root: Path = DEFAULT_TEMPLATE_SOURCE_ROOT,
+    ) -> "TemplateRegistry":
+        """Load the manifests, refusing any whose template bytes have changed.
+
+        A manifest that no longer describes its directory means `template_version` names
+        something other than what was approved. Failing closed at load keeps an
+        unreviewed template edit from ever being served, rather than discovering it
+        afterwards from a diverged render digest (issue #139).
+        """
         manifests: dict[tuple[str, str], TemplateManifest] = {}
 
         for manifest_path in sorted(root.rglob("*.json")):
             manifest = TemplateManifest.model_validate_json(
                 manifest_path.read_text(encoding="utf-8")
             )
+            _verify_template_digest(manifest, template_source_root)
             key = (manifest.template_id, manifest.template_version)
             if key in manifests:
                 raise TemplateRegistryError(
@@ -121,3 +137,20 @@ def _require_renderable_status(manifest: TemplateManifest) -> None:
         reason="template_blocked",
         message=f"template {manifest.template_id} {manifest.template_version} is blocked",
     )
+
+
+def _verify_template_digest(manifest: TemplateManifest, source_root: Path) -> None:
+    directory = source_root / manifest.template_id / manifest.template_version
+    if not directory.is_dir():
+        raise TemplateRegistryError(
+            f"template source missing for {manifest.template_id} "
+            f"{manifest.template_version} at {directory}"
+        )
+    measured = template_digest(directory)
+    if measured != manifest.template_digest:
+        raise TemplateRegistryError(
+            f"template digest mismatch for {manifest.template_id} "
+            f"{manifest.template_version}: manifest declares {manifest.template_digest}, "
+            f"directory measures {measured}. A published template changed without its "
+            "manifest being updated; re-approve it and record the new digest."
+        )
