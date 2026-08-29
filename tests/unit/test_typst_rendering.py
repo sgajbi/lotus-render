@@ -1570,3 +1570,36 @@ def test_a_weight_that_is_absent_or_impossible_draws_no_bar() -> None:
     assert weight_width_token(None) == "0%"
     assert weight_width_token("-5") == "0.00%"
     assert weight_width_token("140") == "100.00%"
+
+
+def test_hostile_report_text_in_a_markup_family_renders_rather_than_executes() -> None:
+    """The other half of #103, driven through a real compile.
+
+    The existing hostile-text test drives the *string-literal* path: a quote in a
+    security name. The proof-pack, outcome-review and rebalance-wave families put their
+    values into Typst **markup** instead, where the dangerous character is `#` rather
+    than `"` -- and `escape_typst_string` leaves `#` untouched, so a value escaped for
+    the wrong context there is live code supplied by the report producer.
+
+    Verified by swapping the escaper: the emitted line becomes
+
+        #section-row([#panic(\"owned\") [x] {y} $z$ @ref \\ \"quote\"], [MANDATE_CONTEXT], ...)
+
+    and Typst refuses it with `error: unclosed delimiter` -- the brackets from report
+    data restructured the argument list. A successful render is therefore evidence the
+    value reached the page as text rather than as markup.
+    """
+
+    service = _build_service()
+    package = _proof_pack_package()
+    hostile = r'#panic("owned") [x] {y} $z$ @ref \ "quote"'
+    sections = [dict(section) for section in package.report_data["sections"]]
+    sections[0] = {**sections[0], "title": hostile, "summary": hostile}
+    package = package.model_copy(
+        update={"report_data": {**package.report_data, "sections": sections}}
+    )
+
+    result = service.render(package)
+
+    assert result.attempt.status.value == "rendered"
+    assert result.artifact_bytes.startswith(b"%PDF")
