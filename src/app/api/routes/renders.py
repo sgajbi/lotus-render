@@ -77,6 +77,18 @@ def _error_response(
     },
     responses={
         **_error_response(
+            status.HTTP_400_BAD_REQUEST,
+            example_key="invalid_content_length",
+            description="Returned when Content-Length is malformed or negative.",
+        ),
+        **_error_response(
+            status.HTTP_413_CONTENT_TOO_LARGE,
+            example_key="request_body_too_large",
+            description=(
+                "Returned when the declared or measured request body exceeds the configured limit."
+            ),
+        ),
+        **_error_response(
             status.HTTP_409_CONFLICT,
             example_key="render_job_conflict",
             description=(

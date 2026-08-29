@@ -158,9 +158,9 @@ def test_malformed_content_length_is_rejected_without_echoing_body(tmp_path: Pat
             },
         )
 
-        assert response.status_code == 413
+        assert response.status_code == 400
         detail = response.json()["detail"]
-        assert detail["code"] == "request_body_too_large"
+        assert detail["code"] == "invalid_content_length"
         assert detail["correlation_id"] == "corr-bad-length"
         assert detail["trace_id"] == "trace-bad-length"
 
