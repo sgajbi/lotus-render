@@ -204,6 +204,7 @@ def _stored_job(
         determinism_mode=None,
         determinism_statement=None,
         bounded_determinism_fingerprint=None,
+        template_digest=None,
         artifact_sha256=None,
         mime_type=None,
         output_size_bytes=None,

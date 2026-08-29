@@ -61,6 +61,7 @@ class StoredRenderJob:
     determinism_mode: str | None
     determinism_statement: str | None
     bounded_determinism_fingerprint: str | None
+    template_digest: str | None
     artifact_sha256: str | None
     mime_type: str | None
     output_size_bytes: int | None
@@ -332,6 +333,7 @@ class RenderStore:
             determinism_mode=None,
             determinism_statement=None,
             bounded_determinism_fingerprint=None,
+            template_digest=None,
             artifact_sha256=None,
             mime_type=None,
             output_size_bytes=None,
@@ -349,6 +351,7 @@ class RenderStore:
             determinism_mode=result.diagnostic.determinism_mode,
             determinism_statement=result.diagnostic.determinism_statement,
             bounded_determinism_fingerprint=result.diagnostic.bounded_determinism_fingerprint,
+            template_digest=result.diagnostic.template_digest,
             artifact_sha256=f"sha256:{result.diagnostic.artifact_sha256}",
             mime_type=result.diagnostic.mime_type,
             output_size_bytes=result.diagnostic.output_size_bytes,
@@ -372,6 +375,7 @@ class RenderStore:
             determinism_mode=None,
             determinism_statement=None,
             bounded_determinism_fingerprint=None,
+            template_digest=None,
             artifact_sha256=None,
             mime_type=None,
             output_size_bytes=None,
@@ -390,6 +394,7 @@ class RenderStore:
         determinism_mode: str | None,
         determinism_statement: str | None,
         bounded_determinism_fingerprint: str | None,
+        template_digest: str | None,
         artifact_sha256: str | None,
         mime_type: str | None,
         output_size_bytes: int | None,
@@ -413,7 +418,8 @@ class RenderStore:
                     UPDATE render_job
                     SET status = ?, failure_category = ?, failure_message = ?,
                         determinism_mode = ?, determinism_statement = ?,
-                        bounded_determinism_fingerprint = ?, artifact_sha256 = ?, mime_type = ?,
+                        bounded_determinism_fingerprint = ?, template_digest = ?,
+                        artifact_sha256 = ?, mime_type = ?,
                         output_size_bytes = ?, render_duration_ms = ?, updated_at = ?,
                         completed_at = ?
                     WHERE render_job_id = ? AND status IN (
@@ -429,6 +435,7 @@ class RenderStore:
                         determinism_mode,
                         determinism_statement,
                         bounded_determinism_fingerprint,
+                        template_digest or "",
                         artifact_sha256,
                         mime_type,
                         output_size_bytes,
@@ -523,6 +530,7 @@ def _row_to_job(row: sqlite3.Row) -> StoredRenderJob:
         determinism_mode=row["determinism_mode"],
         determinism_statement=row["determinism_statement"],
         bounded_determinism_fingerprint=row["bounded_determinism_fingerprint"],
+        template_digest=row["template_digest"] or None,
         artifact_sha256=row["artifact_sha256"],
         mime_type=row["mime_type"],
         output_size_bytes=int(row["output_size_bytes"]) if row["output_size_bytes"] else None,
