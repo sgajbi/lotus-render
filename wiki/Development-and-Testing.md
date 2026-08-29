@@ -1,7 +1,6 @@
 # Development and Testing
 
-Setting the service up locally, the commands that matter, what CI actually enforces, and where the
-enforcement has a hole.
+Setting the service up locally, the commands that matter, and what CI actually enforces.
 
 ## Local setup
 
@@ -37,7 +36,7 @@ or e2e suites. Run `make ci` before opening a PR if the change touches the rende
 
 | suite | scope |
 |---|---|
-| `tests/unit` | 17 modules — contracts, services, settings validation, metrics contracts, code-health gate assertions |
+| `tests/unit` | 18 modules — contracts, services, settings validation, metrics contracts, and CI/code-health fitness functions |
 | `tests/integration` | the render API and health surfaces exercised through the running app |
 | `tests/e2e` | smoke coverage of the full submit-and-render path |
 | `tests/golden` | banked render packages and expected PDFs per active template |
@@ -59,11 +58,11 @@ fingerprint rather than a file hash. See
 
 ### Code-health baselines
 
-The four code-health gates are ratchets banked at the measured tree **with no headroom**, and
-`tests/unit/test_code_health_gates.py` asserts each threshold *equals* the measurement. Two things
-follow: an improvement cannot go unbanked, and a threshold cannot drift above the tree. The same
-tests prove each gate is capable of failing by running it one below its measured value — a gate that
-can only pass is not a gate.
+The complexity and source-size thresholds are ratchets banked at the measured tree **with no
+headroom**, and `tests/unit/test_code_health_gates.py` asserts each threshold *equals* the
+measurement. An improvement therefore cannot go unbanked, and a threshold cannot drift above the
+tree. Focused negative tests prove threshold violations, real Vulture findings, and empty
+complexity/dead-code input all fail loudly.
 
 ## What CI runs
 
@@ -71,25 +70,22 @@ Four workflows: the feature lane, the PR merge gate, main releasability, and PR 
 three that validate all run the same shape:
 
 ```
-pip check → make lint → make typecheck → make openapi-gate
-          → make template-registry-gate → make security-audit
+pip check → make lint → make typecheck → make code-health-gates
+          → make openapi-gate → make template-registry-gate → make security-audit
           → pytest (unit | integration | e2e, in parallel)
           → combined coverage --fail-under=99 → make docker-build
 ```
 
-### The hole: code-health gates do not run in CI
+### Code-health gate liveness
 
-`complexity-gate`, `source-size-gate`, `dead-code-gate` and `dependency-hygiene-gate` are reachable
-only through `make code-health-gates`, `make check` and `make ci` — and **no workflow invokes any of
-those three targets**. Every CI lane calls individual targets, and none of them is a code-health
-gate.
+The feature, pull-request, and exact-main workflows each invoke `make code-health-gates` before the
+contract and security checks. `tests/unit/test_ci_gate_liveness.py` expands Make dependencies and
+workflow invocations, then fails when any gate advertised by `make check` / `make ci` is unreachable
+from GitHub Actions. The parser has its own regression proof so a blank recipe or adjacent Make
+target cannot be misclassified as a dependency.
 
-The consequence is specific: these four gates protect `main` only to the extent that a developer
-runs `make check` locally and is honest about the result. Their careful ratchet design is intact and
-unexecuted. Tracked as [#80](https://github.com/sgajbi/lotus-render/issues/80).
-
-This is worth stating plainly because a configured-but-never-invoked gate reads exactly like a
-passing one from the outside.
+`complexity-gate` and `dead-code-gate` also reject zero governed inputs and name the paths they
+scanned. This distinguishes a clean result from a missing or misaddressed source tree.
 
 ## Merge governance
 
