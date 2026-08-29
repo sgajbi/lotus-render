@@ -61,6 +61,8 @@ Two points that mislead if missed:
   requested before a successful render. Call diagnostics for the same id to find out why.
 - **Recovering a stale job means resubmitting the *identical* package.** Submission is idempotent on
   id plus package, so an identical resubmit is safe; a modified one is a `409 render_job_conflict`.
+  The resubmit re-renders only once the job is stale — before that it reports the render in
+  progress, so retrying early is harmless but does nothing.
 
 ## Metrics
 
@@ -89,7 +91,18 @@ degradation:
   accepting jobs it cannot compile
 
 What the service will not do on its own is recover a job that went stale. There is no reaper: the
-stale windows make a lost job *visible*, and resubmission is the operator's action.
+stale windows make a lost job *visible*, and resubmission is the operator's action — one that now
+actually re-renders. A submission claims the job before rendering it, and a job sitting at
+`rendering` past `STALE_RENDERING_SECONDS` is claimable, because that state means the worker that
+owned it died without reaching a terminal state. A job still inside its window is not claimable, so
+a resubmission during a genuine render returns the current status rather than rendering twice. The
+claim is a single conditional update, so exactly one caller can win it.
+
+Shutdown drains rather than abandons: the instance marks itself draining, stops reporting ready, and
+waits for in-flight renders up to the compile timeout before exiting. **A deployment's termination
+grace period must therefore exceed `RENDER_COMPILE_TIMEOUT_SECONDS`**, or the platform will kill a
+render the service was deliberately waiting for. If the drain times out, it is logged, and those
+jobs are recovered by resubmission once they go stale.
 
 ## Incident first checks
 

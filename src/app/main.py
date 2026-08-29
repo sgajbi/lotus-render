@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import logging
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from functools import partial
 from pathlib import Path
 
 from fastapi import FastAPI
@@ -9,6 +11,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from prometheus_fastapi_instrumentator import Instrumentator
+from starlette.concurrency import run_in_threadpool
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from app.api.routes.renders import router as renders_router
@@ -52,6 +55,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             ),
             render_submission_service=RenderSubmissionService(
                 render_store=render_store,
+                rendering_stale_seconds=configured_settings.stale_rendering_seconds,
                 render_engine=TypstRenderService(
                     configured_settings,
                     RenderIntakeService(template_registry),
@@ -65,7 +69,26 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         app.state.render_store = render_store
         app.state.render_foundation = app.state.container.render_foundation
         app.state.render_submission_service = app.state.container.render_submission_service
-        yield
+        try:
+            yield
+        finally:
+            # Stop reporting ready, then let in-flight renders finish before the process
+            # goes away. Without this a rolling deploy kills a worker mid-render and its
+            # job sits at 'rendering' until a resubmission reclaims it (issue #105).
+            app.state.container.is_draining = True
+            app.state.is_draining = True
+            drained = await run_in_threadpool(
+                partial(
+                    app.state.container.render_execution_limiter.drain,
+                    timeout_seconds=float(configured_settings.render_compile_timeout_seconds),
+                )
+            )
+            if not drained:
+                logging.getLogger("lotus_render.lifecycle").warning(
+                    "shutdown_drain_timed_out: renders were still running after %ss; "
+                    "their jobs stay non-terminal until a resubmission reclaims them",
+                    configured_settings.render_compile_timeout_seconds,
+                )
 
     app = FastAPI(
         title=configured_settings.service_name,

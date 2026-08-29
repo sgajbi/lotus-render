@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import threading
+from time import monotonic
 
 
 class RenderExecutionLimiter:
@@ -19,3 +20,21 @@ class RenderExecutionLimiter:
 
     def release(self) -> None:
         self._semaphore.release()
+
+    def drain(self, *, timeout_seconds: float) -> bool:
+        """Wait for in-flight renders to finish by taking every execution slot.
+
+        Called on shutdown so a rolling deploy does not kill a worker mid-render and leave
+        its job at 'rendering' (issue #105). The slots are deliberately not released: the
+        process is going away, and nothing further may start.
+
+        Returns False if the timeout elapsed with renders still running, which the caller
+        reports rather than hides -- those jobs will be recovered by resubmission once
+        they go stale.
+        """
+        deadline = monotonic() + timeout_seconds
+        for _ in range(self._concurrency_limit):
+            remaining = max(0.0, deadline - monotonic())
+            if not self._semaphore.acquire(timeout=remaining):
+                return False
+        return True

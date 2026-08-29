@@ -108,7 +108,7 @@ correlation id, and package trace id.
 | --- | --- | --- | --- |
 | `accepted`, fresh | `wait_for_completion` | `lotus-render` | Wait and monitor `/metadata` in-flight posture. |
 | `rendering`, fresh | `wait_for_completion` | `lotus-render` | Wait and monitor latency, runtime availability, and artifact size. |
-| `accepted` or `rendering`, stale | `resubmit_identical_package_or_escalate_runtime` | `reporting-platform-on-call` | Resubmit the identical package for idempotent recovery; escalate if it remains non-terminal. |
+| `accepted` or `rendering`, stale | `resubmit_identical_package_or_escalate_runtime` | `reporting-platform-on-call` | Resubmit the identical package: a stale job is reclaimed and genuinely re-rendered. Escalate if it remains non-terminal after the resubmit. |
 | `rendered` | `read_artifact_metadata` | `lotus-render` | Use artifact metadata for hash, size, MIME type, and bounded-determinism proof. |
 | `package_validation_failed` | `fix_upstream_render_package` | `lotus-report` | Fix or replay the upstream report package. |
 | `template_not_supported` | `fix_template_registry_or_package` | `template-owner` | Align package contract/template registry truth. |
@@ -119,6 +119,18 @@ correlation id, and package trace id.
 Artifact metadata returning `409 render_artifact_not_ready` is not itself a separate render state.
 Call diagnostics for the same `render_job_id` to decide whether to wait, resubmit the identical
 package, fix upstream package truth, or escalate runtime/template support.
+
+Resubmission recovers a lost render because submission claims the job before rendering it. A job at
+`rendering` is claimable once it is older than `STALE_RENDERING_SECONDS`, which means the worker
+that owned it died; inside that window it is not claimable, so an early retry reports the render in
+progress instead of starting a second one. Before this, resubmission echoed the stuck status and the
+only way out was editing the store by hand.
+
+Shutdown drains: the instance marks itself draining, stops reporting ready, and waits for in-flight
+renders up to `RENDER_COMPILE_TIMEOUT_SECONDS`. Set the deployment's termination grace period above
+that value, or the platform kills renders the service was deliberately waiting for. A drain that
+times out is logged as `shutdown_drain_timed_out`; those jobs are recovered by resubmission once
+they go stale.
 
 ## HTTP Boundary And Timeout Checks
 
