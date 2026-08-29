@@ -25,6 +25,16 @@ CHART_COLORS = {
     "muted": "#8A96A3",
 }
 ALLOCATION_PALETTE = ("#1F5AA6", "#2C7A7B", "#C38B2E", "#6B7280", "#7C5C99", "#8AA6A3")
+# The 12-month chart's canvas. Named rather than inline so a test can state the
+# invariant that every gridline the chart emits falls inside the plot rectangle.
+CHART_WIDTH = 920
+CHART_HEIGHT = 260
+CHART_LEFT = 64
+CHART_RIGHT = 28
+CHART_TOP = 20
+CHART_BOTTOM = 44
+CHART_TICK_COUNT = 5
+
 LEGEND_TOP = 38
 LEGEND_ROW_HEIGHT = 26
 LEGEND_BOTTOM_MARGIN = 12
@@ -162,15 +172,15 @@ def _grouped_with_other(
 
 
 def render_performance_svg(points: Sequence[PerformancePoint]) -> str:
-    width = 920
-    height = 260
-    left = 64
-    right = 28
-    top = 20
-    bottom = 44
+    width = CHART_WIDTH
+    height = CHART_HEIGHT
+    left = CHART_LEFT
+    right = CHART_RIGHT
+    top = CHART_TOP
+    bottom = CHART_BOTTOM
     plot_width = width - left - right
     plot_height = height - top - bottom
-    y_min, y_max = _chart_value_bounds(points)
+    y_min, y_max, ticks = _chart_axis(points)
 
     def x_at(index: int) -> float:
         if len(points) == 1:
@@ -180,7 +190,7 @@ def render_performance_svg(points: Sequence[PerformancePoint]) -> str:
     def y_at(value: float) -> float:
         return top + ((y_max - value) / (y_max - y_min)) * plot_height
 
-    grid_lines = _grid_line_markup(y_min, y_max, y_at=y_at, left=left, right_edge=width - right)
+    grid_lines = _grid_line_markup(ticks, y_at=y_at, left=left, right_edge=width - right)
     portfolio_path = _polyline(
         [(x_at(index), y_at(point.cumulative_twr)) for index, point in enumerate(points)]
     )
@@ -214,6 +224,28 @@ def render_performance_svg(points: Sequence[PerformancePoint]) -> str:
 </svg>'''
 
 
+def _chart_axis(points: Sequence[PerformancePoint]) -> tuple[float, float, list[float]]:
+    """Axis bounds and gridlines decided together, so every tick lands inside the plot.
+
+    They used to be derived independently and disagreed by construction:
+    :func:`_chart_value_bounds` rounds outward to integers, :func:`_nice_ticks` rounds
+    outward to its own step, and the two only coincide when the padded bound happens to
+    be a multiple of that step. On the golden series -- bounds (-1, 5), ticks
+    [-2, 0, 2, 4, 6] -- two of the five gridlines fell outside the plot: the `-2%` label
+    rendered 32px below the axis, orphaned under the month labels, and the `6%` gridline
+    landed above the top of the canvas and was clipped away entirely.
+
+    Ending the axis on the outermost tick removes the disagreement rather than clamping
+    it away, and is the usual convention: the plot runs exactly from one gridline to
+    another.
+    """
+    low, high = _chart_value_bounds(points)
+    ticks = _nice_ticks(low, high, CHART_TICK_COUNT)
+    if len(ticks) < 2:
+        return float(low), float(high), [float(low), float(high)]
+    return ticks[0], ticks[-1], ticks
+
+
 def _chart_value_bounds(points: Sequence[PerformancePoint]) -> tuple[int, int]:
     """Integer axis bounds padded so the series never touches the plot edge."""
     values = [point.cumulative_twr for point in points]
@@ -230,10 +262,10 @@ def _chart_value_bounds(points: Sequence[PerformancePoint]) -> tuple[int, int]:
 
 
 def _grid_line_markup(
-    y_min: float, y_max: float, *, y_at: Callable[[float], float], left: int, right_edge: int
+    ticks: Sequence[float], *, y_at: Callable[[float], float], left: int, right_edge: int
 ) -> str:
     grid_lines = []
-    for tick in _nice_ticks(y_min, y_max, 5):
+    for tick in ticks:
         y = y_at(tick)
         stroke = CHART_COLORS["slate"] if abs(tick) < 0.0001 else CHART_COLORS["border"]
         thickness = "1.1" if abs(tick) < 0.0001 else "0.7"

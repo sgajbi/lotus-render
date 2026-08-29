@@ -3,8 +3,12 @@ from decimal import Decimal
 from pathlib import Path
 
 from app.services.portfolio_charts import (
+    CHART_BOTTOM,
+    CHART_HEIGHT,
+    CHART_TOP,
     AllocationSlice,
     PerformancePoint,
+    _chart_axis,
     _chart_value_bounds,
     _compact_value,
     _donut_segment,
@@ -332,3 +336,67 @@ def test_every_legend_row_fits_on_the_canvas() -> None:
     assert all(y <= height for y in rows), (
         f"legend rows {[y for y in rows if y > height]} fall off a {height}pt canvas"
     )
+
+
+def _gridline_label_positions(svg: str) -> list[tuple[str, float]]:
+    """Every axis label the chart drew, with the y it was drawn at."""
+    return [
+        (match.group(2), float(match.group(1)))
+        for match in re.finditer(
+            r'<text x="\d+" y="([-\d.]+)" text-anchor="end" class="axis">([^<]+)</text>', svg
+        )
+    ]
+
+
+def test_every_gridline_the_chart_draws_falls_inside_the_plot() -> None:
+    """Axis bounds and tick values used to be derived independently and disagree.
+
+    `_chart_value_bounds` rounds outward to integers and `_nice_ticks` rounds outward to
+    its own step, so on the golden series -- bounds (-1, 5), ticks [-2, 0, 2, 4, 6] --
+    two of the five gridlines fell outside the plot. The `-2%` label rendered 32px below
+    the axis, orphaned beneath the month labels and attached to no line a reader could
+    see; the `6%` gridline landed above the top of the canvas and was clipped away.
+
+    The golden fingerprint was stable across every release containing this, because a
+    misplaced gridline is byte-identical to itself. Only a property of the geometry
+    catches it.
+    """
+
+    plot_top = CHART_TOP
+    plot_bottom = CHART_HEIGHT - CHART_BOTTOM
+
+    for series in (
+        [
+            PerformancePoint(month=f"2025-{index:02d}", cumulative_twr=value)
+            for index, value in enumerate([0.13, 0.9, 2.4, 3.2, 4.19], start=1)
+        ],
+        [
+            PerformancePoint(month="2025-01", cumulative_twr=-14.2),
+            PerformancePoint(month="2025-02", cumulative_twr=-38.4),
+            PerformancePoint(month="2025-03", cumulative_twr=18.4),
+        ],
+        [PerformancePoint(month="2025-01", cumulative_twr=0.0)],
+    ):
+        labels = _gridline_label_positions(render_performance_svg(series))
+        assert labels, "the chart drew no axis labels at all"
+
+        outside = [
+            (label, y) for label, y in labels if not plot_top - 4.5 <= y <= plot_bottom + 4.5
+        ]
+        assert not outside, (
+            f"these gridlines were drawn outside the plot rectangle "
+            f"[{plot_top}, {plot_bottom}]: {outside}"
+        )
+
+
+def test_the_axis_ends_on_a_gridline() -> None:
+    """The bounds and the ticks come from one decision, so they cannot disagree."""
+
+    points = [
+        PerformancePoint(month="2025-01", cumulative_twr=0.13),
+        PerformancePoint(month="2025-02", cumulative_twr=4.19),
+    ]
+    low, high, ticks = _chart_axis(points)
+
+    assert ticks[0] == low and ticks[-1] == high
+    assert all(low <= tick <= high for tick in ticks), ticks
