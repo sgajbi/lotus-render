@@ -67,14 +67,31 @@ class Settings(BaseSettings):
             raise ValueError("configuration values must not be blank")
         return normalized
 
+    @property
+    def persistent_render_store_required(self) -> bool:
+        """Persistence is mandatory outside development; the flag only opts development in.
+
+        POST /renders returns before compilation completes, so accepted jobs live only in
+        the store until a bounded worker picks them up. With an in-memory store, a restart
+        between acceptance and completion strands every caller polling a job id the service
+        no longer knows (issue #83).
+        """
+
+        return self.require_persistent_render_store or self.environment != "development"
+
     @model_validator(mode="after")
     def _validate_runtime_contract(self) -> "Settings":
         if self.default_output_format not in self.supported_output_formats:
             raise ValueError("default_output_format must be included in supported_output_formats")
         if "pdf" not in self.supported_output_formats:
             raise ValueError("pdf output support is required for lotus-render")
-        if self.require_persistent_render_store and self.render_store_path == ":memory:":
-            raise ValueError("persistent render store is required for this environment")
+        if self.persistent_render_store_required and self.render_store_path == ":memory:":
+            raise ValueError(
+                "render_store_path=':memory:' loses accepted render jobs on restart and is "
+                f"not allowed for environment={self.environment!r}; point "
+                "LOTUS_RENDER_RENDER_STORE_PATH at a durable file, or run with "
+                "environment='development' if job loss is acceptable"
+            )
         return self
 
 

@@ -20,10 +20,11 @@ rather than of one setting:
    probe looks for `docker` or `typst` on `PATH`; without one of them the service cannot compile.
 3. **State is a local SQLite file** at `data/render-store.sqlite3`, not a shared database. That
    makes a render job's lifecycle local to the instance that accepted it.
-4. **Persistence is not required by default.** `require_persistent_render_store` is `false`, so a
-   bare deployment can run with `render_store_path=":memory:"` and lose accepted jobs on restart.
-   The supplied Docker Compose file sets it to `true`; anything not using that file must set it
-   deliberately. See [#83](https://github.com/sgajbi/lotus-render/issues/83).
+4. **Persistence is required outside development.** Whenever `environment` is anything other than
+   `development`, `render_store_path=":memory:"` is a startup error — an accepted job lives only in
+   the store until a worker picks it up, so an in-memory store loses jobs on restart. Development
+   may use `:memory:`, and may opt into the same enforcement with
+   `require_persistent_render_store=true`. See [#83](https://github.com/sgajbi/lotus-render/issues/83).
 
 ## Service identity
 
@@ -54,8 +55,8 @@ start rather than starting degraded.
 
 | variable | default | notes |
 |---|---|---|
-| `LOTUS_RENDER_RENDER_STORE_PATH` | `data/render-store.sqlite3` | `:memory:` is accepted unless the flag below forbids it |
-| `LOTUS_RENDER_REQUIRE_PERSISTENT_RENDER_STORE` | `false` | when `true`, `:memory:` becomes a startup error |
+| `LOTUS_RENDER_RENDER_STORE_PATH` | `data/render-store.sqlite3` | `:memory:` is a startup error unless `environment=development` |
+| `LOTUS_RENDER_REQUIRE_PERSISTENT_RENDER_STORE` | `false` | development-only opt-in; outside development persistence is required regardless of this flag |
 
 The store schema is versioned through SQLite migrations and validated during readiness, so a store
 whose schema is behind the code reports not-ready rather than serving against it.
