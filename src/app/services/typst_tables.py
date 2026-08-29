@@ -251,9 +251,25 @@ def render_holding_bar_rows(holdings: object) -> str:
     return "\n#v(8pt)\n".join(rendered)
 
 
+# A colspan cell so the empty state is a row of the table rather than a stray block
+# outside it, which would sit above the repeating header on later pages.
+DENSE_POSITION_COLUMNS = 8
+_NO_POSITIONS_CELL = (
+    f"table.cell(colspan: {DENSE_POSITION_COLUMNS})"
+    "[#text(size: 8pt, fill: rgb(104, 118, 132))[No position detail available.]],"
+)
+
+
 def render_dense_position_rows(holdings: object) -> str:
+    """Rows for a Typst ``table``: comma-terminated calls the template spreads.
+
+    They used to be standalone ``#grid`` blocks, each drawing its own rule, so nothing
+    could repeat a header on page 2 and a rule could land alone at the top of a page
+    (issue #138). As table rows the header repeats by construction and the separator
+    belongs to the row.
+    """
     if not isinstance(holdings, Sequence) or isinstance(holdings, (str, bytes, bytearray)):
-        return "#text(size: 8pt, fill: rgb(104, 118, 132))[No position detail available.]"
+        return _NO_POSITIONS_CELL
     rendered: list[str] = []
     for item in holdings:
         if not isinstance(item, Mapping):
@@ -300,7 +316,7 @@ def render_dense_position_rows(holdings: object) -> str:
         )
         performance = f"{item.get('market_value', 'Not available')};{accrued_interest}"
         rendered.append(
-            '#dense-position-row("'
+            'dense-position-row("'
             + escape_typst_string(str(item.get("asset_class", "Not available")))
             + '", "'
             + escape_typst_string(number_amount)
@@ -318,11 +334,11 @@ def render_dense_position_rows(holdings: object) -> str:
             + escape_typst_string(performance)
             + '", "'
             + escape_typst_string(str(item.get("weight_pct", "Not available")))
-            + '")'
+            + '"),'
         )
     if not rendered:
-        return "#text(size: 8pt, fill: rgb(104, 118, 132))[No position detail available.]"
-    return "\n#v(4pt)\n".join(rendered)
+        return _NO_POSITIONS_CELL
+    return "\n".join(rendered)
 
 
 def render_dense_transaction_rows(transactions: object) -> str:
