@@ -20,6 +20,7 @@ from app.domain.render_attempts.models import (
 from app.domain.rendering.models import RenderDiagnostic, RenderResult
 from app.domain.templates.digest import template_digest
 from app.domain.templates.registry import shared_design_directory
+from app.observability.render_metrics import record_render_empty_content_blocks
 from app.services.portfolio_charts import render_portfolio_chart_assets
 from app.services.render_intake import RenderIntakeService
 from app.services.render_ports import RenderEngineTimeoutError, RenderRuntimeMetadata
@@ -29,6 +30,7 @@ from app.services.typst_contexts import (
     build_portfolio_review_context,
     build_proof_pack_context,
     build_wave_context,
+    count_empty_content_blocks,
 )
 from app.services.typst_values import escape_typst_string
 
@@ -374,6 +376,14 @@ class TypstRenderService:
         except ValueError as exc:
             attempt.mark_failed(RenderFailureCategory.PACKAGE_VALIDATION_FAILED, str(exc))
             raise
+
+        # A document assembled from thin report data succeeds and reports `rendered`
+        # exactly like a complete one. Measure how much of it was a placeholder so that
+        # is visible; whether it is publishable stays the caller's judgement.
+        record_render_empty_content_blocks(
+            template_id=render_package.template_id,
+            empty_blocks=count_empty_content_blocks(template_context),
+        )
 
         # What the template actually contained for this render. template_version names
         # a mutable directory, so the version alone cannot explain an output (#139).

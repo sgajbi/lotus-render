@@ -537,3 +537,18 @@ def _default_section_keys(
     if include_advisory_narrative:
         return list(DEFAULT_PORTFOLIO_REVIEW_SECTIONS_WITH_ADVISORY_NARRATIVE)
     return list(DEFAULT_PORTFOLIO_REVIEW_SECTIONS)
+
+
+# Every "not available" on a page goes through one theme component, so counting its
+# call sites in the built context counts exactly what a reader would see missing.
+EMPTY_STATE_MARKER = "empty-state("
+
+
+def count_empty_content_blocks(template_context: Mapping[str, str]) -> int:
+    """How many content blocks this render replaced with a placeholder.
+
+    A measurement of the output, not a judgement about the data: whether a document with
+    eleven empty blocks is publishable belongs to the caller, and deciding it here would
+    be Render forming an opinion about report completeness it has no standing to hold.
+    """
+    return sum(value.count(EMPTY_STATE_MARKER) for value in template_context.values())
