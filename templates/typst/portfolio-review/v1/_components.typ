@@ -39,6 +39,7 @@
 ], fill: mist)
 
 #let metric-card(label, value, detail: none, tone: mist) = block(
+  breakable: false,
   inset: 10pt,
   fill: tone,
   stroke: (paint: rule, thickness: hairline),
@@ -53,7 +54,14 @@
   ]
 ]
 
+// Small bordered cards: a card split across a page break shows a stroke with no
+// bottom, or a label with its value on the next page. Typst 0.14.2 has no widow or
+// orphan control -- `#set par(widows:)` is rejected -- so `breakable: false` on the
+// units that are always wrong to split is the mechanism the engine does offer
+// (issue #138). It is applied only to short fixed-size blocks; the panels that wrap
+// long tables stay breakable or they could not paginate at all.
 #let note-panel(title, body) = block(
+  breakable: false,
   inset: 10pt,
   fill: white,
   stroke: (paint: rule, thickness: hairline),
@@ -166,6 +174,7 @@
 ]
 
 #let review-note(body) = block(
+  breakable: false,
   inset: 12pt,
   fill: white,
   stroke: (paint: rule, thickness: 0.5pt),
