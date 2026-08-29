@@ -92,8 +92,9 @@ local default deliberately admits `render.dev.lotus` for governed platform-ingre
 carry an explicit environment-scoped allowlist rather than inheriting this one.
 
 CORS is empty by default because browser-facing access is a platform-ingress concern, not a
-service concern. Oversized bodies return `413 request_body_too_large` and never echo package
-content.
+service concern. The service measures actual received bytes even when `Content-Length` is absent or
+under-declared. Oversized bodies return `413 request_body_too_large`; malformed or negative lengths
+return `400 invalid_content_length`; neither response echoes package content.
 
 ## Deployment
 

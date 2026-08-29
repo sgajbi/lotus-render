@@ -122,7 +122,6 @@ Recorded so that absent behaviour is not mistaken for behaviour that works.
 | **PDF only** | `SUPPORTED_OUTPUT_FORMATS` defaults to `("pdf",)` and a settings validator rejects any configuration omitting `pdf`. Another format is a code change, not configuration. |
 | **Single-instance job visibility** | the render store is a local SQLite file, so one replica cannot report on another's jobs |
 | **Persistence optional by default** | `REQUIRE_PERSISTENT_RENDER_STORE=false` permits `:memory:` and silent loss of accepted jobs on restart; Docker Compose overrides it to `true` — [#83](https://github.com/sgajbi/lotus-render/issues/83) |
-| **Request-body cap needs a declared length** | the cap is enforced from `Content-Length`; a body with no declared length is not measured — [#84](https://github.com/sgajbi/lotus-render/issues/84) |
 | **No recovery of stale jobs** | the stale windows make a lost job visible; nothing resubmits it — recovery is an operator action |
 | **Engine must be present** | the runtime probe requires `docker` or `typst` on `PATH`; without one the service cannot compile |
 

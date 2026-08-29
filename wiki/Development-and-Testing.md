@@ -36,7 +36,7 @@ or e2e suites. Run `make ci` before opening a PR if the change touches the rende
 
 | suite | scope |
 |---|---|
-| `tests/unit` | 18 modules — contracts, services, settings validation, metrics contracts, and CI/code-health fitness functions |
+| `tests/unit` | 19 modules — contracts, services, settings validation, HTTP-boundary controls, metrics contracts, and CI/code-health fitness functions |
 | `tests/integration` | the render API and health surfaces exercised through the running app |
 | `tests/e2e` | smoke coverage of the full submit-and-render path |
 | `tests/golden` | banked render packages and expected PDFs per active template |

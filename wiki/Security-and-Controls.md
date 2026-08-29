@@ -28,7 +28,7 @@ deployed as one.
 | control | mechanism | effect |
 |---|---|---|
 | host boundary | `TrustedHostMiddleware` over `LOTUS_RENDER_ALLOWED_HOSTS` | requests arriving with an unknown `Host` are rejected before routing |
-| request size | `RequestBodySizeLimitMiddleware` | a declared `Content-Length` over the cap returns `413 request_body_too_large` without echoing package content; a malformed header is treated as oversized. **A body with no declared length is not measured** — see the gap below |
+| request size | `RequestBodySizeLimitMiddleware` | every received body is streamed into a bounded buffer before route handling; oversized and under-declared bodies return `413 request_body_too_large`, while malformed or negative lengths return `400 invalid_content_length`, without echoing package content |
 | cross-origin | CORS middleware is **only installed when origins are configured** | with the empty default there is no CORS path at all, rather than a permissive one |
 | execution capacity | bounded limiter around the compile threadpool | over the limit, `429` rather than an unbounded queue of blocking work |
 | compile duration | `LOTUS_RENDER_RENDER_COMPILE_TIMEOUT_SECONDS` | an overrunning compile becomes a `failed` job with category `timeout`, not a held thread |
@@ -36,13 +36,13 @@ deployed as one.
 These are blast-radius controls. None of them establishes who the caller is; they bound what a
 reachable caller can consume. Defaults and tuning live in [Configuration](Configuration).
 
-### Gap: the body cap depends on a declared length
+### Bounded request-body enforcement
 
-`RequestBodySizeLimitMiddleware` reads `Content-Length` and rejects the request when the declared
-value exceeds the cap. When the header is absent — a chunked or streamed body — no measurement
-happens and the request proceeds unbounded. `lotus-report` enforces the same cap by streaming the
-body when no length is declared, so this is a divergence between siblings rather than a platform
-posture. Tracked as [#84](https://github.com/sgajbi/lotus-render/issues/84).
+`RequestBodySizeLimitMiddleware` rejects an invalid declaration or a declared oversize before route
+handling, then streams and counts the actual bytes for every request. This second measurement closes
+both absent-length and under-declared bypasses. A body within the configured limit is replayed
+unchanged to the route; the buffer cannot exceed the service limit. This matches the established
+`lotus-report` boundary posture rather than relying on ingress or caller honesty.
 
 ## Support-safe responses
 

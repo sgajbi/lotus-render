@@ -28,7 +28,7 @@ high-cardinality or sensitive labels. RFC-0108 render supportability now publish
 `lotus_render_supportability_total`, backed by drain state, render-store readiness,
 template-registry availability, executable Typst/Docker runtime configuration, and aggregate
 `accepted`/`rendering` stale posture. HTTP boundary configuration is explicit through the
-`LOTUS_RENDER_` settings contract, including trusted hosts, CORS allow-listing, request body
+`LOTUS_RENDER_` settings contract, including trusted hosts, CORS allow-listing, bounded streamed request body
 limits, persistent-store enforcement, compile timeouts, bounded render-execution concurrency, and
 stale in-flight thresholds.
 The render store now uses versioned SQLite migrations, readiness-time schema validation, and
