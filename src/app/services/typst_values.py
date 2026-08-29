@@ -9,10 +9,31 @@ from collections.abc import Mapping, Sequence
 
 
 def escape_typst_text(value: str) -> str:
+    """Escape a value for Typst *markup* (content-block) context: ``[ ... ]``.
+
+    Neutralises the markup control tokens so report text cannot introduce
+    functions, groups or math. Not valid for string-literal context -- use
+    :func:`escape_typst_string` for a value emitted between ``"`` delimiters.
+    """
     escaped = value.replace("\\", "\\\\")
     for token in ("#", "{", "}", "[", "]", "$", "@"):
         escaped = escaped.replace(token, f"\\{token}")
     return escaped
+
+
+def escape_typst_string(value: str) -> str:
+    """Escape a value for a Typst *string literal*: ``"..."``.
+
+    Only backslash and double-quote can change a string literal's structure;
+    everything else is data. Control characters are mapped to their Typst
+    string escapes so the emitted argument stays single-line and valid. Using
+    :func:`escape_typst_text` here instead would leave ``"`` live (the value
+    breaks out of the literal into code) while mangling ordinary ``#``/``[``
+    into invalid string escapes -- so the two contexts must not share an
+    escaper.
+    """
+    escaped = value.replace("\\", "\\\\").replace('"', '\\"')
+    return escaped.replace("\n", "\\n").replace("\r", "\\r").replace("\t", "\\t")
 
 
 def mapping(value: object) -> Mapping[str, object]:

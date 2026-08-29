@@ -371,6 +371,29 @@ def _wave_package() -> RenderPackage:
     )
 
 
+def test_typst_render_service_escapes_hostile_report_text_without_breaking_compile() -> None:
+    """A double-quote or markup token in report data must render, not break out.
+
+    Regression for issue #103: string-literal emitters previously used the markup
+    escaper, so a quote in a security name terminated the Typst string literal and
+    the compile failed. This drives the real runtime end to end.
+    """
+
+    service = _build_service()
+    package = _load_golden_package()
+    hostile = r'Ac"me #1 [Gold] {Fund} $x @y \ end'
+    holdings = [dict(row) for row in package.report_data["top_holdings"]]
+    holdings[0] = {**holdings[0], "security_name": hostile, "instrument_name": hostile}
+    package = package.model_copy(
+        update={"report_data": {**package.report_data, "top_holdings": holdings}}
+    )
+
+    result = service.render(package)
+
+    assert result.attempt.status.value == "rendered"
+    assert result.artifact_bytes.startswith(b"%PDF")
+
+
 def _build_service() -> TypstRenderService:
     settings = Settings()
     registry = TemplateRegistry.load_from_directory(Path(settings.template_registry_path))
