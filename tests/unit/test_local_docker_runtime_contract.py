@@ -101,3 +101,38 @@ def test_the_production_image_installs_runtime_dependencies_only() -> None:
             f"the production image installs editable: {line.strip()!r}. The service should "
             "run from an installed distribution, not a source tree its own user can rewrite."
         )
+
+
+def test_the_container_has_a_resource_ceiling() -> None:
+    """Untrusted report_data compiles in this container; it must not be unbounded.
+
+    The confinement flags added in #106 sit on the `docker run` branch, and the shipped
+    image installs no Docker CLI, so production never reaches them. Without a container
+    limit there was no ceiling at any layer: a burst was bounded only by host RAM, and the
+    OOM killer took the whole service including jobs the shutdown drain would have saved.
+    """
+
+    compose = yaml.safe_load((ROOT / "docker-compose.yml").read_text(encoding="utf-8"))
+    service = compose["services"]["lotus-render"]
+
+    for key in ("mem_limit", "cpus", "pids_limit"):
+        assert service.get(key), (
+            f"docker-compose.yml sets no {key}, so the container that compiles untrusted "
+            "input has no ceiling at that dimension."
+        )
+
+    # The ceiling must cover every concurrent compile, or one render can take the service.
+    memory_mb = _duration_free_megabytes(str(service["mem_limit"]))
+    per_compile_mb = 512
+    concurrency = Settings().render_execution_concurrency_limit
+    assert memory_mb > per_compile_mb * concurrency, (
+        f"mem_limit {service['mem_limit']!r} does not cover {concurrency} concurrent "
+        f"{per_compile_mb}m compiles plus the service itself."
+    )
+
+
+def _duration_free_megabytes(value: str) -> float:
+    match = re.fullmatch(r"(\d+(?:\.\d+)?)([kmg]?)b?", value.strip().lower())
+    assert match, f"unrecognised compose memory value {value!r}"
+    magnitude, unit = float(match.group(1)), match.group(2)
+    return magnitude * {"": 1 / 1_048_576, "k": 1 / 1024, "m": 1.0, "g": 1024.0}[unit]

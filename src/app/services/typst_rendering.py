@@ -54,6 +54,13 @@ DOCKER_ISOLATION_FLAGS = (
 DOCKER_CONTAINER_NAME_PREFIX = "lotus-render-compile-"
 DOCKER_KILL_TIMEOUT_SECONDS = 10
 
+# Per-compile ceiling for the in-process branch, matching the 512m the container branch
+# already uses. Address space rather than RSS because that is what ulimit -v bounds, and
+# CPU seconds so a pathological document cannot burn a core for the whole wall-clock
+# timeout. Raise these together with DOCKER_ISOLATION_FLAGS so both branches agree.
+COMPILE_ADDRESS_SPACE_LIMIT_KB = 512 * 1024
+COMPILE_CPU_SECONDS = 60
+
 
 def _compile_container_name(workspace: Path) -> str:
     """Name the run after its workspace so the timeout path can stop that container.
@@ -75,6 +82,29 @@ def _docker_user_flags() -> tuple[str, ...]:
     if get_uid is None or get_gid is None:
         return ()
     return ("--user", f"{get_uid()}:{get_gid()}")
+
+
+def _bounded_local_command(command: list[str]) -> list[str]:
+    """Bound a compile that runs as a child of this process rather than in a container.
+
+    The shipped image installs no Docker CLI, so production always takes this branch and
+    the container isolation flags never apply. Without a bound, a compile of untrusted
+    report_data is limited only by the container, and exceeding it kills the whole
+    service - including the renders the shutdown drain would otherwise have saved
+    (issue #128). Bounding here fails the offending render instead.
+
+    The limits are applied by the shell rather than a ``preexec_fn``: renders run on a
+    threadpool, and running Python between fork and exec in a threaded process is exactly
+    the case the standard library warns is unsafe.
+
+    Windows has no ``ulimit``, so the command is returned unchanged there; the deployment
+    that matters is Linux.
+    """
+    shell = shutil.which("sh")
+    if shell is None:
+        return command
+    limits = f"ulimit -v {COMPILE_ADDRESS_SPACE_LIMIT_KB} && ulimit -t {COMPILE_CPU_SECONDS}"
+    return [shell, "-c", f'{limits} && exec "$0" "$@"', *command]
 
 
 def _kill_compile_container(workspace: Path) -> None:
@@ -309,7 +339,9 @@ class TypstRenderService:
 
         local_typst = shutil.which("typst")
         if local_typst is not None:
-            return [local_typst, "compile", str(source_path), str(output_path)]
+            return _bounded_local_command(
+                [local_typst, "compile", str(source_path), str(output_path)]
+            )
 
         raise RuntimeError("Typst runtime is unavailable: neither docker nor typst is installed")
 
