@@ -67,7 +67,9 @@ def test_the_diagnostic_is_bounded() -> None:
 
 
 def test_a_failed_render_logs_a_correlated_line(caplog: pytest.LogCaptureFixture) -> None:
-    bind_request_identity(correlation_id="corr-http-1", trace_id="trace-http-1")
+    bind_request_identity(
+        correlation_id="corr-http-1", trace_id="trace-http-1", span_id="00000000000000ab"
+    )
 
     with caplog.at_level(logging.WARNING, logger="lotus_render.render"):
         log_render_failed(
@@ -83,6 +85,9 @@ def test_a_failed_render_logs_a_correlated_line(caplog: pytest.LogCaptureFixture
     assert "failure_category=template_render_failed" in line
     assert "expected comma" in line
     assert "CLIENT_SENTINEL_NAME" not in line
+    # The span the traceparent response advertised, so the line joins to a trace span
+    # and not only to the trace.
+    assert "span_id=00000000000000ab" in line
 
 
 def test_an_upstream_correlation_id_finds_the_render(
