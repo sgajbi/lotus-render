@@ -24,8 +24,10 @@ from app.infrastructure.render_store import (
     RenderStore,
     StoredRenderJob,
 )
+from app.services.render_execution import RenderExecutionLimiter
 from app.services.render_ports import RenderEngineTimeoutError, RenderRuntimeMetadata
 from app.services.render_submission import (
+    RenderCapacityExhaustedError,
     RenderExecutionFailedError,
     RenderPackageInvalidError,
     RenderSubmissionService,
@@ -314,6 +316,7 @@ def test_render_submission_returns_existing_failed_job_without_retrying(tmp_path
 
     service = RenderSubmissionService(
         rendering_stale_seconds=_settings().stale_rendering_seconds,
+        execution_limiter=RenderExecutionLimiter(_settings().render_execution_concurrency_limit),
         render_store=store,
         render_engine=cast(Any, _SuccessfulTypstService()),
     )
@@ -329,6 +332,7 @@ def test_render_submission_marks_failed_for_package_value_error(tmp_path: Path) 
     store = RenderStore(tmp_path / "render-store.sqlite3")
     service = RenderSubmissionService(
         rendering_stale_seconds=_settings().stale_rendering_seconds,
+        execution_limiter=RenderExecutionLimiter(_settings().render_execution_concurrency_limit),
         render_store=store,
         render_engine=cast(Any, _ValueErrorTypstService()),
     )
@@ -348,6 +352,7 @@ def test_render_submission_marks_engine_unavailable_for_runtime_dependency_failu
     store = RenderStore(tmp_path / "render-store.sqlite3")
     service = RenderSubmissionService(
         rendering_stale_seconds=_settings().stale_rendering_seconds,
+        execution_limiter=RenderExecutionLimiter(_settings().render_execution_concurrency_limit),
         render_store=store,
         render_engine=cast(
             Any,
@@ -374,6 +379,7 @@ def test_render_submission_fail_closes_on_unexpected_exception(tmp_path: Path) -
     store = RenderStore(tmp_path / "render-store.sqlite3")
     service = RenderSubmissionService(
         rendering_stale_seconds=_settings().stale_rendering_seconds,
+        execution_limiter=RenderExecutionLimiter(_settings().render_execution_concurrency_limit),
         render_store=store,
         render_engine=cast(Any, _UnexpectedErrorTypstService()),
     )
@@ -391,6 +397,7 @@ def test_render_submission_marks_failed_for_render_timeout(tmp_path: Path) -> No
     store = RenderStore(tmp_path / "render-store.sqlite3")
     service = RenderSubmissionService(
         rendering_stale_seconds=_settings().stale_rendering_seconds,
+        execution_limiter=RenderExecutionLimiter(_settings().render_execution_concurrency_limit),
         render_store=store,
         render_engine=cast(Any, _TimeoutTypstService()),
     )
@@ -419,6 +426,7 @@ def test_render_submission_returns_current_truth_when_failure_transition_races(
     store = _RacingRenderStore(fail_mark_failed=True)
     service = RenderSubmissionService(
         rendering_stale_seconds=_settings().stale_rendering_seconds,
+        execution_limiter=RenderExecutionLimiter(_settings().render_execution_concurrency_limit),
         render_store=store,
         render_engine=cast(Any, _ExceptionTypstService(exc)),
     )
@@ -433,6 +441,7 @@ def test_render_submission_returns_current_truth_when_rendered_transition_races(
     store = _RacingRenderStore(fail_mark_rendered=True)
     service = RenderSubmissionService(
         rendering_stale_seconds=_settings().stale_rendering_seconds,
+        execution_limiter=RenderExecutionLimiter(_settings().render_execution_concurrency_limit),
         render_store=store,
         render_engine=cast(Any, _SuccessfulTypstService()),
     )
@@ -466,6 +475,7 @@ def test_render_submission_returns_existing_in_progress_job_without_retrying(
         render_store=store,
         render_engine=renderer,
         rendering_stale_seconds=_settings().stale_rendering_seconds,
+        execution_limiter=RenderExecutionLimiter(_settings().render_execution_concurrency_limit),
     )
 
     response = service.submit(package)
@@ -511,6 +521,7 @@ def test_render_submission_diagnostics_reports_stale_in_progress_handoff(
         connection.commit()
     service = RenderSubmissionService(
         rendering_stale_seconds=_settings().stale_rendering_seconds,
+        execution_limiter=RenderExecutionLimiter(_settings().render_execution_concurrency_limit),
         render_store=store,
         render_engine=cast(Any, _SuccessfulTypstService()),
     )
@@ -536,6 +547,7 @@ def test_render_submission_diagnostics_maps_failed_runtime_without_raw_message(
     store = RenderStore(tmp_path / "render-store.sqlite3")
     service = RenderSubmissionService(
         rendering_stale_seconds=_settings().stale_rendering_seconds,
+        execution_limiter=RenderExecutionLimiter(_settings().render_execution_concurrency_limit),
         render_store=store,
         render_engine=cast(Any, _TimeoutTypstService()),
     )
@@ -636,6 +648,7 @@ def test_render_submission_diagnostics_maps_recovery_actions(
 ) -> None:
     service = RenderSubmissionService(
         rendering_stale_seconds=_settings().stale_rendering_seconds,
+        execution_limiter=RenderExecutionLimiter(_settings().render_execution_concurrency_limit),
         render_store=cast(Any, _StaticRenderStore(job)),
         render_engine=cast(Any, _SuccessfulTypstService()),
     )
@@ -658,6 +671,7 @@ def test_render_submission_sanitizes_runtime_diagnostics_before_persistence(
     store = RenderStore(tmp_path / "render-store.sqlite3")
     service = RenderSubmissionService(
         rendering_stale_seconds=_settings().stale_rendering_seconds,
+        execution_limiter=RenderExecutionLimiter(_settings().render_execution_concurrency_limit),
         render_store=store,
         render_engine=_RuntimeErrorTypstService(
             "typst failed near CLIENT_SENTINEL_ALICE_PRIVATE_NOTE trace-golden"
@@ -727,6 +741,7 @@ def test_resubmitting_a_stale_rendering_job_actually_re_renders_it(tmp_path: Pat
         render_store=store,
         render_engine=cast(Any, renderer),
         rendering_stale_seconds=_settings().stale_rendering_seconds,
+        execution_limiter=RenderExecutionLimiter(_settings().render_execution_concurrency_limit),
     )
 
     response = service.submit(package)
@@ -750,6 +765,7 @@ def test_resubmitting_a_live_rendering_job_does_not_render_twice(tmp_path: Path)
         render_store=store,
         render_engine=cast(Any, renderer),
         rendering_stale_seconds=_settings().stale_rendering_seconds,
+        execution_limiter=RenderExecutionLimiter(_settings().render_execution_concurrency_limit),
     )
 
     response = service.submit(package)
@@ -785,3 +801,73 @@ def test_claiming_an_unknown_job_is_reported_as_missing(tmp_path: Path) -> None:
 
     with pytest.raises(RenderJobNotFoundError):
         store.claim_for_rendering("rdr_absent", rendering_stale_seconds=900)
+
+
+def test_a_replay_does_not_consume_an_execution_slot(tmp_path: Path) -> None:
+    """A submission that renders nothing must not exhaust capacity.
+
+    The slot used to be held around the whole submit, including the short-circuit for an
+    already-terminal job, so a caller retry storm against one finished render could 429
+    genuine work (issue #115).
+    """
+
+    db_path = tmp_path / "render-store.sqlite3"
+    store = RenderStore(db_path)
+    package = _render_package(render_job_id="rdr_replay_capacity")
+    limiter = RenderExecutionLimiter(1)
+    renderer = _SuccessfulTypstService()
+    service = RenderSubmissionService(
+        render_store=store,
+        render_engine=cast(Any, renderer),
+        rendering_stale_seconds=_settings().stale_rendering_seconds,
+        execution_limiter=limiter,
+    )
+
+    first = service.submit(package)
+    assert first.status == "rendered"
+    assert renderer.calls == 1
+
+    # Occupy the only slot, then replay the finished job: it must still answer.
+    assert limiter.acquire() is True
+    try:
+        replay = service.submit(package)
+    finally:
+        limiter.release()
+
+    assert replay.status == "rendered", "a replay was rejected for lack of capacity"
+    assert renderer.calls == 1, "the replay re-rendered instead of echoing the stored truth"
+
+
+def test_a_render_that_needs_a_slot_is_rejected_when_capacity_is_gone(tmp_path: Path) -> None:
+    """Capacity still bounds real work, and the rejection leaves a recoverable job.
+
+    The rejection happens before the claim, so the row stays 'accepted' -- which is always
+    claimable, so the next submission simply renders it.
+    """
+
+    store = RenderStore(tmp_path / "render-store.sqlite3")
+    package = _render_package(render_job_id="rdr_capacity_gone")
+    limiter = RenderExecutionLimiter(1)
+    renderer = _SuccessfulTypstService()
+    service = RenderSubmissionService(
+        render_store=store,
+        render_engine=cast(Any, renderer),
+        rendering_stale_seconds=_settings().stale_rendering_seconds,
+        execution_limiter=limiter,
+    )
+
+    assert limiter.acquire() is True
+    try:
+        with pytest.raises(RenderCapacityExhaustedError):
+            service.submit(package)
+    finally:
+        limiter.release()
+
+    assert store.get(package.render_job_id).status == "accepted", (
+        "a capacity rejection left the job somewhere other than 'accepted'"
+    )
+
+    recovered = service.submit(package)
+
+    assert recovered.status == "rendered", "the rejected job could not be rendered afterwards"
+    assert renderer.calls == 1
