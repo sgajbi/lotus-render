@@ -1,7 +1,8 @@
 #import "_theme.typ": mist, rule, section-subtitle, soft-rule
-#import "_components.typ": chart-card, chart-placeholder, compact-allocation-row, key-stat, note-panel, page-header, report-panel, table-label
+#import "_components.typ": chart-card, chart-placeholder, compact-allocation-row, key-stat, note-panel, page-header, report-panel, section-marker, table-label
 
 #let allocation-page() = [
+  #section-marker("Asset allocation", "Asset mix, exposure detail, and risk profile")
   #page-header("Asset allocation")
   #v(10pt)
   #grid(

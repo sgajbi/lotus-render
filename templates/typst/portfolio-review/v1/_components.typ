@@ -88,6 +88,13 @@
   )
 ]
 
+// Planted at the top of each section page so the contents page can compute the page a
+// section truly starts on. The references used to be string literals, and were already
+// wrong in documents carrying an advisory section, which shifts everything after it.
+#let section-marker(title, detail) = [
+  #metadata((title: title, detail: detail)) <lotus-section>
+]
+
 #let content-row(index, title, detail, ref) = [
   #grid(
     columns: (28pt, 1fr, 28pt),

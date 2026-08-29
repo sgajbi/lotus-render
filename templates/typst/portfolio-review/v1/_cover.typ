@@ -71,24 +71,31 @@
   #v(7pt)
   #soft-rule()
   #v(15pt)
-  #grid(
-    columns: (1fr, 1fr),
-    column-gutter: 32pt,
-    [
-      #content-row("1", "Overview", "Mandate, relationship context, and scope of analysis", "p. 3")
-      #v(9pt)
-      #content-row("2", "Performance", "Period returns, benchmark comparison, and return history", "p. 4")
-      #v(9pt)
-      #content-row("3", "Asset allocation", "Asset mix, exposure detail, and risk profile", "p. 7")
-    ],
-    [
-      #content-row("4", "Detailed positions", "Statement-style holdings detail and position-level performance", "p. 9")
-      #v(9pt)
-      #content-row("5", "Transactions", "Transaction activity across the review period", "p. 10")
-      #v(9pt)
-      #content-row("6", "Appendix", "Definitions and explanatory notes", "p. 11")
-    ],
-  )
+  // Computed from the sections this document actually contains, in the order they were
+  // emitted. These were string literals, and they were already wrong in any document
+  // carrying an advisory section: that section shifts every page after it, so a
+  // 17-page render still claimed the appendix began on p. 11.
+  #context {
+    let entries = query(<lotus-section>)
+    let half = int(calc.ceil(entries.len() / 2))
+    let column(slice) = {
+      for (offset, entry) in slice {
+        content-row(
+          str(offset + 1),
+          entry.value.title,
+          entry.value.detail,
+          "p. " + str(counter(page).at(entry.location()).first()),
+        )
+        v(9pt)
+      }
+    }
+    grid(
+      columns: (1fr, 1fr),
+      column-gutter: 32pt,
+      column(entries.enumerate().slice(0, half)),
+      column(entries.enumerate().slice(half)),
+    )
+  }
 
   #v(22pt)
   #section-lead(

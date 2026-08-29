@@ -1,7 +1,8 @@
 #import "_theme.typ": grid-gap, ink, mist, section-subtitle, small-caps, soft-rule
-#import "_components.typ": allocation-row, metric-card, note-panel, page-header, report-panel, section-lead
+#import "_components.typ": allocation-row, metric-card, note-panel, page-header, report-panel, section-lead, section-marker
 
 #let scope-page() = [
+  #section-marker("Overview", "Mandate, relationship context, and scope of analysis")
   #page-header("Scope of analysis")
   #v(10pt)
   #grid(
