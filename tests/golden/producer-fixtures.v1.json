@@ -30,7 +30,7 @@
         "tests/unit/reporting_render/test_service.py"
       ],
       "provenance": "Generated from lotus-report ReportJobLedger and typed OutcomeReviewReportJobRequest through _build_render_package.",
-      "bounded_determinism_fingerprint": "426a485cf6489fb0498dd5c0bc74b648c7491f9eb83ef38eaf060734d13ed136"
+      "bounded_determinism_fingerprint": "e4d553a6aee47d33a1747e681fe10c8ee8ec42bce89b79b8a9eda90be91689cd"
     },
     {
       "template_id": "proof-pack",
@@ -45,7 +45,7 @@
         "tests/unit/reporting_render/test_service.py"
       ],
       "provenance": "Generated from lotus-report ReportJobLedger and typed ProofPackReportJobRequest through _build_render_package.",
-      "bounded_determinism_fingerprint": "bca22f8cf3ee8a068d1ce87eb4b4ed6a6b80ab8c0f769510ab174755df7e3ec1"
+      "bounded_determinism_fingerprint": "67deab4439a7e8d9b8e5ce94f1a1a5ebf19954bfe4b821a951cc4505130059ee"
     },
     {
       "template_id": "proof-pack",
@@ -63,7 +63,7 @@
         "tests/integration/test_idea_evidence_intake_api.py"
       ],
       "provenance": "Mirrors lotus-report reviewed Idea evidence materialization, which adapts lotus_idea_evidence_pack_report_input.v1 into the governed proof-pack render package without granting client-publication or archive authority in lotus-render.",
-      "bounded_determinism_fingerprint": "cbfff2d7db72e9eebc5edfa1cf3e17b82c99e7d88090c1927956ba2fc25d0fc2"
+      "bounded_determinism_fingerprint": "e984a340f56a2c695303f9686e130503d1386d385e5a867ce3cc5f71f4ba4f06"
     },
     {
       "template_id": "rebalance-wave",
@@ -78,7 +78,7 @@
         "tests/unit/reporting_render/test_service.py"
       ],
       "provenance": "Generated from lotus-report ReportJobLedger and typed WaveReportJobRequest through _build_render_package.",
-      "bounded_determinism_fingerprint": "13e110d1a132356dde51c1669a0046005b3edb10db9447f64b91926d602ea9e6"
+      "bounded_determinism_fingerprint": "08da3f13e97142c507b8d83c6672861512a6b283f5dfc133a92db4a4fe3361f3"
     },
     {
       "template_id": "portfolio-review",
@@ -93,7 +93,7 @@
         "src/app/contracts/examples/portfolio-review-render-package.v1.json"
       ],
       "provenance": "Portfolio review carrying an approved advisor-use package so the reviewed advisory narrative section is rendered and banked; that section previously had no compiled proof (issue #118).",
-      "bounded_determinism_fingerprint": "2e7508da0f6dd4d87889ef4df9807c127bf9edb400d4d815713ce4867cc72ea5"
+      "bounded_determinism_fingerprint": "d6ad3dd6497d079cc922980a32a7a1cd92131cc1714855525d5cedb93bde9b1f"
     },
     {
       "template_id": "portfolio-review",
@@ -108,7 +108,7 @@
         "src/app/contracts/examples/portfolio-review-render-package.v1.json"
       ],
       "provenance": "Portfolio review carrying an approved advisor-use package so the advisor proposal memo section is rendered and banked; that section previously had no compiled proof (issue #118).",
-      "bounded_determinism_fingerprint": "c249519929fa3c34cd4f9812b6156e6779417a4990034921716d91d402e46906"
+      "bounded_determinism_fingerprint": "2f8e578c1e195bf683370c11906aec63e82a23918c54fcfaeae52d88668bcc57"
     },
     {
       "template_id": "portfolio-review",
