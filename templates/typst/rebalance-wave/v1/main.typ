@@ -11,7 +11,7 @@
     #v(5pt)
     #grid(
       columns: (1fr, auto),
-      [#text(size: 6.6pt, fill: muted)[${WAVE_ID} / ${WAVE_STATE}]],
+      [#text(size: 6.6pt, fill: muted)[#"${WAVE_ID}" / #"${WAVE_STATE}"]],
       [#text(size: 6.8pt, fill: ink)[#counter(page).display("1 / 1")]],
     )
   ],
@@ -48,17 +48,17 @@
   )
 ]
 
-#text(size: 18pt, weight: "medium", fill: ink)[${TITLE}]
+#text(size: 18pt, weight: "medium", fill: ink)[#"${TITLE}"]
 #v(4pt)
-#text(size: 8pt, fill: muted)[Governed rebalance-wave evidence report / ${WAVE_STATE}]
+#text(size: 8pt, fill: muted)[Governed rebalance-wave evidence report / #"${WAVE_STATE}"]
 
 #v(10pt)
 #grid(
   columns: (1fr, 1fr, 1fr),
   gutter: 7mm,
-  [#label("Wave") #linebreak() #value[${WAVE_ID}]],
-  [#label("Trigger") #linebreak() #value[${TRIGGER_TYPE}]],
-  [#label("As of") #linebreak() #value[${AS_OF_DATE}]],
+  [#label("Wave") #linebreak() #value[#"${WAVE_ID}"]],
+  [#label("Trigger") #linebreak() #value[#"${TRIGGER_TYPE}"]],
+  [#label("As of") #linebreak() #value[#"${AS_OF_DATE}"]],
 )
 
 #v(8pt)
@@ -68,22 +68,22 @@
   [
     #text(size: 11pt, weight: "medium")[Wave Summary]
     #v(3pt)
-    #key-value-row([Trigger id], [${TRIGGER_ID}])
-    #key-value-row([Items], [${ITEM_COUNT}])
-    #key-value-row([Ready items], [${READY_ITEM_COUNT}])
-    #key-value-row([Blocked items], [${BLOCKED_ITEM_COUNT}])
+    #key-value-row([Trigger id], [#"${TRIGGER_ID}"])
+    #key-value-row([Items], [#"${ITEM_COUNT}"])
+    #key-value-row([Ready items], [#"${READY_ITEM_COUNT}"])
+    #key-value-row([Blocked items], [#"${BLOCKED_ITEM_COUNT}"])
     #v(3pt)
-    ${TRIGGER_RATIONALE}
+    #"${TRIGGER_RATIONALE}"
   ],
   [
     #text(size: 11pt, weight: "medium")[Supportability]
     #v(3pt)
-    #key-value-row([Status], [${SUPPORTABILITY_STATUS}])
-    #key-value-row([Reason], [${SUPPORTABILITY_REASON}])
-    #key-value-row([Proof packs ready], [${PROOF_PACK_READY_COUNT}])
-    #key-value-row([Proof packs degraded], [${PROOF_PACK_DEGRADED_COUNT}])
-    #key-value-row([Handoffs], [${HANDOFF_COUNT}])
-    #key-value-row([External execution], [${EXTERNAL_EXECUTION}])
+    #key-value-row([Status], [#"${SUPPORTABILITY_STATUS}"])
+    #key-value-row([Reason], [#"${SUPPORTABILITY_REASON}"])
+    #key-value-row([Proof packs ready], [#"${PROOF_PACK_READY_COUNT}"])
+    #key-value-row([Proof packs degraded], [#"${PROOF_PACK_DEGRADED_COUNT}"])
+    #key-value-row([Handoffs], [#"${HANDOFF_COUNT}"])
+    #key-value-row([External execution], [#"${EXTERNAL_EXECUTION}"])
   ],
 )
 
@@ -100,13 +100,13 @@ ${EVENT_ROWS}
 #v(6pt)
 #text(size: 11pt, weight: "medium")[Report Lineage]
 #v(3pt)
-#key-value-row([Report input], [${CONTENT_HASH}])
-#key-value-row([Wave], [${WAVE_CONTENT_HASH}])
-#key-value-row([Redaction], [${REDACTION_POLICY}])
+#key-value-row([Report input], [#"${CONTENT_HASH}"])
+#key-value-row([Wave], [#"${WAVE_CONTENT_HASH}"])
+#key-value-row([Redaction], [#"${REDACTION_POLICY}"])
 
 #v(10pt)
 #line(length: 100%, stroke: (paint: rule, thickness: 0.35pt))
 #v(4pt)
-#text(size: 6.8pt, fill: muted)[Render ${RENDER_JOB_ID} / ${TEMPLATE_ID} ${TEMPLATE_VERSION} / ${TIMEZONE}]
+#text(size: 6.8pt, fill: muted)[Render #"${RENDER_JOB_ID}" / #"${TEMPLATE_ID}" #"${TEMPLATE_VERSION}" / #"${TIMEZONE}"]
 #linebreak()
-#text(size: 6.8pt, fill: muted)[${DETERMINISM_STATEMENT}]
+#text(size: 6.8pt, fill: muted)[#"${DETERMINISM_STATEMENT}"]

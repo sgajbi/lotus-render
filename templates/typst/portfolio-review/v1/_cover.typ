@@ -16,13 +16,13 @@
           row-gutter: 8pt,
           column-gutter: grid-gap,
           [#small-caps("Client")],
-          [#text(size: 13pt, weight: 600, fill: ink)[${CLIENT_NAME}]],
+          [#text(size: 13pt, weight: 600, fill: ink)[#"${CLIENT_NAME}"]],
           [#small-caps("Portfolio")],
-          [#text(size: 11pt, weight: 500, fill: ink)[${PORTFOLIO_NAME}]],
+          [#text(size: 11pt, weight: 500, fill: ink)[#"${PORTFOLIO_NAME}"]],
           [#small-caps("Review period")],
-          [#text(size: 9.5pt, fill: ink)[1 Jan 2026 - ${AS_OF_DATE}]],
+          [#text(size: 9.5pt, fill: ink)[1 Jan 2026 - #"${AS_OF_DATE}"]],
           [#small-caps("Reporting currency")],
-          [#text(size: 9.5pt, fill: ink)[${CURRENCY}]],
+          [#text(size: 9.5pt, fill: ink)[#"${CURRENCY}"]],
         )
       ])
       #v(13pt)

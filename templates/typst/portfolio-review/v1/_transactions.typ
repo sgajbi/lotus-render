@@ -4,9 +4,9 @@
 #let transactions-page() = [
   #page-header("Transaction list")
   #v(4pt)
-  #text(size: 9pt, fill: accent)[${TRANSACTION_PERIOD_LABEL}]
+  #text(size: 9pt, fill: accent)[#"${TRANSACTION_PERIOD_LABEL}"]
   #v(10pt)
-  #align(right)[#text(size: 8.5pt, fill: slate)[Valued in ${CURRENCY}]]
+  #align(right)[#text(size: 8.5pt, fill: slate)[Valued in #"${CURRENCY}"]]
   #v(6pt)
   #report-panel([
     #grid(

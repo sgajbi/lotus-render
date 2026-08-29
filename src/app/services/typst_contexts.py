@@ -45,7 +45,11 @@ from app.services.typst_tables import (
     render_performance_summary_table,
     supplemental_allocation_view,
 )
-from app.services.typst_values import escape_typst_text, mapping, string_list
+from app.services.typst_values import (
+    escape_typst_string,
+    mapping,
+    string_list,
+)
 
 PORTFOLIO_REVIEW_SECTION_CALLS = {
     "cover": "cover-page()",
@@ -127,45 +131,45 @@ def build_portfolio_review_context(render_package: RenderPackage) -> dict[str, s
             if include_reviewed_advisory_narrative or include_advisor_proposal_memo
             else ""
         ),
-        "CLIENT_NAME": escape_typst_text(str(report_data["client_name"])),
-        "PORTFOLIO_NAME": escape_typst_text(str(report_data["portfolio_name"])),
-        "AS_OF_DATE": escape_typst_text(str(report_data["as_of_date"])),
-        "CURRENCY": escape_typst_text(str(report_data["currency"])),
-        "TOTAL_VALUE": escape_typst_text(str(report_data["total_value"])),
-        "SUMMARY_PARAGRAPH": escape_typst_text(str(report_data["summary_paragraph"])),
-        "REVIEW_PERIOD_LABEL": escape_typst_text(
+        "CLIENT_NAME": escape_typst_string(str(report_data["client_name"])),
+        "PORTFOLIO_NAME": escape_typst_string(str(report_data["portfolio_name"])),
+        "AS_OF_DATE": escape_typst_string(str(report_data["as_of_date"])),
+        "CURRENCY": escape_typst_string(str(report_data["currency"])),
+        "TOTAL_VALUE": escape_typst_string(str(report_data["total_value"])),
+        "SUMMARY_PARAGRAPH": escape_typst_string(str(report_data["summary_paragraph"])),
+        "REVIEW_PERIOD_LABEL": escape_typst_string(
             str(report_data.get("review_period_label", "YTD"))
         ),
-        "OBJECTIVE": escape_typst_text(
+        "OBJECTIVE": escape_typst_string(
             str(mandate.get("objective", "Objective not available in the governed snapshot."))
         ),
-        "RISK_EXPOSURE": escape_typst_text(str(mandate.get("risk_exposure", "not_available"))),
-        "BOOKING_CENTER": escape_typst_text(
+        "RISK_EXPOSURE": escape_typst_string(str(mandate.get("risk_exposure", "not_available"))),
+        "BOOKING_CENTER": escape_typst_string(
             str(mandate.get("booking_center_code", "not_available"))
         ),
-        "ADVISOR_ID": escape_typst_text(str(mandate.get("advisor_id", "not_available"))),
-        "INVESTED_VALUE": escape_typst_text(
+        "ADVISOR_ID": escape_typst_string(str(mandate.get("advisor_id", "not_available"))),
+        "INVESTED_VALUE": escape_typst_string(
             str(portfolio_metrics.get("invested_value", "Not available"))
         ),
-        "CASH_BALANCE": escape_typst_text(
+        "CASH_BALANCE": escape_typst_string(
             str(portfolio_metrics.get("cash_balance", "Not available"))
         ),
-        "CASH_WEIGHT_PCT": escape_typst_text(
+        "CASH_WEIGHT_PCT": escape_typst_string(
             str(portfolio_metrics.get("cash_weight_pct", "Not available"))
         ),
-        "ALLOCATION_LARGEST_NAME": escape_typst_text(
+        "ALLOCATION_LARGEST_NAME": escape_typst_string(
             str(allocation_summary.get("largest_asset_class_name", "Not available"))
         ),
-        "ALLOCATION_LARGEST_WEIGHT": escape_typst_text(
+        "ALLOCATION_LARGEST_WEIGHT": escape_typst_string(
             str(allocation_summary.get("largest_asset_class_weight_pct", "Not available"))
         ),
-        "ALLOCATION_LARGEST_VALUE": escape_typst_text(
+        "ALLOCATION_LARGEST_VALUE": escape_typst_string(
             str(allocation_summary.get("largest_asset_class_market_value", "Not available"))
         ),
-        "ALLOCATION_POSITION_COUNT": escape_typst_text(
+        "ALLOCATION_POSITION_COUNT": escape_typst_string(
             str(allocation_summary.get("largest_asset_class_position_count", "Not available"))
         ),
-        "TOP_CONTRIBUTOR_NAME": escape_typst_text(
+        "TOP_CONTRIBUTOR_NAME": escape_typst_string(
             str(
                 performance_highlight.get(
                     "largest_positive_contributor_name",
@@ -173,7 +177,7 @@ def build_portfolio_review_context(render_package: RenderPackage) -> dict[str, s
                 )
             )
         ),
-        "TOP_CONTRIBUTOR_VALUE": escape_typst_text(
+        "TOP_CONTRIBUTOR_VALUE": escape_typst_string(
             str(
                 performance_highlight.get(
                     "largest_positive_contribution_pct",
@@ -181,20 +185,22 @@ def build_portfolio_review_context(render_package: RenderPackage) -> dict[str, s
                 )
             )
         ),
-        "BENCHMARK_STATUS": escape_typst_text(
+        "BENCHMARK_STATUS": escape_typst_string(
             str(performance_highlight.get("benchmark_comparison_status", "not_available"))
         ),
-        "RISK_VOLATILITY": escape_typst_text(
+        "RISK_VOLATILITY": escape_typst_string(
             str(risk_summary.get("volatility_pct", "Not available"))
         ),
-        "RISK_BETA": escape_typst_text(str(risk_summary.get("beta", "Not available"))),
-        "RISK_TRACKING_ERROR": escape_typst_text(
+        "RISK_BETA": escape_typst_string(str(risk_summary.get("beta", "Not available"))),
+        "RISK_TRACKING_ERROR": escape_typst_string(
             str(risk_summary.get("tracking_error_pct", "Not available"))
         ),
-        "RISK_INFORMATION_RATIO": escape_typst_text(
+        "RISK_INFORMATION_RATIO": escape_typst_string(
             str(risk_summary.get("information_ratio", "Not available"))
         ),
-        "RISK_VAR": escape_typst_text(str(risk_summary.get("value_at_risk_pct", "Not available"))),
+        "RISK_VAR": escape_typst_string(
+            str(risk_summary.get("value_at_risk_pct", "Not available"))
+        ),
         "OBSERVATION_NOTES": render_observation_notes(observations),
         "PERFORMANCE_PERIOD_ROWS": render_performance_period_rows(
             report_data.get("performance_periods")
@@ -220,25 +226,25 @@ def build_portfolio_review_context(render_package: RenderPackage) -> dict[str, s
             allocation_breakdowns.get("by_asset_class") or report_data.get("top_holdings")
         ),
         "ALLOCATION_DONUT_CHART_SECTION": render_allocation_chart_section(report_data),
-        "SUPPLEMENTAL_ALLOCATION_TITLE": escape_typst_text(supplemental_allocation_title),
+        "SUPPLEMENTAL_ALLOCATION_TITLE": escape_typst_string(supplemental_allocation_title),
         "SUPPLEMENTAL_ALLOCATION_ROWS": supplemental_allocation_rows,
         "DENSE_POSITION_ROWS": render_dense_position_rows(
             report_data.get("positions") or report_data.get("top_holdings")
         ),
-        "TRANSACTION_PERIOD_LABEL": escape_typst_text(
+        "TRANSACTION_PERIOD_LABEL": escape_typst_string(
             str(report_data.get("transaction_period_label", "Transaction activity"))
         ),
         "DENSE_TRANSACTION_ROWS": render_dense_transaction_rows(report_data.get("transactions")),
-        "SOURCE_SERVICES": escape_typst_text(
+        "SOURCE_SERVICES": escape_typst_string(
             ", ".join(string_list(governance_summary.get("source_services"))) or "Not available"
         ),
-        "COMPLETENESS_STATUS": escape_typst_text(
+        "COMPLETENESS_STATUS": escape_typst_string(
             str(governance_summary.get("completeness_status", "unknown"))
         ),
-        "DATA_QUALITY_STATUS": escape_typst_text(
+        "DATA_QUALITY_STATUS": escape_typst_string(
             str(governance_summary.get("data_quality_status", "unknown"))
         ),
-        "READINESS_STATUS": escape_typst_text(
+        "READINESS_STATUS": escape_typst_string(
             str(governance_summary.get("readiness_status", "unknown"))
         ),
         "REVIEWED_ADVISORY_FACT_ROWS": render_reviewed_advisory_fact_rows(
@@ -257,11 +263,11 @@ def build_portfolio_review_context(render_package: RenderPackage) -> dict[str, s
         "ADVISOR_MEMO_DISCLOSURE_BLOCKS": render_advisory_disclosure_blocks(
             advisor_proposal_memo.get("disclosures")
         ),
-        "RENDER_JOB_ID": escape_typst_text(render_package.render_job_id),
-        "TEMPLATE_ID": escape_typst_text(render_package.template_id),
-        "TEMPLATE_VERSION": escape_typst_text(render_package.template_version),
-        "REQUESTED_BY": escape_typst_text(str(render_package.requested_by)),
-        "TIMEZONE": escape_typst_text(str(render_context.get("timezone", "unknown"))),
+        "RENDER_JOB_ID": escape_typst_string(render_package.render_job_id),
+        "TEMPLATE_ID": escape_typst_string(render_package.template_id),
+        "TEMPLATE_VERSION": escape_typst_string(render_package.template_version),
+        "REQUESTED_BY": escape_typst_string(str(render_package.requested_by)),
+        "TIMEZONE": escape_typst_string(str(render_context.get("timezone", "unknown"))),
     }
 
 
@@ -275,41 +281,41 @@ def build_proof_pack_context(render_package: RenderPackage) -> dict[str, str]:
     source_hashes = mapping(report_data.get("source_hashes"))
     source_contract_version = str(report_data.get("source_contract_version", "not_available"))
     return {
-        "TITLE": escape_typst_text(str(report_data["title"])),
-        "PORTFOLIO_ID": escape_typst_text(str(report_data["portfolio_id"])),
-        "PROOF_PACK_ID": escape_typst_text(str(report_data["proof_pack_id"])),
-        "MANDATE_ID": escape_typst_text(str(report_data.get("mandate_id", "not_available"))),
-        "AS_OF_DATE": escape_typst_text(str(report_data.get("as_of_date", "not_available"))),
-        "STATE": escape_typst_text(str(report_data["state"])),
-        "DECISION_ACTION": escape_typst_text(
+        "TITLE": escape_typst_string(str(report_data["title"])),
+        "PORTFOLIO_ID": escape_typst_string(str(report_data["portfolio_id"])),
+        "PROOF_PACK_ID": escape_typst_string(str(report_data["proof_pack_id"])),
+        "MANDATE_ID": escape_typst_string(str(report_data.get("mandate_id", "not_available"))),
+        "AS_OF_DATE": escape_typst_string(str(report_data.get("as_of_date", "not_available"))),
+        "STATE": escape_typst_string(str(report_data["state"])),
+        "DECISION_ACTION": escape_typst_string(
             str(decision_summary.get("recommended_action", "not_available"))
         ),
-        "DECISION_RATIONALE": escape_typst_text(
+        "DECISION_RATIONALE": escape_typst_string(
             str(decision_summary.get("rationale", "No decision rationale supplied."))
         ),
-        "SUPPORTABILITY_STATUS": escape_typst_text(
+        "SUPPORTABILITY_STATUS": escape_typst_string(
             str(supportability.get("status", supportability.get("state", "not_available")))
         ),
-        "SUPPORTABILITY_REASONS": escape_typst_text(
+        "SUPPORTABILITY_REASONS": escape_typst_string(
             ", ".join(string_list(supportability.get("reason_codes"))) or "none"
         ),
         "SECTION_ROWS": render_proof_pack_section_rows(sections),
-        "SOURCE_CONTRACT_VERSION": escape_typst_text(source_contract_version),
-        "CLIENT_PUBLICATION_AUTHORITY": escape_typst_text(
+        "SOURCE_CONTRACT_VERSION": escape_typst_string(source_contract_version),
+        "CLIENT_PUBLICATION_AUTHORITY": escape_typst_string(
             str(bool(report_data.get("client_publication_authority_granted"))).lower()
         ),
         "SOURCE_LINEAGE_ROWS": render_source_lineage_rows(report_data.get("source_lineage")),
         "SOURCE_HASH_ROWS": render_key_value_rows(source_hashes),
-        "CONTENT_HASH": escape_typst_text(str(report_data["content_hash"])),
-        "PROOF_PACK_CONTENT_HASH": escape_typst_text(str(report_data["proof_pack_content_hash"])),
-        "REDACTION_POLICY": escape_typst_text(
+        "CONTENT_HASH": escape_typst_string(str(report_data["content_hash"])),
+        "PROOF_PACK_CONTENT_HASH": escape_typst_string(str(report_data["proof_pack_content_hash"])),
+        "REDACTION_POLICY": escape_typst_string(
             str(report_data.get("redaction_policy", "NO_RAW_PAYLOADS"))
         ),
-        "RENDER_JOB_ID": escape_typst_text(render_package.render_job_id),
-        "TEMPLATE_ID": escape_typst_text(render_package.template_id),
-        "TEMPLATE_VERSION": escape_typst_text(render_package.template_version),
-        "REQUESTED_BY": escape_typst_text(str(render_package.requested_by)),
-        "TIMEZONE": escape_typst_text(str(render_context.get("timezone", "unknown"))),
+        "RENDER_JOB_ID": escape_typst_string(render_package.render_job_id),
+        "TEMPLATE_ID": escape_typst_string(render_package.template_id),
+        "TEMPLATE_VERSION": escape_typst_string(render_package.template_version),
+        "REQUESTED_BY": escape_typst_string(str(render_package.requested_by)),
+        "TIMEZONE": escape_typst_string(str(render_context.get("timezone", "unknown"))),
     }
 
 
@@ -320,40 +326,40 @@ def build_outcome_review_context(render_package: RenderPackage) -> dict[str, str
     source_hashes = mapping(report_data.get("source_hashes"))
     section_hashes = mapping(report_data.get("section_hashes"))
     return {
-        "TITLE": escape_typst_text(str(report_data["title"])),
-        "PORTFOLIO_ID": escape_typst_text(str(report_data["portfolio_id"])),
-        "OUTCOME_REVIEW_ID": escape_typst_text(str(report_data["outcome_review_id"])),
-        "PROOF_PACK_ID": escape_typst_text(str(report_data.get("proof_pack_id", ""))),
-        "REBALANCE_RUN_ID": escape_typst_text(
+        "TITLE": escape_typst_string(str(report_data["title"])),
+        "PORTFOLIO_ID": escape_typst_string(str(report_data["portfolio_id"])),
+        "OUTCOME_REVIEW_ID": escape_typst_string(str(report_data["outcome_review_id"])),
+        "PROOF_PACK_ID": escape_typst_string(str(report_data.get("proof_pack_id", ""))),
+        "REBALANCE_RUN_ID": escape_typst_string(
             str(report_data.get("rebalance_run_id", "not_available"))
         ),
-        "WAVE_ID": escape_typst_text(str(report_data.get("wave_id", "not_available"))),
-        "STATE": escape_typst_text(str(report_data["state"])),
-        "OVERALL_OUTCOME": escape_typst_text(str(report_data["overall_outcome"])),
-        "REVIEW_WINDOW_START": escape_typst_text(
+        "WAVE_ID": escape_typst_string(str(report_data.get("wave_id", "not_available"))),
+        "STATE": escape_typst_string(str(report_data["state"])),
+        "OVERALL_OUTCOME": escape_typst_string(str(report_data["overall_outcome"])),
+        "REVIEW_WINDOW_START": escape_typst_string(
             str(report_data.get("review_window_start", "not_available"))
         ),
-        "REVIEW_WINDOW_END": escape_typst_text(
+        "REVIEW_WINDOW_END": escape_typst_string(
             str(report_data.get("review_window_end", "not_available"))
         ),
         "DIMENSION_ROWS": render_outcome_dimension_rows(dimensions),
-        "SOURCE_SERVICES": escape_typst_text(
+        "SOURCE_SERVICES": escape_typst_string(
             ", ".join(string_list(report_data.get("source_services"))) or "lotus-manage"
         ),
         "SOURCE_HASH_ROWS": render_key_value_rows(source_hashes),
         "SECTION_HASH_ROWS": render_key_value_rows(section_hashes),
-        "CONTENT_HASH": escape_typst_text(str(report_data["content_hash"])),
-        "OUTCOME_REVIEW_CONTENT_HASH": escape_typst_text(
+        "CONTENT_HASH": escape_typst_string(str(report_data["content_hash"])),
+        "OUTCOME_REVIEW_CONTENT_HASH": escape_typst_string(
             str(report_data.get("outcome_review_content_hash", "not_available"))
         ),
-        "REDACTION_POLICY": escape_typst_text(
+        "REDACTION_POLICY": escape_typst_string(
             str(report_data.get("redaction_policy", "NO_RAW_PAYLOADS"))
         ),
-        "RENDER_JOB_ID": escape_typst_text(render_package.render_job_id),
-        "TEMPLATE_ID": escape_typst_text(render_package.template_id),
-        "TEMPLATE_VERSION": escape_typst_text(render_package.template_version),
-        "REQUESTED_BY": escape_typst_text(str(render_package.requested_by)),
-        "TIMEZONE": escape_typst_text(str(render_context.get("timezone", "unknown"))),
+        "RENDER_JOB_ID": escape_typst_string(render_package.render_job_id),
+        "TEMPLATE_ID": escape_typst_string(render_package.template_id),
+        "TEMPLATE_VERSION": escape_typst_string(render_package.template_version),
+        "REQUESTED_BY": escape_typst_string(str(render_package.requested_by)),
+        "TIMEZONE": escape_typst_string(str(render_context.get("timezone", "unknown"))),
     }
 
 
@@ -365,23 +371,25 @@ def build_wave_context(render_package: RenderPackage) -> dict[str, str]:
     supportability = mapping(report_data.get("supportability"))
     proof_pack_posture = mapping(report_data.get("proof_pack_posture"))
     return {
-        "TITLE": escape_typst_text(str(report_data["title"])),
-        "WAVE_ID": escape_typst_text(str(report_data["wave_id"])),
-        "WAVE_STATE": escape_typst_text(str(report_data["wave_state"])),
-        "TRIGGER_TYPE": escape_typst_text(str(report_data["trigger_type"])),
-        "TRIGGER_ID": escape_typst_text(str(report_data.get("trigger_id", ""))),
-        "TRIGGER_RATIONALE": escape_typst_text(
+        "TITLE": escape_typst_string(str(report_data["title"])),
+        "WAVE_ID": escape_typst_string(str(report_data["wave_id"])),
+        "WAVE_STATE": escape_typst_string(str(report_data["wave_state"])),
+        "TRIGGER_TYPE": escape_typst_string(str(report_data["trigger_type"])),
+        "TRIGGER_ID": escape_typst_string(str(report_data.get("trigger_id", ""))),
+        "TRIGGER_RATIONALE": escape_typst_string(
             str(report_data.get("trigger_rationale", "No trigger rationale supplied."))
         ),
-        "AS_OF_DATE": escape_typst_text(str(report_data.get("as_of_date", "not_available"))),
-        "ITEM_COUNT": escape_typst_text(str(aggregate_metrics.get("item_count", "not_available"))),
-        "READY_ITEM_COUNT": escape_typst_text(
+        "AS_OF_DATE": escape_typst_string(str(report_data.get("as_of_date", "not_available"))),
+        "ITEM_COUNT": escape_typst_string(
+            str(aggregate_metrics.get("item_count", "not_available"))
+        ),
+        "READY_ITEM_COUNT": escape_typst_string(
             str(aggregate_metrics.get("ready_item_count", "not_available"))
         ),
-        "BLOCKED_ITEM_COUNT": escape_typst_text(
+        "BLOCKED_ITEM_COUNT": escape_typst_string(
             str(aggregate_metrics.get("blocked_item_count", "not_available"))
         ),
-        "SUPPORTABILITY_STATUS": escape_typst_text(
+        "SUPPORTABILITY_STATUS": escape_typst_string(
             str(
                 supportability.get(
                     "supportability_state",
@@ -389,31 +397,31 @@ def build_wave_context(render_package: RenderPackage) -> dict[str, str]:
                 )
             )
         ),
-        "SUPPORTABILITY_REASON": escape_typst_text(
+        "SUPPORTABILITY_REASON": escape_typst_string(
             str(supportability.get("reason", "not_available"))
         ),
-        "PROOF_PACK_READY_COUNT": escape_typst_text(
+        "PROOF_PACK_READY_COUNT": escape_typst_string(
             str(proof_pack_posture.get("ready_proof_pack_count", "not_available"))
         ),
-        "PROOF_PACK_DEGRADED_COUNT": escape_typst_text(
+        "PROOF_PACK_DEGRADED_COUNT": escape_typst_string(
             str(proof_pack_posture.get("degraded_proof_pack_count", "not_available"))
         ),
-        "HANDOFF_COUNT": escape_typst_text(str(report_data.get("handoff_count", 0))),
-        "EXTERNAL_EXECUTION": escape_typst_text(
+        "HANDOFF_COUNT": escape_typst_string(str(report_data.get("handoff_count", 0))),
+        "EXTERNAL_EXECUTION": escape_typst_string(
             str(bool(report_data.get("external_execution_claimed"))).lower()
         ),
         "ITEM_ROWS": render_wave_item_rows(items),
         "EVENT_ROWS": render_wave_event_rows(report_data.get("events")),
-        "CONTENT_HASH": escape_typst_text(str(report_data["content_hash"])),
-        "WAVE_CONTENT_HASH": escape_typst_text(str(report_data["wave_content_hash"])),
-        "REDACTION_POLICY": escape_typst_text(
+        "CONTENT_HASH": escape_typst_string(str(report_data["content_hash"])),
+        "WAVE_CONTENT_HASH": escape_typst_string(str(report_data["wave_content_hash"])),
+        "REDACTION_POLICY": escape_typst_string(
             str(report_data.get("redaction_policy", "NO_RAW_PAYLOADS"))
         ),
-        "RENDER_JOB_ID": escape_typst_text(render_package.render_job_id),
-        "TEMPLATE_ID": escape_typst_text(render_package.template_id),
-        "TEMPLATE_VERSION": escape_typst_text(render_package.template_version),
-        "REQUESTED_BY": escape_typst_text(str(render_package.requested_by)),
-        "TIMEZONE": escape_typst_text(str(render_context.get("timezone", "unknown"))),
+        "RENDER_JOB_ID": escape_typst_string(render_package.render_job_id),
+        "TEMPLATE_ID": escape_typst_string(render_package.template_id),
+        "TEMPLATE_VERSION": escape_typst_string(render_package.template_version),
+        "REQUESTED_BY": escape_typst_string(str(render_package.requested_by)),
+        "TIMEZONE": escape_typst_string(str(render_context.get("timezone", "unknown"))),
     }
 
 

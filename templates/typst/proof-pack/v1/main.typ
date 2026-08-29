@@ -11,7 +11,7 @@
     #v(5pt)
     #grid(
       columns: (1fr, auto),
-      [#text(size: 6.6pt, fill: muted)[${PORTFOLIO_ID} / ${PROOF_PACK_ID}]],
+      [#text(size: 6.6pt, fill: muted)[#"${PORTFOLIO_ID}" / #"${PROOF_PACK_ID}"]],
       [#text(size: 6.8pt, fill: ink)[#counter(page).display("1 / 1")]],
     )
   ],
@@ -47,17 +47,17 @@
   )
 ]
 
-#text(size: 18pt, weight: "medium", fill: ink)[${TITLE}]
+#text(size: 18pt, weight: "medium", fill: ink)[#"${TITLE}"]
 #v(4pt)
-#text(size: 8pt, fill: muted)[Governed pre-trade proof-pack report / ${STATE}]
+#text(size: 8pt, fill: muted)[Governed pre-trade proof-pack report / #"${STATE}"]
 
 #v(10pt)
 #grid(
   columns: (1fr, 1fr, 1fr),
   gutter: 7mm,
-  [#label("Portfolio") #linebreak() #value[${PORTFOLIO_ID}]],
-  [#label("Proof pack") #linebreak() #value[${PROOF_PACK_ID}]],
-  [#label("As of") #linebreak() #value[${AS_OF_DATE}]],
+  [#label("Portfolio") #linebreak() #value[#"${PORTFOLIO_ID}"]],
+  [#label("Proof pack") #linebreak() #value[#"${PROOF_PACK_ID}"]],
+  [#label("As of") #linebreak() #value[#"${AS_OF_DATE}"]],
 )
 
 #v(8pt)
@@ -67,17 +67,17 @@
   [
     #text(size: 11pt, weight: "medium")[Decision Summary]
     #v(3pt)
-    #key-value-row([Action], [${DECISION_ACTION}])
-    #key-value-row([Mandate], [${MANDATE_ID}])
+    #key-value-row([Action], [#"${DECISION_ACTION}"])
+    #key-value-row([Mandate], [#"${MANDATE_ID}"])
     #v(3pt)
-    ${DECISION_RATIONALE}
+    #"${DECISION_RATIONALE}"
   ],
   [
     #text(size: 11pt, weight: "medium")[Supportability]
     #v(3pt)
-    #key-value-row([Status], [${SUPPORTABILITY_STATUS}])
-    #key-value-row([Reasons], [${SUPPORTABILITY_REASONS}])
-    #key-value-row([Redaction], [${REDACTION_POLICY}])
+    #key-value-row([Status], [#"${SUPPORTABILITY_STATUS}"])
+    #key-value-row([Reasons], [#"${SUPPORTABILITY_REASONS}"])
+    #key-value-row([Redaction], [#"${REDACTION_POLICY}"])
   ],
 )
 
@@ -94,19 +94,19 @@ ${SOURCE_HASH_ROWS}
 #v(6pt)
 #text(size: 11pt, weight: "medium")[Source Authority Boundary]
 #v(3pt)
-#key-value-row([Source contract], [${SOURCE_CONTRACT_VERSION}])
-#key-value-row([Client publication authority], [${CLIENT_PUBLICATION_AUTHORITY}])
+#key-value-row([Source contract], [#"${SOURCE_CONTRACT_VERSION}"])
+#key-value-row([Client publication authority], [#"${CLIENT_PUBLICATION_AUTHORITY}"])
 ${SOURCE_LINEAGE_ROWS}
 
 #v(6pt)
 #text(size: 11pt, weight: "medium")[Report Lineage]
 #v(3pt)
-#key-value-row([Report input], [${CONTENT_HASH}])
-#key-value-row([Proof pack], [${PROOF_PACK_CONTENT_HASH}])
+#key-value-row([Report input], [#"${CONTENT_HASH}"])
+#key-value-row([Proof pack], [#"${PROOF_PACK_CONTENT_HASH}"])
 
 #v(10pt)
 #line(length: 100%, stroke: (paint: rule, thickness: 0.35pt))
 #v(4pt)
-#text(size: 6.8pt, fill: muted)[Render ${RENDER_JOB_ID} / ${TEMPLATE_ID} ${TEMPLATE_VERSION} / ${TIMEZONE}]
+#text(size: 6.8pt, fill: muted)[Render #"${RENDER_JOB_ID}" / #"${TEMPLATE_ID}" #"${TEMPLATE_VERSION}" / #"${TIMEZONE}"]
 #linebreak()
-#text(size: 6.8pt, fill: muted)[${DETERMINISM_STATEMENT}]
+#text(size: 6.8pt, fill: muted)[#"${DETERMINISM_STATEMENT}"]

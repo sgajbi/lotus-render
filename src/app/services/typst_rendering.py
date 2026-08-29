@@ -26,7 +26,7 @@ from app.services.typst_contexts import (
     build_proof_pack_context,
     build_wave_context,
 )
-from app.services.typst_values import escape_typst_text
+from app.services.typst_values import escape_typst_string
 
 DETERMINISM_MODE = "bounded_runtime_envelope"
 DOCKER_TYPST_IMAGE = "ghcr.io/typst/typst:0.14.2"
@@ -252,9 +252,11 @@ class TypstRenderService:
     ) -> Path:
         replacements = {
             **template_context,
-            "DETERMINISM_STATEMENT": escape_typst_text(determinism_statement),
-            "TRACE_ID": escape_typst_text(render_package.trace_id),
-            "CORRELATION_ID": escape_typst_text(render_package.correlation_id),
+            # Scalars are substituted into string-literal placeholders, so they carry the
+            # string escaper; composed markup blocks in template_context carry their own.
+            "DETERMINISM_STATEMENT": escape_typst_string(determinism_statement),
+            "TRACE_ID": escape_typst_string(render_package.trace_id),
+            "CORRELATION_ID": escape_typst_string(render_package.correlation_id),
         }
         template_directory = template_root.parent
         workspace_template_directory = workspace / "template"
