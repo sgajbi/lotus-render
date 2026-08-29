@@ -15,6 +15,15 @@ services:
     # (60s) before exiting. Compose's default grace period is 10s, which would SIGKILL the
     # very render the drain is waiting for and strand its job. Keep this above the compile
     # timeout; tests/unit/test_local_docker_runtime_contract.py enforces the relationship.
+    # Resource ceiling for the container. Untrusted report_data is compiled here, and in
+    # this image the compile is a direct child of the API process rather than a container
+    # of its own, so the confinement flags in DOCKER_ISOLATION_FLAGS never apply (#128).
+    # Arithmetic: render_execution_concurrency_limit (2) x the 512m per-compile budget
+    # already chosen in #106, plus ~400m for uvicorn, the app and one artifact held in
+    # memory through its base64 response. Raise these together with the concurrency limit.
+    mem_limit: 1500m
+    cpus: 2.0
+    pids_limit: 512
     stop_grace_period: 75s
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8310/health/ready')"]

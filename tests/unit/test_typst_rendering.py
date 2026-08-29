@@ -32,6 +32,8 @@ from app.services.typst_fragments import (
     render_wave_item_rows,
 )
 from app.services.typst_rendering import (
+    COMPILE_ADDRESS_SPACE_LIMIT_KB,
+    COMPILE_CPU_SECONDS,
     DOCKER_CONTAINER_NAME_PREFIX,
     DOCKER_ISOLATION_FLAGS,
     DOCKER_TYPST_IMAGE,
@@ -1322,3 +1324,61 @@ def test_typst_render_service_materializes_modular_template_directory(
     assert source_path.exists()
     assert materialized_partial.exists()
     assert "Alex Tan" in materialized_partial.read_text(encoding="utf-8")
+
+
+def test_the_in_process_compile_branch_is_resource_bounded(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """Production takes this branch, so it is the one that must carry a ceiling.
+
+    The shipped image installs no Docker CLI, so DOCKER_ISOLATION_FLAGS -- including
+    --memory 512m -- never apply. Without a bound here, a compile of untrusted report data
+    is limited only by the container, and exceeding that kills the whole service instead
+    of the offending render (issue #128).
+    """
+
+    service = _build_service()
+    source_path = tmp_path / "main.typ"
+    source_path.write_text("test", encoding="utf-8")
+
+    monkeypatch.setattr(
+        "app.services.typst_rendering.shutil.which",
+        lambda binary: {"typst": "/usr/local/bin/typst", "sh": "/bin/sh"}.get(binary),
+    )
+
+    command = service._build_compile_command(
+        workspace=tmp_path, source_path=source_path, output_path=tmp_path / "out.pdf"
+    )
+
+    assert command[:2] == ["/bin/sh", "-c"], "the compile is not wrapped in a limited shell"
+    assert f"ulimit -v {COMPILE_ADDRESS_SPACE_LIMIT_KB}" in command[2]
+    assert f"ulimit -t {COMPILE_CPU_SECONDS}" in command[2]
+    # exec so the shell is replaced: the timeout must kill typst, not a wrapper.
+    assert 'exec "$0" "$@"' in command[2]
+    assert "/usr/local/bin/typst" in command
+    # The limits must match what the container branch already grants a compile.
+    assert COMPILE_ADDRESS_SPACE_LIMIT_KB == 512 * 1024
+
+
+def test_the_compile_falls_back_unwrapped_where_there_is_no_shell(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """Windows has no ulimit; the command must still be runnable there."""
+
+    service = _build_service()
+    source_path = tmp_path / "main.typ"
+    source_path.write_text("test", encoding="utf-8")
+
+    monkeypatch.setattr(
+        "app.services.typst_rendering.shutil.which",
+        lambda binary: "C:/typst.exe" if binary == "typst" else None,
+    )
+
+    command = service._build_compile_command(
+        workspace=tmp_path, source_path=source_path, output_path=tmp_path / "out.pdf"
+    )
+
+    assert command[0] == "C:/typst.exe"
+    assert command[1] == "compile"
