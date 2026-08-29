@@ -95,7 +95,6 @@ Not implemented today — recorded so that absence is not mistaken for capabilit
 | output formats other than PDF | a settings validator requires `pdf`; another format is a code change | — |
 | shared job state | the store is a local file, so one instance cannot report on another's jobs | — |
 | enforced durability by default | `REQUIRE_PERSISTENT_RENDER_STORE` is `false`; Docker Compose sets it `true`, bare deployments must too | [#83](https://github.com/sgajbi/lotus-render/issues/83) |
-| unconditional request-body cap | the cap is skipped when no `Content-Length` is declared | [#84](https://github.com/sgajbi/lotus-render/issues/84) |
 
 ## Validation commands
 

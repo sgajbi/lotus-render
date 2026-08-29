@@ -68,6 +68,7 @@ already recorded would make the render job id useless as evidence.
 
 | status | code | when |
 |---|---|---|
+| `400` | `invalid_content_length` | `Content-Length` is malformed or negative |
 | `404` | `render_job_not_found` | unknown `render_job_id` on any read |
 | `409` | `render_job_conflict` | `render_job_id` reused with a different package |
 | `409` | `render_artifact_not_ready` | artifact metadata requested before a successful render |
