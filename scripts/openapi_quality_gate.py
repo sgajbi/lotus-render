@@ -12,13 +12,17 @@ from app.main import app  # noqa: E402
 
 OperationKey = tuple[str, str]
 
+# The exact response set each operation publishes. Compared for equality, not as a
+# subset: a subset check cannot see a response that was deleted from the contract, which
+# is how the 400 and 413 the middleware actually returns could have silently vanished
+# (issue #126).
 EXPECTED_RESPONSE_CODES: dict[OperationKey, set[str]] = {
     ("GET", "/health"): {"200"},
     ("GET", "/health/live"): {"200"},
     ("GET", "/health/ready"): {"200", "503"},
     ("GET", "/metadata"): {"200"},
     ("GET", "/metrics"): {"200"},
-    ("POST", "/renders"): {"201", "409", "422", "429", "502"},
+    ("POST", "/renders"): {"200", "201", "400", "409", "413", "422", "429", "502"},
     ("GET", "/renders/{render_job_id}"): {"200", "404", "422"},
     ("GET", "/renders/{render_job_id}/diagnostics"): {"200", "404", "422"},
     ("GET", "/renders/{render_job_id}/artifact-metadata"): {"200", "404", "409", "422"},
@@ -90,12 +94,24 @@ def _validate_expected_responses(key: OperationKey, operation: dict[str, Any]) -
         raise OpenApiQualityError(f"OpenAPI gate failed: {key[0]} {key[1]} missing responses")
     expected = EXPECTED_RESPONSE_CODES.get(key)
     if expected is None:
-        return
-    missing = sorted(expected - set(responses))
+        raise OpenApiQualityError(
+            f"OpenAPI gate failed: {key[0]} {key[1]} is published but not declared in "
+            "EXPECTED_RESPONSE_CODES; an operation nobody declared is an undocumented "
+            "contract."
+        )
+    documented = set(responses)
+    missing = sorted(expected - documented)
     if missing:
         joined = ", ".join(missing)
         raise OpenApiQualityError(
             f"OpenAPI gate failed: {key[0]} {key[1]} missing response(s): {joined}"
+        )
+    unexpected = sorted(documented - expected)
+    if unexpected:
+        joined = ", ".join(unexpected)
+        raise OpenApiQualityError(
+            f"OpenAPI gate failed: {key[0]} {key[1]} documents response(s) the contract "
+            f"does not declare: {joined}"
         )
     for status_code in expected:
         response = responses.get(status_code)
