@@ -11,7 +11,7 @@
     #v(5pt)
     #grid(
       columns: (1fr, auto),
-      [#text(size: 6.6pt, fill: muted)[${PORTFOLIO_ID} / ${OUTCOME_REVIEW_ID}]],
+      [#text(size: 6.6pt, fill: muted)[#"${PORTFOLIO_ID}" / #"${OUTCOME_REVIEW_ID}"]],
       [#text(size: 6.8pt, fill: ink)[#counter(page).display("1 / 1")]],
     )
   ],
@@ -49,23 +49,23 @@
   )
 ]
 
-#text(size: 18pt, weight: "medium", fill: ink)[${TITLE}]
+#text(size: 18pt, weight: "medium", fill: ink)[#"${TITLE}"]
 #v(4pt)
-#text(size: 8pt, fill: muted)[Governed post-trade outcome-review report / ${STATE}]
+#text(size: 8pt, fill: muted)[Governed post-trade outcome-review report / #"${STATE}"]
 
 #v(10pt)
 #grid(
   columns: (1fr, 1fr, 1fr),
   gutter: 7mm,
-  [#label("Portfolio") #linebreak() #value[${PORTFOLIO_ID}]],
-  [#label("Review") #linebreak() #value[${OUTCOME_REVIEW_ID}]],
-  [#label("Window") #linebreak() #value[${REVIEW_WINDOW_START} to ${REVIEW_WINDOW_END}]],
+  [#label("Portfolio") #linebreak() #value[#"${PORTFOLIO_ID}"]],
+  [#label("Review") #linebreak() #value[#"${OUTCOME_REVIEW_ID}"]],
+  [#label("Window") #linebreak() #value[#"${REVIEW_WINDOW_START}" to #"${REVIEW_WINDOW_END}"]],
 )
 
 #v(8pt)
 #text(size: 12pt, weight: "medium")[Outcome Summary]
 #v(3pt)
-${OVERALL_OUTCOME}
+#"${OVERALL_OUTCOME}"
 
 #v(8pt)
 #text(size: 12pt, weight: "medium")[Dimension Evidence]
@@ -79,17 +79,17 @@ ${DIMENSION_ROWS}
   [
     #text(size: 11pt, weight: "medium")[Lineage]
     #v(3pt)
-    #key-value-row([Source services], [${SOURCE_SERVICES}])
-    #key-value-row([Proof pack], [${PROOF_PACK_ID}])
-    #key-value-row([Rebalance run], [${REBALANCE_RUN_ID}])
-    #key-value-row([Wave], [${WAVE_ID}])
-    #key-value-row([Redaction], [${REDACTION_POLICY}])
+    #key-value-row([Source services], [#"${SOURCE_SERVICES}"])
+    #key-value-row([Proof pack], [#"${PROOF_PACK_ID}"])
+    #key-value-row([Rebalance run], [#"${REBALANCE_RUN_ID}"])
+    #key-value-row([Wave], [#"${WAVE_ID}"])
+    #key-value-row([Redaction], [#"${REDACTION_POLICY}"])
   ],
   [
     #text(size: 11pt, weight: "medium")[Hashes]
     #v(3pt)
-    #key-value-row([Report input], [${CONTENT_HASH}])
-    #key-value-row([Outcome review], [${OUTCOME_REVIEW_CONTENT_HASH}])
+    #key-value-row([Report input], [#"${CONTENT_HASH}"])
+    #key-value-row([Outcome review], [#"${OUTCOME_REVIEW_CONTENT_HASH}"])
   ],
 )
 
@@ -106,6 +106,6 @@ ${SECTION_HASH_ROWS}
 #v(10pt)
 #line(length: 100%, stroke: (paint: rule, thickness: 0.35pt))
 #v(4pt)
-#text(size: 6.8pt, fill: muted)[Render ${RENDER_JOB_ID} / ${TEMPLATE_ID} ${TEMPLATE_VERSION} / ${TIMEZONE}]
+#text(size: 6.8pt, fill: muted)[Render #"${RENDER_JOB_ID}" / #"${TEMPLATE_ID}" #"${TEMPLATE_VERSION}" / #"${TIMEZONE}"]
 #linebreak()
-#text(size: 6.8pt, fill: muted)[${DETERMINISM_STATEMENT}]
+#text(size: 6.8pt, fill: muted)[#"${DETERMINISM_STATEMENT}"]

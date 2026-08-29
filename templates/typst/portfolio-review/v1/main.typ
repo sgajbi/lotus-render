@@ -9,7 +9,7 @@
     #v(5pt)
     #grid(
       columns: (1fr, auto),
-      [#text(size: 6.4pt, fill: slate)[${PORTFOLIO_NAME}]],
+      [#text(size: 6.4pt, fill: slate)[#"${PORTFOLIO_NAME}"]],
       [#text(size: 6.8pt, fill: ink)[#counter(page).display("1 / 1")]],
     )
   ],

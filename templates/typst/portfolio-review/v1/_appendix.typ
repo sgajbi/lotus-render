@@ -12,7 +12,7 @@
     [#text(size: 20.5pt, weight: 300, fill: navy)[Abbreviations and explanations]],
     [
       #set par(leading: 0.8em)
-      #text(size: 6.8pt, fill: slate)[Statement of assets as of ${AS_OF_DATE}]
+      #text(size: 6.8pt, fill: slate)[Statement of assets as of #"${AS_OF_DATE}"]
       #linebreak()
       #text(size: 6.8pt, fill: slate)[Produced for portfolio review]
     ],
