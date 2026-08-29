@@ -85,7 +85,9 @@ from GitHub Actions. The parser has its own regression proof so a blank recipe o
 target cannot be misclassified as a dependency.
 
 `complexity-gate` and `dead-code-gate` also reject zero governed inputs and name the paths they
-scanned. This distinguishes a clean result from a missing or misaddressed source tree.
+scanned. This distinguishes a clean result from a missing or misaddressed source tree. Reviewed
+Vulture suppressions belong in `vulture_whitelist.py`; it starts empty, and the unit contract
+executes every future symbol reference so stale suppressions fail.
 
 ## Merge governance
 

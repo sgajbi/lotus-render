@@ -10,6 +10,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_PATHS = ("src", "tests")
+DEFAULT_WHITELIST = ROOT / "vulture_whitelist.py"
 
 
 def _resolved_path(raw_path: str) -> Path:
@@ -39,6 +40,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Fail-closed dead-code gate")
     parser.add_argument("--path", action="append", dest="paths")
     parser.add_argument("--min-confidence", type=int, default=80)
+    parser.add_argument("--whitelist", type=Path, default=DEFAULT_WHITELIST)
     return parser
 
 
@@ -53,12 +55,18 @@ def main(argv: Sequence[str] | None = None) -> int:
         )
         return 1
 
+    whitelist = args.whitelist if args.whitelist.is_absolute() else ROOT / args.whitelist
+    if not whitelist.is_file():
+        print(f"Dead-code gate failed: whitelist file is missing: {whitelist}.", file=sys.stderr)
+        return 1
+
     completed = subprocess.run(
         [
             sys.executable,
             "-m",
             "vulture",
             *paths,
+            str(whitelist),
             "--min-confidence",
             str(args.min_confidence),
         ],

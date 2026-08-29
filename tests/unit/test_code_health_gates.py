@@ -22,6 +22,7 @@ could not fail, and lotus-performance#477, where a blocking scanner was wired to
 from __future__ import annotations
 
 import re
+import runpy
 import subprocess
 import sys
 from pathlib import Path
@@ -259,3 +260,27 @@ def test_the_dead_code_gate_preserves_vulture_findings(tmp_path: Path) -> None:
 
     assert completed.returncode != 0, completed.stdout + completed.stderr
     assert "definitely_unused_module" in completed.stdout
+
+
+def test_the_dead_code_gate_fails_when_its_whitelist_is_missing(tmp_path: Path) -> None:
+    source = tmp_path / "source.py"
+    source.write_text("VALUE = 1\n", encoding="utf-8")
+    missing = tmp_path / "missing_whitelist.py"
+
+    completed = _run(
+        "scripts/dead_code_gate.py",
+        "--path",
+        str(source),
+        "--whitelist",
+        str(missing),
+    )
+
+    assert completed.returncode == 1, completed.stdout + completed.stderr
+    assert "whitelist file is missing" in completed.stderr
+    assert str(missing) in completed.stderr
+
+
+def test_vulture_whitelist_entries_resolve_to_live_symbols() -> None:
+    """Executing the itemized expressions makes stale suppressions fail at review time."""
+
+    runpy.run_path(str(ROOT / "vulture_whitelist.py"))
