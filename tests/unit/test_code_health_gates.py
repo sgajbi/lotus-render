@@ -148,13 +148,7 @@ GATE_TOOLS = ("radon", "vulture", "deptry")
 
 
 def test_every_tool_the_gates_invoke_is_declared_as_a_dev_dependency() -> None:
-    """Local validation must be evidence about CI, and it is not when a tool is undeclared.
-
-    This is not hypothetical: the first push of this change installed radon, vulture and deptry into
-    the local virtualenv by hand and never declared them. Every gate passed locally and
-    `PR Merge Gate / Tests (unit)` failed with `No module named radon`. Same defect class as
-    lotus-risk#218, committed while adding the gates that were supposed to prevent it.
-    """
+    """Local validation must be evidence about CI, and it is not when a tool is undeclared."""
 
     import tomllib
 
@@ -186,6 +180,25 @@ def test_the_declared_gate_tools_are_pinned_exactly() -> None:
         and "==" not in entry
     )
     assert floored == [], f"These gate tools are floored rather than pinned: {floored}"
+
+
+def test_every_code_health_gate_uses_the_governed_virtual_environment() -> None:
+    """CI installs quality tools into .venv, so every gate must execute with that interpreter."""
+
+    makefile = MAKEFILE.read_text(encoding="utf-8")
+    for target in (
+        "complexity-gate",
+        "source-size-gate",
+        "dead-code-gate",
+        "dependency-hygiene-gate",
+    ):
+        recipe = re.search(rf"^{target}:\n\t([^\n]+)$", makefile, re.M)
+        assert recipe is not None, f"The {target} recipe is missing."
+        assert recipe.group(1).startswith("$(VENV_PYTHON)"), (
+            f"{target} bypasses the governed virtual environment: {recipe.group(1)!r}. "
+            "CI installs its pinned quality tools into .venv, so a system-python recipe cannot "
+            "execute the declared dependency set."
+        )
 
 
 def test_the_source_size_gate_fails_when_it_inspected_nothing(tmp_path: Path) -> None:

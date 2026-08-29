@@ -60,16 +60,16 @@ security-audit:
 	$(VENV_PYTHON) scripts/pip_audit_gate.py
 
 complexity-gate:
-	python scripts/python_complexity_inventory.py --limit 20 --max-cc $(MAX_CYCLOMATIC_COMPLEXITY) --max-high-complexity $(MAX_HIGH_COMPLEXITY_FUNCTIONS)
+	$(VENV_PYTHON) scripts/python_complexity_inventory.py --limit 20 --max-cc $(MAX_CYCLOMATIC_COMPLEXITY) --max-high-complexity $(MAX_HIGH_COMPLEXITY_FUNCTIONS)
 
 source-size-gate:
-	python scripts/source_size_gate.py --max-lines=$(SOURCE_FILE_MAX_LINES)
+	$(VENV_PYTHON) scripts/source_size_gate.py --max-lines=$(SOURCE_FILE_MAX_LINES)
 
 dead-code-gate:
-	python scripts/dead_code_gate.py
+	$(VENV_PYTHON) scripts/dead_code_gate.py
 
 dependency-hygiene-gate:
-	python -m deptry .
+	$(VENV_PYTHON) -m deptry .
 
 code-health-gates: complexity-gate source-size-gate dead-code-gate dependency-hygiene-gate
 
