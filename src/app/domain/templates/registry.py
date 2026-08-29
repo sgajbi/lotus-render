@@ -62,76 +62,62 @@ class TemplateRegistry:
                 message=f"template {render_package.template_id} is not registered",
             )
 
-        if render_package.report_type not in manifest.supported_report_types:
+        _require_supported_dimensions(render_package, manifest)
+        _require_renderable_status(manifest)
+        return manifest
+
+
+# One row per render-package dimension a manifest must support:
+# (package attribute, manifest attribute, rejection reason, noun used in the message).
+_COMPATIBILITY_DIMENSIONS = (
+    ("report_type", "supported_report_types", "report_type_not_supported", "report type"),
+    (
+        "report_data_contract_version",
+        "supported_report_data_contract_versions",
+        "report_data_contract_version_not_supported",
+        "report-data contract",
+    ),
+    ("locale", "supported_locales", "locale_not_supported", "locale"),
+    ("brand_variant", "supported_brand_variants", "brand_variant_not_supported", "brand variant"),
+    ("output_format", "supported_output_formats", "output_format_not_supported", "output format"),
+)
+
+
+def _require_supported_dimensions(
+    render_package: RenderPackage, manifest: TemplateManifest
+) -> None:
+    for package_attr, manifest_attr, reason, noun in _COMPATIBILITY_DIMENSIONS:
+        requested = getattr(render_package, package_attr)
+        if requested not in getattr(manifest, manifest_attr):
             raise TemplateCompatibilityError(
-                reason="report_type_not_supported",
+                reason=reason,
                 message=(
-                    f"template {manifest.template_id} {manifest.template_version} does not support "
-                    f"report type {render_package.report_type}"
+                    f"template {manifest.template_id} {manifest.template_version} does not "
+                    f"support {noun} {requested}"
                 ),
             )
 
-        if (
-            render_package.report_data_contract_version
-            not in manifest.supported_report_data_contract_versions
-        ):
-            raise TemplateCompatibilityError(
-                reason="report_data_contract_version_not_supported",
-                message=(
-                    f"template {manifest.template_id} {manifest.template_version} does not support "
-                    f"report-data contract {render_package.report_data_contract_version}"
-                ),
-            )
 
-        if render_package.locale not in manifest.supported_locales:
-            raise TemplateCompatibilityError(
-                reason="locale_not_supported",
-                message=(
-                    f"template {manifest.template_id} {manifest.template_version} does not support "
-                    f"locale {render_package.locale}"
-                ),
-            )
-
-        if render_package.brand_variant not in manifest.supported_brand_variants:
-            raise TemplateCompatibilityError(
-                reason="brand_variant_not_supported",
-                message=(
-                    f"template {manifest.template_id} {manifest.template_version} does not support "
-                    f"brand variant {render_package.brand_variant}"
-                ),
-            )
-
-        if render_package.output_format not in manifest.supported_output_formats:
-            raise TemplateCompatibilityError(
-                reason="output_format_not_supported",
-                message=(
-                    f"template {manifest.template_id} {manifest.template_version} does not support "
-                    f"output format {render_package.output_format}"
-                ),
-            )
-
-        if manifest.status == TemplateLifecycleStatus.ACTIVE:
-            return manifest
-
-        if manifest.status == TemplateLifecycleStatus.DEPRECATED_RERENDERABLE:
-            raise TemplateCompatibilityError(
-                reason="template_deprecated_for_new_renders",
-                message=(
-                    f"template {manifest.template_id} {manifest.template_version} is deprecated "
-                    "and not allowed for new renders"
-                ),
-            )
-
-        if manifest.status == TemplateLifecycleStatus.BLOCKED_FOR_NEW_RENDERS:
-            raise TemplateCompatibilityError(
-                reason="template_blocked_for_new_renders",
-                message=(
-                    f"template {manifest.template_id} {manifest.template_version} is blocked "
-                    "for new renders"
-                ),
-            )
-
+def _require_renderable_status(manifest: TemplateManifest) -> None:
+    if manifest.status == TemplateLifecycleStatus.ACTIVE:
+        return
+    if manifest.status == TemplateLifecycleStatus.DEPRECATED_RERENDERABLE:
         raise TemplateCompatibilityError(
-            reason="template_blocked",
-            message=f"template {manifest.template_id} {manifest.template_version} is blocked",
+            reason="template_deprecated_for_new_renders",
+            message=(
+                f"template {manifest.template_id} {manifest.template_version} is deprecated "
+                "and not allowed for new renders"
+            ),
         )
+    if manifest.status == TemplateLifecycleStatus.BLOCKED_FOR_NEW_RENDERS:
+        raise TemplateCompatibilityError(
+            reason="template_blocked_for_new_renders",
+            message=(
+                f"template {manifest.template_id} {manifest.template_version} is blocked "
+                "for new renders"
+            ),
+        )
+    raise TemplateCompatibilityError(
+        reason="template_blocked",
+        message=f"template {manifest.template_id} {manifest.template_version} is blocked",
+    )
