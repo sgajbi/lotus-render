@@ -31,7 +31,10 @@ from app.contracts.render_package import RenderPackage  # noqa: E402
 from app.core.settings import Settings  # noqa: E402
 from app.domain.templates.registry import TemplateRegistry  # noqa: E402
 from app.services.render_intake import RenderIntakeService  # noqa: E402
-from app.services.typst_rendering import TypstRenderService  # noqa: E402
+from app.services.typst_rendering import (  # noqa: E402
+    TypstRenderService,
+    ungoverned_runtime_reason,
+)
 
 FIXTURES_PATH = Path("tests/golden/producer-fixtures.v1.json")
 
@@ -50,6 +53,14 @@ def main() -> int:
         help="rewrite expected.pdf and the banked fingerprints instead of only reporting",
     )
     arguments = parser.parse_args()
+
+    # Reporting drift from any host is useful. Banking it is a claim about what the
+    # service emits, so it may only be made from a runtime that renders what the
+    # shipped image renders.
+    reason = ungoverned_runtime_reason()
+    if arguments.write and reason is not None:
+        print(f"refusing to re-bank: {reason}")
+        return 1
 
     service = _build_service()
     manifest = json.loads(FIXTURES_PATH.read_text(encoding="utf-8"))

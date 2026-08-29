@@ -5,6 +5,7 @@ import os
 import re
 import shutil
 import subprocess
+import sys
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from time import perf_counter
@@ -85,6 +86,31 @@ def _docker_user_flags() -> tuple[str, ...]:
     return ("--user", f"{get_uid()}:{get_gid()}")
 
 
+def ungoverned_runtime_reason() -> str | None:
+    """Why this host cannot produce banked evidence, or None when it can.
+
+    The pinned container and the shipped image render identically -- the same source
+    compiled by ``ghcr.io/typst/typst:0.14.2`` and by that image's binary copied into
+    ``python:3.12-slim`` produces the same bytes, which is what makes a golden banked
+    in CI describe what production emits.
+
+    A local binary on another platform does not. Typst 0.14.2 on Windows renders the
+    golden portfolio review to a different document than Typst 0.14.2 on Linux, so a
+    fingerprint banked there is evidence about a machine rather than about the service,
+    and CI could never reproduce it.
+    """
+    if shutil.which("docker") is not None:
+        return None
+    if sys.platform.startswith("linux"):
+        return None
+    return (
+        f"this host compiles with a local Typst binary on {sys.platform}, and the shipped "
+        "runtime is Linux. The same Typst version renders a different document on each, so "
+        "a fingerprint banked here would be evidence CI cannot reproduce. Re-bank where "
+        "Docker is available, or on Linux."
+    )
+
+
 def _bounded_local_command(command: list[str]) -> list[str]:
     """Bound a compile that runs as a child of this process rather than in a container.
 
@@ -99,8 +125,13 @@ def _bounded_local_command(command: list[str]) -> list[str]:
     the case the standard library warns is unsafe.
 
     Windows has no ``ulimit``, so the command is returned unchanged there; the deployment
-    that matters is Linux.
+    that matters is Linux. The test is the platform, not whether a shell can be found:
+    Git Bash puts an ``sh`` on PATH on Windows, and that shell reports
+    ``ulimit: cpu time: cannot modify limit: Invalid argument`` and fails the compile
+    outright rather than bounding it.
     """
+    if sys.platform == "win32":
+        return command
     shell = shutil.which("sh")
     if shell is None:
         return command
