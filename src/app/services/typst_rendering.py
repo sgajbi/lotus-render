@@ -6,6 +6,7 @@ import re
 import shutil
 import subprocess
 import sys
+from functools import lru_cache
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from time import perf_counter
@@ -34,6 +35,9 @@ from app.services.typst_values import escape_typst_string
 DETERMINISM_MODE = "bounded_runtime_envelope"
 DOCKER_TYPST_IMAGE = "ghcr.io/typst/typst:0.14.2"
 PDF_MIME_TYPE = "application/pdf"
+# `typst 0.14.2 (b33de9de)` -- the version, without the build hash.
+_VERSION_OUTPUT = re.compile(r"typst\s+(\d+\.\d+\.\d+)")
+RUNTIME_VERSION_UNMEASURED = "unmeasured"
 
 # Confinement for the compile container. The Typst source is built from untrusted
 # report_data, so the process that compiles it gets no network, no capabilities, no
@@ -85,6 +89,47 @@ def _docker_user_flags() -> tuple[str, ...]:
     if get_uid is None or get_gid is None:
         return ()
     return ("--user", f"{get_uid()}:{get_gid()}")
+
+
+def _version_command() -> list[str] | None:
+    """Ask for the version through whichever path a compile would take."""
+    docker_binary = shutil.which("docker")
+    if docker_binary is not None:
+        return [docker_binary, "run", "--rm", DOCKER_TYPST_IMAGE, "--version"]
+    local_typst = shutil.which("typst")
+    if local_typst is not None:
+        return [local_typst, "--version"]
+    return None
+
+
+@lru_cache(maxsize=4)
+def _measure_runtime_engine_version(command: tuple[str, ...]) -> str:
+    completed = subprocess.run(  # noqa: S603
+        list(command), capture_output=True, text=True, timeout=60, check=False
+    )
+    match = _VERSION_OUTPUT.search(f"{completed.stdout}\n{completed.stderr}")
+    return match.group(1) if match else RUNTIME_VERSION_UNMEASURED
+
+
+def measured_runtime_engine_version() -> str:
+    """The version of the engine that will actually compile, not the one configured.
+
+    Provenance carried a settings constant. In the shipped image that constant happens
+    to be true, because the Dockerfile pins the binary it copies -- but nothing compared
+    the two, so the record was only ever as good as a coincidence between a `FROM` tag
+    and a default value. Change either without the other and every document keeps
+    asserting a version nothing checked (#157).
+
+    Cached per resolved command: a version probe costs a container start, and the engine
+    cannot change under a running process.
+    """
+    command = _version_command()
+    if command is None:
+        return RUNTIME_VERSION_UNMEASURED
+    try:
+        return _measure_runtime_engine_version(tuple(command))
+    except (OSError, subprocess.SubprocessError):
+        return RUNTIME_VERSION_UNMEASURED
 
 
 def ungoverned_runtime_reason() -> str | None:
@@ -194,10 +239,22 @@ class TypstRenderService:
         )
 
     @property
+    def runtime_engine_version(self) -> str:
+        """What a document should say compiled it: the measured engine, where measurable.
+
+        Falls back to the configured value only when the engine cannot be probed at all,
+        so a record is never silently downgraded to a guess without saying so.
+        """
+        measured = measured_runtime_engine_version()
+        if measured == RUNTIME_VERSION_UNMEASURED:
+            return self._settings.runtime_engine_version
+        return measured
+
+    @property
     def runtime_metadata(self) -> RenderRuntimeMetadata:
         return RenderRuntimeMetadata(
             runtime_engine=self._settings.runtime_engine,
-            runtime_engine_version=self._settings.runtime_engine_version,
+            runtime_engine_version=self.runtime_engine_version,
         )
 
     def render(self, render_package: RenderPackage) -> RenderResult:
@@ -229,7 +286,7 @@ class TypstRenderService:
         started = perf_counter()
         deterministic_statement = (
             "Bounded determinism is guaranteed only within the governed lotus-render runtime "
-            f"envelope using Typst {self._settings.runtime_engine_version}."
+            f"envelope using Typst {self.runtime_engine_version}."
         )
 
         with TemporaryDirectory(prefix="lotus-render-") as temp_dir_name:
@@ -293,7 +350,7 @@ class TypstRenderService:
             template_id=render_package.template_id,
             template_version=render_package.template_version,
             runtime_engine=self._settings.runtime_engine,
-            runtime_engine_version=self._settings.runtime_engine_version,
+            runtime_engine_version=self.runtime_engine_version,
             output_format=render_package.output_format,
             status=attempt.status.value,
             determinism_mode=DETERMINISM_MODE,
