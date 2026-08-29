@@ -16,6 +16,7 @@ from app.services.portfolio_charts import (
 from app.services.typst_values import (
     escape_typst_string,
     mapping_entries,
+    optional_percent,
     parse_number,
     parse_percent,
     percent_width_token,
@@ -63,12 +64,10 @@ def render_observation_notes(observations: object) -> str:
 
 def render_performance_period_rows(periods: object) -> str:
     empty_message = '#empty-state("No governed performance periods available.")'
-    if not isinstance(periods, Sequence) or isinstance(periods, (str, bytes, bytearray)):
-        return empty_message
     rendered: list[str] = []
-    for item in periods:
-        if not isinstance(item, Mapping):
-            continue
+    for item in mapping_entries(periods):
+        relative = item.get("relative_return_pct")
+        parsed_relative = optional_percent(relative)
         rendered.append(
             '#period-row("'
             + escape_typst_string(str(item.get("period", "n/a")))
@@ -77,8 +76,11 @@ def render_performance_period_rows(periods: object) -> str:
             + '", "'
             + escape_typst_string(str(item.get("benchmark_return_pct", "Not available")))
             + '", "'
-            + escape_typst_string(str(item.get("relative_return_pct", "Not available")))
-            + '")'
+            + escape_typst_string(str(relative if relative is not None else "Not available"))
+            + '", '
+            # Absent is not underperformance: without a number there is no sign to show.
+            + ("true" if parsed_relative is not None and parsed_relative < 0 else "false")
+            + ")"
         )
     if not rendered:
         return empty_message
