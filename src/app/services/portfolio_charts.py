@@ -322,9 +322,12 @@ def _parse_percent_or_number(value: object) -> float | None:
         return None
     text = text.removesuffix("%").strip()
     try:
-        return float(text)
+        parsed = float(text)
     except ValueError:
         return None
+    # nan/inf would crash the chart bounds (math.floor(nan) / math.ceil(inf));
+    # treat non-finite as absent so the chart degrades instead of failing the render.
+    return parsed if math.isfinite(parsed) else None
 
 
 def _parse_currency_number(value: object) -> Decimal | None:
@@ -340,9 +343,12 @@ def _parse_decimal_number(value: object, *, strip_percent: bool) -> Decimal | No
     if not text:
         return None
     try:
-        return Decimal(text)
+        parsed = Decimal(text)
     except InvalidOperation:
         return None
+    # Decimal("NaN")/("Infinity") construct fine but signal InvalidOperation on the
+    # first comparison downstream, stranding the render; treat non-finite as absent.
+    return parsed if parsed.is_finite() else None
 
 
 def _month_label(value: str) -> str:

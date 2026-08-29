@@ -5,6 +5,7 @@ Pure functions: deterministic output for the same input, no service state.
 
 from __future__ import annotations
 
+import math
 from collections.abc import Mapping, Sequence
 
 
@@ -69,17 +70,21 @@ def performance_width_token(value: object) -> str:
 def parse_percent(value: object) -> float:
     raw = str(value).strip().replace("%", "")
     try:
-        return float(raw)
+        parsed = float(raw)
     except ValueError:
         return 0.0
+    # nan/inf parse successfully but escape the downstream clamps as bare tokens
+    # (`nan%`) or crash chart maths; treat them as absent, like an unparseable value.
+    return parsed if math.isfinite(parsed) else 0.0
 
 
 def parse_number(value: object) -> float:
     raw = str(value).strip().replace(",", "")
     try:
-        return float(raw)
+        parsed = float(raw)
     except ValueError:
         return 0.0
+    return parsed if math.isfinite(parsed) else 0.0
 
 
 def row_sequence(value: object) -> Sequence[object] | None:

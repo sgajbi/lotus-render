@@ -229,3 +229,38 @@ def test_chart_helper_fallbacks_are_stable() -> None:
     large_arc = _donut_segment(0, 0, 10, 5, 0, 270, "#000000")
     assert " 0 0 1 " in small_arc
     assert " 0 1 1 " in large_arc
+
+
+def test_non_finite_numerics_degrade_charts_instead_of_crashing() -> None:
+    """nan/inf in report data must be treated as absent, not reach chart maths.
+
+    Regression for issue #104: Decimal("NaN") in a weight signalled InvalidOperation
+    on its first comparison and stranded the render; float nan/inf crashed
+    math.floor/ceil in the chart bounds.
+    """
+
+    assert _parse_percent_or_number("nan") is None
+    assert _parse_percent_or_number("inf") is None
+    assert _parse_currency_number("NaN") is None
+
+    items = allocation_items_from_report_data(
+        {
+            "allocation_items": [
+                {"label": "Bad", "weight_pct": "NaN", "market_value": "10"},
+                {"label": "Good", "weight_pct": "40", "market_value": "20"},
+            ]
+        }
+    )
+    assert [item.label for item in items] == ["Good"]
+
+    series = performance_series_from_report_data(
+        {
+            "performance_series": [
+                {"month": "2026-01", "cumulative_twr": "inf"},
+                {"month": "2026-02", "cumulative_twr": "1.5"},
+            ]
+        }
+    )
+    assert [point.month for point in series] == ["2026-02"]
+    # Bounds must compute over the finite point without raising.
+    assert render_performance_svg(series).startswith("<svg")

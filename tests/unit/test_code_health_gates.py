@@ -21,6 +21,7 @@ could not fail, and lotus-performance#477, where a blocking scanner was wired to
 
 from __future__ import annotations
 
+import ast
 import re
 import runpy
 import subprocess
@@ -347,4 +348,52 @@ def test_string_literal_emitters_do_not_use_the_markup_escaper() -> None:
         "typst_tables.py emits Typst string literals; escape_typst_text leaves the closing "
         "quote live so a value containing a double-quote breaks the compile. Use "
         'escape_typst_string for every argument emitted between " delimiters.'
+    )
+
+
+def test_render_execution_fail_closes_after_marking_rendering() -> None:
+    """A job moved to 'rendering' must reach a terminal state on every path.
+
+    ``mark_rendering`` is written before the compile; if any later exception escapes,
+    the row is stranded at 'rendering' where resubmit is a no-op (issue #104). Every
+    method that calls ``mark_rendering`` must therefore also carry a fail-closed
+    catch-all (``except Exception``) that transitions the job to 'failed'.
+    """
+
+    source = (ROOT / "src" / "app" / "services" / "render_submission.py").read_text(
+        encoding="utf-8"
+    )
+    tree = ast.parse(source)
+
+    def _calls_mark_rendering(node: ast.AST) -> bool:
+        return any(
+            isinstance(call, ast.Call)
+            and isinstance(call.func, ast.Attribute)
+            and call.func.attr == "mark_rendering"
+            for call in ast.walk(node)
+        )
+
+    def _has_fail_closed_handler(node: ast.AST) -> bool:
+        for handler in ast.walk(node):
+            if not isinstance(handler, ast.ExceptHandler):
+                continue
+            if handler.type is None:
+                return True
+            if isinstance(handler.type, ast.Name) and handler.type.id in {
+                "Exception",
+                "BaseException",
+            }:
+                return True
+        return False
+
+    offenders = [
+        node.name
+        for node in ast.walk(tree)
+        if isinstance(node, ast.FunctionDef | ast.AsyncFunctionDef)
+        and _calls_mark_rendering(node)
+        and not _has_fail_closed_handler(node)
+    ]
+    assert not offenders, (
+        "these methods transition a job to 'rendering' without a fail-closed catch-all, so "
+        f"an unexpected exception would strand it at 'rendering': {offenders}"
     )

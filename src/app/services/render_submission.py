@@ -129,8 +129,12 @@ class RenderSubmissionService:
                 cause=exc,
                 started_at=started_at,
             )
-        except RuntimeError as exc:
-            failure_category = _runtime_failure_category(str(exc))
+        except Exception as exc:
+            # Fail-closed: RuntimeError and every other unexpected error (ArithmeticError
+            # from malformed numerics, OSError, OverflowError, sqlite failures, ...) must
+            # move the job to 'failed'. Nothing may leave it at 'rendering', where resubmit
+            # is a no-op and only a reaper (#105) could rescue it.
+            failure_category = _unexpected_failure_category(exc)
             return self._fail_submit(
                 render_package.render_job_id,
                 failure_category=failure_category,
@@ -145,6 +149,18 @@ class RenderSubmissionService:
             stored = self._render_store.mark_rendered(render_package.render_job_id, result)
         except RenderJobTransitionError:
             stored = self._render_store.get(render_package.render_job_id)
+        except Exception as exc:
+            # The render succeeded but recording it did not; still fail-close so the job
+            # reaches a terminal state rather than stranding at 'rendering'.
+            return self._fail_submit(
+                render_package.render_job_id,
+                failure_category="unexpected_render_error",
+                failure_message=_support_safe_render_failure_message("unexpected_render_error"),
+                error_type=RenderExecutionFailedError,
+                fallback_message="render_failed",
+                cause=exc,
+                started_at=started_at,
+            )
         self._record_submit_metric(stored, started_at=started_at)
         if stored.status != "rendered":
             return self._to_submit_response(stored, artifact_base64=None)
@@ -421,6 +437,17 @@ def _runtime_failure_category(failure_message: str) -> RenderFailureCategory:
     if "neither docker nor typst is installed" in failure_message.lower():
         return "engine_unavailable"
     return "template_render_failed"
+
+
+def _unexpected_failure_category(exc: Exception) -> RenderFailureCategory:
+    """Classify an exception the render step did not expect to fail-close on.
+
+    A ``RuntimeError`` keeps its runtime classification (engine vs template);
+    anything else is a genuinely unexpected internal error.
+    """
+    if isinstance(exc, RuntimeError):
+        return _runtime_failure_category(str(exc))
+    return "unexpected_render_error"
 
 
 def _support_safe_render_failure_message(failure_category: RenderFailureCategory) -> str:
