@@ -1,17 +1,6 @@
-#let ink = rgb("#16202A")
-#let navy = rgb("#0B1F33")
-#let slate = rgb("#5B6770")
-#let mist = rgb("#F6F8FA")
-#let rule = rgb("#D9E1E8")
-#let accent = rgb("#1F5AA6")
-#let accent-soft = rgb("#2C7A7B")
-#let gold = rgb("#C38B2E")
-
-// Direction carries meaning in a performance chart, so it gets its own tones.
-// Every bar used to draw in `accent`, which made a -38.4% year and a +18.4%
-// year the same blue. Named for what they mean, not for the hue.
-#let gain = rgb("#286446")
-#let loss = rgb("#A6321F")
+// Palette comes from the shared design system; this file holds only what is specific
+// to the portfolio review: its spacing scale and its text roles.
+#import "_design.typ": accent, accent-soft, gain, gold, ink, loss, mist, navy, rule, slate
 
 #let page-margin-x = 16mm
 #let page-margin-y = 16mm

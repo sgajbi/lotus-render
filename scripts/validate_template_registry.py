@@ -30,6 +30,7 @@ from app.domain.templates.registry import (  # noqa: E402
     DEFAULT_TEMPLATE_SOURCE_ROOT,
     TemplateRegistry,
     TemplateRegistryError,
+    shared_design_directory,
 )
 
 REGISTRY_ROOT = Path("templates/registry")
@@ -42,7 +43,7 @@ def _rerecord_digests() -> int:
         directory = (
             DEFAULT_TEMPLATE_SOURCE_ROOT / manifest["template_id"] / manifest["template_version"]
         )
-        measured = template_digest(directory)
+        measured = template_digest(directory, shared_directory=shared_design_directory())
         if manifest.get("template_digest") == measured:
             continue
         print(f"re-approved {manifest['template_id']} {manifest['template_version']}")

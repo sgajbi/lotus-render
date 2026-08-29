@@ -1,8 +1,4 @@
-#let ink = rgb("#18202f")
-#let muted = rgb("#526071")
-#let rule = rgb("#d7dde5")
-#let accent = rgb("#286446")
-
+#import "_design.typ": accent, ink, muted, rule
 #set page(
   paper: "a4",
   margin: (x: 18mm, y: 16mm),
