@@ -11,11 +11,50 @@ from app.core.settings import Settings
 from app.domain.templates.registry import TemplateRegistry
 from app.services.render_intake import RenderIntakeService
 from app.services.render_ports import RenderEngineTimeoutError
-from app.services.typst_rendering import (
+from app.services.typst_contexts import (
     DEFAULT_PORTFOLIO_REVIEW_SECTIONS_WITH_ADVISORY_MEMO,
     DEFAULT_PORTFOLIO_REVIEW_SECTIONS_WITH_ADVISORY_NARRATIVE,
-    DOCKER_TYPST_IMAGE,
-    TypstRenderService,
+    build_outcome_review_context,
+    build_portfolio_review_context,
+    build_proof_pack_context,
+    build_wave_context,
+    requested_section_keys,
+)
+from app.services.typst_fragments import (
+    render_advisor_memo_section_blocks,
+    render_advisory_disclosure_blocks,
+    render_advisory_narrative_blocks,
+    render_key_value_rows,
+    render_outcome_dimension_rows,
+    render_proof_pack_section_rows,
+    render_source_lineage_rows,
+    render_wave_event_rows,
+    render_wave_item_rows,
+)
+from app.services.typst_rendering import DOCKER_TYPST_IMAGE, TypstRenderService
+from app.services.typst_tables import (
+    render_allocation_breakdown_rows,
+    render_allocation_chart_section,
+    render_dense_position_rows,
+    render_dense_transaction_rows,
+    render_holding_bar_rows,
+    render_holding_rows,
+    render_observation_notes,
+    render_performance_bar_rows,
+    render_performance_chart_rows,
+    render_performance_chart_section,
+    render_performance_detail_rows,
+    render_performance_period_rows,
+    render_performance_summary_table,
+    supplemental_allocation_view,
+)
+from app.services.typst_values import (
+    mapping,
+    parse_number,
+    parse_percent,
+    percent_width_token,
+    performance_width_token,
+    string_list,
 )
 
 GOLDEN_ROOT = Path("tests/golden")
@@ -407,8 +446,7 @@ def test_typst_render_service_rejects_empty_review_observations() -> None:
 
 
 def test_typst_render_service_builds_richer_portfolio_review_context() -> None:
-    service = _build_service()
-    template_context = service._build_portfolio_review_context(_load_golden_package())
+    template_context = build_portfolio_review_context(_load_golden_package())
 
     assert "#cover-page()" in template_context["REPORT_SECTIONS"]
     assert "#appendix-page()" in template_context["REPORT_SECTIONS"]
@@ -455,8 +493,7 @@ def test_typst_render_service_builds_richer_portfolio_review_context() -> None:
 
 
 def test_typst_render_service_builds_reviewed_advisory_narrative_context() -> None:
-    service = _build_service()
-    template_context = service._build_portfolio_review_context(
+    template_context = build_portfolio_review_context(
         _portfolio_review_package_with_reviewed_advisory_narrative()
     )
 
@@ -475,16 +512,14 @@ def test_typst_render_service_builds_reviewed_advisory_narrative_context() -> No
 
 
 def test_typst_render_service_omits_reviewed_advisory_page_when_not_supplied() -> None:
-    service = _build_service()
-    template_context = service._build_portfolio_review_context(_load_golden_package())
+    template_context = build_portfolio_review_context(_load_golden_package())
 
     assert "#reviewed-advisory-narrative-page()" not in template_context["REPORT_SECTIONS"]
     assert template_context["REVIEWED_ADVISORY_FACT_ROWS"] == ""
 
 
 def test_typst_render_service_builds_advisor_proposal_memo_context() -> None:
-    service = _build_service()
-    template_context = service._build_portfolio_review_context(
+    template_context = build_portfolio_review_context(
         _portfolio_review_package_with_advisor_proposal_memo()
     )
 
@@ -500,8 +535,7 @@ def test_typst_render_service_builds_advisor_proposal_memo_context() -> None:
 
 
 def test_typst_render_service_builds_outcome_review_context() -> None:
-    service = _build_service()
-    template_context = service._build_outcome_review_context(_outcome_review_package())
+    template_context = build_outcome_review_context(_outcome_review_package())
 
     assert template_context["PORTFOLIO_ID"] == "PB_SG_GLOBAL_BAL_001"
     assert template_context["OUTCOME_REVIEW_ID"] == "dor_001"
@@ -540,8 +574,7 @@ def test_typst_render_service_rejects_unregistered_template_context_without_fall
 
 
 def test_typst_render_service_builds_proof_pack_context() -> None:
-    service = _build_service()
-    template_context = service._build_proof_pack_context(_proof_pack_package())
+    template_context = build_proof_pack_context(_proof_pack_package())
 
     assert template_context["PORTFOLIO_ID"] == "PB_SG_GLOBAL_BAL_001"
     assert template_context["PROOF_PACK_ID"] == "dpp_001"
@@ -552,8 +585,7 @@ def test_typst_render_service_builds_proof_pack_context() -> None:
 
 
 def test_typst_render_service_builds_idea_evidence_proof_pack_context() -> None:
-    service = _build_service()
-    template_context = service._build_proof_pack_context(_idea_evidence_proof_pack_package())
+    template_context = build_proof_pack_context(_idea_evidence_proof_pack_package())
 
     assert template_context["PORTFOLIO_ID"] == "PB_SG_GLOBAL_BAL_001"
     assert template_context["PROOF_PACK_ID"] == "irep_001"
@@ -566,8 +598,7 @@ def test_typst_render_service_builds_idea_evidence_proof_pack_context() -> None:
 
 
 def test_typst_render_service_builds_wave_context() -> None:
-    service = _build_service()
-    template_context = service._build_wave_context(_wave_package())
+    template_context = build_wave_context(_wave_package())
 
     assert template_context["WAVE_ID"] == "dwv_001"
     assert template_context["WAVE_STATE"] == "HANDOFF_READY"
@@ -602,11 +633,9 @@ def test_typst_render_service_rejects_invalid_proof_pack_sections() -> None:
 
 
 def test_typst_render_service_uses_proof_pack_fallback_rows() -> None:
-    service = _build_service()
-
-    assert "No section evidence supplied." in service._render_proof_pack_section_rows([])
-    assert "No source lineage supplied." in service._render_source_lineage_rows([])
-    assert "not_available" in service._render_key_value_rows({})
+    assert "No section evidence supplied." in render_proof_pack_section_rows([])
+    assert "No source lineage supplied." in render_source_lineage_rows([])
+    assert "not_available" in render_key_value_rows({})
 
 
 def test_template_registry_accepts_outcome_review_template() -> None:
@@ -639,7 +668,6 @@ def test_template_registry_accepts_wave_template() -> None:
 
 
 def test_typst_render_service_builds_selected_section_sequence() -> None:
-    service = _build_service()
     render_package = _load_golden_package().model_copy(
         update={
             "render_context": {
@@ -649,7 +677,7 @@ def test_typst_render_service_builds_selected_section_sequence() -> None:
         }
     )
 
-    template_context = service._build_portfolio_review_context(render_package)
+    template_context = build_portfolio_review_context(render_package)
 
     assert template_context["REPORT_SECTIONS"] == (
         "#performance-page()\n#pagebreak()\n#allocation-page()\n#pagebreak()\n#transactions-page()"
@@ -711,129 +739,109 @@ def test_typst_render_service_renders_advisor_proposal_memo_section() -> None:
 
 
 def test_typst_render_service_helper_fallbacks_cover_sparse_structures() -> None:
-    service = _build_service()
-
-    assert service._string_list("not-a-list") == []
-    assert service._string_list([" lot1 ", "", "lot2"]) == ["lot1", "lot2"]
-    assert service._mapping("not-a-mapping") == {}
+    assert string_list("not-a-list") == []
+    assert string_list([" lot1 ", "", "lot2"]) == ["lot1", "lot2"]
+    assert mapping("not-a-mapping") == {}
     with pytest.raises(ValueError, match="missing required report_data field: title"):
-        service._build_outcome_review_context(
+        build_outcome_review_context(
             _outcome_review_package().model_copy(update={"report_data": {}})
         )
     with pytest.raises(ValueError, match="dimensions must be a list"):
         outcome_package = _outcome_review_package()
-        service._build_outcome_review_context(
+        build_outcome_review_context(
             outcome_package.model_copy(
                 update={"report_data": {**outcome_package.report_data, "dimensions": "bad"}}
             )
         )
     with pytest.raises(ValueError, match="missing required report_data field: title"):
-        service._build_wave_context(_wave_package().model_copy(update={"report_data": {}}))
+        build_wave_context(_wave_package().model_copy(update={"report_data": {}}))
     with pytest.raises(ValueError, match="items must be a list"):
         wave_package = _wave_package()
-        service._build_wave_context(
+        build_wave_context(
             wave_package.model_copy(
                 update={"report_data": {**wave_package.report_data, "items": "bad"}}
             )
         )
-    assert service._requested_section_keys(
+    assert requested_section_keys(
         ["detailed-positions", "asset-allocation", "unknown", "asset_allocation"]
     ) == ["positions", "allocation"]
-    assert service._requested_section_keys(["detailed_positions"]) == ["positions"]
-    assert service._requested_section_keys(
+    assert requested_section_keys(["detailed_positions"]) == ["positions"]
+    assert requested_section_keys(
         None,
         include_advisory_narrative=True,
     ) == list(DEFAULT_PORTFOLIO_REVIEW_SECTIONS_WITH_ADVISORY_NARRATIVE)
-    assert service._requested_section_keys(
+    assert requested_section_keys(
         None,
         include_advisor_memo=True,
     ) == list(DEFAULT_PORTFOLIO_REVIEW_SECTIONS_WITH_ADVISORY_MEMO)
-    assert service._requested_section_keys(
+    assert requested_section_keys(
         ["unknown"],
         include_advisor_memo=True,
     ) == list(DEFAULT_PORTFOLIO_REVIEW_SECTIONS_WITH_ADVISORY_MEMO)
-    assert service._requested_section_keys(
+    assert requested_section_keys(
         ["unknown"],
         include_advisory_narrative=True,
     ) == list(DEFAULT_PORTFOLIO_REVIEW_SECTIONS_WITH_ADVISORY_NARRATIVE)
-    assert service._requested_section_keys(
+    assert requested_section_keys(
         ["reviewed-advisory-narrative"],
         include_advisory_narrative=True,
     ) == ["advisory_narrative"]
-    assert service._requested_section_keys(
+    assert requested_section_keys(
         ["advisor-proposal-memo"],
         include_advisor_memo=True,
     ) == ["advisor_memo"]
-    assert service._requested_section_keys(
+    assert requested_section_keys(
         ["reviewed-advisory-narrative"],
         include_advisory_narrative=False,
-    ) == list(service._requested_section_keys(None))
-    assert service._requested_section_keys(
+    ) == list(requested_section_keys(None))
+    assert requested_section_keys(
         ["advisor-proposal-memo"],
         include_advisor_memo=False,
-    ) == list(service._requested_section_keys(None))
-    assert "No item evidence supplied." in service._render_wave_item_rows("bad")
-    assert "No event evidence supplied." in service._render_wave_event_rows("bad")
-    assert "No dimension evidence supplied." in service._render_outcome_dimension_rows("bad")
-    assert (
-        "No 12-month performance series is available"
-        in service._render_performance_chart_section({})
-    )
-    assert "No allocation breakdown is available" in service._render_allocation_chart_section({})
-    assert "No governed observations available." in service._render_observation_notes("bad")
-    assert "No governed performance periods available." in service._render_performance_period_rows(
-        "bad"
-    )
-    assert "No governed performance periods available." in service._render_performance_period_rows(
-        [123]
-    )
-    assert "No governed performance bars available." in service._render_performance_bar_rows("bad")
-    assert "No governed performance bars available." in service._render_performance_bar_rows([123])
-    performance_summary_fallback = service._render_performance_summary_table("bad")
+    ) == list(requested_section_keys(None))
+    assert "No item evidence supplied." in render_wave_item_rows("bad")
+    assert "No event evidence supplied." in render_wave_event_rows("bad")
+    assert "No dimension evidence supplied." in render_outcome_dimension_rows("bad")
+    assert "No 12-month performance series is available" in render_performance_chart_section({})
+    assert "No allocation breakdown is available" in render_allocation_chart_section({})
+    assert "No governed observations available." in render_observation_notes("bad")
+    assert "No governed performance periods available." in render_performance_period_rows("bad")
+    assert "No governed performance periods available." in render_performance_period_rows([123])
+    assert "No governed performance bars available." in render_performance_bar_rows("bad")
+    assert "No governed performance bars available." in render_performance_bar_rows([123])
+    performance_summary_fallback = render_performance_summary_table("bad")
     assert "No governed performance summary available." in performance_summary_fallback
-    assert (
-        "No governed performance summary available."
-        in service._render_performance_summary_table([123])
-    )
-    assert "No performance history available." in service._render_performance_chart_rows("bad")
-    assert "No performance history available." in service._render_performance_chart_rows([123])
-    assert "No monthly performance detail available." in service._render_performance_detail_rows(
-        "bad"
-    )
-    assert "No monthly performance detail available." in service._render_performance_detail_rows(
-        [123]
-    )
-    assert "No governed holdings available." in service._render_holding_rows("bad")
-    assert "No governed holdings available." in service._render_holding_rows([123])
-    assert "No governed allocation rows available." in service._render_holding_bar_rows("bad")
-    assert "No position detail available." in service._render_dense_position_rows("bad")
-    assert "No position detail available." in service._render_dense_position_rows([123])
-    assert "No transaction detail available." in service._render_dense_transaction_rows("bad")
-    assert "No transaction detail available." in service._render_dense_transaction_rows([123])
-    assert "No allocation detail available." in service._render_allocation_breakdown_rows("bad")
-    assert "No allocation detail available." in service._render_allocation_breakdown_rows([123])
-    assert "No approved narrative section supplied." in service._render_advisory_narrative_blocks(
-        "bad"
-    )
-    assert "No approved narrative section supplied." in service._render_advisory_narrative_blocks(
+    assert "No governed performance summary available." in render_performance_summary_table([123])
+    assert "No performance history available." in render_performance_chart_rows("bad")
+    assert "No performance history available." in render_performance_chart_rows([123])
+    assert "No monthly performance detail available." in render_performance_detail_rows("bad")
+    assert "No monthly performance detail available." in render_performance_detail_rows([123])
+    assert "No governed holdings available." in render_holding_rows("bad")
+    assert "No governed holdings available." in render_holding_rows([123])
+    assert "No governed allocation rows available." in render_holding_bar_rows("bad")
+    assert "No position detail available." in render_dense_position_rows("bad")
+    assert "No position detail available." in render_dense_position_rows([123])
+    assert "No transaction detail available." in render_dense_transaction_rows("bad")
+    assert "No transaction detail available." in render_dense_transaction_rows([123])
+    assert "No allocation detail available." in render_allocation_breakdown_rows("bad")
+    assert "No allocation detail available." in render_allocation_breakdown_rows([123])
+    assert "No approved narrative section supplied." in render_advisory_narrative_blocks("bad")
+    assert "No approved narrative section supplied." in render_advisory_narrative_blocks(
         [{"title": "Empty", "body": ""}]
     )
     assert "No reviewed narrative disclosure text supplied." in (
-        service._render_advisory_disclosure_blocks("bad")
+        render_advisory_disclosure_blocks("bad")
     )
     assert "No reviewed narrative disclosure text supplied." in (
-        service._render_advisory_disclosure_blocks([{"disclosure_id": "empty", "text": ""}])
+        render_advisory_disclosure_blocks([{"disclosure_id": "empty", "text": ""}])
     )
-    assert "No advisor memo section supplied." in service._render_advisor_memo_section_blocks("bad")
-    assert "No advisor memo section supplied." in service._render_advisor_memo_section_blocks(
+    assert "No advisor memo section supplied." in render_advisor_memo_section_blocks("bad")
+    assert "No advisor memo section supplied." in render_advisor_memo_section_blocks(
         [{"title": "Empty", "summary": ""}]
     )
 
 
 def test_typst_render_service_renders_supplemental_allocation_views_with_priority() -> None:
-    service = _build_service()
-
-    title, rows = service._supplemental_allocation_view(
+    title, rows = supplemental_allocation_view(
         {
             "by_region": [
                 {"name": "North America", "weight_pct": "62.00%", "market_value": "620000.00"}
@@ -848,27 +856,21 @@ def test_typst_render_service_renders_supplemental_allocation_views_with_priorit
 
 
 def test_typst_render_service_allocation_view_falls_back_when_no_breakdowns_exist() -> None:
-    service = _build_service()
-
-    title, rows = service._supplemental_allocation_view({})
+    title, rows = supplemental_allocation_view({})
 
     assert title == "Allocation detail"
     assert "No allocation detail available." in rows
 
 
 def test_typst_render_service_returns_empty_messages_when_sequences_have_no_mapping_rows() -> None:
-    service = _build_service()
-
-    assert "No governed holdings available." in service._render_holding_rows([123, 456])
-    assert "No governed allocation rows available." in service._render_holding_bar_rows([123, 456])
-    assert "No position detail available." in service._render_dense_position_rows([123, 456])
-    assert "No transaction detail available." in service._render_dense_transaction_rows([123, 456])
+    assert "No governed holdings available." in render_holding_rows([123, 456])
+    assert "No governed allocation rows available." in render_holding_bar_rows([123, 456])
+    assert "No position detail available." in render_dense_position_rows([123, 456])
+    assert "No transaction detail available." in render_dense_transaction_rows([123, 456])
 
 
 def test_typst_render_service_maps_dense_position_lifecycle_fields() -> None:
-    service = _build_service()
-
-    rows = service._render_dense_position_rows(
+    rows = render_dense_position_rows(
         [
             {
                 "asset_class": "Fixed Income",
@@ -907,9 +909,7 @@ def test_typst_render_service_maps_dense_position_lifecycle_fields() -> None:
 
 
 def test_typst_render_service_maps_transaction_value_date_and_settlement_amount() -> None:
-    service = _build_service()
-
-    rows = service._render_dense_transaction_rows(
+    rows = render_dense_transaction_rows(
         [
             {
                 "display_label": "Buy Bond A",
@@ -942,10 +942,10 @@ def test_typst_render_service_maps_transaction_value_date_and_settlement_amount(
 
 
 def test_typst_render_service_numeric_fallback_helpers_cover_invalid_inputs() -> None:
-    assert TypstRenderService._percent_width_token("bad") == "8%"
-    assert TypstRenderService._performance_width_token("bad") == "8%"
-    assert TypstRenderService._parse_percent("bad") == 0.0
-    assert TypstRenderService._parse_number("bad") == 0.0
+    assert percent_width_token("bad") == "8%"
+    assert performance_width_token("bad") == "8%"
+    assert parse_percent("bad") == 0.0
+    assert parse_number("bad") == 0.0
 
 
 def test_typst_render_service_marks_template_failure_when_typst_compile_fails(
