@@ -334,31 +334,27 @@
   [#align(right)[#text(size: 7.35pt, fill: ink)[#weight]]],
 )
 
-#let dense-transaction-row(trade_date, booking_text, amount, description, detail_primary, detail_secondary, price, gain, value) = [
-  #grid(
-    columns: (0.78fr, 0.82fr, 0.88fr, 2.3fr, 0.95fr, 0.9fr, 0.95fr),
-    column-gutter: 8pt,
-    [
-      #stacked-cell(trade_date, placement: left, size: 7.25pt, fill: ink)
-    ],
-    [
-      #stacked-cell(booking_text, placement: left, size: 7.25pt, fill: ink)
-    ],
-    [#stacked-cell(amount, fill: ink)],
-    [
-      #text(size: 8pt, fill: ink)[#description]
-      #linebreak()
-      #stacked-cell(detail_primary, placement: left, size: 7.05pt, fill: slate)
-      #linebreak()
-      #stacked-cell(detail_secondary, placement: left, size: 6.85pt, fill: slate)
-    ],
-    [#stacked-cell(price, fill: ink)],
-    [#stacked-cell(gain)],
-    [#stacked-cell(value, fill: accent, weight: 500)],
-  )
-  #v(4.5pt)
-  #line(length: 100%, stroke: (paint: rule, thickness: 0.25pt))
-]
+// Table cells rather than a self-contained grid, so the transaction table can repeat its
+// header and own its row separator (issue #138), matching the positions table.
+#let dense-transaction-row(trade_date, booking_text, amount, description, detail_primary, detail_secondary, price, gain, value) = (
+  [
+    #stacked-cell(trade_date, placement: left, size: 7.25pt, fill: ink)
+  ],
+  [
+    #stacked-cell(booking_text, placement: left, size: 7.25pt, fill: ink)
+  ],
+  [#stacked-cell(amount, fill: ink)],
+  [
+    #text(size: 8pt, fill: ink)[#description]
+    #linebreak()
+    #stacked-cell(detail_primary, placement: left, size: 7.05pt, fill: slate)
+    #linebreak()
+    #stacked-cell(detail_secondary, placement: left, size: 6.85pt, fill: slate)
+  ],
+  [#stacked-cell(price, fill: ink)],
+  [#stacked-cell(gain)],
+  [#stacked-cell(value, fill: accent, weight: 500)],
+)
 
 #let appendix-term(title, body) = [
   #text(size: 8.1pt, weight: 500, fill: ink)[#title]

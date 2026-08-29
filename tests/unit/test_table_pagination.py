@@ -26,35 +26,38 @@ from app.services.render_intake import RenderIntakeService
 from app.services.typst_rendering import TypstRenderService
 from app.services.typst_tables import DENSE_POSITION_COLUMNS, render_dense_position_rows
 
-POSITIONS_TEMPLATE = Path("templates/typst/portfolio-review/v1/_positions.typ")
+TEMPLATE_ROOT = Path("templates/typst/portfolio-review/v1")
+# Both long tables; each is bounded only by the 10,000-item contract ceiling.
+PAGINATING_TABLES = (TEMPLATE_ROOT / "_positions.typ", TEMPLATE_ROOT / "_transactions.typ")
+POSITIONS_TEMPLATE = TEMPLATE_ROOT / "_positions.typ"
 
 
 def test_the_positions_table_repeats_its_header() -> None:
     """The property the whole change exists for; a grid cannot express it."""
 
-    source = POSITIONS_TEMPLATE.read_text(encoding="utf-8")
-
-    assert "#table(" in source, (
-        "the positions table is not a Typst table element, so no header can repeat"
-    )
-    header = re.search(r"table\.header\(\s*repeat:\s*(\w+)", source)
-    assert header is not None, "the positions table declares no header"
-    assert header.group(1) == "true", (
-        "the positions header does not repeat, so page 2 of a long statement shows "
-        "unlabelled numeric columns"
-    )
+    for template in PAGINATING_TABLES:
+        source = template.read_text(encoding="utf-8")
+        assert "#table(" in source, (
+            f"{template.name} is not a Typst table element, so no header can repeat"
+        )
+        header = re.search(r"table\.header\(\s*repeat:\s*(\w+)", source)
+        assert header is not None, f"{template.name} declares no header"
+        assert header.group(1) == "true", (
+            f"{template.name}'s header does not repeat, so page 2 of a long statement "
+            "shows unlabelled numeric columns"
+        )
 
 
 def test_each_row_carries_its_own_separator() -> None:
     """A rule emitted beside a row can land alone at the top of the next page."""
 
-    source = POSITIONS_TEMPLATE.read_text(encoding="utf-8")
-
-    assert "stroke:" in source, "the table draws no row separator"
-    assert "#line(" not in source, (
-        "a standalone rule is emitted alongside rows again; it belongs to the row's own "
-        "stroke so the two cannot separate across a page break"
-    )
+    for template in PAGINATING_TABLES:
+        source = template.read_text(encoding="utf-8")
+        assert "stroke:" in source, f"{template.name} draws no row separator"
+        assert "#line(" not in source, (
+            f"{template.name} emits a standalone rule alongside rows again; it belongs to "
+            "the row's own stroke so the two cannot separate across a page break"
+        )
 
 
 def test_position_rows_are_spreadable_table_cells() -> None:

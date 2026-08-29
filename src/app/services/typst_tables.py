@@ -260,6 +260,13 @@ _NO_POSITIONS_CELL = (
 )
 
 
+DENSE_TRANSACTION_COLUMNS = 7
+_NO_TRANSACTIONS_CELL = (
+    f"table.cell(colspan: {DENSE_TRANSACTION_COLUMNS})"
+    "[#text(size: 8pt, fill: rgb(104, 118, 132))[No transaction detail available.]],"
+)
+
+
 def render_dense_position_rows(holdings: object) -> str:
     """Rows for a Typst ``table``: comma-terminated calls the template spreads.
 
@@ -343,7 +350,7 @@ def render_dense_position_rows(holdings: object) -> str:
 
 def render_dense_transaction_rows(transactions: object) -> str:
     if not isinstance(transactions, Sequence) or isinstance(transactions, (str, bytes, bytearray)):
-        return "#text(size: 8pt, fill: rgb(104, 118, 132))[No transaction detail available.]"
+        return _NO_TRANSACTIONS_CELL
     rendered: list[str] = []
     for item in transactions:
         if not isinstance(item, Mapping):
@@ -388,7 +395,7 @@ def render_dense_transaction_rows(transactions: object) -> str:
             f"{settlement_amount}"
         )
         rendered.append(
-            '#dense-transaction-row("'
+            'dense-transaction-row("'
             + escape_typst_string(trade_date)
             + '", "'
             + escape_typst_string(booking_text)
@@ -406,11 +413,11 @@ def render_dense_transaction_rows(transactions: object) -> str:
             + escape_typst_string(gain)
             + '", "'
             + escape_typst_string(value)
-            + '")'
+            + '"),'
         )
     if not rendered:
-        return "#text(size: 8pt, fill: rgb(104, 118, 132))[No transaction detail available.]"
-    return "\n#v(4pt)\n".join(rendered)
+        return _NO_TRANSACTIONS_CELL
+    return "\n".join(rendered)
 
 
 def render_allocation_breakdown_rows(rows: object) -> str:
