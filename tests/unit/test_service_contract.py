@@ -14,7 +14,7 @@ from app.domain.templates.registry import (
     TemplateRegistry,
     TemplateRegistryError,
 )
-from app.main import SERVICE_NAME
+from app.main import SERVICE_NAME, app
 from app.services.render_foundation import RenderFoundationService
 from app.services.render_intake import RenderIntakeService
 from app.services.render_runtime import RenderRuntimeProbe
@@ -77,6 +77,17 @@ def test_service_name_is_lotus_prefixed() -> None:
 
 def test_openapi_render_request_example_uses_canonical_render_package() -> None:
     assert RENDER_SUBMIT_REQUEST_EXAMPLE == load_portfolio_review_render_package_example()
+
+
+def test_openapi_render_submit_documents_request_boundary_failures() -> None:
+    responses = app.openapi()["paths"]["/renders"]["post"]["responses"]
+
+    assert responses["400"]["content"]["application/json"]["example"]["detail"]["code"] == (
+        "invalid_content_length"
+    )
+    assert responses["413"]["content"]["application/json"]["example"]["detail"]["code"] == (
+        "request_body_too_large"
+    )
 
 
 def test_render_attempt_lifecycle_transitions() -> None:

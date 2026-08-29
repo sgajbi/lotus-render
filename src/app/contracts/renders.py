@@ -104,6 +104,18 @@ RENDER_JOB_DIAGNOSTICS_RESPONSE_EXAMPLE: dict[str, Any] = {
 }
 
 API_ERROR_RESPONSE_EXAMPLES: dict[str, dict[str, Any]] = {
+    "invalid_content_length": {
+        "detail": {
+            "code": "invalid_content_length",
+            "message": "Content-Length must be a non-negative integer.",
+        }
+    },
+    "request_body_too_large": {
+        "detail": {
+            "code": "request_body_too_large",
+            "message": "Request body exceeds the configured render API limit.",
+        }
+    },
     "render_job_not_found": {
         "detail": {
             "code": "render_job_not_found",
