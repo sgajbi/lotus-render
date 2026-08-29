@@ -8,6 +8,7 @@ from app.contracts.render_package import SUPPORTED_RENDER_PACKAGE_VERSION, Rende
 from app.contracts.renders import RENDER_SUBMIT_REQUEST_EXAMPLE
 from app.core.settings import Settings
 from app.domain.render_attempts.models import RenderAttempt, RenderFailureCategory
+from app.domain.templates.digest import template_digest
 from app.domain.templates.models import TemplateLifecycleStatus, TemplateManifest
 from app.domain.templates.registry import (
     TemplateCompatibilityError,
@@ -51,6 +52,7 @@ def _build_manifest(
     return TemplateManifest(
         template_id="portfolio-review",
         template_version="v1",
+        template_digest=template_digest(Path("templates/typst/portfolio-review/v1")),
         supported_report_types=["portfolio_review"],
         supported_report_data_contract_versions=["portfolio_review.v1"],
         supported_locales=["en-SG"],
@@ -331,6 +333,9 @@ def test_template_registry_exports_manifest_dicts() -> None:
             "approved_at": "2026-04-23",
             "status": "active",
             "golden_sample_ids": ["golden-portfolio-review-en-SG-private-banking-v1"],
+            # The manifest names the bytes it describes; the registry refuses to load one
+            # that no longer matches its template directory (issue #139).
+            "template_digest": template_digest(Path("templates/typst/portfolio-review/v1")),
             "runtime_engine": "typst",
             "runtime_engine_version": "0.14.2",
         }

@@ -13,9 +13,9 @@ from fastapi.testclient import TestClient
 from app.contracts.examples import PORTFOLIO_REVIEW_RENDER_PACKAGE_EXAMPLE_PATH
 from app.core.settings import Settings
 from app.dependencies.container import get_render_submission_service
+from app.domain.templates.digest import template_digest
 from app.main import create_app
 from app.services.render_submission import RenderExecutionFailedError
-from app.services.typst_rendering import template_digest
 
 
 def _build_client(tmp_path: Path) -> TestClient:

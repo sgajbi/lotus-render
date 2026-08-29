@@ -27,5 +27,6 @@
     "golden-outcome-review-en-SG-private-banking-v1"
   ],
   "runtime_engine": "typst",
-  "runtime_engine_version": "0.14.2"
+  "runtime_engine_version": "0.14.2",
+  "template_digest": "sha256:9743d511be599145c7ddef8232a7791cd89feda8aae14a5b2e8f66d2a483681d"
 }

@@ -27,5 +27,6 @@
     "golden-rebalance-wave-en-SG-private-banking-v1"
   ],
   "runtime_engine": "typst",
-  "runtime_engine_version": "0.14.2"
+  "runtime_engine_version": "0.14.2",
+  "template_digest": "sha256:d64c05ea187d76c86283d5601866d42ac8fa0566c768451e3a7a72b2d8c44c24"
 }
