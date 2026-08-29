@@ -8,6 +8,7 @@ from fastapi import Depends, Request
 from app.core.settings import Settings
 from app.domain.templates.registry import TemplateRegistry
 from app.infrastructure.render_store import RenderStore
+from app.observability.render_log import log_store_unavailable
 from app.services.render_execution import RenderExecutionLimiter
 from app.services.render_foundation import RenderFoundationService
 from app.services.render_runtime import RenderRuntimeProbe
@@ -28,7 +29,12 @@ class AppContainer:
     def render_store_ready(self) -> bool:
         try:
             self.render_store.check_ready()
-        except RuntimeError:
+        except RuntimeError as exc:
+            # check_ready raises render_store_schema_missing:* and
+            # render_store_schema_version_outdated, which the runbook tells operators to
+            # treat as deployment-blocking. Reducing them to False made those strings
+            # unobtainable at runtime (issue #129).
+            log_store_unavailable(str(exc))
             return False
         return True
 

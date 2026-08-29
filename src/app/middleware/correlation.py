@@ -9,6 +9,8 @@ from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp
 
+from app.observability.log_context import bind_request_identity
+
 _W3C_TRACE_ID_PATTERN = re.compile(r"^[0-9a-f]{32}$")
 
 
@@ -26,6 +28,9 @@ class CorrelationIdMiddleware(BaseHTTPMiddleware):
         trace_id = _resolve_trace_id(request) or uuid.uuid4().hex
         request.state.correlation_id = correlation_id
         request.state.trace_id = trace_id
+        # Also bind it for code that never sees the request - the render service logs
+        # from a threadpool and could not otherwise name this id (issue #130).
+        bind_request_identity(correlation_id=correlation_id, trace_id=trace_id)
         start = time.perf_counter()
         response = await call_next(request)
         duration_ms = (time.perf_counter() - start) * 1000.0
