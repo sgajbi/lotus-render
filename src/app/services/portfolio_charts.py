@@ -66,28 +66,34 @@ def render_portfolio_chart_assets(
 def performance_series_from_report_data(
     report_data: Mapping[str, object],
 ) -> list[PerformancePoint]:
-    rows = report_data.get("performance_series") or report_data.get("performance_monthly_history")
-    if not isinstance(rows, Sequence) or isinstance(rows, (str, bytes, bytearray)):
+    rows = _row_sequence(
+        report_data.get("performance_series") or report_data.get("performance_monthly_history")
+    )
+    if rows is None:
         return []
     points: list[PerformancePoint] = []
     for item in rows[-12:]:
-        if not isinstance(item, Mapping):
-            continue
-        month = str(item.get("month") or item.get("period") or "").strip()
-        cumulative = _parse_percent_or_number(
-            item.get("cumulative_twr") or item.get("cumulative_twr_pct")
-        )
-        if not month or cumulative is None:
-            continue
-        benchmark = _parse_percent_or_number(
-            item.get("benchmark_cumulative_twr") or item.get("benchmark_cumulative_twr_pct")
-        )
-        points.append(
-            PerformancePoint(
-                month=month, cumulative_twr=cumulative, benchmark_cumulative_twr=benchmark
-            )
-        )
+        point = _performance_point(item)
+        if point is not None:
+            points.append(point)
     return points
+
+
+def _performance_point(item: object) -> PerformancePoint | None:
+    if not isinstance(item, Mapping):
+        return None
+    month = str(item.get("month") or item.get("period") or "").strip()
+    cumulative = _parse_percent_or_number(
+        item.get("cumulative_twr") or item.get("cumulative_twr_pct")
+    )
+    if not month or cumulative is None:
+        return None
+    benchmark = _parse_percent_or_number(
+        item.get("benchmark_cumulative_twr") or item.get("benchmark_cumulative_twr_pct")
+    )
+    return PerformancePoint(
+        month=month, cumulative_twr=cumulative, benchmark_cumulative_twr=benchmark
+    )
 
 
 def allocation_items_from_report_data(report_data: Mapping[str, object]) -> list[AllocationSlice]:
