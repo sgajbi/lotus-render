@@ -1,0 +1,142 @@
+"""The banked golden surface must cover the paths most likely to break, not only the
+default happy path.
+
+Three of the four templates bank a single document built from single-element lists, and
+the portfolio-review paths most exposed to change -- the two advisory sections and every
+empty-data fallback -- had no compiled proof at all: they were asserted as `%PDF` magic
+bytes or as Python strings, neither of which notices a layout regression (issue #118).
+
+These tests pin what each added fixture is *for*, so a fixture cannot quietly drift into
+a duplicate of the base document while still passing its fingerprint assertion.
+"""
+
+from __future__ import annotations
+
+import json
+from pathlib import Path
+
+import pytest
+
+from app.contracts.render_package import RenderPackage
+from app.core.settings import Settings
+from app.domain.templates.registry import TemplateRegistry
+from app.services.render_intake import RenderIntakeService
+from app.services.typst_rendering import TypstRenderService
+
+GOLDEN_PRODUCER_FIXTURES = Path("tests/golden/producer-fixtures.v1.json")
+BASE_SAMPLE = "golden-portfolio-review-en-SG-private-banking-v1"
+ADVISORY_NARRATIVE_SAMPLE = "golden-portfolio-review-advisory-narrative-en-SG-private-banking-v1"
+ADVISOR_MEMO_SAMPLE = "golden-portfolio-review-advisor-memo-en-SG-private-banking-v1"
+DEGRADED_SAMPLE = "golden-portfolio-review-degraded-en-SG-private-banking-v1"
+
+
+def _fixtures() -> dict[str, dict[str, str]]:
+    manifest = json.loads(GOLDEN_PRODUCER_FIXTURES.read_text(encoding="utf-8"))
+    return {fixture["golden_sample_id"]: fixture for fixture in manifest["fixtures"]}
+
+
+def _template_context(sample_id: str) -> dict[str, str]:
+    fixtures = _fixtures()
+    settings = Settings()
+    service = TypstRenderService(
+        settings,
+        RenderIntakeService(
+            TemplateRegistry.load_from_directory(Path(settings.template_registry_path))
+        ),
+    )
+    package = RenderPackage.model_validate_json(
+        Path(fixtures[sample_id]["package_path"]).read_text(encoding="utf-8")
+    )
+    return service._build_template_context(package)
+
+
+def test_every_banked_fixture_carries_a_fingerprint_literal() -> None:
+    """A fixture without a banked fingerprint has no independent oracle (issue #108)."""
+
+    missing = [
+        sample_id
+        for sample_id, fixture in _fixtures().items()
+        if not fixture.get("bounded_determinism_fingerprint")
+    ]
+    assert not missing, f"these fixtures bank no fingerprint literal: {missing}"
+
+
+@pytest.mark.parametrize(
+    "sample_id", [ADVISORY_NARRATIVE_SAMPLE, ADVISOR_MEMO_SAMPLE, DEGRADED_SAMPLE]
+)
+def test_added_fixtures_render_a_different_document_from_the_base(sample_id: str) -> None:
+    """Each added fixture must exercise a path the base golden does not.
+
+    A fixture that renders the same document as the base proves nothing about the path it
+    was added for, and would still pass its own fingerprint assertion.
+    """
+
+    fixtures = _fixtures()
+    assert (
+        fixtures[sample_id]["bounded_determinism_fingerprint"]
+        != fixtures[BASE_SAMPLE]["bounded_determinism_fingerprint"]
+    )
+
+
+def test_the_advisory_fixtures_actually_select_their_advisory_sections() -> None:
+    narrative = _template_context(ADVISORY_NARRATIVE_SAMPLE)["REPORT_SECTIONS"]
+    memo = _template_context(ADVISOR_MEMO_SAMPLE)["REPORT_SECTIONS"]
+    base = _template_context(BASE_SAMPLE)["REPORT_SECTIONS"]
+
+    assert "reviewed-advisory-narrative-page()" in narrative
+    assert "advisor-proposal-memo-page()" in memo
+    assert "reviewed-advisory-narrative-page()" not in base
+    assert "advisor-proposal-memo-page()" not in base
+
+
+def test_the_degraded_fixture_renders_the_empty_data_fallbacks() -> None:
+    """The ~40 fallback strings were asserted only as Python strings before this."""
+
+    context = _template_context(DEGRADED_SAMPLE)
+    rendered = "\n".join(context.values())
+
+    for fallback in (
+        "No governed holdings available.",
+        "No position detail available.",
+        "No transaction detail available.",
+        "No allocation detail available.",
+    ):
+        assert fallback in rendered, f"the degraded fixture never renders {fallback!r}"
+
+
+def test_the_golden_package_and_the_shipped_example_do_not_drift() -> None:
+    """The portfolio-review package is committed twice, and both copies are load-bearing.
+
+    `src/app/contracts/examples/` is the canonical example the OpenAPI gate publishes;
+    `tests/golden/portfolio-review/v1/` is the fixture the governance gate requires at a
+    fixed path. Shipping code must not import from `tests/`, so the duplication stands --
+    but it must not become drift, which is what #55 was about for a different pair.
+    """
+
+    golden = Path("tests/golden/portfolio-review/v1/render-package.json").read_bytes()
+    example = Path(
+        "src/app/contracts/examples/portfolio-review-render-package.v1.json"
+    ).read_bytes()
+
+    assert golden == example, (
+        "the golden portfolio-review package and the shipped OpenAPI example have diverged; "
+        "they are the same document and must be updated together."
+    )
+
+
+def test_no_golden_fixture_carries_payload_no_template_reads() -> None:
+    """Inert fixture payload misrepresents what the goldens prove.
+
+    `portfolio_memory` sat in three packages while zero lines of `src/` or `templates/`
+    referenced it: removing it left every banked fingerprint unchanged, which is the
+    proof it was never rendered.
+    """
+
+    inert = "portfolio_memory"
+    carriers = [
+        str(path)
+        for path in sorted(Path("tests/golden").rglob("render-package.json"))
+        if inert in json.loads(path.read_text(encoding="utf-8")).get("report_data", {})
+    ]
+
+    assert not carriers, f"{inert} is read by no template but is carried by: {carriers}"

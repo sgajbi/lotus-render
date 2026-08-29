@@ -1,4 +1,4 @@
-.PHONY: install lint monetary-float-guard typecheck openapi-gate template-registry-gate test test-unit test-integration test-e2e test-coverage security-audit check ci docker-build clean complexity-gate source-size-gate dead-code-gate dependency-hygiene-gate code-health-gates render-runtime-gate
+.PHONY: install lint monetary-float-guard typecheck openapi-gate template-registry-gate test test-unit test-integration test-e2e test-coverage security-audit check ci docker-build clean complexity-gate source-size-gate dead-code-gate dependency-hygiene-gate code-health-gates render-runtime-gate golden-fixtures
 
 # Code-health baselines, banked at the measured tree with no headroom. An allowance above the
 # measurement is slack the next change spends, so each of these equals what the tree measures today
@@ -55,6 +55,11 @@ test-coverage: render-runtime-gate
 	COVERAGE_FILE=.coverage.integration $(VENV_PYTHON) -m pytest tests/integration --cov=src --cov-report=
 	COVERAGE_FILE=.coverage.e2e $(VENV_PYTHON) -m pytest tests/e2e --cov=src --cov-report=
 	$(VENV_PYTHON) scripts/coverage_gate.py
+
+# Tool, not a lane gate: the golden unit tests already assert every banked
+# fingerprint. This reports drift, and --write re-banks after an intended change.
+golden-fixtures:
+	$(VENV_PYTHON) scripts/regenerate_golden_fixtures.py
 
 render-runtime-gate:
 	$(VENV_PYTHON) scripts/render_runtime_gate.py
