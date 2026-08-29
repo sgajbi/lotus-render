@@ -123,7 +123,7 @@
         "src/app/contracts/examples/portfolio-review-render-package.v1.json"
       ],
       "provenance": "Portfolio review whose optional collections are all empty, so every degraded-path fallback is compiled and banked rather than asserted only as a Python string (#118).",
-      "bounded_determinism_fingerprint": "ebcf17a7ede7f533a360b9815c6f50c217b59396665d8170367ed637f8cb3b02"
+      "bounded_determinism_fingerprint": "2cb588e7ca3834b95a9675ae576b6ba201371f1000f36ced46bf4157799d90a6"
     }
   ]
 }

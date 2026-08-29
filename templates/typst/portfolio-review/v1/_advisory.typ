@@ -1,4 +1,4 @@
-#import "_theme.typ": accent, ink, mist, navy, rule, slate, soft-rule
+#import "_theme.typ": accent, empty-state, ink, mist, navy, rule, slate, soft-rule
 #import "_components.typ": page-header, report-panel, section-lead, section-marker
 
 #let advisory-fact-row(label, value) = [

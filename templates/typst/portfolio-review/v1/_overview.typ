@@ -1,4 +1,4 @@
-#import "_theme.typ": grid-gap, ink, mist, section-subtitle, small-caps, soft-rule
+#import "_theme.typ": empty-state, grid-gap, ink, mist, section-subtitle, small-caps, soft-rule
 #import "_components.typ": allocation-row, metric-card, note-panel, page-header, report-panel, section-lead, section-marker
 
 #let scope-page() = [

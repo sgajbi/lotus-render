@@ -1,4 +1,4 @@
-#import "_theme.typ": accent, ink, navy, rule, slate, soft-rule
+#import "_theme.typ": accent, empty-state, ink, navy, rule, slate, soft-rule
 #import "_components.typ": section-marker
 #import "_appendix_text.typ": *
 

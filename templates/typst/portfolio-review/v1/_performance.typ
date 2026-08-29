@@ -1,4 +1,4 @@
-#import "_theme.typ": rule, section-subtitle, section-title, soft-rule
+#import "_theme.typ": empty-state, rule, section-subtitle, section-title, soft-rule
 #import "_components.typ": chart-card, chart-placeholder, page-header, performance-chart-row, performance-detail-row, performance-summary-cell, report-panel, section-marker, table-label
 
 #let performance-page() = [

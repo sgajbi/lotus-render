@@ -1,4 +1,4 @@
-#import "_theme.typ": accent, body-muted, cover-title, grid-gap, ink, mist, navy, section-title, small-caps, soft-rule
+#import "_theme.typ": accent, body-muted, cover-title, empty-state, grid-gap, ink, mist, navy, section-title, small-caps, soft-rule
 #import "_components.typ": content-row, metric-card, report-panel, section-lead, spotlight-panel
 
 #let cover-page() = [
