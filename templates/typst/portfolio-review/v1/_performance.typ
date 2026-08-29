@@ -1,7 +1,8 @@
 #import "_theme.typ": rule, section-subtitle, section-title, soft-rule
-#import "_components.typ": chart-card, chart-placeholder, page-header, performance-chart-row, performance-detail-row, performance-summary-cell, report-panel, table-label
+#import "_components.typ": chart-card, chart-placeholder, page-header, performance-chart-row, performance-detail-row, performance-summary-cell, report-panel, section-marker, table-label
 
 #let performance-page() = [
+  #section-marker("Performance", "Period returns, benchmark comparison, and return history")
   #page-header("Performance")
   #v(8pt)
   #section-subtitle("Performance summary (TWR)")

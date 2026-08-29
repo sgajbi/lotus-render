@@ -13,6 +13,7 @@ a duplicate of the base document while still passing its fingerprint assertion.
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 
 import pytest
@@ -140,3 +141,54 @@ def test_no_golden_fixture_carries_payload_no_template_reads() -> None:
     ]
 
     assert not carriers, f"{inert} is read by no template but is carried by: {carriers}"
+
+
+PORTFOLIO_TEMPLATE = Path("templates/typst/portfolio-review/v1")
+
+
+def test_no_page_reference_is_a_literal_in_a_template() -> None:
+    """The contents page must describe the document it is bound into.
+
+    Its page references were string literals, and they were already wrong in every
+    document carrying an advisory section: that section shifts everything after it, so a
+    17-page render still claimed the appendix began on p. 11 (issue #137).
+    """
+
+    offenders: list[str] = []
+    for path in sorted(PORTFOLIO_TEMPLATE.glob("*.typ")):
+        for lineno, line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
+            if re.search(r'"p\.\s*\d+"', line):
+                offenders.append(f"{path.name}:{lineno} {line.strip()[:60]}")
+
+    assert not offenders, (
+        "these page references are hard-coded, so they cannot follow the sections the "
+        f"document actually contains: {offenders}"
+    )
+
+
+def test_every_listed_section_plants_a_marker_for_the_contents_page() -> None:
+    """A section with no marker is invisible to the computed contents page."""
+
+    from app.services.typst_contexts import PORTFOLIO_REVIEW_SECTION_CALLS
+
+    sources = "\n".join(
+        path.read_text(encoding="utf-8") for path in sorted(PORTFOLIO_TEMPLATE.glob("*.typ"))
+    )
+    markers = re.findall(r'#section-marker\("([^"]+)"', sources)
+    assert markers, "no section markers were found; the contents page would list nothing."
+
+    # cover and contents are the front matter and are deliberately not listed.
+    listed = {
+        call
+        for key, call in PORTFOLIO_REVIEW_SECTION_CALLS.items()
+        if key not in {"cover", "contents"}
+    }
+    marked = {
+        call
+        for call in listed
+        if re.search(rf"#let {re.escape(call[:-2])}\(\) = \[\s*\n\s*#section-marker", sources)
+    }
+    assert marked == listed, (
+        "these section pages plant no marker, so the contents page cannot list them: "
+        f"{sorted(listed - marked)}"
+    )

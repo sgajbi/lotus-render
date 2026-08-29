@@ -1,4 +1,5 @@
 #import "_theme.typ": accent, ink, navy, rule, slate, soft-rule
+#import "_components.typ": section-marker
 #import "_appendix_text.typ": *
 
 #let appendix-small = 6.95pt
@@ -393,6 +394,7 @@
 ]
 
 #let appendix-page() = [
+  #section-marker("Appendix", "Definitions and explanatory notes")
   #set page(margin: (x: 11mm, y: 10mm))
   #appendix-fx-and-abbreviations()
   #appendix-risk-scale()

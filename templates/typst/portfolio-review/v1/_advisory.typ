@@ -1,5 +1,5 @@
 #import "_theme.typ": accent, ink, mist, navy, rule, slate, soft-rule
-#import "_components.typ": page-header, report-panel, section-lead
+#import "_components.typ": page-header, report-panel, section-lead, section-marker
 
 #let advisory-fact-row(label, value) = [
   #grid(
@@ -42,6 +42,7 @@
 ]
 
 #let reviewed-advisory-narrative-page() = [
+  #section-marker("Advisory narrative", "Reviewed advisory narrative approved for advisor use")
   #page-header("Reviewed advisory narrative")
   #v(10pt)
   #grid(
@@ -74,6 +75,7 @@
 ]
 
 #let advisor-proposal-memo-page() = [
+  #section-marker("Advisor memo", "Approved advisor proposal memo")
   #page-header("Advisor proposal memo")
   #v(10pt)
   #grid(

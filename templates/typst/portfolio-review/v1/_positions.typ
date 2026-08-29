@@ -1,7 +1,8 @@
 #import "_theme.typ": section-subtitle, soft-rule
-#import "_components.typ": dense-position-row, page-header, report-panel, stacked-table-label, table-label
+#import "_components.typ": dense-position-row, page-header, report-panel, section-marker, stacked-table-label, table-label
 
 #let observations-page() = [
+  #section-marker("Detailed positions", "Statement-style holdings detail and position-level performance")
   #page-header("Detailed positions")
   #v(12pt)
   #grid(

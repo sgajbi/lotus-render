@@ -1,7 +1,8 @@
 #import "_theme.typ": accent, slate, soft-rule
-#import "_components.typ": dense-transaction-row, page-header, report-panel, stacked-table-label
+#import "_components.typ": dense-transaction-row, page-header, report-panel, section-marker, stacked-table-label
 
 #let transactions-page() = [
+  #section-marker("Transactions", "Transaction activity across the review period")
   #page-header("Transaction list")
   #v(4pt)
   #text(size: 9pt, fill: accent)[#"${TRANSACTION_PERIOD_LABEL}"]
