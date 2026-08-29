@@ -92,36 +92,14 @@ def performance_series_from_report_data(
 
 def allocation_items_from_report_data(report_data: Mapping[str, object]) -> list[AllocationSlice]:
     breakdowns = report_data.get("allocation_breakdowns")
-    rows = breakdowns.get("by_asset_class") if isinstance(breakdowns, Mapping) else None
-    if not isinstance(rows, Sequence) or isinstance(rows, (str, bytes, bytearray)):
-        rows = report_data.get("allocation_items")
-    if not isinstance(rows, Sequence) or isinstance(rows, (str, bytes, bytearray)):
+    nested = breakdowns.get("by_asset_class") if isinstance(breakdowns, Mapping) else None
+    rows = _row_sequence(nested)
+    if rows is None:
+        rows = _row_sequence(report_data.get("allocation_items"))
+    if rows is None:
         return []
 
-    raw_items: list[tuple[str, Decimal, Decimal]] = []
-    for item in rows:
-        if not isinstance(item, Mapping):
-            continue
-        label = str(item.get("label") or item.get("name") or "").strip()
-        weight = _parse_decimal_number(item.get("weight_pct"), strip_percent=True)
-        value = _parse_currency_number(item.get("market_value"))
-        if not label or weight is None or weight <= 0:
-            continue
-        raw_items.append((label, weight, value or Decimal("0")))
-    raw_items.sort(key=lambda entry: entry[1], reverse=True)
-
-    grouped: list[tuple[str, Decimal, Decimal]] = []
-    other_weight = Decimal("0")
-    other_value = Decimal("0")
-    for label, weight, value in raw_items:
-        if weight < Decimal("2.0") and len(raw_items) > 4:
-            other_weight += weight
-            other_value += value
-        else:
-            grouped.append((label, weight, value))
-    if other_weight:
-        grouped.append(("Other", other_weight, other_value))
-
+    grouped = _grouped_with_other(_parsed_allocation_entries(rows))
     return [
         AllocationSlice(
             label=label,
@@ -131,6 +109,51 @@ def allocation_items_from_report_data(report_data: Mapping[str, object]) -> list
         )
         for index, (label, weight, value) in enumerate(grouped)
     ]
+
+
+def _row_sequence(value: object) -> Sequence[object] | None:
+    """Rows are a real sequence; strings and bytes must not iterate as rows."""
+    if isinstance(value, Sequence) and not isinstance(value, (str, bytes, bytearray)):
+        return value
+    return None
+
+
+def _allocation_entry(item: object) -> tuple[str, Decimal, Decimal] | None:
+    if not isinstance(item, Mapping):
+        return None
+    label = str(item.get("label") or item.get("name") or "").strip()
+    weight = _parse_decimal_number(item.get("weight_pct"), strip_percent=True)
+    if not label or weight is None or weight <= 0:
+        return None
+    value = _parse_currency_number(item.get("market_value"))
+    return label, weight, value or Decimal("0")
+
+
+def _parsed_allocation_entries(rows: Sequence[object]) -> list[tuple[str, Decimal, Decimal]]:
+    entries: list[tuple[str, Decimal, Decimal]] = []
+    for item in rows:
+        entry = _allocation_entry(item)
+        if entry is not None:
+            entries.append(entry)
+    entries.sort(key=lambda entry: entry[1], reverse=True)
+    return entries
+
+
+def _grouped_with_other(
+    entries: Sequence[tuple[str, Decimal, Decimal]],
+) -> list[tuple[str, Decimal, Decimal]]:
+    grouped: list[tuple[str, Decimal, Decimal]] = []
+    other_weight = Decimal("0")
+    other_value = Decimal("0")
+    for label, weight, value in entries:
+        if weight < Decimal("2.0") and len(entries) > 4:
+            other_weight += weight
+            other_value += value
+        else:
+            grouped.append((label, weight, value))
+    if other_weight:
+        grouped.append(("Other", other_weight, other_value))
+    return grouped
 
 
 def render_performance_svg(points: Sequence[PerformancePoint]) -> str:

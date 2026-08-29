@@ -5,7 +5,7 @@
 # and is asserted as such by tests/unit/test_code_health_gates.py. Reducing them is a separate,
 # reviewable change; raising one to go green is not an option. See issue #72.
 SOURCE_FILE_MAX_LINES ?= 623
-MAX_CYCLOMATIC_COMPLEXITY ?= 19
+MAX_CYCLOMATIC_COMPLEXITY ?= 17
 MAX_HIGH_COMPLEXITY_FUNCTIONS ?= 0
 
 VENV_DIR ?= .venv
