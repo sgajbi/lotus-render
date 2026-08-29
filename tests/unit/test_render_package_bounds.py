@@ -19,8 +19,8 @@ from app.contracts.render_package import (
     MAX_PAYLOAD_DEPTH,
     MAX_PAYLOAD_LIST_ITEMS,
     MAX_PAYLOAD_STRING_LENGTH,
-    RenderPackage,
     SUPPORTED_RENDER_PACKAGE_VERSION,
+    RenderPackage,
 )
 
 
