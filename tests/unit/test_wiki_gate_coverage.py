@@ -15,6 +15,8 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
+import pytest
+
 ROOT = Path(__file__).resolve().parents[2]
 MAKEFILE = ROOT / "Makefile"
 WIKI_HOME = ROOT / "wiki" / "Home.md"
@@ -56,6 +58,17 @@ def _gate_targets() -> set[str]:
 _WIKI_GATE_NAME = re.compile(r"`(?:make\s+)?([a-z0-9]+(?:-[a-z0-9]+)*-gates?)`")
 
 
+def _wiki_gate_names(wiki: str) -> set[str]:
+    named_in_wiki = {match.group(1) for match in _WIKI_GATE_NAME.finditer(wiki)}
+
+    assert named_in_wiki, (
+        "No gate names were found in the wiki page. Either the page stopped naming gates - which "
+        "the forward check would also catch - or this pattern stopped matching how they are "
+        "written, in which case this check asserts nothing. Both are failures."
+    )
+    return named_in_wiki
+
+
 def test_the_wiki_names_every_gate_the_blocking_lanes_run() -> None:
     wiki = WIKI_HOME.read_text(encoding="utf-8")
 
@@ -86,16 +99,7 @@ def test_the_wiki_names_no_gate_the_blocking_lanes_have_stopped_running() -> Non
     wiki = WIKI_HOME.read_text(encoding="utf-8")
     live = _gate_targets()
 
-    named_in_wiki = {match.group(1) for match in _WIKI_GATE_NAME.finditer(wiki)}
-
-    # The guard the first version omitted, and the reason it failed open. `_gate_targets` already
-    # asserts its own set is non-empty; the wiki-derived set had no such check, so the one side
-    # that could silently become empty was the one side left unguarded.
-    assert named_in_wiki, (
-        "No gate names were found in the wiki page. Either the page stopped naming gates - which "
-        "the forward check would also catch - or this pattern stopped matching how they are "
-        "written, in which case this check asserts nothing. Both are failures."
-    )
+    named_in_wiki = _wiki_gate_names(wiki)
 
     stale = sorted(name for name in named_in_wiki if name not in live)
 
@@ -104,3 +108,10 @@ def test_the_wiki_names_no_gate_the_blocking_lanes_have_stopped_running() -> Non
         "A wiki entry outliving its gate claims a control that does not exist, which is the "
         f"direction that misleads: {stale}. Remove the entry or restore the gate. See issue #72."
     )
+
+
+def test_the_wiki_gate_inventory_fails_closed_when_it_matches_nothing() -> None:
+    """A markup change must not turn the reverse documentation check into a vacuous pass."""
+
+    with pytest.raises(AssertionError, match="No gate names were found"):
+        _wiki_gate_names("# Validation\n\nNo executable gates are documented here.\n")
