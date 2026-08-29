@@ -1,4 +1,4 @@
-.PHONY: install lint monetary-float-guard typecheck openapi-gate template-registry-gate test test-unit test-integration test-e2e test-coverage security-audit check ci docker-build clean complexity-gate source-size-gate dead-code-gate dependency-hygiene-gate code-health-gates render-runtime-gate golden-fixtures main-gate-coverage
+.PHONY: install lint monetary-float-guard typecheck openapi-gate template-registry-gate test test-unit test-integration test-e2e test-coverage security-audit check ci docker-build clean complexity-gate source-size-gate dead-code-gate dependency-hygiene-gate code-health-gates render-runtime-gate golden-fixtures main-gate-coverage capacity-probe
 
 # Code-health baselines, banked at the measured tree with no headroom. An allowance above the
 # measurement is slack the next change spends, so each of these equals what the tree measures today
@@ -66,6 +66,12 @@ golden-fixtures:
 # `check`. A push carrying two commits fires that workflow once, for the head.
 main-gate-coverage:
 	$(VENV_PYTHON) scripts/audit_main_gate_coverage.py
+
+# Reporting, not a lane gate: it renders progressively larger documents to find where
+# the compile envelope stops accommodating them, which takes minutes and moves with the
+# templates, the envelope and the concurrency limit. Re-run it when any of those change.
+capacity-probe:
+	$(VENV_PYTHON) scripts/capacity_probe.py
 
 render-runtime-gate:
 	$(VENV_PYTHON) scripts/render_runtime_gate.py
