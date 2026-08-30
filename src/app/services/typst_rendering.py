@@ -6,6 +6,7 @@ import re
 import shutil
 import subprocess
 import sys
+from collections.abc import Mapping
 from functools import lru_cache
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -249,6 +250,25 @@ def _kill_compile_container(workspace: Path) -> None:
         )
     except (OSError, subprocess.SubprocessError):
         return
+
+
+_PLACEHOLDER = re.compile(r"\$\{([A-Z][A-Z0-9_]*)\}")
+
+
+def _substitute(text: str, replacements: Mapping[str, str]) -> str:
+    """Fill every placeholder in one pass, so no value is ever rescanned.
+
+    Replacing one key at a time over the whole file meant a value substituted early was
+    read again by every later key, and report data reaches this point with its own
+    `${...}` intact: the escapers neutralise what can break a Typst string literal, and
+    `$` and `{` cannot. A client name of `${ASSET_CLASS_ROWS}` was expanded into markup
+    whose quotes then closed the literal the name was sitting in.
+
+    A name with no value is left as it stands rather than emptied, so a template that
+    asks for something this service does not supply is visible in the output instead of
+    silently blank.
+    """
+    return _PLACEHOLDER.sub(lambda match: replacements.get(match.group(1), match.group(0)), text)
 
 
 class TypstRenderService:
@@ -501,9 +521,7 @@ class TypstRenderService:
         )
 
         for template_file in workspace_template_directory.rglob("*.typ"):
-            rendered_text = template_file.read_text(encoding="utf-8")
-            for key, value in replacements.items():
-                rendered_text = rendered_text.replace(f"${{{key}}}", value)
+            rendered_text = _substitute(template_file.read_text(encoding="utf-8"), replacements)
             template_file.write_text(rendered_text, encoding="utf-8")
 
         return workspace_template_directory / template_root.name
