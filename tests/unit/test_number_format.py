@@ -144,3 +144,21 @@ def test_no_amount_reaches_the_page_ungrouped() -> None:
         "these context values reach the document with ungrouped amounts: "
         f"{ {key: hits[:4] for key, hits in offenders.items()} }"
     )
+
+
+def test_digits_that_are_not_a_quantity_are_refused_by_the_helper() -> None:
+    """`_is_a_quantity` guards its own contract, not just the caller's current regex.
+
+    The caller cannot presently hand it a non-digit whole part, because the pattern that
+    produced it requires digits. The guard is what keeps that true if the pattern changes,
+    so it is asserted directly rather than left as an unreachable line nobody can justify.
+    """
+
+    from app.services.number_format import _is_a_quantity
+
+    assert _is_a_quantity("", "1234") is True
+    assert _is_a_quantity("USD ", "1234") is True
+    # Digits welded to letters, a leading zero, and a whole part that is not digits.
+    assert _is_a_quantity("US", "0378331005") is False
+    assert _is_a_quantity("", "0378331005") is False
+    assert _is_a_quantity("", "12a4") is False

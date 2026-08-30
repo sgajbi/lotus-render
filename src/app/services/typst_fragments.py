@@ -5,9 +5,14 @@ Pure functions that turn governed report data into Typst source fragments.
 
 from __future__ import annotations
 
-from collections.abc import Iterable, Mapping, Sequence
+from collections.abc import Iterable, Mapping
 
-from app.services.typst_values import escape_typst_text, mapping, string_list
+from app.services.typst_values import (
+    escape_typst_text,
+    mapping,
+    mapping_entries,
+    string_list,
+)
 
 
 def markup_calls(fragments: Iterable[str], *, separator: str = "\n") -> str:
@@ -199,13 +204,8 @@ def render_advisor_memo_fact_rows(memo: Mapping[str, object]) -> str:
 
 
 def render_advisor_memo_section_blocks(sections: object) -> str:
-    if not isinstance(sections, Sequence) or isinstance(sections, (str, bytes, bytearray)):
-        return (
-            "#advisory-narrative-block([No advisor memo section supplied.], "
-            "[No advisor proposal memo body was included in the render package.])"
-        )
     blocks: list[str] = []
-    for item in sections:
+    for item in mapping_entries(sections):
         section = mapping(item)
         summary = str(section.get("summary", "")).strip()
         if not summary:
@@ -227,13 +227,8 @@ def render_advisor_memo_section_blocks(sections: object) -> str:
 
 
 def render_advisory_narrative_blocks(sections: object) -> str:
-    if not isinstance(sections, Sequence) or isinstance(sections, (str, bytes, bytearray)):
-        return (
-            "#advisory-narrative-block([No approved narrative section supplied.], "
-            "[No reviewed narrative body was included in the render package.])"
-        )
     blocks: list[str] = []
-    for item in sections:
+    for item in mapping_entries(sections):
         section = mapping(item)
         body = str(section.get("body", "")).strip()
         if not body:
@@ -251,16 +246,8 @@ def render_advisory_narrative_blocks(sections: object) -> str:
 
 
 def render_advisory_disclosure_blocks(disclosures: object) -> str:
-    if not isinstance(disclosures, Sequence) or isinstance(
-        disclosures,
-        (str, bytes, bytearray),
-    ):
-        return (
-            "#advisory-disclosure-block([not_available], "
-            "[No reviewed narrative disclosure text supplied.])"
-        )
     blocks: list[str] = []
-    for item in disclosures:
+    for item in mapping_entries(disclosures):
         disclosure = mapping(item)
         disclosure_id = str(disclosure.get("disclosure_id", "not_available")).strip()
         text = str(disclosure.get("text", "")).strip()
