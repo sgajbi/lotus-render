@@ -18,7 +18,7 @@
 // tick arithmetic belongs where it can be unit-tested. These functions place; they do
 // not decide.
 
-#import "_design.typ": accent, ink, mist, rule, slate
+#import "_design.typ": accent, ink, mist, navy, rule, slate
 
 // `curve` needs concrete lengths, so the width is read from the container with `layout`
 // rather than hardcoded. Hardcoding it meant the plot filled 452pt of a 727pt card and
@@ -130,3 +130,87 @@
 )[
   #align(center + horizon)[#text(size: 8.1pt, fill: slate)[#message]]
 ]
+
+// --- Allocation donut -------------------------------------------------------------
+//
+// `segments` carry closed paths in a unit box with the centre at (0.5, 0.5), computed in
+// `chart_geometry`. A slice is an outer arc, a radial line, an inner arc back, and a
+// close -- so the commands are carried as commands rather than as bare coordinates,
+// which could not say which is which.
+#let DONUT_SIZE = 132pt
+
+#let _donut-path(segment, size) = curve(
+  fill: rgb(segment.colour),
+  stroke: none,
+  ..segment.commands.map(command => {
+    let v = command.at("values")
+    if command.at("kind") == "move" {
+      curve.move((v.at(0) * size, v.at(1) * size))
+    } else if command.at("kind") == "line" {
+      curve.line((v.at(0) * size, v.at(1) * size))
+    } else if command.at("kind") == "cubic" {
+      curve.cubic(
+        (v.at(0) * size, v.at(1) * size),
+        (v.at(2) * size, v.at(3) * size),
+        (v.at(4) * size, v.at(5) * size),
+      )
+    } else {
+      curve.close()
+    }
+  }),
+)
+
+// The legend is a real grid rather than absolutely-placed text: rows that are placed by
+// arithmetic fall off the bottom when there is one more of them than the arithmetic
+// assumed, which is what the old SVG did past its fifth entry.
+#let _donut-legend(entries) = grid(
+  columns: (auto, 1fr, auto, auto),
+  column-gutter: 8pt,
+  row-gutter: 6pt,
+  ..entries
+    .map(entry => (
+      align(horizon)[#rect(width: 8pt, height: 8pt, radius: 1pt, fill: rgb(entry.colour))],
+      align(horizon)[#text(size: 8.1pt, fill: ink)[#entry.label]],
+      align(horizon + right)[#text(size: 8.1pt, weight: 500, fill: ink)[#entry.weight]],
+      align(horizon + right)[#text(size: 7.4pt, fill: slate)[#entry.value]],
+    ))
+    .flatten(),
+)
+
+// `centre-label` defaults to what the number actually is -- the total of the slices
+// drawn -- and not to "Invested value". The old SVG used that name for a figure that was
+// the sum of the charted slices, while the summary card beside it showed the portfolio's
+// invested value: two different numbers under one name on one page, differing by 1.3m.
+//
+// `coverage-note` says so when the slices do not add up to the whole, because a donut
+// looks like a whole thing whether or not it is one.
+#let donut-chart(
+  segments: (),
+  entries: (),
+  centre-label: "Charted total",
+  centre-value: "",
+  coverage-note: none,
+  size: DONUT_SIZE,
+) = grid(
+  columns: (auto, 1fr),
+  column-gutter: 22pt,
+  align(horizon)[
+    #block(width: size, height: size)[
+      #for segment in segments [#place(top + left, _donut-path(segment, size))]
+      #place(center + horizon)[
+        #align(center)[
+          #text(size: 6.8pt, fill: slate)[#centre-label]
+          #linebreak()
+          #text(size: 11pt, weight: 700, fill: navy)[#centre-value]
+        ]
+      ]
+    ]
+  ],
+  align(horizon)[
+    #_donut-legend(entries)
+    #if coverage-note != none [
+      #v(8pt)
+      #text(size: 6.8pt, fill: slate)[#coverage-note]
+    ]
+  ],
+)

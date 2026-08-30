@@ -113,3 +113,49 @@ async def test_bounded_streamed_body_is_replayed_unchanged() -> None:
 
     assert response.status_code == 200
     assert json.loads(bytes(response.body)) == {"accepted": True}
+
+
+@pytest.mark.asyncio
+async def test_a_permitted_body_is_still_readable_downstream() -> None:
+    """Measuring the body consumes the stream, so the boundary has to put it back.
+
+    Without the replay every request carrying a body would reach its handler empty --
+    a failure mode that the size-limit tests cannot see, because they all reject
+    before the handler runs.
+    """
+
+    request = _request(chunks=(b'{"a":', b" 1}"))
+    seen: list[bytes] = []
+
+    async def call_next(request: Request) -> Response:
+        seen.append(await request.body())
+        return JSONResponse({"ok": True})
+
+    response = await _middleware(64).dispatch(request, call_next)
+
+    assert response.status_code == 200
+    assert seen == [b'{"a": 1}'], "the handler did not receive the body the boundary measured"
+
+
+@pytest.mark.asyncio
+async def test_a_second_read_of_a_replayed_body_ends_the_stream() -> None:
+    """The replay serves the body once; a handler that reads again must see the end.
+
+    An ASGI ``receive`` that kept returning the same chunk with ``more_body`` unset
+    would hang a handler that drains its stream rather than calling ``body()``.
+    """
+
+    request = _request(chunks=(b"payload",))
+    messages: list[dict[str, object]] = []
+
+    async def call_next(request: Request) -> Response:
+        receive = request.receive
+        messages.append(dict(await receive()))
+        messages.append(dict(await receive()))
+        return JSONResponse({"ok": True})
+
+    await _middleware(64).dispatch(request, call_next)
+
+    assert messages[0]["body"] == b"payload"
+    assert messages[1]["body"] == b""
+    assert messages[1]["more_body"] is False

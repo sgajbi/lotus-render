@@ -1,4 +1,12 @@
-# ruff: noqa: E501
+"""Read a chart's inputs out of governed report data, and decide its axis.
+
+This module used to build SVG. Both charts are now drawn natively in Typst, so what is
+left is the part that was always the interesting half: turning `report_data` into series
+and slices, and choosing an axis whose ticks a reader can trust. `chart_geometry` turns
+these into positions; `_charts.typ` draws them.
+
+The `# ruff: noqa: E501` that used to head this file went with the SVG string literals.
+"""
 
 from __future__ import annotations
 
@@ -8,36 +16,15 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from datetime import datetime
 from decimal import Decimal, InvalidOperation
-from pathlib import Path
 
-from app.services.number_format import format_money
 from app.services.typst_values import row_sequence
 
-CHART_COLORS = {
-    "navy": "#0B1F33",
-    "blue": "#1F5AA6",
-    "teal": "#2C7A7B",
-    "gold": "#C38B2E",
-    "slate": "#5B6770",
-    "border": "#D9E1E8",
-    "soft": "#F6F8FA",
-    "text": "#16202A",
-    "muted": "#8A96A3",
-}
+# Six is the palette, and the allocation grouping folds anything past the fifth-largest
+# slice into "Other", so a wrap here would mean two slices sharing a colour.
 ALLOCATION_PALETTE = ("#1F5AA6", "#2C7A7B", "#C38B2E", "#6B7280", "#7C5C99", "#8AA6A3")
-# The 12-month chart's canvas. Named rather than inline so a test can state the
-# invariant that every gridline the chart emits falls inside the plot rectangle.
-CHART_WIDTH = 920
-CHART_HEIGHT = 260
-CHART_LEFT = 64
-CHART_RIGHT = 28
-CHART_TOP = 20
-CHART_BOTTOM = 44
+# How many gridlines the axis aims for. `_nice_ticks` may return one more or one fewer,
+# because it rounds to a round step rather than to a count.
 CHART_TICK_COUNT = 5
-
-LEGEND_TOP = 38
-LEGEND_ROW_HEIGHT = 26
-LEGEND_BOTTOM_MARGIN = 12
 
 
 @dataclass(frozen=True)
@@ -53,31 +40,6 @@ class AllocationSlice:
     weight_pct: Decimal
     market_value: Decimal
     color: str
-
-
-@dataclass(frozen=True)
-class ChartAssets:
-    performance_svg: Path | None
-    allocation_svg: Path | None
-
-
-def render_portfolio_chart_assets(
-    report_data: Mapping[str, object], output_dir: Path
-) -> ChartAssets:
-    """Write the SVG assets a document still needs.
-
-    Only the allocation donut remains. The performance chart is drawn natively in Typst
-    (`chart_geometry` plus `_charts.typ`), so it needs no asset and no longer carries the
-    `<text>` elements that put it on typst#6783. The donut is the next one (#150).
-    """
-    output_dir.mkdir(parents=True, exist_ok=True)
-    allocation_items = allocation_items_from_report_data(report_data)
-
-    allocation_path = None
-    if allocation_items:
-        allocation_path = output_dir / "allocation_asset_class.svg"
-        allocation_path.write_text(render_allocation_donut_svg(allocation_items), encoding="utf-8")
-    return ChartAssets(performance_svg=None, allocation_svg=allocation_path)
 
 
 def performance_series_from_report_data(
@@ -209,55 +171,6 @@ def _chart_value_bounds(points: Sequence[PerformancePoint]) -> tuple[int, int]:
     return math.floor(min_value - padding), math.ceil(max_value + padding)
 
 
-def render_allocation_donut_svg(items: Sequence[AllocationSlice]) -> str:
-    width = 520
-    # The legend lists one row per slice at LEGEND_ROW_HEIGHT apart. A fixed 180pt canvas
-    # dropped every row past the fifth off the bottom, silently - and the palette wraps at
-    # six, so a seven-category allocation lost legend entries it had colours for. Grow the
-    # canvas to fit what there is instead.
-    height = max(180, LEGEND_TOP + LEGEND_ROW_HEIGHT * len(items) + LEGEND_BOTTOM_MARGIN)
-    cx = 132
-    cy = 91
-    outer = 54
-    inner = 33
-    total_weight = sum((item.weight_pct for item in items), Decimal("0")) or Decimal("1.0")
-    total_value = sum((item.market_value for item in items), Decimal("0"))
-    start_angle = -90.0
-    slices: list[str] = []
-    for item in items:
-        sweep = float((item.weight_pct / total_weight) * Decimal("360.0"))
-        end_angle = start_angle + sweep
-        slices.append(_donut_segment(cx, cy, outer, inner, start_angle, end_angle, item.color))
-        start_angle = end_angle
-
-    legend = []
-    for index, item in enumerate(items):
-        y = LEGEND_TOP + index * LEGEND_ROW_HEIGHT
-        legend.append(
-            f'<rect x="340" y="{y - 9}" width="11" height="11" rx="2" fill="{item.color}" />'
-            f'<text x="360" y="{y}" class="legend-label">{html.escape(item.label)}</text>'
-            f'<text x="360" y="{y + 15}" class="legend-meta">{_format_decimal(item.weight_pct)}%   {_format_currency(item.market_value)}</text>'
-        )
-
-    return f'''<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}">
-  <style>
-    text {{ font-family: Arial, Helvetica, sans-serif; }}
-    .center-label {{ fill: {CHART_COLORS["slate"]}; font-size: 12px; }}
-    .center-value {{ fill: {CHART_COLORS["navy"]}; font-size: 17px; font-weight: 700; }}
-    .legend-title {{ fill: {CHART_COLORS["navy"]}; font-size: 12px; font-weight: 700; }}
-    .legend-label {{ fill: {CHART_COLORS["text"]}; font-size: 12px; font-weight: 700; }}
-    .legend-meta {{ fill: {CHART_COLORS["slate"]}; font-size: 11px; }}
-  </style>
-  <rect width="100%" height="100%" fill="#FFFFFF" />
-  {"".join(slices)}
-  <circle cx="{cx}" cy="{cy}" r="{inner - 2}" fill="#FFFFFF" />
-  <text x="{cx}" y="{cy - 8}" text-anchor="middle" class="center-label">Invested value</text>
-  <text x="{cx}" y="{cy + 14}" text-anchor="middle" class="center-value">{_compact_value(total_value)}</text>
-  <text x="340" y="20" class="legend-title">Breakdown</text>
-  {"".join(legend)}
-</svg>'''
-
-
 def _parse_percent_or_number(value: object) -> float | None:
     if value is None:
         return None
@@ -336,71 +249,3 @@ def _nice_ticks(y_min: float, y_max: float, count: int) -> list[float]:
         ticks.append(0.0 if abs(tick) < step * 1e-9 else tick)
         tick += step
     return ticks
-
-
-def _point_on_circle(cx: float, cy: float, radius: float, angle: float) -> tuple[float, float]:
-    radians = math.radians(angle)
-    return cx + radius * math.cos(radians), cy + radius * math.sin(radians)
-
-
-def _donut_ring(cx: float, cy: float, outer_radius: float, inner_radius: float, color: str) -> str:
-    """A closed ring, for the case where one slice is the whole circle."""
-    return (
-        f'<path d="M {cx - outer_radius:.2f} {cy:.2f} '
-        f"a {outer_radius} {outer_radius} 0 1 0 {outer_radius * 2} 0 "
-        f"a {outer_radius} {outer_radius} 0 1 0 {-outer_radius * 2} 0 Z "
-        f"M {cx - inner_radius:.2f} {cy:.2f} "
-        f"a {inner_radius} {inner_radius} 0 1 1 {inner_radius * 2} 0 "
-        f'a {inner_radius} {inner_radius} 0 1 1 {-inner_radius * 2} 0 Z" '
-        f'fill="{color}" fill-rule="evenodd" stroke="#FFFFFF" stroke-width="2" />'
-    )
-
-
-def _donut_segment(
-    cx: float,
-    cy: float,
-    outer_radius: float,
-    inner_radius: float,
-    start_angle: float,
-    end_angle: float,
-    color: str,
-) -> str:
-    sweep = end_angle - start_angle
-    if sweep >= 359.999:
-        # A single 100% holding: start and end coincide, and SVG omits an arc whose
-        # endpoints are identical, so the donut rendered blank. Draw it as a ring.
-        return _donut_ring(cx, cy, outer_radius, inner_radius, color)
-    large_arc = 1 if sweep > 180 else 0
-    outer_start = _point_on_circle(cx, cy, outer_radius, start_angle)
-    outer_end = _point_on_circle(cx, cy, outer_radius, end_angle)
-    inner_end = _point_on_circle(cx, cy, inner_radius, end_angle)
-    inner_start = _point_on_circle(cx, cy, inner_radius, start_angle)
-    return (
-        f'<path d="M {outer_start[0]:.2f} {outer_start[1]:.2f} '
-        f"A {outer_radius} {outer_radius} 0 {large_arc} 1 {outer_end[0]:.2f} {outer_end[1]:.2f} "
-        f"L {inner_end[0]:.2f} {inner_end[1]:.2f} "
-        f'A {inner_radius} {inner_radius} 0 {large_arc} 0 {inner_start[0]:.2f} {inner_start[1]:.2f} Z" '
-        f'fill="{color}" stroke="#FFFFFF" stroke-width="2" />'
-    )
-
-
-def _format_currency(value: Decimal) -> str:
-    return format_money(value, decimals=0)
-
-
-def _compact_value(value: Decimal | int) -> str:
-    decimal_value = Decimal(value)
-    absolute = abs(decimal_value)
-    if absolute >= Decimal("1000000"):
-        return f"{_format_one_decimal(decimal_value / Decimal('1000000'))}M"
-    if absolute >= Decimal("1000"):
-        return f"{_format_one_decimal(decimal_value / Decimal('1000'))}K"
-    return _format_currency(decimal_value)
-
-
-def _format_decimal(value: Decimal) -> str:
-    return format_money(value, decimals=2)
-
-
-def _format_one_decimal(value: Decimal) -> str:
-    return format_money(value, decimals=1)

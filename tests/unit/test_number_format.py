@@ -16,11 +16,6 @@ from pathlib import Path
 
 from app.contracts.render_package import RenderPackage
 from app.services.number_format import format_money, format_percent, group_digits
-from app.services.portfolio_charts import (
-    _format_currency,
-    _format_decimal,
-    allocation_items_from_report_data,
-)
 from app.services.typst_contexts import build_portfolio_review_context
 
 GOLDEN_PACKAGE = Path("tests/golden/portfolio-review/v1/render-package.json")
@@ -48,25 +43,34 @@ def test_percent_formatting_is_idempotent_on_an_already_suffixed_value() -> None
 
 
 def test_the_chart_legend_and_the_table_agree_on_convention() -> None:
-    """Both render the same amount on the same page of the same document."""
+    """Both render the same amount on the same page of the same document.
+
+    Asserted on what the two emitters actually produce rather than on the helpers behind
+    them: the point of #148 was that two code paths spelled one number two ways, and
+    comparing helper against helper cannot see that.
+    """
 
     package = RenderPackage.model_validate_json(GOLDEN_PACKAGE.read_text(encoding="utf-8"))
-    items = allocation_items_from_report_data(package.report_data)
-    assert items, "the golden package carries no allocation items"
-
-    legend_amount = _format_currency(items[0].market_value)
-    table_values = re.findall(
-        r'"([\d.,]+)"', build_portfolio_review_context(package)["ASSET_CLASS_ROWS"]
-    )
-    table_amount = next(value for value in table_values if "," in value or "." in value)
-
+    context = build_portfolio_review_context(package)
     grouped = re.compile(r"^-?\d{1,3}(,\d{3})*(\.\d+)?$")
-    assert grouped.match(legend_amount), f"legend amount is not grouped: {legend_amount}"
-    assert grouped.match(table_amount), (
-        f"table amount is not grouped while the legend beside it is: {table_amount}"
+
+    def _amounts(fragment: str) -> list[str]:
+        return [
+            value for value in re.findall(r'"([\d.,]+)"', fragment) if "," in value or "." in value
+        ]
+
+    legend_amounts = _amounts(context["ALLOCATION_DONUT_CHART_SECTION"])
+    table_amounts = _amounts(context["ASSET_CLASS_ROWS"])
+    assert legend_amounts and table_amounts, "one of the two emitters produced no amounts"
+
+    for amount in legend_amounts + table_amounts:
+        assert grouped.match(amount), f"amount is not grouped: {amount}"
+
+    # The same figure appears in both, so the two must agree character for character.
+    assert set(legend_amounts) & set(table_amounts), (
+        f"the donut legend and the asset-class table share no amount: "
+        f"{legend_amounts[:3]} vs {table_amounts[:3]}"
     )
-    # The legend's percent uses the same convention as the amounts beside it.
-    assert grouped.match(_format_decimal(items[0].weight_pct))
 
 
 def test_no_emitter_formats_a_monetary_value_with_a_bare_f_string() -> None:
