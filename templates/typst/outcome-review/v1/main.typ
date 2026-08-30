@@ -1,4 +1,4 @@
-#import "_design.typ": accent, ink, key-value-row, label, muted, rule, value
+#import "_design.typ": accent, ink, key-value-row, key-value-rows, label, muted, rule, value
 #set page(
   paper: "a4",
   margin: (x: 18mm, y: 16mm),
@@ -23,7 +23,7 @@
   inset: (left: 5pt, y: 3pt),
 )[
   #grid(
-    columns: (24mm, 18mm, 22mm, 22mm, 22mm, 1fr),
+    columns: (auto, auto, auto, auto, auto, 1fr),
     gutter: 4mm,
     [#label("Dimension") #linebreak() #value(dimension)],
     [#label("State") #linebreak() #value(state)],
@@ -64,17 +64,21 @@ ${DIMENSION_ROWS}
   [
     #text(size: 11pt, weight: "medium")[Lineage]
     #v(3pt)
-    #key-value-row([Source services], [#"${SOURCE_SERVICES}"])
-    #key-value-row([Proof pack], [#"${PROOF_PACK_ID}"])
-    #key-value-row([Rebalance run], [#"${REBALANCE_RUN_ID}"])
-    #key-value-row([Wave], [#"${WAVE_ID}"])
-    #key-value-row([Redaction], [#"${REDACTION_POLICY}"])
+    #key-value-rows((
+      ([Source services], [#"${SOURCE_SERVICES}"]),
+      ([Proof pack], [#"${PROOF_PACK_ID}"]),
+      ([Rebalance run], [#"${REBALANCE_RUN_ID}"]),
+      ([Wave], [#"${WAVE_ID}"]),
+      ([Redaction], [#"${REDACTION_POLICY}"]),
+    ))
   ],
   [
     #text(size: 11pt, weight: "medium")[Hashes]
     #v(3pt)
-    #key-value-row([Report input], [#"${CONTENT_HASH}"])
-    #key-value-row([Outcome review], [#"${OUTCOME_REVIEW_CONTENT_HASH}"])
+    #key-value-rows((
+      ([Report input], [#"${CONTENT_HASH}"]),
+      ([Outcome review], [#"${OUTCOME_REVIEW_CONTENT_HASH}"]),
+    ))
   ],
 )
 

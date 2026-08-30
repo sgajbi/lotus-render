@@ -1,4 +1,4 @@
-#import "_design.typ": accent, ink, key-value-row, label, muted, rule, value
+#import "_design.typ": accent, ink, key-value-row, key-value-rows, label, muted, rule, value
 #set page(
   paper: "a4",
   margin: (x: 18mm, y: 16mm),
@@ -23,7 +23,7 @@
   inset: (left: 5pt, y: 3pt),
 )[
   #grid(
-    columns: (34mm, 28mm, 22mm, 1fr),
+    columns: (auto, auto, auto, 1fr),
     gutter: 4mm,
     [#label("Section") #linebreak() #value(title)],
     [#label("Type") #linebreak() #value(section-type)],
@@ -52,17 +52,21 @@
   [
     #text(size: 11pt, weight: "medium")[Decision Summary]
     #v(3pt)
-    #key-value-row([Action], [#"${DECISION_ACTION}"])
-    #key-value-row([Mandate], [#"${MANDATE_ID}"])
+    #key-value-rows((
+      ([Action], [#"${DECISION_ACTION}"]),
+      ([Mandate], [#"${MANDATE_ID}"]),
+    ))
     #v(3pt)
     #"${DECISION_RATIONALE}"
   ],
   [
     #text(size: 11pt, weight: "medium")[Supportability]
     #v(3pt)
-    #key-value-row([Status], [#"${SUPPORTABILITY_STATUS}"])
-    #key-value-row([Reasons], [#"${SUPPORTABILITY_REASONS}"])
-    #key-value-row([Redaction], [#"${REDACTION_POLICY}"])
+    #key-value-rows((
+      ([Status], [#"${SUPPORTABILITY_STATUS}"]),
+      ([Reasons], [#"${SUPPORTABILITY_REASONS}"]),
+      ([Redaction], [#"${REDACTION_POLICY}"]),
+    ))
   ],
 )
 
@@ -79,15 +83,19 @@ ${SOURCE_HASH_ROWS}
 #v(6pt)
 #text(size: 11pt, weight: "medium")[Source Authority Boundary]
 #v(3pt)
-#key-value-row([Source contract], [#"${SOURCE_CONTRACT_VERSION}"])
-#key-value-row([Client publication authority], [#"${CLIENT_PUBLICATION_AUTHORITY}"])
+#key-value-rows((
+  ([Source contract], [#"${SOURCE_CONTRACT_VERSION}"]),
+  ([Client publication authority], [#"${CLIENT_PUBLICATION_AUTHORITY}"]),
+))
 ${SOURCE_LINEAGE_ROWS}
 
 #v(6pt)
 #text(size: 11pt, weight: "medium")[Report Lineage]
 #v(3pt)
-#key-value-row([Report input], [#"${CONTENT_HASH}"])
-#key-value-row([Proof pack], [#"${PROOF_PACK_CONTENT_HASH}"])
+#key-value-rows((
+  ([Report input], [#"${CONTENT_HASH}"]),
+  ([Proof pack], [#"${PROOF_PACK_CONTENT_HASH}"]),
+))
 
 #v(10pt)
 #line(length: 100%, stroke: (paint: rule, thickness: 0.35pt))

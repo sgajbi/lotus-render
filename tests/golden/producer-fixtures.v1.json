@@ -42,9 +42,9 @@
         "tests/unit/reporting_render/test_service.py"
       ],
       "provenance": "Generated from lotus-report ReportJobLedger and typed OutcomeReviewReportJobRequest through _build_render_package.",
-      "bounded_determinism_fingerprint": "77f6bc2b387d90536dd1a85fe7c48238ee97864616885c3c198b8702c82b2fc1",
+      "bounded_determinism_fingerprint": "e195752a5d2267acf75716ee83f6f47c3df0ea81ab8761517e425223ff127ba7",
       "page_image_hashes": [
-        "fd46b2d5c3777ef0539b6ae4970a932827f3ce1f95f09dd2ec2a8c1e3184c271"
+        "4ad9a767770d41ce992a0e3f844331d69bab0d7deb5ee8376176b616ce3ce541"
       ]
     },
     {
@@ -60,9 +60,9 @@
         "tests/unit/reporting_render/test_service.py"
       ],
       "provenance": "Generated from lotus-report ReportJobLedger and typed ProofPackReportJobRequest through _build_render_package.",
-      "bounded_determinism_fingerprint": "4479b3e707ec4632243d87ca38d097b9cc20eb56dee589a91bcf133c07c4cbdd",
+      "bounded_determinism_fingerprint": "37860ac56472c40525d4a583d1bd493e6f0888185e1f46f19240a29b32c8e5b2",
       "page_image_hashes": [
-        "c1f79e24a3f125d6802838bc8700de36858dc1c74f7e4ce09fcc14c7d8c7ff2a"
+        "449e4481f73ae8d813f08633bb7b4cf450e7550e8de6e79728f16e3a32d5a9f9"
       ]
     },
     {
@@ -81,9 +81,9 @@
         "tests/integration/test_idea_evidence_intake_api.py"
       ],
       "provenance": "Mirrors lotus-report reviewed Idea evidence materialization, which adapts lotus_idea_evidence_pack_report_input.v1 into the governed proof-pack render package without granting client-publication or archive authority in lotus-render.",
-      "bounded_determinism_fingerprint": "3dc00db71429dd2669d193a7aa4b87e7b9ac14554a2322198bb7367b8615e0dc",
+      "bounded_determinism_fingerprint": "6eb1edd96a01129f8e7734cd8868f3326548b291dde27c32cd9256ad6e5ad644",
       "page_image_hashes": [
-        "5b5fad7b775899ad2970dc7e36e94bbd0b48880a22cf5b4163a7752e179bf47f"
+        "b974fcb8095b02ef7925a06bd4a5b5ba4256c6c34a458f76a6b0121e44c1a5f9"
       ]
     },
     {
@@ -99,9 +99,9 @@
         "tests/unit/reporting_render/test_service.py"
       ],
       "provenance": "Generated from lotus-report ReportJobLedger and typed WaveReportJobRequest through _build_render_package.",
-      "bounded_determinism_fingerprint": "2766c063800ba3df9885b355af81e28a927ae1ea43c31b108c9f585cf8d2d7c2",
+      "bounded_determinism_fingerprint": "296011940fd7815e08fcfa2922f2d2fb0d70ba3b69d42d6f5bcfea94a154cd06",
       "page_image_hashes": [
-        "863673145996aae3b2365004be010031709060b023fe36c8e76e23c8532241a7"
+        "2aebe817a86aba7b1f8be0bdc5100de4d06a86ae6fa32a12e864c51f840e7e61"
       ]
     },
     {
