@@ -1,4 +1,4 @@
-#import "_design.typ": accent, ink, key-value-row, label, muted, rule, value
+#import "_design.typ": accent, ink, key-value-row, key-value-rows, label, muted, rule, value
 #set page(
   paper: "a4",
   margin: (x: 18mm, y: 16mm),
@@ -23,7 +23,7 @@
   inset: (left: 5pt, y: 3pt),
 )[
   #grid(
-    columns: (30mm, 24mm, 26mm, 24mm, 1fr),
+    columns: (auto, auto, auto, auto, 1fr),
     gutter: 4mm,
     [#label("Portfolio") #linebreak() #value(portfolio)],
     [#label("State") #linebreak() #value(state)],
@@ -53,22 +53,26 @@
   [
     #text(size: 11pt, weight: "medium")[Wave Summary]
     #v(3pt)
-    #key-value-row([Trigger id], [#"${TRIGGER_ID}"])
-    #key-value-row([Items], [#"${ITEM_COUNT}"])
-    #key-value-row([Ready items], [#"${READY_ITEM_COUNT}"])
-    #key-value-row([Blocked items], [#"${BLOCKED_ITEM_COUNT}"])
+    #key-value-rows((
+      ([Trigger id], [#"${TRIGGER_ID}"]),
+      ([Items], [#"${ITEM_COUNT}"]),
+      ([Ready items], [#"${READY_ITEM_COUNT}"]),
+      ([Blocked items], [#"${BLOCKED_ITEM_COUNT}"]),
+    ))
     #v(3pt)
     #"${TRIGGER_RATIONALE}"
   ],
   [
     #text(size: 11pt, weight: "medium")[Supportability]
     #v(3pt)
-    #key-value-row([Status], [#"${SUPPORTABILITY_STATUS}"])
-    #key-value-row([Reason], [#"${SUPPORTABILITY_REASON}"])
-    #key-value-row([Proof packs ready], [#"${PROOF_PACK_READY_COUNT}"])
-    #key-value-row([Proof packs degraded], [#"${PROOF_PACK_DEGRADED_COUNT}"])
-    #key-value-row([Handoffs], [#"${HANDOFF_COUNT}"])
-    #key-value-row([External execution], [#"${EXTERNAL_EXECUTION}"])
+    #key-value-rows((
+      ([Status], [#"${SUPPORTABILITY_STATUS}"]),
+      ([Reason], [#"${SUPPORTABILITY_REASON}"]),
+      ([Proof packs ready], [#"${PROOF_PACK_READY_COUNT}"]),
+      ([Proof packs degraded], [#"${PROOF_PACK_DEGRADED_COUNT}"]),
+      ([Handoffs], [#"${HANDOFF_COUNT}"]),
+      ([External execution], [#"${EXTERNAL_EXECUTION}"]),
+    ))
   ],
 )
 
@@ -85,9 +89,11 @@ ${EVENT_ROWS}
 #v(6pt)
 #text(size: 11pt, weight: "medium")[Report Lineage]
 #v(3pt)
-#key-value-row([Report input], [#"${CONTENT_HASH}"])
-#key-value-row([Wave], [#"${WAVE_CONTENT_HASH}"])
-#key-value-row([Redaction], [#"${REDACTION_POLICY}"])
+#key-value-rows((
+  ([Report input], [#"${CONTENT_HASH}"]),
+  ([Wave], [#"${WAVE_CONTENT_HASH}"]),
+  ([Redaction], [#"${REDACTION_POLICY}"]),
+))
 
 #v(10pt)
 #line(length: 100%, stroke: (paint: rule, thickness: 0.35pt))

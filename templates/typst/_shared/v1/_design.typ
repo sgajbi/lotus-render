@@ -69,13 +69,20 @@
 
 // A field and its value, side by side. The width is fixed so that stacked rows align
 // down the page rather than each row finding its own column.
-#let key-value-row(key, val) = grid(
-  columns: (38mm, 1fr),
-  gutter: 5mm,
+// A key column fixed at 38mm gave the value whatever was left, which inside a
+// half-width block was 45mm -- narrower than the identifiers these documents carry.
+// `auto` takes the width of the longest key instead, and the value takes the rest.
+//
+// Rows are grouped so their keys align: laid out one grid apiece, each row sized its
+// own key column and the values stepped in and out down the page.
+#let key-value-rows(pairs) = grid(
+  columns: (auto, 1fr),
+  column-gutter: 5mm,
   row-gutter: 2pt,
-  key,
-  val,
+  ..pairs.map(pair => (pair.at(0), pair.at(1))).flatten(),
 )
+
+#let key-value-row(key, val) = key-value-rows(((key, val),))
 
 #let label(value) = text(size: 6.8pt, fill: muted, weight: "semibold", upper(value))
 #let value(value) = text(size: 9.5pt, fill: ink, weight: "medium", value)
