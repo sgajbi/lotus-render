@@ -203,3 +203,73 @@ def test_a_fragment_is_invoked_where_it_lands_rather_than_printed(
         f"{template_id} substitutes these into a code context with a leading '#', "
         f"which will not compile: {invalid_in_code}"
     )
+
+
+SEQUENCE_GUARD = re.compile(r"isinstance\(\w+, Sequence\) or isinstance\(")
+EMITTER_MODULES = ("typst_tables.py", "typst_fragments.py")
+
+
+def test_the_sequence_guard_is_written_once() -> None:
+    """Fifteen emitters opened with the same two-line guard, copied by hand each time.
+
+    Copies do not stay in step -- that is what produced four values of `accent` and three
+    definitions of `key-value-row`. `mapping_entries` states the shape once, and
+    `string_list` is its sibling for emitters whose items are plain strings.
+
+    `typst_values.py` is excluded because it is where both helpers are defined.
+    """
+
+    offenders = {
+        name: len(SEQUENCE_GUARD.findall((Path("src/app/services") / name).read_text("utf-8")))
+        for name in EMITTER_MODULES
+    }
+    offenders = {name: count for name, count in offenders.items() if count}
+
+    assert not offenders, (
+        f"these modules still write the sequence guard out longhand: {offenders}. Use "
+        "mapping_entries for mappings, or string_list for plain strings."
+    )
+
+
+def test_an_empty_collection_says_so_rather_than_rendering_nothing() -> None:
+    """ "Absent" and "empty" mean the same thing to a reader, so they must look the same.
+
+    `render_observation_notes` was the one emitter where they diverged: an absent list
+    said "No governed observations available", and an empty list rendered nothing at all
+    -- a blank region on the page indistinguishable from a layout fault.
+
+    The other emitters named in #155 turned out already to agree; the issue overstated
+    the divergence, and this test is what pins the corrected claim.
+    """
+
+    from app.services.typst_tables import (
+        render_holding_rows,
+        render_observation_notes,
+        render_performance_period_rows,
+    )
+
+    for emitter in (render_observation_notes, render_holding_rows, render_performance_period_rows):
+        absent = emitter(None)
+        empty = emitter([])
+        assert "empty-state(" in absent, f"{emitter.__name__} says nothing when the list is absent"
+        assert "empty-state(" in empty, (
+            f"{emitter.__name__} renders nothing at all for an empty list, which reads as a "
+            "layout fault rather than as an absence of data"
+        )
+
+
+def test_a_section_is_present_only_when_it_has_content() -> None:
+    """`HAS_*` flags gate whole pages, so an empty collection must read as absent.
+
+    A page guarded by a flag that says "yes" for an empty list ships near-blank, which is
+    what #138 removed for the performance and allocation sections.
+    """
+
+    from app.services.typst_contexts import _presence_flag
+
+    assert _presence_flag([{"row": 1}]) == "yes"
+    assert _presence_flag([]) == "no"
+    assert _presence_flag({"key": "value"}) == "yes"
+    assert _presence_flag({}) == "no"
+    assert _presence_flag(None) == "no"
+    assert _presence_flag("text") == "yes"

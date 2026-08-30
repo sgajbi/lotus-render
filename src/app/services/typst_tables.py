@@ -22,6 +22,7 @@ from app.services.typst_values import (
     performance_bar_domain,
     performance_bar_geometry,
     row_sequence,
+    string_list,
     weight_width_token,
 )
 
@@ -53,13 +54,17 @@ def render_allocation_chart_section(report_data: Mapping[str, object]) -> str:
 
 
 def render_observation_notes(observations: object) -> str:
-    if not isinstance(observations, Sequence) or isinstance(observations, (str, bytes, bytearray)):
+    """Observations are plain strings, so this takes the string sibling of the guard.
+
+    It was also the one emitter where an empty list and an absent one disagreed: an
+    absent list said "No governed observations available", and an empty list rendered
+    nothing at all -- a blank region indistinguishable from a layout fault. Both now say
+    the same thing, because to a reader they mean the same thing.
+    """
+    notes = string_list(observations)
+    if not notes:
         return '#empty-state("No governed observations available.")'
-    rendered: list[str] = []
-    for item in observations:
-        text = escape_typst_string(str(item))
-        rendered.append(f'#review-note("{text}")')
-    return "\n#v(8pt)\n".join(rendered)
+    return "\n#v(8pt)\n".join(f'#review-note("{escape_typst_string(note)}")' for note in notes)
 
 
 def render_performance_period_rows(periods: object) -> str:
@@ -89,12 +94,8 @@ def render_performance_period_rows(periods: object) -> str:
 
 def render_performance_summary_table(rows: object) -> str:
     empty_message = '#empty-state("No governed performance summary available.")'
-    if not isinstance(rows, Sequence) or isinstance(rows, (str, bytes, bytearray)):
-        return empty_message
     rendered: list[str] = []
-    for item in rows:
-        if not isinstance(item, Mapping):
-            continue
+    for item in mapping_entries(rows):
         rendered.append(
             'performance-summary-cell("'
             + escape_typst_string(str(item.get("label", "Period")))
@@ -153,12 +154,8 @@ def render_performance_chart_rows(rows: object, *, two_column: bool = False) -> 
 
 def render_performance_detail_rows(rows: object) -> str:
     empty_message = '#empty-state("No monthly performance detail available.", size: 8pt)'
-    if not isinstance(rows, Sequence) or isinstance(rows, (str, bytes, bytearray)):
-        return empty_message
     rendered: list[str] = []
-    for item in rows:
-        if not isinstance(item, Mapping):
-            continue
+    for item in mapping_entries(rows):
         rendered.append(
             '#performance-detail-row("'
             + escape_typst_string(str(item.get("period", "n/a")))
@@ -186,12 +183,8 @@ def render_performance_detail_rows(rows: object) -> str:
 
 
 def render_holding_rows(holdings: object) -> str:
-    if not isinstance(holdings, Sequence) or isinstance(holdings, (str, bytes, bytearray)):
-        return '#empty-state("No governed holdings available.")'
     rendered: list[str] = []
-    for item in holdings:
-        if not isinstance(item, Mapping):
-            continue
+    for item in mapping_entries(holdings):
         rendered.append(
             '#holding-row("'
             + escape_typst_string(str(item.get("security_name", "Unknown holding")))
@@ -213,12 +206,8 @@ def render_holding_rows(holdings: object) -> str:
 
 
 def render_holding_bar_rows(holdings: object) -> str:
-    if not isinstance(holdings, Sequence) or isinstance(holdings, (str, bytes, bytearray)):
-        return '#empty-state("No governed allocation rows available.")'
     rendered: list[str] = []
-    for item in holdings:
-        if not isinstance(item, Mapping):
-            continue
+    for item in mapping_entries(holdings):
         rendered.append(
             '#allocation-row("'
             + escape_typst_string(str(item.get("security_name", "Unknown holding")))
@@ -259,12 +248,8 @@ def render_dense_position_rows(holdings: object) -> str:
     (issue #138). As table rows the header repeats by construction and the separator
     belongs to the row.
     """
-    if not isinstance(holdings, Sequence) or isinstance(holdings, (str, bytes, bytearray)):
-        return _NO_POSITIONS_CELL
     rendered: list[str] = []
-    for item in holdings:
-        if not isinstance(item, Mapping):
-            continue
+    for item in mapping_entries(holdings):
         number_amount = (
             f"{group_digits(item.get('quantity', 'Not available'))} {item.get('currency', '')};"
             f"{item.get('security_id', 'Not available')}"
@@ -335,12 +320,8 @@ def render_dense_position_rows(holdings: object) -> str:
 
 
 def render_dense_transaction_rows(transactions: object) -> str:
-    if not isinstance(transactions, Sequence) or isinstance(transactions, (str, bytes, bytearray)):
-        return _NO_TRANSACTIONS_CELL
     rendered: list[str] = []
-    for item in transactions:
-        if not isinstance(item, Mapping):
-            continue
+    for item in mapping_entries(transactions):
         detail_primary = (
             f"{item.get('display_label', 'Transaction')}  |  "
             f"{item.get('transaction_type', 'Not available')}  |  "

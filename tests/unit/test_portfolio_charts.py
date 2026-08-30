@@ -400,3 +400,33 @@ def test_the_axis_ends_on_a_gridline() -> None:
 
     assert ticks[0] == low and ticks[-1] == high
     assert all(low <= tick <= high for tick in ticks), ticks
+
+
+def test_a_degenerate_series_still_yields_an_axis() -> None:
+    """`_nice_ticks` can return fewer than two ticks, and the axis must survive it.
+
+    A chart with no usable span has no gridlines to end on, so the bounds fall back to
+    the padded values rather than indexing an empty list.
+    """
+
+    single = [PerformancePoint(month="2025-01", cumulative_twr=0.0)]
+    low, high, ticks = _chart_axis(single)
+
+    assert low < high, "an axis with no span cannot be drawn against"
+    assert len(ticks) >= 2
+
+
+def test_the_step_chooser_handles_a_span_it_cannot_divide() -> None:
+    """Guards on the tick-step maths, which decides every gridline on the page."""
+
+    from app.services.portfolio_charts import _nice_step
+
+    # No span, or nowhere to put ticks: fall back rather than divide by zero.
+    assert _nice_step(0.0, 5) == 1.0
+    assert _nice_step(10.0, 1) == 1.0
+    # Inside the ladder, the step is the smallest 1/2/2.5/5 multiple that fits.
+    assert _nice_step(100.0, 2) == 100.0
+    assert _nice_step(6.0, 5) == 2.0
+    # The trailing `return magnitude * 10.0` is unreachable for any finite positive span,
+    # because magnitude <= rough < 10 * magnitude always satisfies the last multiplier.
+    # It is left as a defensive tail rather than covered by a test that cannot reach it.
