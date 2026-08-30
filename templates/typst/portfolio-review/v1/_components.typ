@@ -60,8 +60,13 @@
 // units that are always wrong to split is the mechanism the engine does offer
 // (issue #138). It is applied only to short fixed-size blocks; the panels that wrap
 // long tables stay breakable or they could not paginate at all.
+// Fills its container. Without a width the block hugs its own text, which is invisible
+// where the body is a sentence and stark where it is a short value: the six risk cards
+// on the allocation page rendered as three narrow islands in a three-column grid, with
+// the columns' width left as dead space between them (#184).
 #let note-panel(title, body) = block(
   breakable: false,
+  width: 100%,
   inset: 10pt,
   fill: white,
   stroke: (paint: rule, thickness: hairline),
