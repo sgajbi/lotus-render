@@ -24,7 +24,7 @@ from app.core.settings import Settings
 from app.domain.templates.registry import TemplateRegistry
 from app.services.render_intake import RenderIntakeService
 from app.services.typst_rendering import TypstRenderService
-from app.services.typst_tables import DENSE_POSITION_COLUMNS, render_dense_position_rows
+from app.services.typst_tables import render_position_table
 
 TEMPLATE_ROOT = Path("templates/typst/portfolio-review/v1")
 # Both long tables; each is bounded only by the 10,000-item contract ceiling.
@@ -63,25 +63,44 @@ def test_each_row_carries_its_own_separator() -> None:
 def test_position_rows_are_spreadable_table_cells() -> None:
     """Rows must be cell arrays the table spreads, not self-contained blocks."""
 
-    rows = render_dense_position_rows(
+    _, _, rows = render_position_table(
         [{"security_name": "A", "weight_pct": "10"}, {"security_name": "B", "weight_pct": "20"}]
     )
 
     lines = rows.splitlines()
-    assert len(lines) == 2, f"expected one call per row, got {lines}"
+    assert len(lines) == 2, f"expected one tuple per row, got {lines}"
     for line in lines:
-        assert line.startswith("dense-position-row("), line
+        assert line.startswith("([#statement-cell("), line
         assert line.endswith("),"), (
             f"row is not comma-terminated, so the template cannot spread it: {line[-40:]}"
         )
 
 
+def test_a_row_carries_a_cell_for_every_column_the_header_declares() -> None:
+    """The header and the body come from one declaration, so they cannot disagree.
+
+    They used to be written in two places -- a stack of labels in the template and a
+    stack of values in a row function, lined up by position -- and they had drifted:
+    the transaction table's header declared four lines under "Purchase price" against
+    three values, and both it and the positions table labelled fields that no fixture
+    supplies.
+    """
+
+    holdings = [{"security_name": "A", "weight_pct": "10", "market_value": "1000"}]
+    widths, header, rows = render_position_table(holdings)
+
+    columns = widths.count(",") if widths.endswith(",)") else widths.count(",") + 1
+    assert header.count("#stacked-table-label(") == columns
+    assert rows.splitlines()[0].count("#statement-cell(") == columns
+
+
 def test_the_empty_state_is_a_row_of_the_table() -> None:
     """A block outside the table would sit above the repeating header on later pages."""
 
-    empty = render_dense_position_rows([])
+    widths, header, empty = render_position_table([])
 
-    assert empty.startswith(f"table.cell(colspan: {DENSE_POSITION_COLUMNS})"), empty[:60]
+    assert widths == "(1fr,)", "an empty table still declares columns to leave blank"
+    assert header == "", "there is nothing to label, and a header rule over the message"
     assert "No position detail available." in empty
     assert empty.rstrip().endswith(",")
 

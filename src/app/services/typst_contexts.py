@@ -35,8 +35,6 @@ from app.services.typst_tables import (
     render_allocation_breakdown_rows,
     render_allocation_chart_section,
     render_appendix_glossary_groups,
-    render_dense_position_rows,
-    render_dense_transaction_rows,
     render_holding_bar_rows,
     render_holding_rows,
     render_observation_notes,
@@ -45,6 +43,8 @@ from app.services.typst_tables import (
     render_performance_detail_rows,
     render_performance_period_rows,
     render_performance_summary_table,
+    render_position_table,
+    render_transaction_table,
     supplemental_allocation_view,
 )
 from app.services.typst_values import (
@@ -120,6 +120,13 @@ def build_portfolio_review_context(render_package: RenderPackage) -> dict[str, s
     include_advisor_proposal_memo = advisor_proposal_memo.get("status") == "included"
     supplemental_allocation_title, supplemental_allocation_rows = supplemental_allocation_view(
         allocation_breakdowns
+    )
+
+    position_widths, position_header, position_rows = render_position_table(
+        report_data.get("positions") or report_data.get("top_holdings")
+    )
+    transaction_widths, transaction_header, transaction_rows = render_transaction_table(
+        report_data.get("transactions")
     )
 
     return {
@@ -242,13 +249,15 @@ def build_portfolio_review_context(render_package: RenderPackage) -> dict[str, s
         "ALLOCATION_DONUT_CHART_SECTION": render_allocation_chart_section(report_data),
         "SUPPLEMENTAL_ALLOCATION_TITLE": escape_typst_string(supplemental_allocation_title),
         "SUPPLEMENTAL_ALLOCATION_ROWS": supplemental_allocation_rows,
-        "DENSE_POSITION_ROWS": render_dense_position_rows(
-            report_data.get("positions") or report_data.get("top_holdings")
-        ),
+        "POSITION_TABLE_WIDTHS": position_widths,
+        "POSITION_TABLE_HEADER": position_header,
+        "DENSE_POSITION_ROWS": position_rows,
         "TRANSACTION_PERIOD_LABEL": escape_typst_string(
             str(report_data.get("transaction_period_label", "Transaction activity"))
         ),
-        "DENSE_TRANSACTION_ROWS": render_dense_transaction_rows(report_data.get("transactions")),
+        "TRANSACTION_TABLE_WIDTHS": transaction_widths,
+        "TRANSACTION_TABLE_HEADER": transaction_header,
+        "DENSE_TRANSACTION_ROWS": transaction_rows,
         "SOURCE_SERVICES": escape_typst_string(
             ", ".join(string_list(governance_summary.get("source_services"))) or "Not available"
         ),

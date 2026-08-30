@@ -1,5 +1,5 @@
 #import "_theme.typ": empty-state, rule, section-subtitle
-#import "_components.typ": dense-position-row, report-panel, section-marker, stacked-table-label, table-label
+#import "_components.typ": report-panel, section-marker, stacked-table-label, statement-cell
 
 #let observations-page() = [
   #section-marker("Detailed positions", "Statement-style holdings detail and position-level performance")
@@ -17,20 +17,13 @@
     // it (issue #138). A 500-row statement used to paginate into pages of eight
     // unlabelled numeric columns.
     #table(
-      columns: (0.85fr, 1.9fr, 1.05fr, 1.02fr, 1.02fr, 1.02fr, 0.95fr, 0.52fr),
+      columns: ${POSITION_TABLE_WIDTHS},
       column-gutter: 7pt,
       inset: (x: 0pt, y: 4.5pt),
       stroke: (x, y) => (bottom: (paint: rule, thickness: 0.25pt)),
       table.header(
         repeat: true,
-        [#stacked-table-label(("Number/Amount", ""))],
-        [#stacked-table-label(("Description", "Sustainability"))],
-        [#stacked-table-label(("Rating", "Sector", "Duration", "Yield"), placement: right)],
-        [#stacked-table-label(("Cost price", "Exchange rate", "Cost value", "Last purchase"), placement: right)],
-        [#stacked-table-label(("Market price", "Exchange rate", "Market price date", "YTD performance"), placement: right)],
-        [#stacked-table-label(("Market gain", "Exchange gain", "Unrealized P/L"), placement: right)],
-        [#stacked-table-label(("Market value", "Accrued interest"), placement: right)],
-        [#table-label("%", placement: right)],
+        ${POSITION_TABLE_HEADER}
       ),
       ..(
         ${DENSE_POSITION_ROWS}
