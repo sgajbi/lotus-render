@@ -2,8 +2,7 @@
 #import "_components.typ": allocation-row, metric-card, note-panel, page-header, report-panel, section-lead, section-marker
 
 #let scope-page() = [
-  #section-marker("Overview", "Mandate, relationship context, and scope of analysis")
-  #page-header("Scope of analysis")
+  #section-marker("Overview", "Mandate, relationship context, and scope of analysis", header: "Scope of analysis")
   #v(10pt)
   #grid(
     columns: (1fr, 1fr, 1fr, 1fr),

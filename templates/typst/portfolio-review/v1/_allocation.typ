@@ -4,7 +4,6 @@
 
 #let allocation-page() = [
   #section-marker("Asset allocation", "Asset mix, exposure detail, and risk profile")
-  #page-header("Asset allocation")
   #v(10pt)
   #grid(
     columns: (1.45fr, 1fr),
@@ -72,11 +71,11 @@
       ])
     ],
   )
-  // Guarded so a report with no risk summary does not ship a near-blank page (#138).
+  // #138 guarded this against an absent risk summary; the break that remained gave six
+  // values a full landscape page, 68% of it blank, under a third consecutive "Asset
+  // allocation" header. It flows into the section it belongs to now (#184).
   #if "${HAS_RISK_PROFILE}" == "yes" [
-    #pagebreak()
-    #page-header("Asset allocation")
-    #v(10pt)
+    #v(16pt)
     #section-subtitle("Risk profile")
     #v(8pt)
     #grid(

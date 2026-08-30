@@ -2,8 +2,7 @@
 #import "_components.typ": dense-transaction-row, page-header, report-panel, section-marker, stacked-table-label
 
 #let transactions-page() = [
-  #section-marker("Transactions", "Transaction activity across the review period")
-  #page-header("Transaction list")
+  #section-marker("Transactions", "Transaction activity across the review period", header: "Transaction list")
   #v(4pt)
   #text(size: 8.8pt, fill: accent)[#"${TRANSACTION_PERIOD_LABEL}"]
   #v(10pt)

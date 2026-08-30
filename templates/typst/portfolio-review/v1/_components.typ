@@ -1,5 +1,9 @@
 #import "_theme.typ": accent, accent-soft, body-muted, body-strong, empty-state, gain, grid-gap, hairline, ink, loss, mist, navy, page-kicker, panel-radius, rule, section-subtitle, section-title, slate, small-caps, soft-rule
 
+// Laid out by `set page(header:)` in main.typ rather than emitted into the flow, so a
+// section that spills onto another page is still headed there. While this was an
+// in-flow element the only way to head a page was to force one, which is how a
+// six-value section came to own a full landscape page (#184).
 #let page-header(title) = [
   #grid(
     columns: (1fr, auto),
@@ -17,6 +21,19 @@
   #v(7pt)
   #soft-rule()
 ]
+
+// The header for whichever section the current page belongs to, or nothing on the
+// pages before the first section. Read from the same `<lotus-section>` markers the
+// contents page counts, so the two cannot disagree about where a section begins.
+#let running-header() = context {
+  let current = counter(page).get().first()
+  let started = query(<lotus-section>).filter(marker => (
+    counter(page).at(marker.location()).first() <= current
+  ))
+  if started.len() > 0 {
+    page-header(started.last().value.header)
+  }
+}
 
 #let page-meta() = [
   #set par(leading: 0.86em)
@@ -104,8 +121,30 @@
 // Planted at the top of each section page so the contents page can compute the page a
 // section truly starts on. The references used to be string literals, and were already
 // wrong in documents carrying an advisory section, which shifts everything after it.
-#let section-marker(title, detail) = [
-  #metadata((title: title, detail: detail)) <lotus-section>
+// `header` is the title the running header shows, which is not always the title the
+// contents shows: the overview is listed as "Overview" and headed "Scope of analysis".
+// A table and everything that names it, as one unit that cannot be split. Apart they
+// produce both defects #138 named: a subtitle stranded at the foot of a page, and rows
+// continuing under no column labels, because the row grids are not `table()` elements
+// and a header does not repeat on a continuation page (#184).
+#let labelled-table(subtitle, labels, rows) = block(breakable: false)[
+  #section-subtitle(subtitle)
+  #v(7pt)
+  #report-panel([
+    #labels
+    #v(5pt)
+    #soft-rule()
+    #v(6pt)
+    #rows
+  ])
+]
+
+#let section-marker(title, detail, header: none) = [
+  #metadata((
+    title: title,
+    detail: detail,
+    header: if header == none { title } else { header },
+  )) <lotus-section>
 ]
 
 #let content-row(index, title, detail, ref) = [

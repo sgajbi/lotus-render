@@ -395,7 +395,10 @@
 
 #let appendix-page() = [
   #section-marker("Appendix", "Definitions and explanatory notes")
-  #set page(margin: (x: 11mm, y: 10mm))
+  // The appendix is a statement-style spread with its own title block, its own
+  // navigation list and tighter margins, so it carries no running header: the page
+  // header would land on top of the title block it already has.
+  #set page(margin: (x: 11mm, y: 10mm), header: none)
   #appendix-fx-and-abbreviations()
   #appendix-risk-scale()
   #appendix-risk-and-allocation()
