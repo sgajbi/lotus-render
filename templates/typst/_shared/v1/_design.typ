@@ -31,6 +31,36 @@
 #let accent = rgb("#1F5AA6")
 #let accent-soft = rgb("#2C7A7B")
 
+// --- Chart series ---------------------------------------------------------------
+// The categorical palette, in the order a chart assigns it. The first two are the
+// brand accents, so a single-series chart and a two-slice donut agree with the rest
+// of the document; the remainder are chosen to stay distinguishable in greyscale and
+// to a reader with colour vision deficiency.
+//
+// These lived as hex literals in `portfolio_charts.py`, which meant the design system
+// could not restyle a chart and a token could drift from its own copy. The emitters
+// name a series now; nothing outside this file decides what the colour is.
+#let series-1 = accent
+#let series-2 = accent-soft
+#let series-3 = rgb("#C38B2E")
+#let series-4 = rgb("#6B7280")
+#let series-5 = rgb("#7C5C99")
+#let series-6 = rgb("#8AA6A3")
+
+// What a chart draws for the part of a total it is not showing. `rule`, so it reads as
+// an absence against the palette rather than as one more series.
+#let series-uncharted = rule
+
+#let SERIES_PALETTE = (
+  "series-1": series-1,
+  "series-2": series-2,
+  "series-3": series-3,
+  "series-4": series-4,
+  "series-5": series-5,
+  "series-6": series-6,
+  "series-uncharted": series-uncharted,
+)
+
 // --- Shared primitives ----------------------------------------------------------
 // Defined once here because they were defined three times: proof-pack, outcome-review
 // and rebalance-wave each carried their own byte-identical copy, with nothing keeping
