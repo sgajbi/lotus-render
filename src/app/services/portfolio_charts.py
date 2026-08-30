@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import html
 import math
-from collections.abc import Callable, Mapping, Sequence
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from datetime import datetime
 from decimal import Decimal, InvalidOperation
@@ -64,19 +64,20 @@ class ChartAssets:
 def render_portfolio_chart_assets(
     report_data: Mapping[str, object], output_dir: Path
 ) -> ChartAssets:
+    """Write the SVG assets a document still needs.
+
+    Only the allocation donut remains. The performance chart is drawn natively in Typst
+    (`chart_geometry` plus `_charts.typ`), so it needs no asset and no longer carries the
+    `<text>` elements that put it on typst#6783. The donut is the next one (#150).
+    """
     output_dir.mkdir(parents=True, exist_ok=True)
-    performance_series = performance_series_from_report_data(report_data)
     allocation_items = allocation_items_from_report_data(report_data)
 
-    performance_path = None
     allocation_path = None
-    if performance_series:
-        performance_path = output_dir / "performance_12m.svg"
-        performance_path.write_text(render_performance_svg(performance_series), encoding="utf-8")
     if allocation_items:
         allocation_path = output_dir / "allocation_asset_class.svg"
         allocation_path.write_text(render_allocation_donut_svg(allocation_items), encoding="utf-8")
-    return ChartAssets(performance_path, allocation_path)
+    return ChartAssets(performance_svg=None, allocation_svg=allocation_path)
 
 
 def performance_series_from_report_data(
@@ -171,59 +172,6 @@ def _grouped_with_other(
     return grouped
 
 
-def render_performance_svg(points: Sequence[PerformancePoint]) -> str:
-    width = CHART_WIDTH
-    height = CHART_HEIGHT
-    left = CHART_LEFT
-    right = CHART_RIGHT
-    top = CHART_TOP
-    bottom = CHART_BOTTOM
-    plot_width = width - left - right
-    plot_height = height - top - bottom
-    y_min, y_max, ticks = _chart_axis(points)
-
-    def x_at(index: int) -> float:
-        if len(points) == 1:
-            return left + plot_width / 2
-        return left + (plot_width * index / (len(points) - 1))
-
-    def y_at(value: float) -> float:
-        return top + ((y_max - value) / (y_max - y_min)) * plot_height
-
-    grid_lines = _grid_line_markup(ticks, y_at=y_at, left=left, right_edge=width - right)
-    portfolio_path = _polyline(
-        [(x_at(index), y_at(point.cumulative_twr)) for index, point in enumerate(points)]
-    )
-    point_markers = "\n".join(
-        f'<circle cx="{x_at(index):.2f}" cy="{y_at(point.cumulative_twr):.2f}" r="4" fill="#FFFFFF" stroke="{CHART_COLORS["blue"]}" stroke-width="2" />'
-        for index, point in enumerate(points)
-    )
-    month_labels = "\n".join(
-        f'<text x="{x_at(index):.2f}" y="{height - 18}" text-anchor="middle" class="axis">{_month_label(point.month)}</text>'
-        for index, point in enumerate(points)
-    )
-    benchmark_markup, benchmark_legend = _benchmark_layer(points, x_at=x_at, y_at=y_at, width=width)
-
-    return f'''<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}">
-  <style>
-    text {{ font-family: Arial, Helvetica, sans-serif; }}
-    .axis {{ fill: {CHART_COLORS["slate"]}; font-size: 11px; }}
-    .legend {{ fill: {CHART_COLORS["text"]}; font-size: 12px; font-weight: 600; }}
-  </style>
-  <rect width="100%" height="100%" fill="#FFFFFF" />
-  {grid_lines}
-  <line x1="{left}" y1="{top}" x2="{left}" y2="{height - bottom}" stroke="{CHART_COLORS["border"]}" stroke-width="0.8" />
-  <line x1="{left}" y1="{height - bottom}" x2="{width - right}" y2="{height - bottom}" stroke="{CHART_COLORS["border"]}" stroke-width="0.8" />
-  {benchmark_markup}
-  <path d="{portfolio_path}" fill="none" stroke="{CHART_COLORS["blue"]}" stroke-width="2.35" stroke-linecap="round" stroke-linejoin="round" />
-  {point_markers}
-  {month_labels}
-  <circle cx="{width - 186}" cy="24" r="4" fill="#FFFFFF" stroke="{CHART_COLORS["blue"]}" stroke-width="2" />
-  <text x="{width - 174}" y="28" class="legend">Portfolio</text>
-  {benchmark_legend}
-</svg>'''
-
-
 def _chart_axis(points: Sequence[PerformancePoint]) -> tuple[float, float, list[float]]:
     """Axis bounds and gridlines decided together, so every tick lands inside the plot.
 
@@ -259,45 +207,6 @@ def _chart_value_bounds(points: Sequence[PerformancePoint]) -> tuple[int, int]:
     max_value = max(values)
     padding = max((max_value - min_value) * 0.15, 0.8)
     return math.floor(min_value - padding), math.ceil(max_value + padding)
-
-
-def _grid_line_markup(
-    ticks: Sequence[float], *, y_at: Callable[[float], float], left: int, right_edge: int
-) -> str:
-    grid_lines = []
-    for tick in ticks:
-        y = y_at(tick)
-        stroke = CHART_COLORS["slate"] if abs(tick) < 0.0001 else CHART_COLORS["border"]
-        thickness = "1.1" if abs(tick) < 0.0001 else "0.7"
-        grid_lines.append(
-            f'<line x1="{left}" y1="{y:.2f}" x2="{right_edge}" y2="{y:.2f}" stroke="{stroke}" stroke-width="{thickness}" opacity="0.75" />'
-            f'<text x="{left - 12}" y="{y + 4:.2f}" text-anchor="end" class="axis">{tick:.0f}%</text>'
-        )
-    return "".join(grid_lines)
-
-
-def _benchmark_layer(
-    points: Sequence[PerformancePoint],
-    *,
-    x_at: Callable[[int], float],
-    y_at: Callable[[float], float],
-    width: int,
-) -> tuple[str, str]:
-    """Dashed benchmark path and its legend entry, or empty strings without one."""
-    benchmark_points = [
-        (x_at(index), y_at(point.benchmark_cumulative_twr))
-        for index, point in enumerate(points)
-        if point.benchmark_cumulative_twr is not None
-    ]
-    if len(benchmark_points) < 2:
-        return "", ""
-    benchmark_path = _polyline(benchmark_points)
-    markup = f'<path d="{benchmark_path}" fill="none" stroke="{CHART_COLORS["teal"]}" stroke-width="1.8" stroke-dasharray="6 5" opacity="0.72" />'
-    legend = (
-        f'<line x1="{width - 92}" y1="24" x2="{width - 62}" y2="24" stroke="{CHART_COLORS["teal"]}" stroke-width="1.8" stroke-dasharray="6 5" opacity="0.72" />'
-        f'<text x="{width - 54}" y="28" class="legend">Benchmark</text>'
-    )
-    return markup, legend
 
 
 def render_allocation_donut_svg(items: Sequence[AllocationSlice]) -> str:
@@ -427,15 +336,6 @@ def _nice_ticks(y_min: float, y_max: float, count: int) -> list[float]:
         ticks.append(0.0 if abs(tick) < step * 1e-9 else tick)
         tick += step
     return ticks
-
-
-def _polyline(points: Sequence[tuple[float, float]]) -> str:
-    if not points:
-        return ""
-    first_x, first_y = points[0]
-    commands = [f"M {first_x:.2f} {first_y:.2f}"]
-    commands.extend(f"L {x:.2f} {y:.2f}" for x, y in points[1:])
-    return " ".join(commands)
 
 
 def _point_on_circle(cx: float, cy: float, radius: float, angle: float) -> tuple[float, float]:

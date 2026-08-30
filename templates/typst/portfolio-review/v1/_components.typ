@@ -128,7 +128,10 @@
 // A chart and the words naming it are one unit. Left breakable, this card split at a
 // page boundary and stranded "12-Month Cumulative Performance" at the foot of one page
 // with an unlabelled plot at the top of the next -- a chart of nothing in particular.
-#let chart-card(title, chart-path, subtitle: none, note: none) = block(
+// Takes the chart as content rather than as an image path, so a chart drawn with the
+// document's own primitives inherits its fonts, colours and type scale. An SVG carries
+// private copies of all three, which is one of the ways the palette drifted.
+#let chart-card(title, body, subtitle: none, note: none) = block(
   inset: 12pt,
   fill: white,
   stroke: (paint: rule, thickness: hairline),
@@ -141,12 +144,21 @@
     #text(size: 8.1pt, fill: slate)[#subtitle]
   ]
   #v(8pt)
-  #image(chart-path, width: 100%)
+  #body
   #if note != none [
     #v(6pt)
     #text(size: 7.4pt, fill: slate)[#note]
   ]
 ]
+
+// The allocation donut is still an SVG asset. Kept as a separate component so the
+// remaining image-backed chart is visible rather than hidden behind a shared name, and
+// so it can be deleted outright when the donut becomes a native primitive too (#150).
+#let chart-image-card(title, chart-path, subtitle: none) = chart-card(
+  title,
+  image(chart-path, width: 100%),
+  subtitle: subtitle,
+)
 
 #let chart-placeholder(title, message) = block(
   inset: 12pt,

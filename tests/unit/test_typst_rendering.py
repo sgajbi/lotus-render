@@ -531,7 +531,10 @@ def test_typst_render_service_builds_richer_portfolio_review_context() -> None:
     assert "performance-chart-row(" in template_context["PERFORMANCE_MONTHLY_CHART_ROWS"]
     assert "#performance-chart-row(" in template_context["PERFORMANCE_ANNUAL_CHART_ROWS"]
     assert "#performance-detail-row(" in template_context["PERFORMANCE_MONTHLY_TABLE_ROWS"]
-    assert "assets/charts/performance_12m.svg" in template_context["PERFORMANCE_12M_CHART_SECTION"]
+    # Drawn natively rather than shipped as an SVG asset, so the section carries the
+    # chart's geometry rather than a path to an image.
+    assert "#line-chart(" in template_context["PERFORMANCE_12M_CHART_SECTION"]
+    assert "assets/charts" not in template_context["PERFORMANCE_12M_CHART_SECTION"]
     assert "#holding-row(" in template_context["HOLDING_ROWS"]
     assert "#allocation-row(" in template_context["HOLDING_BAR_ROWS"]
     assert "#compact-allocation-row(" in template_context["ASSET_CLASS_ROWS"]
