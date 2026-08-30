@@ -72,6 +72,13 @@ def test_merged_pr_dispatch_binds_main_releasability_to_exact_sha() -> None:
     assert "expected_sha:" in main_gate
     assert 'actual_sha="$(git rev-parse HEAD)"' in main_gate
     assert "inputs.expected_sha || github.sha" in main_gate
+    parsed = yaml.safe_load(main_gate)
+    roots = {
+        name
+        for name, job in parsed["jobs"].items()
+        if name != "exact-revision-assertion" and "needs" not in job
+    }
+    assert roots == set()
 
 
 def test_make_dependency_inventory_does_not_cross_target_boundaries() -> None:

@@ -57,6 +57,7 @@ jobs:
 
   workflow-lint:
     name: Main Releasability / Workflow Lint
+    needs: [exact-revision-assertion]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -64,6 +65,7 @@ jobs:
 
   lint-typecheck-security:
     name: Main Releasability / Lint Typecheck Security
+    needs: [exact-revision-assertion]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
