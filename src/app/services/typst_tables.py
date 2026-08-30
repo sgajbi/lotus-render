@@ -6,8 +6,9 @@ the performance, holdings, positions, transactions and allocation tables.
 
 from __future__ import annotations
 
-from collections.abc import Mapping, Sequence
+from collections.abc import Iterable, Mapping, Sequence
 
+from app.services.chart_geometry import performance_chart_geometry
 from app.services.number_format import format_money, format_percent, group_digits
 from app.services.portfolio_charts import (
     allocation_items_from_report_data,
@@ -27,16 +28,77 @@ from app.services.typst_values import (
 )
 
 
+def _typst_dictionary(**fields: object) -> str:
+    """A Typst dictionary literal. Numbers are emitted at fixed precision.
+
+    Fixed precision rather than `repr`: a float rendered as `0.30000000000000004` is both
+    unreadable in the generated source and a needless way for two equal geometries to
+    produce different bytes.
+    """
+    parts = []
+    for name, value in fields.items():
+        key = name.replace("_", "-")
+        if isinstance(value, bool):
+            parts.append(f"{key}: {'true' if value else 'false'}")
+        elif isinstance(value, float):
+            parts.append(f"{key}: {value:.5f}")
+        else:
+            parts.append(f'{key}: "{escape_typst_string(str(value))}"')
+    return "(" + ", ".join(parts) + ")"
+
+
+def _typst_array(items: Iterable[str]) -> str:
+    """A Typst array literal.
+
+    The trailing comma that disambiguates a one-element array is a syntax error on an
+    empty one -- `(,)` does not parse -- and an empty benchmark series is the ordinary
+    case, not an edge case.
+    """
+    rendered = list(items)
+    if not rendered:
+        return "()"
+    return "(" + ", ".join(rendered) + ",)"
+
+
 def render_performance_chart_section(report_data: Mapping[str, object]) -> str:
-    if not performance_series_from_report_data(report_data):
+    """The 12-month chart, drawn natively rather than shipped as an SVG.
+
+    The geometry is computed in `chart_geometry`, where it is unit-tested; this only
+    turns it into the arguments of a Typst call.
+    """
+    geometry = performance_chart_geometry(performance_series_from_report_data(report_data))
+    if geometry is None:
         return (
             '#chart-placeholder("12-Month Cumulative Performance", '
             '"No 12-month performance series is available for this report.")'
         )
+
+    gridlines = _typst_array(
+        _typst_dictionary(label=line.label, at=line.at, zero=line.zero)
+        for line in geometry.gridlines
+    )
+    points = _typst_array(
+        _typst_dictionary(at=point.at, value=point.value) for point in geometry.points
+    )
+    labels = _typst_array(
+        _typst_dictionary(text=label.text, at=label.at) for label in geometry.labels
+    )
+    benchmark = _typst_array(
+        _typst_dictionary(at=point.at, value=point.value) for point in geometry.benchmark
+    )
+    benchmark_label = '"Benchmark"' if geometry.benchmark else "none"
+
     return (
         '#chart-card("12-Month Cumulative Performance", '
-        '"assets/charts/performance_12m.svg", '
-        'subtitle: "Net performance, valued in reporting currency")'
+        'subtitle: "Net performance, valued in reporting currency")[\n'
+        f"  #line-chart(\n"
+        f"    gridlines: {gridlines},\n"
+        f"    points: {points},\n"
+        f"    labels: {labels},\n"
+        f"    benchmark: {benchmark},\n"
+        f"    benchmark-label: {benchmark_label},\n"
+        f"  )\n"
+        "]"
     )
 
 
@@ -47,7 +109,7 @@ def render_allocation_chart_section(report_data: Mapping[str, object]) -> str:
             '"No allocation breakdown is available for this report.")'
         )
     return (
-        '#chart-card("Asset Allocation", '
+        '#chart-image-card("Asset Allocation", '
         '"assets/charts/allocation_asset_class.svg", '
         'subtitle: "Portfolio composition by market value")'
     )

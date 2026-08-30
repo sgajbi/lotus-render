@@ -1,3 +1,4 @@
+#import "_charts.typ": line-chart
 #import "_theme.typ": empty-state, rule, section-subtitle, section-title, soft-rule
 #import "_components.typ": chart-card, chart-placeholder, chart-scale-note, page-header, performance-chart-row, performance-detail-row, performance-summary-cell, period-row, report-panel, section-marker, table-label
 
