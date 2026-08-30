@@ -177,8 +177,8 @@ def _arc_commands(start: float, end: float, radius: float) -> list[tuple[str, tu
 
 
 # The unfilled remainder of a breakdown that does not add up to the whole portfolio.
-# `rule`, so it reads as an absence against the palette rather than as a sixth holding.
-UNCHARTED_COLOUR = "#D9E1E8"
+# What the name resolves to is decided in `_design.typ` with every other colour.
+UNCHARTED_COLOUR = "series-uncharted"
 
 
 def _ring_commands(

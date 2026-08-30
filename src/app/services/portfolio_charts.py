@@ -19,9 +19,18 @@ from decimal import Decimal, InvalidOperation
 
 from app.services.typst_values import row_sequence
 
-# Six is the palette, and the allocation grouping folds anything past the fifth-largest
-# slice into "Other", so a wrap here would mean two slices sharing a colour.
-ALLOCATION_PALETTE = ("#1F5AA6", "#2C7A7B", "#C38B2E", "#6B7280", "#7C5C99", "#8AA6A3")
+# Series names, not colours: what they look like is decided in `_design.typ` with the
+# rest of the document's palette. Six is the palette, and the allocation grouping folds
+# anything past the fifth-largest slice into "Other", so a wrap here would mean two
+# slices sharing a colour.
+ALLOCATION_PALETTE = (
+    "series-1",
+    "series-2",
+    "series-3",
+    "series-4",
+    "series-5",
+    "series-6",
+)
 # How many gridlines the axis aims for. `_nice_ticks` may return one more or one fewer,
 # because it rounds to a round step rather than to a count.
 CHART_TICK_COUNT = 5

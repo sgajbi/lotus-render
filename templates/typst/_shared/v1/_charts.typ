@@ -18,7 +18,7 @@
 // tick arithmetic belongs where it can be unit-tested. These functions place; they do
 // not decide.
 
-#import "_design.typ": accent, ink, navy, rule, slate
+#import "_design.typ": SERIES_PALETTE, accent, ink, navy, rule, slate
 
 // `curve` needs concrete lengths, so the width is read from the container with `layout`
 // rather than hardcoded. Hardcoding it meant the plot filled 452pt of a 727pt card and
@@ -131,7 +131,7 @@
 #let DONUT_SIZE = 132pt
 
 #let _donut-path(segment, size) = curve(
-  fill: rgb(segment.colour),
+  fill: SERIES_PALETTE.at(segment.colour),
   stroke: none,
   ..segment.commands.map(command => {
     let v = command.at("values")
@@ -160,7 +160,7 @@
   row-gutter: 6pt,
   ..entries
     .map(entry => (
-      align(horizon)[#rect(width: 8pt, height: 8pt, radius: 1pt, fill: rgb(entry.colour))],
+      align(horizon)[#rect(width: 8pt, height: 8pt, radius: 1pt, fill: SERIES_PALETTE.at(entry.colour))],
       align(horizon)[#text(size: 8.1pt, fill: ink)[#entry.label]],
       align(horizon + right)[#text(size: 8.1pt, weight: 500, fill: ink)[#entry.weight]],
       align(horizon + right)[#text(size: 7.4pt, fill: slate)[#entry.value]],

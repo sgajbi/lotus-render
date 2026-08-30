@@ -220,3 +220,48 @@ def test_the_scale_steps_are_far_enough_apart_to_be_choices() -> None:
     # Not strict: an offset zip is meant to be one shorter.
     gaps = [round(b - a, 4) for a, b in zip(steps, steps[1:])]  # noqa: B905
     assert min(gaps) >= 0.6, f"these steps are closer than 0.6pt apart: {list(zip(steps, gaps))}"
+
+
+DESIGN_TOKENS = Path("templates/typst/_shared/v1/_design.typ")
+
+
+def test_every_series_a_chart_can_name_is_declared_in_the_design_system() -> None:
+    """A name with no colour behind it fails the whole document, not just its chart.
+
+    Typst resolves `SERIES_PALETTE.at(name)` at compile time. The palette lives in the
+    design system and the emitters name a series, so nothing but this holds the two
+    together.
+    """
+
+    from app.services.chart_geometry import UNCHARTED_COLOUR
+    from app.services.portfolio_charts import ALLOCATION_PALETTE
+
+    declared = set(
+        re.findall(r'^  "([a-z0-9-]+)": ', DESIGN_TOKENS.read_text(encoding="utf-8"), re.M)
+    )
+    named = {*ALLOCATION_PALETTE, UNCHARTED_COLOUR}
+
+    assert declared, "no series were parsed out of the design system"
+    assert not named - declared, (
+        f"these series are named and undeclared: {sorted(named - declared)}"
+    )
+    assert not declared - named, (
+        f"these series are declared and unreachable: {sorted(declared - named)}"
+    )
+
+
+def test_no_emitter_decides_what_a_colour_is() -> None:
+    """Colour is the design system's to decide, so a hex literal in Python is a palette
+    the templates cannot restyle. `ALLOCATION_PALETTE` was six of them, four duplicating
+    tokens that could drift from their own copies without anything noticing."""
+
+    offenders = {
+        path.as_posix(): found
+        for path in Path("src").rglob("*.py")
+        if (found := re.findall(r'"#[0-9A-Fa-f]{3,8}"', path.read_text(encoding="utf-8")))
+    }
+
+    assert not offenders, (
+        f"these modules name a colour instead of naming a series: {offenders}. Declare it "
+        "in _design.typ and emit the name."
+    )
