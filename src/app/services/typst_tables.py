@@ -20,6 +20,14 @@ from app.services.portfolio_charts import (
     allocation_items_from_report_data,
     performance_series_from_report_data,
 )
+from app.services.statement_layouts import POSITION_COLUMNS, TRANSACTION_COLUMNS
+from app.services.statement_tables import (
+    StatementColumn,
+    live_columns,
+    render_header,
+    render_rows,
+    render_widths,
+)
 from app.services.typst_values import (
     escape_typst_string,
     mapping_entries,
@@ -336,166 +344,33 @@ def render_holding_bar_rows(holdings: object) -> str:
 
 
 # A colspan cell so the empty state is a row of the table rather than a stray block
-# outside it, which would sit above the repeating header on later pages.
-DENSE_POSITION_COLUMNS = 8
-_NO_POSITIONS_CELL = (
-    f"table.cell(colspan: {DENSE_POSITION_COLUMNS})"
-    '[#empty-state("No position detail available.", size: 8pt)],'
-)
+# outside it, which would sit above the repeating header on later pages. A table with
+# no rows is drawn as a single column, so the message spans everything there is.
+_NO_POSITIONS_CELL = '[#empty-state("No position detail available.", size: 8pt)],'
+_NO_TRANSACTIONS_CELL = '[#empty-state("No transaction detail available.", size: 8pt)],'
 
 
-DENSE_TRANSACTION_COLUMNS = 7
-_NO_TRANSACTIONS_CELL = (
-    f"table.cell(colspan: {DENSE_TRANSACTION_COLUMNS})"
-    '[#empty-state("No transaction detail available.", size: 8pt)],'
-)
+def _statement_parts(
+    columns: tuple[StatementColumn, ...], rows: object, empty: str
+) -> tuple[str, str, str]:
+    """Widths, header and body for one statement table, from one declaration."""
+    entries = list(mapping_entries(rows))
+    live = live_columns(columns, entries)
+    if not entries or not live:
+        # One column, no labels: there is nothing to label, and a blank header row
+        # would draw a rule over the message.
+        return "(1fr,)", "", empty
+    return render_widths(live), render_header(live), render_rows(live, entries)
 
 
-def render_dense_position_rows(holdings: object) -> str:
-    """Rows for a Typst ``table``: comma-terminated calls the template spreads.
-
-    They used to be standalone ``#grid`` blocks, each drawing its own rule, so nothing
-    could repeat a header on page 2 and a rule could land alone at the top of a page
-    (issue #138). As table rows the header repeats by construction and the separator
-    belongs to the row.
-    """
-    rendered: list[str] = []
-    for item in mapping_entries(holdings):
-        number_amount = (
-            f"{group_digits(item.get('quantity', 'Not available'))} {item.get('currency', '')};"
-            f"{item.get('security_id', 'Not available')}"
-        )
-        description = (
-            f"{item.get('security_name', 'Unknown holding')}; "
-            f"{item.get('instrument_name', 'Not available')}; "
-            f"ISIN {item.get('isin', 'Not available')}"
-        )
-        classification = (
-            f"{item.get('rating', 'Not available')};"
-            f"{item.get('sector', 'Not available')};"
-            f"{group_digits(item.get('duration', 'Not available'))};"
-            f"{item.get('yield_to_maturity', item.get('yield_pct', 'Not available'))}"
-        )
-        cost_basis = (
-            f"{item.get('cost_price', item.get('average_cost_price', 'Not available'))};"
-            f"{group_digits(item.get('exchange_rate', 'Not available'))};"
-            f"{group_digits(item.get('cost_basis_local', 'Not available'))};"
-            f"{item.get('held_since_date', 'Not available')}"
-        )
-        market_price_date = item.get(
-            "market_price_date",
-            item.get("price_date", item.get("position_date", "Not available")),
-        )
-        market_value = (
-            f"{group_digits(item.get('market_price', 'Not available'))};"
-            f"{group_digits(item.get('exchange_rate', 'Not available'))};"
-            f"{market_price_date};"
-            f"{group_digits(item.get('ytd_total_return_pct', 'Not available'))}"
-        )
-        gain_loss = (
-            f"{group_digits(item.get('unrealized_pnl_pct', 'Not available'))};"
-            f"{item.get('currency', 'Not available')};"
-            f"{group_digits(item.get('unrealized_pnl', 'Not available'))}"
-        )
-        accrued_interest = item.get(
-            "accrued_interest",
-            item.get("accrued_interest_reporting_currency", "Not available"),
-        )
-        performance = (
-            f"{group_digits(item.get('market_value', 'Not available'))};{accrued_interest}"
-        )
-        rendered.append(
-            'dense-position-row("'
-            + escape_typst_string(str(item.get("asset_class", "Not available")))
-            + '", "'
-            + escape_typst_string(number_amount)
-            + '", "'
-            + escape_typst_string(description)
-            + '", "'
-            + escape_typst_string(classification)
-            + '", "'
-            + escape_typst_string(cost_basis)
-            + '", "'
-            + escape_typst_string(market_value)
-            + '", "'
-            + escape_typst_string(gain_loss)
-            + '", "'
-            + escape_typst_string(performance)
-            + '", "'
-            + escape_typst_string(group_digits(item.get("weight_pct", "Not available")))
-            + '"),'
-        )
-    if not rendered:
-        return _NO_POSITIONS_CELL
-    return "\n".join(rendered)
+def render_position_table(holdings: object) -> tuple[str, str, str]:
+    """The positions table, drawn only as wide as the holdings can fill it."""
+    return _statement_parts(POSITION_COLUMNS, holdings, _NO_POSITIONS_CELL)
 
 
-def render_dense_transaction_rows(transactions: object) -> str:
-    rendered: list[str] = []
-    for item in mapping_entries(transactions):
-        detail_primary = (
-            f"{item.get('display_label', 'Transaction')}  |  "
-            f"{item.get('transaction_type', 'Not available')}  |  "
-            f"Category {item.get('transaction_category', 'Not available')}  |  "
-            f"Asset class {item.get('asset_class', 'Not available')}"
-        )
-        detail_secondary = (
-            f"Reference {item.get('transaction_id', 'Not available')}  |  "
-            f"Security {item.get('security_id', 'Not available')}  |  "
-            f"Instrument {item.get('instrument_id', 'Not available')}"
-        )
-        trade_date = (
-            f"{item.get('trade_date', 'Not available')};"
-            f"{item.get('value_date', item.get('settlement_date', 'Not available'))}"
-        )
-        booking_text = (
-            f"{item.get('booking_text', 'Not available')};"
-            f"{item.get('display_label', 'Not available')}"
-        )
-        price = (
-            f"{group_digits(item.get('price', 'Not available'))};"
-            f"{item.get('reporting_currency', '')};"
-            f"{group_digits(item.get('gross_amount_reporting_currency', 'Not available'))};"
-            f"{item.get('place_of_execution', '')}"
-        )
-        gain = (
-            f"{group_digits(item.get('price', 'Not available'))};"
-            f"{item.get('reporting_currency', '')};"
-            f"{group_digits(item.get('gain_loss', 'Not available'))}"
-        )
-        settlement_amount = item.get(
-            "settlement_amount_reporting_currency",
-            item.get("settlement_amount", "Not available"),
-        )
-        value = (
-            f"{group_digits(item.get('transaction_value', 'Not available'))};"
-            f"{group_digits(item.get('net_interest_amount_reporting_currency', 'Not available'))};"
-            f"{group_digits(settlement_amount)}"
-        )
-        rendered.append(
-            'dense-transaction-row("'
-            + escape_typst_string(trade_date)
-            + '", "'
-            + escape_typst_string(booking_text)
-            + '", "'
-            + escape_typst_string(group_digits(item.get("amount", "Not available")))
-            + '", "'
-            + escape_typst_string(str(item.get("description", "Not available")))
-            + '", "'
-            + escape_typst_string(detail_primary)
-            + '", "'
-            + escape_typst_string(detail_secondary)
-            + '", "'
-            + escape_typst_string(price)
-            + '", "'
-            + escape_typst_string(gain)
-            + '", "'
-            + escape_typst_string(value)
-            + '"),'
-        )
-    if not rendered:
-        return _NO_TRANSACTIONS_CELL
-    return "\n".join(rendered)
+def render_transaction_table(transactions: object) -> tuple[str, str, str]:
+    """The transaction list, drawn only as wide as the transactions can fill it."""
+    return _statement_parts(TRANSACTION_COLUMNS, transactions, _NO_TRANSACTIONS_CELL)
 
 
 def render_allocation_breakdown_rows(rows: object) -> str:

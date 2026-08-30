@@ -1,5 +1,5 @@
 #import "_theme.typ": accent, empty-state, rule, slate
-#import "_components.typ": dense-transaction-row, report-panel, section-marker, stacked-table-label
+#import "_components.typ": report-panel, section-marker, stacked-table-label, statement-cell
 
 #let transactions-page() = [
   #section-marker("Transactions", "Transaction activity across the review period", header: "Transaction list")
@@ -13,19 +13,13 @@
     // separator is the row's own stroke rather than a sibling that can drift away from
     // it (issue #138).
     #table(
-      columns: (0.78fr, 0.82fr, 0.88fr, 2.3fr, 0.95fr, 0.9fr, 0.95fr),
+      columns: ${TRANSACTION_TABLE_WIDTHS},
       column-gutter: 8pt,
       inset: (x: 0pt, y: 4.5pt),
       stroke: (x, y) => (bottom: (paint: rule, thickness: 0.25pt)),
       table.header(
         repeat: true,
-        [#stacked-table-label(("Trade date", "Value date"))],
-        [#stacked-table-label(("Booking text", "Brokerage"))],
-        [#stacked-table-label(("Number/Amount", "Tax", "Account"), placement: right)],
-        [#stacked-table-label(("Description", "Custody account", "Account"))],
-        [#stacked-table-label(("Purchase price", "Exchange rate", "Cost value", "Place of execution"), placement: right)],
-        [#stacked-table-label(("Transaction price", "Exchange rate", "Realized P/L"), placement: right)],
-        [#stacked-table-label(("Transaction value", "Accrued interest", "Settlement amount"), placement: right)],
+        ${TRANSACTION_TABLE_HEADER}
       ),
       ..(
         ${DENSE_TRANSACTION_ROWS}

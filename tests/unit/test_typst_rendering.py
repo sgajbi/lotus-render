@@ -46,8 +46,6 @@ from app.services.typst_rendering import (
 from app.services.typst_tables import (
     render_allocation_breakdown_rows,
     render_allocation_chart_section,
-    render_dense_position_rows,
-    render_dense_transaction_rows,
     render_holding_bar_rows,
     render_holding_rows,
     render_observation_notes,
@@ -56,6 +54,8 @@ from app.services.typst_tables import (
     render_performance_detail_rows,
     render_performance_period_rows,
     render_performance_summary_table,
+    render_position_table,
+    render_transaction_table,
     supplemental_allocation_view,
 )
 from app.services.typst_values import (
@@ -544,31 +544,50 @@ def test_typst_render_service_builds_richer_portfolio_review_context() -> None:
     # Drawn, not merely declared: a donut with no curve commands is an empty card.
     assert 'kind: "cubic"' in donut
     assert "#compact-allocation-row(" in template_context["SUPPLEMENTAL_ALLOCATION_ROWS"]
-    # Rows are spread into a Typst table, so they are code-context calls rather than
-    # markup blocks and carry no leading '#' (issue #138).
-    assert "dense-position-row(" in template_context["DENSE_POSITION_ROWS"]
-    assert "#dense-position-row(" not in template_context["DENSE_POSITION_ROWS"]
-    assert "dense-transaction-row(" in template_context["DENSE_TRANSACTION_ROWS"]
-    assert "#dense-transaction-row(" not in template_context["DENSE_TRANSACTION_ROWS"]
+    # Rows are spread into a Typst table, so each is a tuple of cells in code context
+    # rather than a markup block carrying a leading '#' (issue #138).
+    for statement in ("POSITION", "TRANSACTION"):
+        rows = template_context[f"DENSE_{statement}_ROWS"]
+        header = template_context[f"{statement}_TABLE_HEADER"]
+        assert rows.startswith("([#statement-cell("), rows[:40]
+        assert not rows.startswith("#"), rows[:40]
+        # Header and body come from one declaration, so every column is labelled and
+        # every label has values under it.
+        assert header.count("#stacked-table-label(") == rows.splitlines()[0].count(
+            "#statement-cell("
+        )
+        assert "Not available" not in rows, (
+            f"the {statement.lower()} table prints an absence for a field it labels"
+        )
     assert template_context["TRANSACTION_PERIOD_LABEL"] == "From 01.01.2026 to 23.04.2026"
     assert template_context["SUPPLEMENTAL_ALLOCATION_TITLE"] == "By currency"
     assert "Equity" in template_context["ASSET_CLASS_ROWS"]
     assert "USD" in template_context["SUPPLEMENTAL_ALLOCATION_ROWS"]
     assert "EQ-1" in template_context["DENSE_POSITION_ROWS"]
     assert "US0000000001" in template_context["DENSE_POSITION_ROWS"]
-    assert (
-        "Not available;Not available;8,118,290.51;2024-01-15"
-        in template_context["DENSE_POSITION_ROWS"]
-    )
-    assert "9,140,740.73;Not available" in template_context["DENSE_POSITION_ROWS"]
-    assert "Cost value" not in template_context["DENSE_POSITION_ROWS"]
-    assert "Average weight" not in template_context["DENSE_POSITION_ROWS"]
+    # This used to assert "Not available;Not available;8,118,290.51;2024-01-15" and
+    # "9,140,740.73;Not available" -- it banked the absences as expected output, so the
+    # thing that was wrong with the table was the thing the test held in place.
+    assert "8,118,290.51" in template_context["DENSE_POSITION_ROWS"]
+    assert "2024-01-15" in template_context["DENSE_POSITION_ROWS"]
+    assert "9,140,740.73" in template_context["DENSE_POSITION_ROWS"]
+    # Fields the golden holdings do carry and the old table ignored.
+    assert "United States" in template_context["DENSE_POSITION_ROWS"]
+    assert "Country of risk" in template_context["POSITION_TABLE_HEADER"]
     assert "TXN-20260109-BUY-001" in template_context["DENSE_TRANSACTION_ROWS"]
     assert "INST-EQ-1" in template_context["DENSE_TRANSACTION_ROWS"]
     assert "Reference TXN-20260109-BUY-001" in template_context["DENSE_TRANSACTION_ROWS"]
     assert "Instrument INST-EQ-1" in template_context["DENSE_TRANSACTION_ROWS"]
-    assert "09.01.2026;Not available" in template_context["DENSE_TRANSACTION_ROWS"]
-    assert "NAV 102.35;;450,000.00;" in template_context["DENSE_TRANSACTION_ROWS"]
+    # These asserted "09.01.2026;Not available" and "NAV 102.35;;450,000.00;" -- the
+    # first banked a value date no transaction supplies, the second a pair of empty
+    # lines where the reporting currency and place of execution would have gone. Both
+    # held the defect in place. What matters is that the trade date and the price reach
+    # the page and that nothing beside them is blank.
+    assert "09.01.2026" in template_context["DENSE_TRANSACTION_ROWS"]
+    assert "NAV 102.35" in template_context["DENSE_TRANSACTION_ROWS"]
+    assert '"", size:' not in template_context["DENSE_TRANSACTION_ROWS"], (
+        "a transaction cell carries an empty line for a field that never arrives"
+    )
     assert "#review-note(" in template_context["OBSERVATION_NOTES"]
 
 
@@ -896,10 +915,10 @@ def test_typst_render_service_helper_fallbacks_cover_sparse_structures() -> None
     assert "No governed holdings available." in render_holding_rows("bad")
     assert "No governed holdings available." in render_holding_rows([123])
     assert "No governed allocation rows available." in render_holding_bar_rows("bad")
-    assert "No position detail available." in render_dense_position_rows("bad")
-    assert "No position detail available." in render_dense_position_rows([123])
-    assert "No transaction detail available." in render_dense_transaction_rows("bad")
-    assert "No transaction detail available." in render_dense_transaction_rows([123])
+    assert "No position detail available." in render_position_table("bad")[2]
+    assert "No position detail available." in render_position_table([123])[2]
+    assert "No transaction detail available." in render_transaction_table("bad")[2]
+    assert "No transaction detail available." in render_transaction_table([123])[2]
     assert "No allocation detail available." in render_allocation_breakdown_rows("bad")
     assert "No allocation detail available." in render_allocation_breakdown_rows([123])
     assert "No approved narrative section supplied." in render_advisory_narrative_blocks("bad")
@@ -943,12 +962,12 @@ def test_typst_render_service_allocation_view_falls_back_when_no_breakdowns_exis
 def test_typst_render_service_returns_empty_messages_when_sequences_have_no_mapping_rows() -> None:
     assert "No governed holdings available." in render_holding_rows([123, 456])
     assert "No governed allocation rows available." in render_holding_bar_rows([123, 456])
-    assert "No position detail available." in render_dense_position_rows([123, 456])
-    assert "No transaction detail available." in render_dense_transaction_rows([123, 456])
+    assert "No position detail available." in render_position_table([123, 456])[2]
+    assert "No transaction detail available." in render_transaction_table([123, 456])[2]
 
 
 def test_typst_render_service_maps_dense_position_lifecycle_fields() -> None:
-    rows = render_dense_position_rows(
+    _, _, rows = render_position_table(
         [
             {
                 "asset_class": "Fixed Income",
@@ -978,16 +997,33 @@ def test_typst_render_service_maps_dense_position_lifecycle_fields() -> None:
         ]
     )
 
-    assert "A;Financials;4.20;5.10%" in rows
-    assert "98.40;1.3520;9,840.00;2024-01-15" in rows
-    assert "101.25;1.3520;2026-04-23;3.10%" in rows
-    assert "10,125.00;42.25" in rows
-    assert "product_type" not in rows
-    assert "liquidity_tier" not in rows
+    # The requirement is that every supplied field reaches the page, not that the row
+    # spells them in one particular joined string: the previous form of this test
+    # asserted the semicolon layout, which is why it could not see that five of the
+    # labelled fields were never supplied by anything and printed "Not available".
+    for supplied in (
+        "Financials",
+        "4.20",
+        "5.10%",
+        "98.40",
+        "1.3520",
+        "9,840.00",
+        "2024-01-15",
+        "101.25",
+        "2026-04-23",
+        "3.10%",
+        "2.90%",
+        "285.00",
+        "10,125.00",
+        "42.25",
+        "6.20%",
+    ):
+        assert supplied in rows, f"{supplied} was supplied and does not reach the page"
+    assert "Not available" not in rows, "a row that supplies every field still printed an absence"
 
 
 def test_typst_render_service_maps_transaction_value_date_and_settlement_amount() -> None:
-    rows = render_dense_transaction_rows(
+    _, _, rows = render_transaction_table(
         [
             {
                 "display_label": "Buy Bond A",
@@ -1013,10 +1049,13 @@ def test_typst_render_service_maps_transaction_value_date_and_settlement_amount(
         ]
     )
 
-    assert "2026-04-21;2026-04-23" in rows
-    assert "10,125.00;42.25;10,167.25" in rows
-    assert "2026-04-21;2026-04-21" not in rows
-    assert "10125.00;42.25;10125.00" not in rows
+    for supplied in ("2026-04-21", "2026-04-23", "10,125.00", "42.25", "10,167.25"):
+        assert supplied in rows, f"{supplied} was supplied and does not reach the page"
+    # The value date is its own field, not the trade date repeated, and the settlement
+    # amount is its own figure, not the transaction value repeated.
+    assert rows.count("2026-04-21") == 1
+    assert rows.count("10,167.25") == 1
+    assert "Not available" not in rows
 
 
 def test_typst_render_service_numeric_fallback_helpers_cover_invalid_inputs() -> None:

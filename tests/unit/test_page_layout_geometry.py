@@ -94,12 +94,16 @@ GOLDEN_PACKAGE = Path("tests/golden/portfolio-review/v1/render-package.json")
 RISK_PROFILE_PAGE = 6
 RISK_CARD_BAND = (0.71, 0.88)
 
-# The emptiest page of the banked golden, measured. A ratchet rather than a bound: a
-# change that fills pages better must lower it, and one that empties them fails. Page 8
-# The contents page holds it now, which is a page that is meant to be short. Before
-# #184 it was 68.8%, on a page holding six risk cards it had been given by an
-# unconditional break.
-WORST_TAIL_BLANK = 0.499
+# The emptiest page of the banked golden, measured. A baseline rather than a bound: it
+# moves in either direction only with a reason, the way MAX_CYCLOMATIC_COMPLEXITY does.
+#
+# It has been 68.8% (six risk cards given a page by an unconditional break), then 49.9%
+# (the contents page, which is meant to be short), and is now the transaction list. That
+# last move was upward and is still an improvement: the transactions table stopped
+# printing five fields no transaction supplies, so it draws fewer lines over the same
+# three rows. The measure cannot tell whitespace from removed noise, which is why a move
+# in either direction has to be looked at rather than accepted.
+WORST_TAIL_BLANK = 0.556
 
 
 @pytest.fixture(scope="module")

@@ -186,10 +186,20 @@
   ]
 ]
 
-#let stacked-cell(values, placement: right, size: 7.4pt, fill: slate, weight: 400) = align(placement)[
+// A statement cell, built from the fields the row actually supplies. Where
+// `stacked-cell` took one size and colour for a whole stack and a semicolon-joined
+// string that had to line up with a header written somewhere else, each line here
+// carries its own style and the header is emitted from the same declaration.
+#let _statement-tone = (slate: slate, ink: ink, accent: accent)
+
+#let statement-cell(lines, placement: right) = align(placement)[
   #set par(leading: 0.86em)
-  #for value in values.split(";") [
-    #text(size: size, weight: weight, fill: fill)[#value]
+  #for line in lines [
+    #text(
+      size: line.size,
+      weight: line.weight,
+      fill: _statement-tone.at(line.tone),
+    )[#line.value]
     #linebreak()
   ]
 ]
@@ -358,47 +368,4 @@
   #v(6pt)
   #line(length: 100%, stroke: (paint: rule, thickness: 0.3pt))
 ]
-
-// Returns table cells rather than a self-contained grid, so the positions table can be a
-// real #table with a repeating header and a stroke that belongs to the row (issue #138).
-#let dense-position-row(category, number_amount, description, classification, cost_basis, market_value, gain_loss, performance, weight) = (
-  [
-    #text(size: 7.4pt, fill: slate)[#category]
-    #linebreak()
-    #stacked-cell(number_amount, placement: left, size: 7.4pt, fill: ink)
-  ],
-  [
-    #text(size: 8.1pt, fill: ink)[#description]
-    #linebreak()
-    #text(size: 6.8pt, fill: slate)[Sustainability / instrument details]
-  ],
-  [#stacked-cell(classification)],
-  [#stacked-cell(cost_basis, fill: ink)],
-  [#stacked-cell(market_value, fill: ink)],
-  [#stacked-cell(gain_loss)],
-  [#stacked-cell(performance, fill: accent, weight: 500)],
-  [#align(right)[#text(size: 7.4pt, fill: ink)[#weight]]],
-)
-
-// Table cells rather than a self-contained grid, so the transaction table can repeat its
-// header and own its row separator (issue #138), matching the positions table.
-#let dense-transaction-row(trade_date, booking_text, amount, description, detail_primary, detail_secondary, price, gain, value) = (
-  [
-    #stacked-cell(trade_date, placement: left, size: 7.4pt, fill: ink)
-  ],
-  [
-    #stacked-cell(booking_text, placement: left, size: 7.4pt, fill: ink)
-  ],
-  [#stacked-cell(amount, fill: ink)],
-  [
-    #text(size: 8.1pt, fill: ink)[#description]
-    #linebreak()
-    #stacked-cell(detail_primary, placement: left, size: 6.8pt, fill: slate)
-    #linebreak()
-    #stacked-cell(detail_secondary, placement: left, size: 6.8pt, fill: slate)
-  ],
-  [#stacked-cell(price, fill: ink)],
-  [#stacked-cell(gain)],
-  [#stacked-cell(value, fill: accent, weight: 500)],
-)
 
