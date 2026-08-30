@@ -10,6 +10,7 @@ from __future__ import annotations
 from collections.abc import Mapping, Sequence
 
 from app.contracts.render_package import RenderPackage
+from app.services.appendix_glossary import applicable_glossary
 from app.services.number_format import group_digits
 from app.services.render_content import (
     parse_outcome_review_content,
@@ -33,6 +34,7 @@ from app.services.typst_fragments import (
 from app.services.typst_tables import (
     render_allocation_breakdown_rows,
     render_allocation_chart_section,
+    render_appendix_glossary_groups,
     render_dense_position_rows,
     render_dense_transaction_rows,
     render_holding_bar_rows,
@@ -125,6 +127,9 @@ def build_portfolio_review_context(render_package: RenderPackage) -> dict[str, s
             render_context.get("sections"),
             include_advisory_narrative=include_reviewed_advisory_narrative,
             include_advisor_memo=include_advisor_proposal_memo,
+            # The appendix explains the terms this document uses. A report that uses
+            # none of them would otherwise ship a page saying so.
+            include_appendix=bool(applicable_glossary(report_data)),
         ),
         "OPTIONAL_ADVISORY_IMPORT": (
             '#import "_advisory.typ": reviewed-advisory-narrative-page, advisor-proposal-memo-page'
@@ -210,6 +215,7 @@ def build_portfolio_review_context(render_package: RenderPackage) -> dict[str, s
         "HAS_ANNUAL_PERFORMANCE": _presence_flag(report_data.get("performance_annual_history")),
         "HAS_MONTHLY_PERFORMANCE": _presence_flag(report_data.get("performance_monthly_history")),
         "HAS_RISK_PROFILE": _presence_flag(risk_summary),
+        "APPENDIX_GLOSSARY_GROUPS": render_appendix_glossary_groups(report_data),
         "OBSERVATION_NOTES": render_observation_notes(observations),
         "PERFORMANCE_PERIOD_ROWS": render_performance_period_rows(
             report_data.get("performance_periods")
@@ -451,11 +457,13 @@ def render_report_sections(
     *,
     include_advisory_narrative: bool = False,
     include_advisor_memo: bool = False,
+    include_appendix: bool = True,
 ) -> str:
     section_keys = requested_section_keys(
         requested_sections,
         include_advisory_narrative=include_advisory_narrative,
         include_advisor_memo=include_advisor_memo,
+        include_appendix=include_appendix,
     )
     rendered = [f"#{PORTFOLIO_REVIEW_SECTION_CALLS[key]}" for key in section_keys]
     return "\n#pagebreak()\n".join(rendered)
@@ -466,6 +474,7 @@ def requested_section_keys(
     *,
     include_advisory_narrative: bool = False,
     include_advisor_memo: bool = False,
+    include_appendix: bool = True,
 ) -> list[str]:
     if not isinstance(requested_sections, Sequence) or isinstance(
         requested_sections, (str, bytes, bytearray)
@@ -473,11 +482,13 @@ def requested_section_keys(
         return _default_section_keys(
             include_advisory_narrative=include_advisory_narrative,
             include_advisor_memo=include_advisor_memo,
+            include_appendix=include_appendix,
         )
 
     allowed = set(PORTFOLIO_REVIEW_SECTION_CALLS) - _excluded_section_keys(
         include_advisory_narrative=include_advisory_narrative,
         include_advisor_memo=include_advisor_memo,
+        include_appendix=include_appendix,
     )
     normalized: list[str] = []
     seen: set[str] = set()
@@ -492,6 +503,7 @@ def requested_section_keys(
     return _default_section_keys(
         include_advisory_narrative=include_advisory_narrative,
         include_advisor_memo=include_advisor_memo,
+        include_appendix=include_appendix,
     )
 
 
@@ -519,24 +531,30 @@ def _normalized_section_key(item: object) -> str:
 
 
 def _excluded_section_keys(
-    *, include_advisory_narrative: bool, include_advisor_memo: bool
+    *, include_advisory_narrative: bool, include_advisor_memo: bool, include_appendix: bool
 ) -> set[str]:
     excluded: set[str] = set()
     if not include_advisory_narrative:
         excluded.add("advisory_narrative")
     if not include_advisor_memo:
         excluded.add("advisor_memo")
+    if not include_appendix:
+        excluded.add("appendix")
     return excluded
 
 
 def _default_section_keys(
-    *, include_advisory_narrative: bool, include_advisor_memo: bool
+    *, include_advisory_narrative: bool, include_advisor_memo: bool, include_appendix: bool
 ) -> list[str]:
     if include_advisor_memo:
-        return list(DEFAULT_PORTFOLIO_REVIEW_SECTIONS_WITH_ADVISORY_MEMO)
-    if include_advisory_narrative:
-        return list(DEFAULT_PORTFOLIO_REVIEW_SECTIONS_WITH_ADVISORY_NARRATIVE)
-    return list(DEFAULT_PORTFOLIO_REVIEW_SECTIONS)
+        keys = list(DEFAULT_PORTFOLIO_REVIEW_SECTIONS_WITH_ADVISORY_MEMO)
+    elif include_advisory_narrative:
+        keys = list(DEFAULT_PORTFOLIO_REVIEW_SECTIONS_WITH_ADVISORY_NARRATIVE)
+    else:
+        keys = list(DEFAULT_PORTFOLIO_REVIEW_SECTIONS)
+    if not include_appendix:
+        keys = [key for key in keys if key != "appendix"]
+    return keys
 
 
 # Every "not available" on a page goes through one theme component, so counting its

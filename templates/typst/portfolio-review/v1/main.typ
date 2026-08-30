@@ -7,7 +7,9 @@
   margin: (x: page-margin-x, y: page-margin-y),
   header: running-header(),
   // The header sits in the top margin rather than above it, so the body starts where
-  // the old in-flow header used to leave it.
+  // the old in-flow header used to leave it. Content that opens a page keeps clear of
+  // the rule with its own padding, which a page break cannot collapse the way it
+  // collapses spacing between blocks.
   header-ascent: 0pt,
   footer: context [
     #line(length: 100%, stroke: (paint: rule, thickness: 0.35pt))

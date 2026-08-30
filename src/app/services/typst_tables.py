@@ -9,6 +9,7 @@ from __future__ import annotations
 from collections.abc import Iterable, Mapping, Sequence
 from decimal import Decimal
 
+from app.services.appendix_glossary import applicable_glossary
 from app.services.chart_geometry import (
     DonutSegment,
     donut_segments,
@@ -553,3 +554,19 @@ def supplemental_allocation_view(
         if "No allocation detail available." not in rendered:
             return title, rendered
     return "Allocation detail", render_allocation_breakdown_rows([])
+
+
+def render_appendix_glossary_groups(report_data: Mapping[str, object]) -> str:
+    """The glossary groups this document needs, as Typst the appendix can iterate.
+
+    Only the keys travel. The wording lives in the template beside the rest of the
+    document's copy, so changing a definition moves the template digest.
+    """
+    return _typst_array(
+        "(title: %s, keys: %s)"
+        % (
+            f'"{escape_typst_string(group.title)}"',
+            _typst_array(f'"{entry.key}"' for entry in group.entries),
+        )
+        for group in applicable_glossary(report_data)
+    )

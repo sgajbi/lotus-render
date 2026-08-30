@@ -1,6 +1,6 @@
 #import "_charts.typ": line-chart
-#import "_theme.typ": empty-state, rule, section-subtitle, section-title, soft-rule
-#import "_components.typ": chart-card, chart-placeholder, chart-scale-note, labelled-table, performance-chart-row, performance-detail-row, performance-summary-cell, period-row, report-panel, section-marker, table-label
+#import "_theme.typ": empty-state, rule, section-subtitle
+#import "_components.typ": chart-card, chart-placeholder, chart-scale-note, labelled-table, performance-chart-row, performance-detail-row, performance-summary-cell, period-row, section-marker, table-label
 
 #let performance-page() = [
   #section-marker("Performance", "Period returns, benchmark comparison, and return history")

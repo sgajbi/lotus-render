@@ -30,7 +30,6 @@
 // different brand colour from its siblings.
 #let accent = rgb("#1F5AA6")
 #let accent-soft = rgb("#2C7A7B")
-#let gold = rgb("#C38B2E")
 
 // --- Shared primitives ----------------------------------------------------------
 // Defined once here because they were defined three times: proof-pack, outcome-review

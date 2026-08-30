@@ -96,9 +96,10 @@ RISK_CARD_BAND = (0.71, 0.88)
 
 # The emptiest page of the banked golden, measured. A ratchet rather than a bound: a
 # change that fills pages better must lower it, and one that empties them fails. Page 8
-# holds it -- six risk cards alone on a page they were given by an unconditional break,
-# which is the defect #184 describes.
-WORST_TAIL_BLANK = 0.502
+# The contents page holds it now, which is a page that is meant to be short. Before
+# #184 it was 68.8%, on a page holding six risk cards it had been given by an
+# unconditional break.
+WORST_TAIL_BLANK = 0.499
 
 
 @pytest.fixture(scope="module")
@@ -206,15 +207,14 @@ def test_a_table_is_never_separated_from_what_names_it(golden_page_text: list[st
 
 # What each contents entry is called in the running header of its own pages. The two
 # differ on purpose: the overview is listed as "Overview" and headed "Scope of
-# analysis". The appendix carries no running header -- it is a statement-style spread
-# with its own title block -- so it is identified by that title instead.
+# analysis".
 CONTENTS_TO_HEADER = {
     "Overview": "Scope of analysis",
     "Performance": "Performance",
     "Asset allocation": "Asset allocation",
     "Detailed positions": "Detailed positions",
     "Transactions": "Transaction list",
-    "Appendix": "Abbreviations and explanations",
+    "Appendix": "Appendix",
 }
 
 

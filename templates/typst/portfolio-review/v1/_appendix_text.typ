@@ -1,67 +1,126 @@
-#let fx_rate_notice = "Exchange rates are as of 28.06.2024, REFINITIV World Market Rates, London, 4 p.m. local time (in exceptional cases rates may derive from other available sources regularly used by banks or reflect rates as of other dates or times)."
+// Reference copy for the appendix, keyed by the entries `appendix_glossary.py` selects.
+//
+// Each definition describes what Lotus computes, not a textbook. Where a figure has a
+// method, the method is named: the volatility here is the annualised sample standard
+// deviation lotus-risk calculates, and the time-weighted return is geometrically linked
+// as lotus-performance links it. A document that defines a measure differently from the
+// service that produced it is worse than one that defines nothing.
+//
+// The copy lives beside the rest of the document's words rather than in Python, so a
+// change to a definition moves the template digest and has to be re-approved.
 
-#let risk_note_a = "You strive for value preservation of your assets in the long term while accepting very low volatility of asset value."
-#let risk_note_b = "You strive for value preservation of your assets in the long term while accepting low volatility of asset value."
-#let risk_note_c = "You strive for moderate appreciation of your assets in the long term while accepting moderate volatility of asset value."
-#let risk_note_d = "You strive for appreciation of your assets in the long term while accepting medium volatility of asset value."
-#let risk_note_e = "You strive for substantial appreciation of your assets in the long term while accepting above average volatility of asset value."
-#let risk_note_f = "You strive for substantial appreciation of your assets in the long term while accepting high volatility of asset value."
+#let GLOSSARY = (
+  //  Performance measurement
+  net_performance: (
+    term: "Net performance",
+    body: "Performance after the fees and charges applied to the portfolio over the period. Fees are treated as a drag on performance rather than as money you added or withdrew, so they reduce the return rather than the measured cash flow.",
+  ),
+  time_weighted_return: (
+    term: "Time-weighted return (TWR)",
+    body: "The return on the portfolio with the effect of money moving in and out removed, so it measures how the investments performed rather than when you added to or drew from them. Returns for the sub-periods are linked geometrically, which is the basis on which portfolios are compared with each other and with a benchmark.",
+  ),
+  cumulative_return: (
+    term: "Cumulative return",
+    body: "The compounded return from the start of the series to the date shown, formed by linking each period geometrically. Because the periods compound rather than add, a cumulative figure is not the sum of the column above it.",
+  ),
+  inflows_and_outflows: (
+    term: "Inflows and outflows",
+    body: "Money paid into and taken out of the portfolio during the period. They change what the portfolio is worth but not its time-weighted return, which is calculated with their effect removed.",
+  ),
+  annualisation: (
+    term: "Annualised figures",
+    body: "A figure described as annualised is expressed as the equivalent rate for a full year, scaled by the number of observation periods in a year. Annualising a short window projects that window forward and will overstate both gains and losses.",
+  ),
+  benchmark: (
+    term: "Benchmark",
+    body: "The reference index or blend the mandate is measured against, valued on the same dates and stated in the same reporting currency as the portfolio so the comparison is like for like.",
+  ),
+  relative_return: (
+    term: "Relative return",
+    body: "The portfolio return less the benchmark return over the same period, also called active return. A positive figure means the portfolio finished ahead of its benchmark over that period.",
+  ),
 
-#let risk_tolerance = "The degree of risk a client is prepared to accept in order to achieve an expected return. Risk tolerance levels are based on model investment strategies ranging from \"A - Fixed Income\" (very low risk tolerance) to \"F - Equities\" (high risk tolerance). The simulation of the risk/return characteristics uses historical data and is indicative only."
-#let expected_annual_return = "An expectation for the average return of a model investment strategy / portfolio / product that is derived by means of a suitable statistical method based on historical performance data as well as capital market expectations."
-#let expected_annual_volatility = "The volatility is a measure of the fluctuation of a model investment strategy / portfolio / product over a defined period and is measured as a standard deviation of the average or expected annual return. It is derived by means of a suitable statistical method based on historical performance data as well as capital market expectations."
-#let maximum_historical_drawdown = "The maximum historical drawdown is the maximum loss of a model investment strategy or its highest relative fall during a period observed. It is a worst-case scenario based on historical data that occurs when investments are bought and sold at the worst possible time."
-#let longest_historical_drawdown = "The longest period of a historical drawdown of the model investment strategy is an indication of the minimum time required to weather the short-term losses and fluctuations of the portfolio based on historical data."
-#let risk_information = "The statements and figures shown above are for illustrative purposes only and intended to help identify a potential investment strategy suitable for the client's investment objectives and risk tolerance. Figures shown are gross values excluding fees and taxes (e.g. transaction fees, mandate fees, surcharges). Depending on the market situation and the investment selection, the actual volatility/return of a portfolio may exceed or fall below the expected volatility/return. The reporting institution recommends selecting a risk tolerance that is in line with the client's financial situation and ability to bear risk."
+  //  Risk measures. Each is the calculation lotus-risk performs.
+  volatility: (
+    term: "Volatility",
+    body: "The annualised standard deviation of the portfolio return series: the sample standard deviation of the periodic returns, scaled by the square root of the number of periods in a year. It describes how widely returns have varied around their average, and is not by itself a statement about the chance of a loss.",
+  ),
+  beta: (
+    term: "Beta",
+    body: "The portfolio return's sensitivity to the benchmark return, calculated as the covariance between the two divided by the variance of the benchmark. A beta of 1.0 has moved with the benchmark, below 1.0 has moved less than it, and above 1.0 has moved more.",
+  ),
+  tracking_error: (
+    term: "Tracking error",
+    body: "The annualised standard deviation of active return, the difference between the portfolio and benchmark returns in each period. It measures how closely the portfolio has followed its benchmark, and is low for a portfolio that stays near it whether it is ahead or behind.",
+  ),
+  information_ratio: (
+    term: "Information ratio",
+    body: "Annualised active return divided by annualised tracking error, so it states the active return earned for each unit of risk taken away from the benchmark. Steady outperformance produces a higher ratio than the same total gained unevenly.",
+  ),
+  value_at_risk: (
+    term: "Value at risk (VaR)",
+    body: "An estimate of the loss the portfolio would not be expected to exceed over the stated horizon at the stated confidence level, taken from the distribution of its observed returns and scaled to that horizon. It is an estimate of a threshold rather than a worst case: losses beyond it are possible, and their size is what the figure does not describe.",
+  ),
 
-#let asset_allocation_general = "Positions in your portfolio will, if possible, be unbundled, unless unbundling is not possible owing to insufficient information or for product-specific reasons. Please note that the asset structure shown is only indicative and that rounding differences may occur."
-#let asset_allocation_unbundling = "Unbundling is where an investment instrument (such as an investment fund) is split up into the asset classes, exposure currencies, countries, regions and sectors in which it is invested. For instance, a bundled CHF strategy fund that is invested in multiple asset classes and currencies is assigned to the 'Other' asset class with CHF as the trading currency. Once it has been unbundled, the investment fund is broken down into its constituent asset classes (e.g. 50% equities, 50% bonds) and exposure currencies (e.g. 80% CHF, 20% USD)."
-#let bonds_by_rating = "This analysis only contains direct investments, structured products and warrants."
-#let asset_allocation_definition = "Asset classes are categorized as follows:"
-#let liquidity_definition = "Asset class containing investment instruments with main exposure in the money market investments and FX markets. This asset class includes cash or term deposits, money market investments and currency certificates/derivatives."
-#let bonds_definition = "Asset class containing investment instruments with main exposure in the fixed income markets, i.e. interest rate and issuer risks. This asset class includes convertible bonds and structured products with category \"Protection\"."
-#let equities_definition = "Asset class containing investment instruments where the stock market is the main risk driver, i.e. exposure to corporate, region or sector risks. This asset class includes listed stocks from energy, commodity and real estate companies."
-#let hedge_funds_definition = "Asset class containing investment instruments, where risks and performance are mainly based on investment skills and expertise of their investment managers rather than the exposure to a specific market segment and where liquidity is lower than for traditional asset classes."
-#let real_estate_definition = "Asset class containing investment funds and structured products with real estate character."
-#let others_definition = "Asset class which is mainly used for funds or structured products with mixed exposure, as well as for investment instruments which do not belong to one of the existing asset classes."
+  //  Asset allocation
+  asset_class: (
+    term: "Asset class",
+    body: "The grouping used to describe what the portfolio is invested in. Each holding belongs to one class, so the classes together account for the invested portfolio.",
+  ),
+  market_value: (
+    term: "Market value",
+    body: "What a holding is worth at the prices used for this report, converted into the reporting currency at the exchange rates of the same valuation date.",
+  ),
+  weight: (
+    term: "Weight",
+    body: "A holding or group stated as a percentage of the portfolio value on the valuation date. Weights are calculated on market value, so they move with prices as well as with what is bought and sold.",
+  ),
+  invested_value: (
+    term: "Invested value",
+    body: "The total market value of the portfolio on the valuation date, in the reporting currency. Where a chart or table covers only part of it, that is stated with the chart.",
+  ),
+  currency_exposure: (
+    term: "Currency exposure",
+    body: "Holdings grouped by the currency they are denominated in. It shows where the portfolio value would move if exchange rates moved, before the effect of any hedging.",
+  ),
 
-#let performance_definition = "The change of the portfolio value converted into a percentage gives the total return. In addition to price gains/losses, this includes interest earnings (with accrued interest) and dividend payments. Deposits and withdrawals are weighted using either the \"MWR\" or the \"TWR\" method."
-#let net_performance_definition = "Performance after deduction of taxes as well as transaction and portfolio fees."
-#let mwr_definition = "The performance is calculated by dividing the amount of earnings and capital gains/losses by the average capital invested. The timing of deposits and payments has an influence on the average amount of invested capital."
-#let twr_definition = "The performance is calculated by linking the performances which have occurred between the inflows or outflows, thereby neutralizing the influence of inflows and outflows on performance."
-#let retroactive_bookings_performance = "Retroactive bookings can result in statement calculations deviating from earlier versions. The statement of assets lists the information available on the date on which the statement of assets was created for the relevant valuation date."
+  //  Positions
+  cost_value: (
+    term: "Cost value",
+    body: "What was paid to acquire the holding, in the reporting currency. It is the basis against which unrealised profit or loss is measured.",
+  ),
+  unrealised_profit_and_loss: (
+    term: "Unrealised profit and loss",
+    body: "The difference between a holding's market value and its cost value while the holding is still owned. It changes with every valuation and is fixed only when the holding is sold.",
+  ),
+  market_gain: (
+    term: "Market gain",
+    body: "The part of a holding's profit or loss that comes from the price of the instrument moving, measured in the currency the instrument is denominated in.",
+  ),
+  exchange_gain: (
+    term: "Exchange gain",
+    body: "The part of a holding's profit or loss that comes from the exchange rate between its own currency and the reporting currency moving, rather than from its price. A holding whose price has not changed can still show a gain or a loss here.",
+  ),
+  accrued_interest: (
+    term: "Accrued interest",
+    body: "Interest a holding has earned but not yet paid at the valuation date. It is carried in the holding's value so the figure reflects what is owed to the portfolio as well as what it holds.",
+  ),
 
-#let source_views = "The profits and losses are reported in the portfolio in which the positions in question are held."
-#let accrued_interest = "In the overview of profit and loss, this includes interest accrued through purchases or sales and delivery or receipt of interest-bearing investment instruments."
-#let retroactive_bookings_income = "Retroactive income and expenses are recalculated as of the reporting date, therefore retroactive bookings can lead to changes compared to previous reports."
-#let detailed_report = "If needed, a detailed report can be ordered."
-#let positions_unbundling = "In the asset analyses by position view, all investment instruments are allocated to a single investment category."
-
-#let si_label = "Sustainability characteristics of an investment instrument"
-#let esg_multiple_approaches = "Strategies that incorporate several sustainable investing approaches in the portfolio construction and investment process (for example, ESG leaders and improvers). Also applies to cross-asset solutions based on the sustainable investing strategic asset allocation."
-#let esg_thematic = "Strategies that invest predominantly in companies that sell products and services that tackle a particular environmental or social challenge, and/or whose businesses are particularly good at managing a single ESG factor, such as gender equality."
-#let esg_leader = "Equities or bonds that have been selected in line with the investment office view on ESG leaders approaches."
-#let esg_thematic_attributes = "Equities that have been selected in line with the investment office view on ESG thematic approaches."
-#let gross_profit_calc = "is calculated as follows:"
-#let market_gain_definition = "Market price compared to average cost price in the reporting currency (excl. monetary benefits)."
-#let exchange_gain_definition = "Exchange rate compared to average buy exchange rate in the reporting currency."
-#let unrealized_pl_definition = "Market value compared to average cost value in the reporting currency (excl. accrued interest). For standard and exotic options on foreign exchange and precious metals, \"Unrealized P/L\" is same as the market value."
-#let prepayment_fund = "Payment has been effected, allocation and delivery of securities is outstanding."
-#let private_markets = "Remaining Commitment is calculated as follows: L.P.: For positions held in sponsored Private Markets funds with a Limited Partnership structure. Subtract the Total Capital Called amount for the position from the Total Commitment amount for the position. Ltd.: For positions held in sponsored Private Markets funds structured as corporations (Ltd.). Firstly subtract the number of Outstanding Shares from Total Commitment number of shares, then add the number of Redeemed Shares to this figure."
-
-#let transaction_content = "Only bookings from the period selected that are already known and booked in the system are displayed."
-#let transaction_gain_definition = "Transaction price compared to average cost price in the reporting currency (excl. monetary benefits)."
-#let realized_pl_definition = "Transaction value compared to cost value in the reporting currency (excl. accrued interest)."
-#let pending_bookings = "The balance may contain bookings which will be credited or debited in future."
-#let maturities_expected = "This module shows known capital maturity repayments, income, dividend payments and distributions from securitized investments like money market, bonds, shares and investment funds."
-
-#let phc_analysis_asset_class = "This portfolio health check monitors the portfolio by asset classes in comparison to the defined bandwidths of the applied investment strategy according to your selected risk tolerance. In reference to the strategic asset allocation framework, the bandwidths for six asset classes are calculated for the available investment strategies. Asset classes in scope are Liquidity, Bonds, Equities, Hedge Funds & Private Markets, Real Estate as well as Precious Metals & Commodities. When monitoring the asset allocation, the asset class of the investment instruments is usually considered. For funds and structured products - subject to data availability and quality - the assessment is performed on a more detailed basis and includes the underlying investments' asset class exposure."
-#let phc_risk_return = "The chart compares the risk level of your current portfolio with the investment strategy you have chosen. The further your allocation is to the right, the higher the financial risk. Please consider that every investment has risks. Financial losses result primarily from changes in the price of a financial instrument or due to the insolvency of a debtor. If risk is high, the probability of a high loss automatically increases. The investment strategy provides an indication of your risk tolerance according to the information you provided. An appropriate range for the asset classes is defined for each investment strategy."
-#let phc_negative_view = "This section lists investment instruments which, in the opinion of research or product specialists, could suffer from a negative impact on valuation, a substantial loss, or which have an increased probability of a total loss."
-#let phc_low_rating = "This section lists bonds that have been given a rating below \"Investment grade\", i.e. lower than BBB- (Standard & Poor's) or Baa3 (Moody's). The ratings reflect the external rating agencies' evaluation of the creditworthiness of entities (governments, corporates) which issue debt in public markets. The ratings further represent their expectation of the likelihood that the entity will be able to repay both the principal and interest as they become due."
-#let phc_not_monitored = "This section lists equities, bonds, investment funds, structured products and ETDs which are not covered by research or product specialists, and are therefore not monitored or evaluated. In addition, investment funds are listed where no performance analysis is carried out and where no official information flow takes place between the fund manager and the reporting institution. Investment instruments in this section do not form part of the quantitative and qualitative control process."
-#let phc_risk_analysis = "This portfolio health check monitors the expected volatility of your portfolio in comparison to the volatility bandwidths of the applied investment strategy according to your selected risk tolerance. Portfolio volatility is calculated as expected long-term volatility in a business cycle incorporating the forecast of the investment office. Please be aware that monitoring the risk/return for your portfolio depends on product information that is not always available or not in sufficient quality. Therefore, the performance of aforesaid checks cannot always be ensured for certain investment instruments (e.g. some structured products and collective investment schemes)."
-#let phc_borrowed_capital = "Investment of a loan granted by a bank (by overdrawing an account or depositing and pledging securities)."
-#let phc_evaluation_date = "Unless indicated differently, the data valid at the date of the statement of assets will be considered. If the dates are different or if the statement of assets is produced more than one day after the date it refers to, the data used for the calculation may deviate from corresponding data in other sections of the statement of assets."
-#let phc_bulk_risks = "This Portfolio Health Check monitors the allocation to a single undiversified investment instrument in relation to the gross asset value of the portfolio. A bulk risk occurs when the weight of an instrument exceeds a predefined threshold based on your risk tolerance: A and B - 10%, C and D - 15%, E and F - 20%, 0 - 100%."
-#let phc_issuer_concentrations = "This Portfolio Health Check monitors the asset allocation to a single issuer of investment instruments (e.g. equities, bonds, structured products) in relation to the gross asset value of the portfolio. An issuer risk concentration occurs when the weight of a single issuer exceeds a predefined threshold based on your risk tolerance: A and B - 15%, C and D - 20%, E and F - 30%, 0 - 100%."
+  //  Transactions
+  trade_and_value_date: (
+    term: "Trade date and value date",
+    body: "The trade date is when the transaction was agreed; the value date is when the cash and the securities actually change hands. A transaction agreed near the end of a period can settle in the following one, which is why the two dates are both shown.",
+  ),
+  transaction_value: (
+    term: "Transaction value",
+    body: "The consideration for the transaction at the transaction price, before brokerage, taxes and other charges.",
+  ),
+  settlement_amount: (
+    term: "Settlement amount",
+    body: "The amount that actually moved on the value date, after brokerage, taxes and other charges have been applied to the transaction value.",
+  ),
+  realised_profit_and_loss: (
+    term: "Realised profit and loss",
+    body: "Profit or loss fixed at the point of sale: the proceeds less the cost value of what was sold. It is what unrealised profit or loss becomes once a holding is disposed of.",
+  ),
+)
