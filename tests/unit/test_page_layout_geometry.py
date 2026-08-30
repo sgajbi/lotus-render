@@ -10,9 +10,11 @@ and looking at it. These tests do that looking on every run.
 from __future__ import annotations
 
 import io
+import re
 from dataclasses import dataclass
 from pathlib import Path
 
+import pypdf
 import pytest
 from PIL import Image
 
@@ -87,16 +89,16 @@ def region_ink(
 
 GOLDEN_PACKAGE = Path("tests/golden/portfolio-review/v1/render-package.json")
 
-# The banked golden's layout. #184 is expected to move these as it merges under-filled
-# pages; when it does, re-measure rather than widen the bounds.
-RISK_PROFILE_PAGE = 8
-RISK_CARD_BAND = (0.16, 0.34)
+# The banked golden's layout. #184 moves these as it merges under-filled pages; when it
+# does, re-measure rather than widen the bounds.
+RISK_PROFILE_PAGE = 6
+RISK_CARD_BAND = (0.71, 0.88)
 
 # The emptiest page of the banked golden, measured. A ratchet rather than a bound: a
 # change that fills pages better must lower it, and one that empties them fails. Page 8
 # holds it -- six risk cards alone on a page they were given by an unconditional break,
 # which is the defect #184 describes.
-WORST_TAIL_BLANK = 0.688
+WORST_TAIL_BLANK = 0.502
 
 
 @pytest.fixture(scope="module")
@@ -160,3 +162,110 @@ def test_every_page_carries_content(golden_pages: list[bytes]) -> None:
     blank = [index for index, page in enumerate(golden_pages, 1) if region_ink(page) is None]
 
     assert not blank, f"pages {blank} render a header and footer over an empty body"
+
+
+def _page_text(package: RenderPackage) -> list[str]:
+    """The text of each page of the rendered document, in order."""
+    settings = Settings()
+    registry = TemplateRegistry.load_from_directory(Path(settings.template_registry_path))
+    service = TypstRenderService(settings, RenderIntakeService(registry))
+    reader = pypdf.PdfReader(io.BytesIO(service.render(package).artifact_bytes))
+    return [page.extract_text() for page in reader.pages]
+
+
+@pytest.fixture(scope="module")
+def golden_page_text() -> list[str]:
+    return _page_text(RenderPackage.model_validate_json(GOLDEN_PACKAGE.read_text(encoding="utf-8")))
+
+
+# Each table's subtitle, paired with a column label only that table carries.
+TABLE_LABELS = {
+    "Performance against benchmark (TWR)": "Relative",
+    "Annual net performance (TWR)": "Cum.",
+    "Monthly net performance valued in": "Inflows",
+}
+
+
+def test_a_table_is_never_separated_from_what_names_it(golden_page_text: list[str]) -> None:
+    """A subtitle at the foot of one page and its table on the next names nothing.
+
+    This is the widow #138 described and left open, and it is not hypothetical: making
+    the performance panels relocate whole rather than split stranded two subtitles on
+    the page before their tables. `labelled-table` binds subtitle, column labels and
+    rows into one unbreakable unit; this asserts they stayed bound.
+    """
+
+    for subtitle, label in TABLE_LABELS.items():
+        pages = [index for index, text in enumerate(golden_page_text, 1) if subtitle in text]
+        assert len(pages) == 1, f"'{subtitle}' appears on pages {pages}, expected exactly one"
+        assert label in golden_page_text[pages[0] - 1], (
+            f"'{subtitle}' is on page {pages[0]} but its column labels are not: the "
+            "subtitle has been separated from the table it names"
+        )
+
+
+# What each contents entry is called in the running header of its own pages. The two
+# differ on purpose: the overview is listed as "Overview" and headed "Scope of
+# analysis". The appendix carries no running header -- it is a statement-style spread
+# with its own title block -- so it is identified by that title instead.
+CONTENTS_TO_HEADER = {
+    "Overview": "Scope of analysis",
+    "Performance": "Performance",
+    "Asset allocation": "Asset allocation",
+    "Detailed positions": "Detailed positions",
+    "Transactions": "Transaction list",
+    "Appendix": "Abbreviations and explanations",
+}
+
+
+def _heads(text: str, title: str) -> bool:
+    """Whether a page belongs to the section headed `title`."""
+    lines = [line.strip() for line in text.splitlines() if line.strip()]
+    return bool(lines) and lines[0].startswith(title)
+
+
+def _contents_entries(contents: str) -> dict[str, int]:
+    """The contents page as {section title: claimed page}.
+
+    Each entry occupies three lines -- a numbered title, its detail, then the page
+    reference -- so the title has to be taken positionally rather than by pattern; a
+    looser regex matches the detail line instead.
+    """
+    lines = [line.strip() for line in contents.splitlines() if line.strip()]
+    entries: dict[str, int] = {}
+    for index, line in enumerate(lines[:-2]):
+        numbered = re.match(r"^\d+ (.+)$", line)
+        reference = re.match(r"^p\. (\d+)$", lines[index + 2])
+        if numbered and reference:
+            entries[numbered.group(1)] = int(reference.group(1))
+    return entries
+
+
+def test_the_contents_page_numbers_point_at_the_sections(golden_page_text: list[str]) -> None:
+    """Every contents entry must name the page its section actually starts on.
+
+    #137 replaced hard-coded page numbers with computed ones, and nothing has asserted
+    since that the computation is right -- a document whose contents are confidently
+    wrong is worse than one carrying none. The numbers move whenever breaks move, which
+    is exactly what #184 does, so this is the guard that makes such a change safe.
+    """
+
+    entries = _contents_entries(golden_page_text[1])
+    assert set(entries) == set(CONTENTS_TO_HEADER), (
+        f"the contents lists {sorted(entries)}, which is not the set this test knows "
+        f"how to locate: {sorted(CONTENTS_TO_HEADER)}"
+    )
+
+    for title, claimed in entries.items():
+        page = int(claimed)
+        header = CONTENTS_TO_HEADER[title]
+        assert 1 <= page <= len(golden_page_text), f"'{title}' claims page {page}, out of range"
+        assert _heads(golden_page_text[page - 1], header), (
+            f"the contents send a reader to page {page} for '{title}', which is not a "
+            f"'{header}' page"
+        )
+        # And it is where the section *starts*, not merely a page it covers.
+        assert not _heads(golden_page_text[page - 2], header), (
+            f"'{title}' claims page {page}, but page {page - 1} is already part of that "
+            "section, so the entry points past its own beginning"
+        )

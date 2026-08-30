@@ -42,8 +42,7 @@
 ]
 
 #let reviewed-advisory-narrative-page() = [
-  #section-marker("Advisory narrative", "Reviewed advisory narrative approved for advisor use")
-  #page-header("Reviewed advisory narrative")
+  #section-marker("Advisory narrative", "Reviewed advisory narrative approved for advisor use", header: "Reviewed advisory narrative")
   #v(10pt)
   #grid(
     columns: (0.76fr, 1.24fr),
@@ -75,8 +74,7 @@
 ]
 
 #let advisor-proposal-memo-page() = [
-  #section-marker("Advisor memo", "Approved advisor proposal memo")
-  #page-header("Advisor proposal memo")
+  #section-marker("Advisor memo", "Approved advisor proposal memo", header: "Advisor proposal memo")
   #v(10pt)
   #grid(
     columns: (0.76fr, 1.24fr),

@@ -35,6 +35,7 @@ dev = [
   "vulture==2.16",
   "deptry==0.25.1",
   "pillow==12.3.0",
+  "pypdf==6.16.2",
 ]
 
 [tool.ruff]

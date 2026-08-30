@@ -1,9 +1,14 @@
 #import "_theme.typ": empty-state, ink, page-margin-x, page-margin-y, rule, slate
+#import "_components.typ": running-header
 
 #set page(
   paper: "a4",
   flipped: true,
   margin: (x: page-margin-x, y: page-margin-y),
+  header: running-header(),
+  // The header sits in the top margin rather than above it, so the body starts where
+  // the old in-flow header used to leave it.
+  header-ascent: 0pt,
   footer: context [
     #line(length: 100%, stroke: (paint: rule, thickness: 0.35pt))
     #v(5pt)

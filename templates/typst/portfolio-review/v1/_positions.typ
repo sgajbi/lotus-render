@@ -3,7 +3,6 @@
 
 #let observations-page() = [
   #section-marker("Detailed positions", "Statement-style holdings detail and position-level performance")
-  #page-header("Detailed positions")
   #v(12pt)
   #grid(
     columns: (1fr, 1fr),
