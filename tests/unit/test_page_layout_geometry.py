@@ -273,3 +273,34 @@ def test_the_contents_page_numbers_point_at_the_sections(golden_page_text: list[
             f"'{title}' claims page {page}, but page {page - 1} is already part of that "
             "section, so the entry points past its own beginning"
         )
+
+
+def test_the_document_writes_a_date_one_way(golden_page_text: list[str]) -> None:
+    """Four forms appeared in one review: ISO on the positions page, dotted on the
+    transactions page beside it, long in the running header, short on the chart axis.
+    The header carried two of them in a single phrase.
+
+    The axis keeps its own form deliberately. Twelve labels have to fit across a plot,
+    and it is a different problem from writing a date in prose or in a table.
+    """
+
+    document = "\n".join(golden_page_text)
+
+    assert not re.findall(r"\b\d{4}-\d{2}-\d{2}\b", document), "an ISO date reached the page"
+    assert not re.findall(r"\b\d{2}\.\d{2}\.\d{4}\b", document), "a dotted date reached the page"
+    assert re.findall(r"\b\d{1,2} [A-Z][a-z]{2} \d{4}\b", document), "no date reached the page"
+
+
+def test_the_reporting_period_is_the_one_the_package_describes(
+    golden_page_text: list[str],
+) -> None:
+    """The header said "Reporting period 1 Jan 2026 - 2026-04-23" on every page, and the
+    first half was a template literal. What a package carries is a period label and an
+    as-of date, so that is what the document says."""
+
+    header = golden_page_text[2].splitlines()[0]
+
+    assert "YTD to 23 Apr 2026" in "\n".join(golden_page_text)
+    assert "Reporting period" not in header, (
+        "the header names a period start that no render package supplies"
+    )

@@ -11,6 +11,7 @@ from collections.abc import Mapping, Sequence
 
 from app.contracts.render_package import RenderPackage
 from app.services.appendix_glossary import applicable_glossary
+from app.services.date_format import format_date, format_dates_in_text
 from app.services.number_format import group_digits
 from app.services.render_content import (
     parse_outcome_review_content,
@@ -101,6 +102,20 @@ DEFAULT_PORTFOLIO_REVIEW_SECTIONS_WITH_ADVISORY_MEMO = (
 )
 
 
+def _reporting_period_label(report_data: Mapping[str, object]) -> str:
+    """How the document describes the span it covers, from what it was given.
+
+    A package carries an as-of date and usually a period label ("YTD", "Q1 2026"); it
+    does not carry a period start. Naming the label and the as-of date says exactly what
+    is known. Where no label arrives, the as-of date alone is still true.
+    """
+    as_of = format_date(report_data.get("as_of_date", ""))
+    label = str(report_data.get("review_period_label", "")).strip()
+    if not as_of:
+        return label
+    return f"{label} to {as_of}" if label else f"As of {as_of}"
+
+
 def build_portfolio_review_context(render_package: RenderPackage) -> dict[str, str]:
     report_data = parse_portfolio_review_content(render_package).as_report_data()
     render_context = render_package.render_context
@@ -121,6 +136,8 @@ def build_portfolio_review_context(render_package: RenderPackage) -> dict[str, s
     supplemental_allocation_title, supplemental_allocation_rows = supplemental_allocation_view(
         allocation_breakdowns
     )
+
+    reporting_period_label = _reporting_period_label(report_data)
 
     position_widths, position_header, position_rows = render_position_table(
         report_data.get("positions") or report_data.get("top_holdings")
@@ -145,7 +162,12 @@ def build_portfolio_review_context(render_package: RenderPackage) -> dict[str, s
         ),
         "CLIENT_NAME": escape_typst_string(str(report_data["client_name"])),
         "PORTFOLIO_NAME": escape_typst_string(str(report_data["portfolio_name"])),
-        "AS_OF_DATE": escape_typst_string(str(report_data["as_of_date"])),
+        "AS_OF_DATE": escape_typst_string(format_date(report_data["as_of_date"])),
+        # No render package carries a period start, so the document names the period it
+        # was given rather than a date nobody supplied. "1 Jan 2026" used to be a literal
+        # in the header of every page (#150).
+        "REPORTING_PERIOD_LABEL": escape_typst_string(reporting_period_label),
+        "REVIEW_PERIOD_RANGE": escape_typst_string(reporting_period_label),
         "CURRENCY": escape_typst_string(str(report_data["currency"])),
         "TOTAL_VALUE": escape_typst_string(group_digits(report_data["total_value"])),
         "SUMMARY_PARAGRAPH": escape_typst_string(str(report_data["summary_paragraph"])),
@@ -253,7 +275,9 @@ def build_portfolio_review_context(render_package: RenderPackage) -> dict[str, s
         "POSITION_TABLE_HEADER": position_header,
         "DENSE_POSITION_ROWS": position_rows,
         "TRANSACTION_PERIOD_LABEL": escape_typst_string(
-            str(report_data.get("transaction_period_label", "Transaction activity"))
+            format_dates_in_text(
+                report_data.get("transaction_period_label", "Transaction activity")
+            )
         ),
         "TRANSACTION_TABLE_WIDTHS": transaction_widths,
         "TRANSACTION_TABLE_HEADER": transaction_header,

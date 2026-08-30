@@ -12,7 +12,7 @@
     [
       #align(right)[
         #set par(leading: 0.86em)
-        #page-kicker("Reporting period 1 Jan 2026 - ${AS_OF_DATE}")
+        #page-kicker("${REPORTING_PERIOD_LABEL}")
         #linebreak()
         #page-kicker("Reporting currency ${CURRENCY}")
       ]
@@ -48,8 +48,12 @@
   #text(size: 8.8pt, fill: ink)[#body]
 ], fill: mist)
 
+// Fills its container, for the reason note-panel does: without a width the block hugs
+// its own text, and the four cards down the side of the cover rendered at four
+// different widths (#150).
 #let metric-card(label, value, detail: none, tone: mist) = block(
   breakable: false,
+  width: 100%,
   inset: 10pt,
   fill: tone,
   stroke: (paint: rule, thickness: hairline),
