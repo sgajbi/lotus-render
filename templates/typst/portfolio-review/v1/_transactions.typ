@@ -1,5 +1,5 @@
-#import "_theme.typ": accent, empty-state, rule, slate, soft-rule
-#import "_components.typ": dense-transaction-row, page-header, report-panel, section-marker, stacked-table-label
+#import "_theme.typ": accent, empty-state, rule, slate
+#import "_components.typ": dense-transaction-row, report-panel, section-marker, stacked-table-label
 
 #let transactions-page() = [
   #section-marker("Transactions", "Transaction activity across the review period", header: "Transaction list")

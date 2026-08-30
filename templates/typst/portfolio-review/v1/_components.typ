@@ -35,13 +35,6 @@
   }
 }
 
-#let page-meta() = [
-  #set par(leading: 0.86em)
-  #page-kicker("Statement of assets as of ${AS_OF_DATE}")
-  #linebreak()
-  #page-kicker("Produced for portfolio review")
-]
-
 #let report-panel(body, fill: white, inset: 11pt) = block(
   inset: inset,
   fill: fill,
@@ -92,30 +85,6 @@
   #small-caps(title)
   #v(4pt)
   #text(size: 8.1pt, fill: ink)[#body]
-]
-
-#let spotlight-panel(title, body) = block(
-  inset: 12pt,
-  fill: mist,
-  stroke: (paint: rule, thickness: hairline),
-  radius: panel-radius,
-)[
-  #small-caps(title)
-  #v(5pt)
-  #text(size: 8.8pt, fill: ink)[#body]
-]
-
-#let content-item(index, title, detail) = [
-  #grid(
-    columns: (24pt, 1fr),
-    column-gutter: 11pt,
-    [#text(size: 19pt, weight: 300, fill: accent)[#index]],
-    [
-      #text(size: 9.5pt, weight: 600, fill: ink)[#title]
-      #v(2pt)
-      #body-muted(detail)
-    ],
-  )
 ]
 
 // Planted at the top of each section page so the contents page can compute the page a
@@ -433,30 +402,3 @@
   [#stacked-cell(value, fill: accent, weight: 500)],
 )
 
-#let appendix-term(title, body) = [
-  #text(size: 8.1pt, weight: 500, fill: ink)[#title]
-  #text(size: 8.1pt, fill: ink)[[: #body]]
-]
-
-#let appendix-section(title, left, middle, right) = [
-  #text(size: 8.8pt, weight: 500, fill: ink)[#title]
-  #v(4pt)
-  #soft-rule()
-  #v(8pt)
-  #grid(
-    columns: (1fr, 1fr, 1fr),
-    column-gutter: 16pt,
-    [
-      #set par(justify: true, leading: 0.9em)
-      #left
-    ],
-    [
-      #set par(justify: true, leading: 0.9em)
-      #middle
-    ],
-    [
-      #set par(justify: true, leading: 0.9em)
-      #right
-    ],
-  )
-]

@@ -1,5 +1,5 @@
-#import "_theme.typ": accent, empty-state, ink, mist, navy, rule, slate, soft-rule
-#import "_components.typ": page-header, report-panel, section-lead, section-marker
+#import "_theme.typ": accent, empty-state, ink, mist, navy, rule, slate
+#import "_components.typ": report-panel, section-lead, section-marker
 
 #let advisory-fact-row(label, value) = [
   #grid(

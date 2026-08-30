@@ -1,12 +1,10 @@
 // Palette comes from the shared design system; this file holds only what is specific
 // to the portfolio review: its spacing scale and its text roles.
-#import "_design.typ": accent, accent-soft, gain, gold, ink, loss, mist, navy, rule, slate
+#import "_design.typ": accent, accent-soft, gain, ink, loss, mist, navy, rule, slate
 
 #let page-margin-x = 16mm
 #let page-margin-y = 16mm
 #let grid-gap = 16pt
-#let section-gap = 14pt
-#let block-gap = 9pt
 #let hairline = 0.45pt
 #let panel-radius = 3pt
 
@@ -14,7 +12,6 @@
 #let section-title(value) = text(size: 17pt, weight: 300, fill: navy)[#value]
 #let section-subtitle(value) = text(size: 8.1pt, weight: 600, tracking: 0.12pt, fill: slate)[#value]
 #let page-kicker(value) = text(size: 8.1pt, fill: slate)[#value]
-#let metric-value(value) = text(size: 16pt, weight: 500, fill: ink)[#value]
 #let body-muted(value) = text(size: 8.1pt, fill: slate)[#value]
 
 // The message shown where governed data is absent. The emitters used to inline a

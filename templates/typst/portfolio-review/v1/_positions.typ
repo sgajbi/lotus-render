@@ -1,5 +1,5 @@
-#import "_theme.typ": empty-state, rule, section-subtitle, soft-rule
-#import "_components.typ": dense-position-row, page-header, report-panel, section-marker, stacked-table-label, table-label
+#import "_theme.typ": empty-state, rule, section-subtitle
+#import "_components.typ": dense-position-row, report-panel, section-marker, stacked-table-label, table-label
 
 #let observations-page() = [
   #section-marker("Detailed positions", "Statement-style holdings detail and position-level performance")

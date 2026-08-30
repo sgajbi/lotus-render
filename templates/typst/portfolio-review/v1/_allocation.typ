@@ -1,6 +1,6 @@
 #import "_charts.typ": donut-chart
 #import "_theme.typ": empty-state, mist, rule, section-subtitle, soft-rule
-#import "_components.typ": chart-card, chart-placeholder, compact-allocation-row, key-stat, note-panel, page-header, report-panel, section-marker, table-label
+#import "_components.typ": chart-card, chart-placeholder, compact-allocation-row, key-stat, note-panel, report-panel, section-marker, table-label
 
 #let allocation-page() = [
   #section-marker("Asset allocation", "Asset mix, exposure detail, and risk profile")

@@ -1,5 +1,5 @@
-#import "_theme.typ": empty-state, grid-gap, ink, mist, section-subtitle, small-caps, soft-rule
-#import "_components.typ": allocation-row, metric-card, note-panel, page-header, report-panel, section-lead, section-marker
+#import "_theme.typ": empty-state, section-subtitle, small-caps, soft-rule
+#import "_components.typ": allocation-row, metric-card, note-panel, report-panel, section-lead, section-marker
 
 #let scope-page() = [
   #section-marker("Overview", "Mandate, relationship context, and scope of analysis", header: "Scope of analysis")

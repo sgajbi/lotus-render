@@ -1,5 +1,5 @@
-#import "_theme.typ": accent, body-muted, cover-title, empty-state, grid-gap, ink, mist, navy, section-title, small-caps, soft-rule
-#import "_components.typ": content-row, metric-card, report-panel, section-lead, spotlight-panel
+#import "_theme.typ": accent, body-muted, cover-title, empty-state, grid-gap, ink, mist, section-title, small-caps, soft-rule
+#import "_components.typ": content-row, metric-card, report-panel, section-lead
 
 #let cover-page() = [
   #align(left)[#rect(width: 58pt, height: 1.4pt, fill: accent)]

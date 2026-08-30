@@ -18,7 +18,7 @@
 // tick arithmetic belongs where it can be unit-tested. These functions place; they do
 // not decide.
 
-#import "_design.typ": accent, ink, mist, navy, rule, slate
+#import "_design.typ": accent, ink, navy, rule, slate
 
 // `curve` needs concrete lengths, so the width is read from the container with `layout`
 // rather than hardcoded. Hardcoding it meant the plot filled 452pt of a 727pt card and
@@ -122,15 +122,6 @@
 
 // Shown where a chart has no series to draw, so the space says why rather than sitting
 // blank -- a blank region reads as a layout fault (#155).
-#let chart-empty(message) = block(
-  width: 100%,
-  height: PLOT_HEIGHT + AXIS_GUTTER,
-  fill: mist,
-  radius: 2pt,
-)[
-  #align(center + horizon)[#text(size: 8.1pt, fill: slate)[#message]]
-]
-
 // --- Allocation donut -------------------------------------------------------------
 //
 // `segments` carry closed paths in a unit box with the centre at (0.5, 0.5), computed in
