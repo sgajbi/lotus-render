@@ -538,10 +538,11 @@ def test_typst_render_service_builds_richer_portfolio_review_context() -> None:
     assert "#holding-row(" in template_context["HOLDING_ROWS"]
     assert "#allocation-row(" in template_context["HOLDING_BAR_ROWS"]
     assert "#compact-allocation-row(" in template_context["ASSET_CLASS_ROWS"]
-    assert (
-        "assets/charts/allocation_asset_class.svg"
-        in template_context["ALLOCATION_DONUT_CHART_SECTION"]
-    )
+    donut = template_context["ALLOCATION_DONUT_CHART_SECTION"]
+    assert "#donut-chart(" in donut
+    assert "assets/charts" not in donut
+    # Drawn, not merely declared: a donut with no curve commands is an empty card.
+    assert 'kind: "cubic"' in donut
     assert "#compact-allocation-row(" in template_context["SUPPLEMENTAL_ALLOCATION_ROWS"]
     # Rows are spread into a Typst table, so they are code-context calls rather than
     # markup blocks and carry no leading '#' (issue #138).
@@ -1606,3 +1607,48 @@ def test_hostile_report_text_in_a_markup_family_renders_rather_than_executes() -
 
     assert result.attempt.status.value == "rendered"
     assert result.artifact_bytes.startswith(b"%PDF")
+
+
+def test_a_donut_that_covers_the_whole_portfolio_carries_no_coverage_note() -> None:
+    """The note explains a shortfall; with nothing to explain it would be noise.
+
+    The complement of the golden package, whose slices cover 89.64% and so do carry it.
+    """
+
+    section = render_allocation_chart_section(
+        {
+            "allocation_breakdowns": {
+                "by_asset_class": [
+                    {"label": "Equity", "weight_pct": "60.00", "market_value": "600000"},
+                    {"label": "Fixed Income", "weight_pct": "40.00", "market_value": "400000"},
+                ]
+            }
+        }
+    )
+
+    assert "coverage-note: none" in section
+    assert "Chart covers" not in section
+
+
+def test_a_failed_page_export_reports_why_rather_than_returning_no_pages(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Page images are the visual-regression evidence, so a silent empty list is worse
+    than a failure: a golden set that exports nothing compares clean against anything."""
+
+    service = _build_service()
+    render_package = _load_golden_package()
+
+    monkeypatch.setattr(
+        service,
+        "_build_compile_command",
+        lambda **_: ["docker", "run", "--rm", DOCKER_TYPST_IMAGE, "compile"],
+    )
+
+    def _fails(command: list[str], **kwargs: object) -> object:
+        return subprocess.CompletedProcess(command, 1, "", "error: unknown variable `x`")
+
+    monkeypatch.setattr("app.services.typst_rendering.subprocess.run", _fails)
+
+    with pytest.raises(RuntimeError, match="page image export failed"):
+        service.render_page_images(render_package)

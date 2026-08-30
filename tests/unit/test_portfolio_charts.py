@@ -1,22 +1,15 @@
-import re
 from decimal import Decimal
-from pathlib import Path
 
 from app.services.chart_geometry import performance_chart_geometry
 from app.services.portfolio_charts import (
-    AllocationSlice,
     PerformancePoint,
     _chart_axis,
     _chart_value_bounds,
-    _compact_value,
-    _donut_segment,
     _nice_ticks,
     _parse_currency_number,
     _parse_percent_or_number,
     allocation_items_from_report_data,
     performance_series_from_report_data,
-    render_allocation_donut_svg,
-    render_portfolio_chart_assets,
 )
 
 
@@ -59,44 +52,6 @@ def test_allocation_items_sort_and_group_small_slices() -> None:
     assert [item.label for item in items] == ["Equity", "Fixed Income", "Real Estate", "Other"]
     assert items[-1].weight_pct == Decimal("2.50")
     assert items[-1].market_value == Decimal("250")
-
-
-def test_render_portfolio_chart_assets_writes_expected_svg_files(tmp_path: Path) -> None:
-    report_data = {
-        "performance_monthly_history": [
-            {"period": "2025-05", "cumulative_twr_pct": "0.44%"},
-            {"period": "2025-06", "cumulative_twr_pct": "0.13%"},
-        ],
-        "allocation_breakdowns": {
-            "by_asset_class": [
-                {"name": "Equity", "weight_pct": "60.00%", "market_value": "9140740.73"}
-            ]
-        },
-    }
-
-    assets = render_portfolio_chart_assets(report_data, tmp_path)
-
-    # The performance chart is drawn natively now, so it needs no asset. Asserted
-    # rather than dropped: an asset written and never referenced is how the SVG the
-    # document no longer uses would keep being generated.
-    assert assets.performance_svg is None
-    assert assets.allocation_svg == tmp_path / "allocation_asset_class.svg"
-    assert assets.allocation_svg.exists()
-    assert not (tmp_path / "performance_12m.svg").exists()
-
-
-def test_render_portfolio_chart_assets_degrades_without_chart_data(tmp_path: Path) -> None:
-    assets = render_portfolio_chart_assets(
-        {
-            "performance_series": "not chart rows",
-            "allocation_breakdowns": {"by_asset_class": "not allocation rows"},
-        },
-        tmp_path,
-    )
-
-    assert assets.performance_svg is None
-    assert assets.allocation_svg is None
-    assert list(tmp_path.iterdir()) == []
 
 
 def test_performance_series_skips_invalid_rows_and_uses_period_fallback() -> None:
@@ -156,25 +111,6 @@ def test_allocation_items_wrap_palette_without_grouping_large_rows() -> None:
     assert items[0].color == items[6].color
 
 
-def test_allocation_donut_escapes_labels_and_formats_small_total() -> None:
-    items = allocation_items_from_report_data(
-        {
-            "allocation_items": [
-                {
-                    "label": "Equity & Growth",
-                    "weight_pct": "100.00%",
-                    "market_value": "999",
-                }
-            ]
-        }
-    )
-
-    svg = render_allocation_donut_svg(items)
-
-    assert "Equity &amp; Growth" in svg
-    assert ">999<" in svg
-
-
 def test_chart_helper_fallbacks_are_stable() -> None:
     assert _parse_percent_or_number(None) is None
     assert _parse_percent_or_number("n/a") is None
@@ -187,14 +123,6 @@ def test_chart_helper_fallbacks_are_stable() -> None:
     assert _parse_currency_number("USD 1,234.50") == Decimal("1234.50")
 
     assert _nice_ticks(1, 2, 1) == [1, 2]
-    assert _compact_value(999) == "999"
-    assert _compact_value(1_500) == "1.5K"
-    assert _compact_value(2_500_000) == "2.5M"
-
-    small_arc = _donut_segment(0, 0, 10, 5, 0, 90, "#000000")
-    large_arc = _donut_segment(0, 0, 10, 5, 0, 270, "#000000")
-    assert " 0 0 1 " in small_arc
-    assert " 0 1 1 " in large_arc
 
 
 def test_non_finite_numerics_degrade_charts_instead_of_crashing() -> None:
@@ -233,27 +161,6 @@ def test_non_finite_numerics_degrade_charts_instead_of_crashing() -> None:
     assert geometry is not None and len(geometry.points) == 1
 
 
-def test_a_single_full_circle_slice_renders_a_visible_ring() -> None:
-    """A portfolio that is 100% one asset class must still draw a donut.
-
-    A 360-degree arc starts and ends at the same point, and SVG omits an arc whose
-    endpoints coincide, so the path collapsed to zero area and the white centre circle
-    covered what was left: an empty donut for a perfectly ordinary portfolio.
-    """
-
-    svg = render_allocation_donut_svg(
-        [AllocationSlice("Global Equity", Decimal("100.00"), Decimal("1000000"), "#1F5AA6")]
-    )
-
-    assert 'fill-rule="evenodd"' in svg, "the full-circle slice is not drawn as a ring"
-    paths = re.findall(r'<path d="([^"]+)"', svg)
-    assert paths, "no slice path was emitted at all"
-    start = re.match(r"M ([\d.-]+) ([\d.-]+)", paths[0])
-    assert start is not None
-    # A ring is two sub-paths; a collapsed arc would return to its start immediately.
-    assert paths[0].count("a ") >= 4, "the ring does not close over two arcs per edge"
-
-
 def test_axis_gridlines_land_on_round_values_including_zero() -> None:
     """A line labelled 0% must be at zero; a performance axis that lies is not cosmetic.
 
@@ -274,27 +181,6 @@ def test_axis_gridlines_land_on_round_values_including_zero() -> None:
     for tick in ticks:
         # Every tick must print exactly what it is, at the label's precision.
         assert abs(tick - round(tick)) < 1e-9, f"gridline {tick} is not a round value"
-
-
-def test_every_legend_row_fits_on_the_canvas() -> None:
-    """The palette wraps at six, so a seven-category allocation had colours for rows
-    the canvas silently cut off."""
-
-    items = [
-        AllocationSlice(f"Class {index}", Decimal("12.5"), Decimal("100"), "#1F5AA6")
-        for index in range(8)
-    ]
-
-    svg = render_allocation_donut_svg(items)
-
-    canvas = re.search(r'height="(\d+)"', svg)
-    assert canvas is not None, "the donut svg declares no height"
-    height = int(canvas.group(1))
-    rows = [int(y) for y in re.findall(r'y="(\d+)" class="legend-label"', svg)]
-    assert len(rows) == len(items), "not every slice produced a legend row"
-    assert all(y <= height for y in rows), (
-        f"legend rows {[y for y in rows if y > height]} fall off a {height}pt canvas"
-    )
 
 
 def test_the_step_chooser_handles_a_span_it_cannot_divide() -> None:

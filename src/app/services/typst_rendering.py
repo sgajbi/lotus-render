@@ -21,7 +21,6 @@ from app.domain.rendering.models import RenderDiagnostic, RenderResult
 from app.domain.templates.digest import template_digest
 from app.domain.templates.registry import shared_design_directory
 from app.observability.render_metrics import record_render_empty_content_blocks
-from app.services.portfolio_charts import render_portfolio_chart_assets
 from app.services.render_intake import RenderIntakeService
 from app.services.render_ports import RenderEngineTimeoutError, RenderRuntimeMetadata
 from app.services.template_context import TemplateContextRegistry, TemplateContextRenderer
@@ -500,11 +499,6 @@ class TypstRenderService:
             workspace_template_directory,
             dirs_exist_ok=True,
         )
-        if render_package.report_type == "portfolio_review":
-            render_portfolio_chart_assets(
-                render_package.report_data,
-                workspace_template_directory / "assets" / "charts",
-            )
 
         for template_file in workspace_template_directory.rglob("*.typ"):
             rendered_text = template_file.read_text(encoding="utf-8")

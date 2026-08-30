@@ -8,8 +8,19 @@ plot box, so the geometry can be checked without rendering anything.
 
 from __future__ import annotations
 
-from app.services.chart_geometry import performance_chart_geometry
-from app.services.portfolio_charts import PerformancePoint
+import math
+from decimal import Decimal
+
+import pytest
+
+from app.services.chart_geometry import (
+    UNCHARTED_COLOUR,
+    DonutSegment,
+    _fraction_down,
+    donut_segments,
+    performance_chart_geometry,
+)
+from app.services.portfolio_charts import AllocationSlice, PerformancePoint
 
 
 def _series(*values: float) -> list[PerformancePoint]:
@@ -122,18 +133,17 @@ def test_month_labels_are_carried_through_for_every_observation() -> None:
     assert geometry.labels[0].text == "Jan 25"
 
 
-def test_the_performance_chart_ships_no_svg_and_therefore_no_embedded_text() -> None:
+def test_no_document_embeds_an_svg_and_therefore_none_carries_its_text() -> None:
     """SVG containing `<text>` sits on an open Typst non-determinism bug.
 
     typst#6783: when an embedded SVG carries text in more than one font style, the PDF's
-    font sections can swap order between otherwise identical renders. The performance
-    chart emitted nine `<text>` elements, so every render was relying on luck — and the
-    bounded fingerprint, which strips timestamps but not font-section order, would have
-    reported the swap as a real change with no cause anyone could find.
+    font sections can swap order between otherwise identical renders. The two charts
+    emitted fifteen `<text>` elements between them, so every render was relying on luck --
+    and the bounded fingerprint, which strips timestamps but not font-section order, would
+    have reported the swap as a real change with no cause anyone could find.
 
-    The allocation donut is still an SVG and still carries text. It is the next chart to
-    convert (#150); this asserts the half that is done rather than a rule the repository
-    does not yet keep.
+    Both charts are now drawn natively, so this is stated as a repository-wide rule rather
+    than scoped to the half that was converted first.
     """
 
     from pathlib import Path
@@ -144,24 +154,165 @@ def test_the_performance_chart_ships_no_svg_and_therefore_no_embedded_text() -> 
     package = RenderPackage.model_validate_json(
         Path("tests/golden/portfolio-review/v1/render-package.json").read_text(encoding="utf-8")
     )
-    section = build_portfolio_review_context(package)["PERFORMANCE_12M_CHART_SECTION"]
+    context = build_portfolio_review_context(package)
 
-    assert "#line-chart(" in section, "the performance chart is no longer drawn natively"
-    assert "<svg" not in section and "<text" not in section
-    assert "assets/charts" not in section, "the chart is back to being an image asset"
+    offenders = {
+        key: value[:60]
+        for key, value in context.items()
+        if "<svg" in value or "<text" in value or "assets/charts" in value
+    }
+    assert not offenders, (
+        f"these context values still ship SVG or reference an image asset: {offenders}. "
+        "Charts are drawn with Typst primitives so they inherit the design system and "
+        "stay clear of typst#6783."
+    )
+
+    assert "#line-chart(" in context["PERFORMANCE_12M_CHART_SECTION"]
+    assert "#donut-chart(" in context["ALLOCATION_DONUT_CHART_SECTION"]
 
 
-def test_a_degenerate_axis_places_marks_in_the_middle() -> None:
-    """An axis with no span has no meaningful position for anything on it.
+def _slice(
+    label: str, weight: str, value: str = "1000", colour: str = "#1F5AA6"
+) -> AllocationSlice:
+    return AllocationSlice(
+        label=label, weight_pct=Decimal(weight), market_value=Decimal(value), color=colour
+    )
 
-    Half-height is the honest answer: it puts every mark on one line, which reads as
-    "these are all the same" rather than as a slope the data does not have.
+
+def test_a_single_full_slice_draws_a_complete_ring() -> None:
+    """A portfolio that is 100% one asset class must still draw a donut.
+
+    The old SVG needed a special-cased `_donut_ring`, because a 360-degree arc has the
+    same start and end point and an arc command cannot say which way round to go. Split
+    into quarter turns there is no special case: four segments trace the circle, and the
+    path closes where it started.
     """
 
-    from app.services.chart_geometry import _fraction_down
+    segments = donut_segments([_slice("Equity", "100")])
 
-    assert _fraction_down(5.0, low=2.0, high=2.0) == 0.5
-    assert _fraction_down(5.0, low=3.0, high=2.0) == 0.5
-    # A real axis still maps ends to ends.
-    assert _fraction_down(2.0, low=2.0, high=6.0) == 1.0
-    assert _fraction_down(6.0, low=2.0, high=6.0) == 0.0
+    assert len(segments) == 1
+    kinds = [kind for kind, _ in segments[0].commands]
+    assert kinds[0] == "move" and kinds[-1] == "close"
+    # A full turn is four quarter-turn cubics on the outer arc and four coming back.
+    assert kinds.count("cubic") == 8
+    assert kinds.count("line") == 1
+
+
+def test_slices_sweep_in_proportion_to_their_weights() -> None:
+    """The angle a reader compares must be the weight the number states.
+
+    Counted in quarter-turn segments, which is the proportional quantity visible from the
+    command list: a 75% slice spans three quarters out and three back, a 25% slice one
+    each way.
+    """
+
+    segments = donut_segments([_slice("Big", "75"), _slice("Small", "25")])
+
+    assert [[kind for kind, _ in segment.commands].count("cubic") for segment in segments] == [6, 2]
+
+
+def test_slices_are_laid_out_end_to_end_from_twelve_oclock() -> None:
+    """Each slice starts where the last one ended, or the ring has gaps in it."""
+
+    segments = donut_segments([_slice("A", "50"), _slice("B", "30"), _slice("C", "20")])
+
+    assert segments[0].commands[0] == ("move", (0.5, 0.0)), "the ring should open at twelve"
+    for earlier, later in zip(segments, segments[1:], strict=False):
+        kinds = [kind for kind, _ in earlier.commands]
+        end_of_outer = earlier.commands[kinds.index("line") - 1][1][-2:]
+        assert end_of_outer == pytest.approx(later.commands[0][1], abs=1e-9)
+
+
+def test_a_weightless_breakdown_draws_nothing() -> None:
+    """Zero total weight has no angles in it; a donut of nothing is a placeholder."""
+
+    assert donut_segments([]) == []
+    assert donut_segments([_slice("Empty", "0")]) == []
+
+
+def test_a_flat_axis_places_its_values_mid_plot() -> None:
+    """A series with no spread has no meaningful top or bottom to measure against.
+
+    The axis is padded before it reaches here, so this is unreachable through the
+    chart itself; it exists so a caller that ever hands over a degenerate axis gets a
+    mark in the middle of the plot rather than a division by zero.
+    """
+
+    assert _fraction_down(5.0, 5.0, 5.0) == 0.5
+    assert _fraction_down(0.0, 4.0, 1.0) == 0.5
+
+
+def test_a_weightless_slice_is_dropped_rather_than_drawn() -> None:
+    """A zero-weight slice is a hairline at the seam and nothing else."""
+
+    segments = donut_segments(
+        [_slice("Equity", "100", colour="#1F5AA6"), _slice("Dust", "0", colour="#ABCDEF")]
+    )
+
+    assert [segment.colour for segment in segments] == ["#1F5AA6"], "the weightless slice was drawn"
+
+
+def _angle(point: tuple[float, ...]) -> float:
+    """Clockwise from twelve, matching the frame the geometry is built in."""
+    return math.atan2(point[0] - 0.5, 0.5 - point[1]) % math.tau
+
+
+def _sweep_of(segment: DonutSegment) -> float:
+    """The angle a wedge covers, read back off the ends of its outer arc.
+
+    The outer arc runs from the opening `move` to the radial `line` inward, so the last
+    cubic before that line ends where the wedge ends.
+    """
+    commands = segment.commands
+    line_index = next(index for index, command in enumerate(commands) if command[0] == "line")
+    start = commands[0][1]
+    end = commands[line_index - 1][1][4:6]
+    return (_angle(end) - _angle(start)) % math.tau
+
+
+def test_a_partial_breakdown_sweeps_its_stated_weights_not_its_own_sum() -> None:
+    """The ring has to agree with the legend printed beside it.
+
+    Dividing each weight by the sum of the weights is the tempting normalisation, and
+    on the golden package -- whose slices cover 89.64% -- it drew Equity as 67% of the
+    ring under a label reading 60.00%. A chart that restates its own numbers is the
+    same class of defect as a gridline drawn outside the plot.
+    """
+
+    segments = donut_segments([_slice("Equity", "60"), _slice("Fixed Income", "28")])
+
+    assert _sweep_of(segments[0]) == pytest.approx(0.60 * math.tau, abs=1e-6)
+    assert _sweep_of(segments[1]) == pytest.approx(0.28 * math.tau, abs=1e-6)
+
+
+def test_the_uncharted_remainder_is_drawn_rather_than_left_blank() -> None:
+    """A gap in the ring is the shortfall the coverage note describes, made visible.
+
+    Left undrawn it reads as a rendering fault; drawn in the rule colour it reads as
+    the absence it is.
+    """
+
+    segments = donut_segments([_slice("Equity", "60"), _slice("Fixed Income", "28")])
+
+    assert segments[-1].colour == UNCHARTED_COLOUR
+    assert _sweep_of(segments[-1]) == pytest.approx(0.12 * math.tau, abs=1e-6)
+    assert UNCHARTED_COLOUR not in {segment.colour for segment in segments[:-1]}
+
+
+def test_a_complete_breakdown_leaves_no_remainder() -> None:
+    """Weights that already cover the portfolio get the whole ring and no gap."""
+
+    segments = donut_segments([_slice("Equity", "70"), _slice("Fixed Income", "30")])
+
+    assert [segment.colour for segment in segments] == ["#1F5AA6", "#1F5AA6"]
+    assert UNCHARTED_COLOUR not in {segment.colour for segment in segments}
+
+
+def test_weights_that_overshoot_a_circle_are_renormalised_rather_than_overlapped() -> None:
+    """Bad upstream data must not draw slices on top of each other."""
+
+    segments = donut_segments([_slice("A", "80"), _slice("B", "80")])
+
+    assert len(segments) == 2, "an overshooting breakdown gained a remainder"
+    assert _sweep_of(segments[0]) == pytest.approx(math.tau / 2, abs=1e-6)
+    assert _sweep_of(segments[1]) == pytest.approx(math.tau / 2, abs=1e-6)

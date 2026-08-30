@@ -151,15 +151,6 @@
   ]
 ]
 
-// The allocation donut is still an SVG asset. Kept as a separate component so the
-// remaining image-backed chart is visible rather than hidden behind a shared name, and
-// so it can be deleted outright when the donut becomes a native primitive too (#150).
-#let chart-image-card(title, chart-path, subtitle: none) = chart-card(
-  title,
-  image(chart-path, width: 100%),
-  subtitle: subtitle,
-)
-
 #let chart-placeholder(title, message) = block(
   inset: 12pt,
   fill: mist,

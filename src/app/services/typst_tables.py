@@ -7,8 +7,13 @@ the performance, holdings, positions, transactions and allocation tables.
 from __future__ import annotations
 
 from collections.abc import Iterable, Mapping, Sequence
+from decimal import Decimal
 
-from app.services.chart_geometry import performance_chart_geometry
+from app.services.chart_geometry import (
+    DonutSegment,
+    donut_segments,
+    performance_chart_geometry,
+)
 from app.services.number_format import format_money, format_percent, group_digits
 from app.services.portfolio_charts import (
     allocation_items_from_report_data,
@@ -26,6 +31,10 @@ from app.services.typst_values import (
     string_list,
     weight_width_token,
 )
+
+# Rounding means a complete breakdown can total 99.99% rather than exactly 100. The note
+# is for a chart that is materially incomplete, not for a rounding remainder.
+DONUT_FULL_COVERAGE_PCT = Decimal("99.5")
 
 
 def _typst_dictionary(**fields: object) -> str:
@@ -102,16 +111,55 @@ def render_performance_chart_section(report_data: Mapping[str, object]) -> str:
     )
 
 
+def _donut_path_literal(segment: DonutSegment) -> str:
+    """One slice as a Typst dictionary: its colour and its ordered curve commands."""
+    commands = _typst_array(
+        '(kind: "%s", values: %s)'
+        % (kind, _typst_array(f"{coordinate:.5f}" for coordinate in values))
+        for kind, values in segment.commands
+    )
+    return '(colour: "%s", commands: %s)' % (escape_typst_string(segment.colour), commands)
+
+
 def render_allocation_chart_section(report_data: Mapping[str, object]) -> str:
-    if not allocation_items_from_report_data(report_data):
+    """The allocation donut, drawn natively. The last chart that was an SVG asset."""
+    items = allocation_items_from_report_data(report_data)
+    segments = donut_segments(items)
+    if not segments:
         return (
             '#chart-placeholder("Asset Allocation", '
             '"No allocation breakdown is available for this report.")'
         )
+
+    paths = _typst_array(_donut_path_literal(segment) for segment in segments)
+    entries = _typst_array(
+        _typst_dictionary(
+            colour=item.color,
+            label=item.label,
+            weight=format_percent(item.weight_pct),
+            value=format_money(item.market_value),
+        )
+        for item in items
+    )
+    total = sum((item.market_value for item in items), Decimal("0"))
+    coverage = sum((item.weight_pct for item in items), Decimal("0"))
+    # A donut looks like a whole thing. When the slices do not add up to one, the chart
+    # says so rather than leaving a reader to infer it from a total that disagrees with
+    # the invested value printed beside it. The golden package covers 89.64%.
+    note = "none"
+    if coverage < DONUT_FULL_COVERAGE_PCT:
+        note = f'"Chart covers {escape_typst_string(format_percent(coverage))} of portfolio value"'
+
     return (
-        '#chart-image-card("Asset Allocation", '
-        '"assets/charts/allocation_asset_class.svg", '
-        'subtitle: "Portfolio composition by market value")'
+        '#chart-card("Asset Allocation", '
+        'subtitle: "Portfolio composition by market value")[\n'
+        f"  #donut-chart(\n"
+        f"    segments: {paths},\n"
+        f"    entries: {entries},\n"
+        f'    centre-value: "{escape_typst_string(format_money(total, decimals=0))}",\n'
+        f"    coverage-note: {note},\n"
+        f"  )\n"
+        "]"
     )
 
 

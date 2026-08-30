@@ -133,3 +133,31 @@ def test_the_posture_metrics_are_published_by_the_scrape_path_not_a_handler() ->
         "the metadata handler records posture directly again; it must reuse the shared "
         "refresh so /metadata and /metrics cannot disagree."
     )
+
+
+def test_a_scrape_survives_a_store_that_cannot_be_read(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The posture refresh is best effort, and an unreadable store is exactly when the
+    rest of the scrape matters most: an instance that cannot answer for its own jobs can
+    still report its request rate, its failures and its runtime.
+
+    Guarding this without testing it is the same trap the module documents -- the guard
+    looks present, and nothing establishes that a scrape gets past it.
+    """
+
+    app = create_app(Settings(render_store_path=str(tmp_path / "degraded.sqlite3")))
+    with TestClient(app) as client:
+        monkeypatch.setattr(
+            "app.dependencies.container.AppContainer.render_store_ready",
+            lambda self: (_ for _ in ()).throw(sqlite3.OperationalError("disk I/O error")),
+        )
+        response = client.get("/metrics")
+
+    assert response.status_code == 200
+    # The posture gauges are the casualty; the failure has to stop there. The app's own
+    # request instrumentation is served from the same registry, so its presence shows
+    # the scrape completed rather than being cut short at the posture refresh.
+    assert _samples(response.text, "http_request_duration_seconds"), (
+        "a degraded store took the whole scrape down with it"
+    )
