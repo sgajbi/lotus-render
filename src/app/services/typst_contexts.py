@@ -10,6 +10,7 @@ from __future__ import annotations
 from collections.abc import Mapping, Sequence
 
 from app.contracts.render_package import RenderPackage
+from app.services.absence import supplied_text
 from app.services.appendix_glossary import applicable_glossary
 from app.services.date_format import format_date, format_dates_in_text
 from app.services.number_format import group_digits
@@ -177,11 +178,9 @@ def build_portfolio_review_context(render_package: RenderPackage) -> dict[str, s
         "OBJECTIVE": escape_typst_string(
             str(mandate.get("objective", "Objective not available in the governed snapshot."))
         ),
-        "RISK_EXPOSURE": escape_typst_string(str(mandate.get("risk_exposure", "not_available"))),
-        "BOOKING_CENTER": escape_typst_string(
-            str(mandate.get("booking_center_code", "not_available"))
-        ),
-        "ADVISOR_ID": escape_typst_string(str(mandate.get("advisor_id", "not_available"))),
+        "RISK_EXPOSURE": escape_typst_string(supplied_text(mandate.get("risk_exposure"))),
+        "BOOKING_CENTER": escape_typst_string(supplied_text(mandate.get("booking_center_code"))),
+        "ADVISOR_ID": escape_typst_string(supplied_text(mandate.get("advisor_id"))),
         "INVESTED_VALUE": escape_typst_string(
             group_digits(portfolio_metrics.get("invested_value", "Not available"))
         ),
@@ -222,7 +221,7 @@ def build_portfolio_review_context(render_package: RenderPackage) -> dict[str, s
             )
         ),
         "BENCHMARK_STATUS": escape_typst_string(
-            str(performance_highlight.get("benchmark_comparison_status", "not_available"))
+            supplied_text(performance_highlight.get("benchmark_comparison_status"))
         ),
         "RISK_VOLATILITY": escape_typst_string(
             str(risk_summary.get("volatility_pct", "Not available"))
@@ -326,22 +325,22 @@ def build_proof_pack_context(render_package: RenderPackage) -> dict[str, str]:
     decision_summary = mapping(report_data.get("decision_summary"))
     supportability = mapping(report_data.get("supportability"))
     source_hashes = mapping(report_data.get("source_hashes"))
-    source_contract_version = str(report_data.get("source_contract_version", "not_available"))
+    source_contract_version = supplied_text(report_data.get("source_contract_version"))
     return {
         "TITLE": escape_typst_string(str(report_data["title"])),
         "PORTFOLIO_ID": escape_typst_string(str(report_data["portfolio_id"])),
         "PROOF_PACK_ID": escape_typst_string(str(report_data["proof_pack_id"])),
-        "MANDATE_ID": escape_typst_string(str(report_data.get("mandate_id", "not_available"))),
-        "AS_OF_DATE": escape_typst_string(str(report_data.get("as_of_date", "not_available"))),
+        "MANDATE_ID": escape_typst_string(supplied_text(report_data.get("mandate_id"))),
+        "AS_OF_DATE": escape_typst_string(supplied_text(report_data.get("as_of_date"))),
         "STATE": escape_typst_string(str(report_data["state"])),
         "DECISION_ACTION": escape_typst_string(
-            str(decision_summary.get("recommended_action", "not_available"))
+            supplied_text(decision_summary.get("recommended_action"))
         ),
         "DECISION_RATIONALE": escape_typst_string(
             str(decision_summary.get("rationale", "No decision rationale supplied."))
         ),
         "SUPPORTABILITY_STATUS": escape_typst_string(
-            str(supportability.get("status", supportability.get("state", "not_available")))
+            supplied_text(supportability.get("status") or supportability.get("state"))
         ),
         "SUPPORTABILITY_REASONS": escape_typst_string(
             ", ".join(string_list(supportability.get("reason_codes"))) or "none"
@@ -377,17 +376,15 @@ def build_outcome_review_context(render_package: RenderPackage) -> dict[str, str
         "PORTFOLIO_ID": escape_typst_string(str(report_data["portfolio_id"])),
         "OUTCOME_REVIEW_ID": escape_typst_string(str(report_data["outcome_review_id"])),
         "PROOF_PACK_ID": escape_typst_string(str(report_data.get("proof_pack_id", ""))),
-        "REBALANCE_RUN_ID": escape_typst_string(
-            str(report_data.get("rebalance_run_id", "not_available"))
-        ),
-        "WAVE_ID": escape_typst_string(str(report_data.get("wave_id", "not_available"))),
+        "REBALANCE_RUN_ID": escape_typst_string(supplied_text(report_data.get("rebalance_run_id"))),
+        "WAVE_ID": escape_typst_string(supplied_text(report_data.get("wave_id"))),
         "STATE": escape_typst_string(str(report_data["state"])),
         "OVERALL_OUTCOME": escape_typst_string(str(report_data["overall_outcome"])),
         "REVIEW_WINDOW_START": escape_typst_string(
-            str(report_data.get("review_window_start", "not_available"))
+            supplied_text(report_data.get("review_window_start"))
         ),
         "REVIEW_WINDOW_END": escape_typst_string(
-            str(report_data.get("review_window_end", "not_available"))
+            supplied_text(report_data.get("review_window_end"))
         ),
         "DIMENSION_ROWS": render_outcome_dimension_rows(dimensions),
         "SOURCE_SERVICES": escape_typst_string(
@@ -397,7 +394,7 @@ def build_outcome_review_context(render_package: RenderPackage) -> dict[str, str
         "SECTION_HASH_ROWS": render_key_value_rows(section_hashes),
         "CONTENT_HASH": escape_typst_string(str(report_data["content_hash"])),
         "OUTCOME_REVIEW_CONTENT_HASH": escape_typst_string(
-            str(report_data.get("outcome_review_content_hash", "not_available"))
+            supplied_text(report_data.get("outcome_review_content_hash"))
         ),
         "REDACTION_POLICY": escape_typst_string(
             str(report_data.get("redaction_policy", "NO_RAW_PAYLOADS"))
@@ -426,32 +423,28 @@ def build_wave_context(render_package: RenderPackage) -> dict[str, str]:
         "TRIGGER_RATIONALE": escape_typst_string(
             str(report_data.get("trigger_rationale", "No trigger rationale supplied."))
         ),
-        "AS_OF_DATE": escape_typst_string(str(report_data.get("as_of_date", "not_available"))),
-        "ITEM_COUNT": escape_typst_string(
-            str(aggregate_metrics.get("item_count", "not_available"))
-        ),
+        "AS_OF_DATE": escape_typst_string(supplied_text(report_data.get("as_of_date"))),
+        "ITEM_COUNT": escape_typst_string(supplied_text(aggregate_metrics.get("item_count"))),
         "READY_ITEM_COUNT": escape_typst_string(
-            str(aggregate_metrics.get("ready_item_count", "not_available"))
+            supplied_text(aggregate_metrics.get("ready_item_count"))
         ),
         "BLOCKED_ITEM_COUNT": escape_typst_string(
-            str(aggregate_metrics.get("blocked_item_count", "not_available"))
+            supplied_text(aggregate_metrics.get("blocked_item_count"))
         ),
         "SUPPORTABILITY_STATUS": escape_typst_string(
             str(
                 supportability.get(
                     "supportability_state",
-                    supportability.get("status", "not_available"),
+                    supplied_text(supportability.get("status")),
                 )
             )
         ),
-        "SUPPORTABILITY_REASON": escape_typst_string(
-            str(supportability.get("reason", "not_available"))
-        ),
+        "SUPPORTABILITY_REASON": escape_typst_string(supplied_text(supportability.get("reason"))),
         "PROOF_PACK_READY_COUNT": escape_typst_string(
-            str(proof_pack_posture.get("ready_proof_pack_count", "not_available"))
+            supplied_text(proof_pack_posture.get("ready_proof_pack_count"))
         ),
         "PROOF_PACK_DEGRADED_COUNT": escape_typst_string(
-            str(proof_pack_posture.get("degraded_proof_pack_count", "not_available"))
+            supplied_text(proof_pack_posture.get("degraded_proof_pack_count"))
         ),
         "HANDOFF_COUNT": escape_typst_string(str(report_data.get("handoff_count", 0))),
         "EXTERNAL_EXECUTION": escape_typst_string(

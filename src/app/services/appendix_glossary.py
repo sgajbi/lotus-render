@@ -21,6 +21,7 @@ from __future__ import annotations
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 
+from app.services.absence import is_supplied
 from app.services.typst_values import row_sequence
 
 
@@ -123,24 +124,11 @@ def _mapping(value: object) -> Mapping[str, object]:
     return value if isinstance(value, Mapping) else {}
 
 
-def _is_supplied(value: object) -> bool:
-    """A field counts as supplied when it carries something a card could show.
-
-    Report data spells an absent measure several ways -- the key missing, ``None``, an
-    empty string, or the literal "Not available" the degraded fixture uses -- and all of
-    them mean the same thing to a reader: no card, so no definition.
-    """
-    if value is None:
-        return False
-    text = str(value).strip()
-    return bool(text) and text.lower() not in {"not available", "n/a", "none", "-"}
-
-
 def _benchmark_is_drawn(report_data: Mapping[str, object]) -> bool:
     for key in ("performance_periods", "performance_monthly_history", "performance_annual_history"):
         for row in row_sequence(report_data.get(key)) or ():
             if isinstance(row, Mapping) and any(
-                _is_supplied(row.get(field)) for field in _BENCHMARK_FIELDS
+                is_supplied(row.get(field)) for field in _BENCHMARK_FIELDS
             ):
                 return True
     return False
@@ -168,7 +156,7 @@ def _risk_subjects(report_data: Mapping[str, object]) -> set[str]:
     return {
         subject
         for subject, field in _RISK_SUBJECT_FIELDS.items()
-        if _is_supplied(risk_summary.get(field))
+        if is_supplied(risk_summary.get(field))
     }
 
 

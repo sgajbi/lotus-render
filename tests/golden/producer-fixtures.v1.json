@@ -60,9 +60,9 @@
         "tests/unit/reporting_render/test_service.py"
       ],
       "provenance": "Generated from lotus-report ReportJobLedger and typed ProofPackReportJobRequest through _build_render_package.",
-      "bounded_determinism_fingerprint": "06ae8bbf318f79a3392638c265809f9cf7ce995735f2f7c76b20991ed49a1180",
+      "bounded_determinism_fingerprint": "4479b3e707ec4632243d87ca38d097b9cc20eb56dee589a91bcf133c07c4cbdd",
       "page_image_hashes": [
-        "58972db7afc48f8bc9d62cb2b4e48f0abad03491019cf3a5dee1b54e87150e23"
+        "c1f79e24a3f125d6802838bc8700de36858dc1c74f7e4ce09fcc14c7d8c7ff2a"
       ]
     },
     {
@@ -99,9 +99,9 @@
         "tests/unit/reporting_render/test_service.py"
       ],
       "provenance": "Generated from lotus-report ReportJobLedger and typed WaveReportJobRequest through _build_render_package.",
-      "bounded_determinism_fingerprint": "99f365d1eaafd402fcb1cc39289a0baf4d5c4bbf7138796e0846fe124629842a",
+      "bounded_determinism_fingerprint": "2766c063800ba3df9885b355af81e28a927ae1ea43c31b108c9f585cf8d2d7c2",
       "page_image_hashes": [
-        "08eb3ef02bb38708b7ffd53a4077edbb3b0ed1c683a3fdf93319a7d667423c2d"
+        "863673145996aae3b2365004be010031709060b023fe36c8e76e23c8532241a7"
       ]
     },
     {
@@ -173,11 +173,11 @@
         "src/app/contracts/examples/portfolio-review-render-package.v1.json"
       ],
       "provenance": "Portfolio review whose optional collections are all empty, so every degraded-path fallback is compiled and banked rather than asserted only as a Python string (#118).",
-      "bounded_determinism_fingerprint": "332990bbcf009baad28ef1b8ec561cac7e516b36ff2b329ad29bb557e30b3ac0",
+      "bounded_determinism_fingerprint": "67c993baa74a12e26073356ddab794f80437467247599afa778e379746fd0141",
       "page_image_hashes": [
-        "502d0e98b0ed60991250b70ce0aea03fbc936544691f39bcc44d2ad8d4c26a00",
+        "4f2cf91be5cfc5de7e5177f2b69df1349b8836063bfa2371ce552ea6396622f0",
         "41d5247cfd2cba300dc70ec595572b60c560100917cbffadc7353c0183cf7f22",
-        "cde89ae9daeea7f07eaea89c2af3d250e458f5cf5c81aaa98d58e067dd977edc",
+        "6de2374a11b5b2ff6c6fe06b545141e3e1d065e264a030bfe6bee343faca16f6",
         "30c6fa4b6ebb5786483146b302384987e476d37778cff6ee89591dee521a6039",
         "1f24462bd5aacbe547cfdd4290ed722d3bac56e3c8aa8d2fbdee2e1f3f12e691",
         "cac78b04703f04e7054373e40fbd0684057e6544408413f1f5147dec1cea58e0",
