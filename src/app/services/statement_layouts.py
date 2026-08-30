@@ -103,7 +103,7 @@ POSITION_COLUMNS: tuple[StatementColumn, ...] = (
                 text_of("cost_basis_reporting_currency", "cost_basis_local", money=True),
             ),
             StatementField("Exchange rate", text_of("exchange_rate", money=True)),
-            StatementField("Held since", text_of("held_since_date")),
+            StatementField("Held since", text_of("held_since_date", date=True)),
             StatementField("Product type", text_of("product_type")),
         ),
     ),
@@ -112,7 +112,8 @@ POSITION_COLUMNS: tuple[StatementColumn, ...] = (
         fields=(
             StatementField("Market price", text_of("market_price", money=True), tone="ink"),
             StatementField(
-                "Market price date", text_of("market_price_date", "price_date", "position_date")
+                "Market price date",
+                text_of("market_price_date", "price_date", "position_date", date=True),
             ),
             StatementField(
                 "YTD performance", text_of("ytd_total_return_pct"), tone="accent", weight=500
@@ -149,8 +150,8 @@ TRANSACTION_COLUMNS: tuple[StatementColumn, ...] = (
         width="0.8fr",
         placement="left",
         fields=(
-            StatementField("Trade date", text_of("trade_date"), tone="ink"),
-            StatementField("Value date", text_of("value_date", "settlement_date")),
+            StatementField("Trade date", text_of("trade_date", date=True), tone="ink"),
+            StatementField("Value date", text_of("value_date", "settlement_date", date=True)),
             StatementField("Category", text_of("transaction_category")),
         ),
     ),

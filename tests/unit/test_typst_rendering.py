@@ -559,7 +559,9 @@ def test_typst_render_service_builds_richer_portfolio_review_context() -> None:
         assert "Not available" not in rows, (
             f"the {statement.lower()} table prints an absence for a field it labels"
         )
-    assert template_context["TRANSACTION_PERIOD_LABEL"] == "From 01.01.2026 to 23.04.2026"
+    # Report composes this label itself, in dotted dates; the document writes them
+    # its own way so the page does not carry two forms (#150).
+    assert template_context["TRANSACTION_PERIOD_LABEL"] == "From 1 Jan 2026 to 23 Apr 2026"
     assert template_context["SUPPLEMENTAL_ALLOCATION_TITLE"] == "By currency"
     assert "Equity" in template_context["ASSET_CLASS_ROWS"]
     assert "USD" in template_context["SUPPLEMENTAL_ALLOCATION_ROWS"]
@@ -569,7 +571,7 @@ def test_typst_render_service_builds_richer_portfolio_review_context() -> None:
     # "9,140,740.73;Not available" -- it banked the absences as expected output, so the
     # thing that was wrong with the table was the thing the test held in place.
     assert "8,118,290.51" in template_context["DENSE_POSITION_ROWS"]
-    assert "2024-01-15" in template_context["DENSE_POSITION_ROWS"]
+    assert "15 Jan 2024" in template_context["DENSE_POSITION_ROWS"]
     assert "9,140,740.73" in template_context["DENSE_POSITION_ROWS"]
     # Fields the golden holdings do carry and the old table ignored.
     assert "United States" in template_context["DENSE_POSITION_ROWS"]
@@ -583,7 +585,7 @@ def test_typst_render_service_builds_richer_portfolio_review_context() -> None:
     # lines where the reporting currency and place of execution would have gone. Both
     # held the defect in place. What matters is that the trade date and the price reach
     # the page and that nothing beside them is blank.
-    assert "09.01.2026" in template_context["DENSE_TRANSACTION_ROWS"]
+    assert "9 Jan 2026" in template_context["DENSE_TRANSACTION_ROWS"]
     assert "NAV 102.35" in template_context["DENSE_TRANSACTION_ROWS"]
     assert '"", size:' not in template_context["DENSE_TRANSACTION_ROWS"], (
         "a transaction cell carries an empty line for a field that never arrives"
@@ -1008,9 +1010,9 @@ def test_typst_render_service_maps_dense_position_lifecycle_fields() -> None:
         "98.40",
         "1.3520",
         "9,840.00",
-        "2024-01-15",
+        "15 Jan 2024",
         "101.25",
-        "2026-04-23",
+        "23 Apr 2026",
         "3.10%",
         "2.90%",
         "285.00",
@@ -1049,11 +1051,11 @@ def test_typst_render_service_maps_transaction_value_date_and_settlement_amount(
         ]
     )
 
-    for supplied in ("2026-04-21", "2026-04-23", "10,125.00", "42.25", "10,167.25"):
+    for supplied in ("21 Apr 2026", "23 Apr 2026", "10,125.00", "42.25", "10,167.25"):
         assert supplied in rows, f"{supplied} was supplied and does not reach the page"
     # The value date is its own field, not the trade date repeated, and the settlement
     # amount is its own figure, not the transaction value repeated.
-    assert rows.count("2026-04-21") == 1
+    assert rows.count("21 Apr 2026") == 1
     assert rows.count("10,167.25") == 1
     assert "Not available" not in rows
 

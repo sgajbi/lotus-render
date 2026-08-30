@@ -20,7 +20,7 @@
           [#small-caps("Portfolio")],
           [#text(size: 11pt, weight: 500, fill: ink)[#"${PORTFOLIO_NAME}"]],
           [#small-caps("Review period")],
-          [#text(size: 9.5pt, fill: ink)[1 Jan 2026 - #"${AS_OF_DATE}"]],
+          [#text(size: 9.5pt, fill: ink)[#"${REVIEW_PERIOD_RANGE}"]],
           [#small-caps("Reporting currency")],
           [#text(size: 9.5pt, fill: ink)[#"${CURRENCY}"]],
         )

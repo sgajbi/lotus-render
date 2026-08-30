@@ -24,6 +24,7 @@ from __future__ import annotations
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass, replace
 
+from app.services.date_format import format_date
 from app.services.number_format import group_digits
 from app.services.typst_values import escape_typst_string
 
@@ -55,8 +56,13 @@ class StatementColumn:
     placement: str = "right"
 
 
-def text_of(*keys: str, prefix: str = "", money: bool = False) -> Resolver:
-    """Read the first of `keys` a row supplies, or None when it supplies none."""
+def text_of(*keys: str, prefix: str = "", money: bool = False, date: bool = False) -> Resolver:
+    """Read the first of `keys` a row supplies, or None when it supplies none.
+
+    `date` puts the value through the document's date format. Report data carries ISO
+    dates for holdings and dotted ones for transactions, and a reader should not be
+    shown the difference.
+    """
 
     def resolve(row: Row) -> str | None:
         for key in keys:
@@ -66,6 +72,8 @@ def text_of(*keys: str, prefix: str = "", money: bool = False) -> Resolver:
             text = str(value).strip()
             if not text or text.lower() in _ABSENT:
                 continue
+            if date:
+                return f"{prefix}{format_date(text)}"
             return f"{prefix}{group_digits(text) if money else text}"
         return None
 
