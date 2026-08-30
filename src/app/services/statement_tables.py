@@ -24,16 +24,13 @@ from __future__ import annotations
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass, replace
 
+from app.services.absence import is_supplied
 from app.services.date_format import format_date
 from app.services.number_format import group_digits
 from app.services.typst_values import escape_typst_string
 
 Row = Mapping[str, object]
 Resolver = Callable[[Row], str | None]
-
-# Values report data uses to say "there is nothing here". A field whose every row reads
-# one of these is a field the document cannot fill.
-_ABSENT = frozenset({"", "-", "n/a", "na", "none", "not available", "null"})
 
 
 @dataclass(frozen=True)
@@ -69,9 +66,9 @@ def text_of(*keys: str, prefix: str = "", money: bool = False, date: bool = Fals
             value = row.get(key)
             if value is None:
                 continue
-            text = str(value).strip()
-            if not text or text.lower() in _ABSENT:
+            if not is_supplied(value):
                 continue
+            text = str(value).strip()
             if date:
                 return f"{prefix}{format_date(text)}"
             return f"{prefix}{group_digits(text) if money else text}"

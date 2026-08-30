@@ -734,9 +734,16 @@ def test_typst_render_service_rejects_invalid_proof_pack_sections() -> None:
 
 
 def test_typst_render_service_uses_proof_pack_fallback_rows() -> None:
+    """An empty section says so in words, not in a sentinel.
+
+    This asserted "not_available" was in the fallback row, which is how the sentinel
+    reached a governed proof pack and every rebalance wave: the test held it there.
+    """
+
     assert "No section evidence supplied." in render_proof_pack_section_rows([])
     assert "No source lineage supplied." in render_source_lineage_rows([])
-    assert "not_available" in render_key_value_rows({})
+    assert "Not available" in render_key_value_rows({})
+    assert "not_available" not in render_key_value_rows({})
 
 
 def test_template_registry_accepts_outcome_review_template() -> None:
