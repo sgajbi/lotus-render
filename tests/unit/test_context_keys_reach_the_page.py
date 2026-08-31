@@ -92,14 +92,25 @@ def _referenced_keys(template_id: str, template_version: str) -> set[str]:
 
 
 def _fixtures() -> list[dict[str, str]]:
+    """Every fixture, not one per template.
+
+    This kept the first fixture per `template_id` and dropped the rest, so the advisory
+    narrative and advisor memo never ran. Those two are the only packages that populate
+    the advisory disclosures, and the emitter's populated path -- the one that printed
+    its own call syntax onto a governed page -- was reachable by no fixture this gate
+    inspected. A proof that looks at a different instance from the one that serves is
+    not a proof.
+    """
     manifest = json.loads(FIXTURES_PATH.read_text(encoding="utf-8"))
-    seen: dict[str, dict[str, str]] = {}
-    for fixture in manifest["fixtures"]:
-        seen.setdefault(fixture["template_id"], fixture)
-    return list(seen.values())
+    fixtures: list[dict[str, str]] = manifest["fixtures"]
+    return fixtures
 
 
-@pytest.mark.parametrize("fixture", _fixtures(), ids=lambda fixture: fixture["template_id"])
+@pytest.mark.parametrize(
+    "fixture",
+    _fixtures(),
+    ids=lambda fixture: fixture.get("golden_sample_id", fixture["template_id"]),
+)
 def test_no_new_context_key_is_built_and_then_drawn_nowhere(fixture: dict[str, str]) -> None:
     template_id = fixture["template_id"]
     package = RenderPackage.model_validate_json(

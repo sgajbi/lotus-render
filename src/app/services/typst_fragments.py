@@ -262,4 +262,9 @@ def render_advisory_disclosure_blocks(disclosures: object) -> str:
             "#advisory-disclosure-block([Not available], "
             "[No reviewed narrative disclosure text supplied.])"
         )
-    return "\n#v(6pt)\n".join(blocks)
+    # Invoked, not printed. The empty-state literal above carries its own "#" and the
+    # populated path joined the fragments without one, so a governed advisor memo
+    # printed the call that should have drawn its disclosure -- the compliance line
+    # rendered as source, on the page, under the heading "Disclosures". Exactly the
+    # defect `markup_calls` was written for, in the one emitter that did not use it.
+    return markup_calls(blocks, separator="\n#v(6pt)\n")
