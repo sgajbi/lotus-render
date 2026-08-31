@@ -1,0 +1,54 @@
+name: Main Gate Coverage Audit
+
+# Asks GitHub which commits on main the releasability gate actually evaluated, and fails
+# when one has no run. The dispatcher now fires a run per revision a pull request adds
+# (#174), and this is what proves it kept doing so: the failure mode being guarded is a
+# commit that is never gated, which is not itself a failure anywhere and so reports
+# nothing.
+#
+# It cannot live in `make check`, which must run offline: the audit asks the API which
+# runs exist. It cannot live in the releasability gate either -- the runs for a
+# multi-commit pull request are dispatched together, so an audit inside one of them
+# would see the others as missing and fail on a race. A schedule sees the settled state.
+
+on:
+  schedule:
+    # Daily, after the working day in Asia/Singapore, so a gap opened by a merge is
+    # reported the same day it appears rather than the next morning.
+    - cron: "0 13 * * *"
+  workflow_dispatch:
+    inputs:
+      limit:
+        description: "How many commits back from main to audit."
+        required: false
+        default: "40"
+        type: string
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  audit:
+    name: Main Gate Coverage Audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Audit which commits on main were gated
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python scripts/audit_main_gate_coverage.py \
+            --limit "${{ inputs.limit || 40 }}" \
+            --fail-on-gap
