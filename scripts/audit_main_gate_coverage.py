@@ -1,30 +1,32 @@
 """Which commits on main were never evaluated by the releasability gate.
 
-`main-releasability.yml` is triggered by `push` to main, and GitHub fires a push event
-**once per push, for the head commit**. A push carrying two commits therefore produces
-one run, and the earlier commit has no releasability evidence of its own.
+The gate is dispatched once per merged pull request. This repository merges by rebase,
+so a pull request holding N commits puts N on main, and only the last of them is the
+`merge_commit_sha` the dispatch names. The earlier ones had no releasability evidence of
+their own.
 
-Measured on this repository:
+Measured on this repository, PR #189:
 
-    a05b22f  committed 2026-08-29T09:37:10Z   runs: 0
-    3fcd307  committed 2026-08-29T09:37:10Z   runs: 1   created 09:37:13Z
-
-Identical commit timestamps, one run, for the head. `a05b22f` is the commit that bound
-each template manifest to the bytes it describes -- a gate in its own right -- and
-nothing ever validated the tree at that commit.
+    63dd973  fix(ci): gate release jobs on revision proof   runs: 1
+    762a401  fix(ci): preserve exact-main release proof     runs: 0
 
 #79 established that per-commit evidence is the intent: the concurrency group is keyed
-on `github.sha` precisely so a newer commit cannot cancel the run that is "the only
+on the revision precisely so a newer commit cannot cancel the run that is "the only
 releasability evidence for the previous one". This is the same requirement failing the
-other way -- the run is not cancelled, it is never created.
+other way -- the run is not cancelled, it is never created, and a run that never exists
+reports nothing.
 
 The gap matters on rollback and bisect, where a commit that was never head becomes the
-deployed tree.
+deployed tree, and where `git bisect` cannot tell "broken" from "never validated".
+
+The dispatcher enumerates every revision a pull request adds (#174). This script is what
+proves it kept doing so, and runs daily from `main-gate-coverage-audit.yml`. It is not in
+`make check`, which must run offline: it asks the API which runs exist.
 
 Usage::
 
-    python scripts/audit_main_gate_coverage.py              # report
-    python scripts/audit_main_gate_coverage.py --fail-on-gap  # exit non-zero on a gap
+    python scripts/audit_main_gate_coverage.py               # report
+    python scripts/audit_main_gate_coverage.py --fail-on-gap # exit non-zero on a gap
 """
 
 from __future__ import annotations
@@ -101,9 +103,20 @@ def main() -> int:
     )
     if ungated:
         print(
-            "A push carrying more than one commit fires the gate once, for the head. The "
-            "commits above were never head, so no run evaluated their tree -- which "
-            "matters on rollback and bisect, where such a commit becomes the deployed one."
+            "The gate is dispatched per merged pull request, and this repository merges "
+            "by rebase, so a pull request holding N commits puts N on main. The commits "
+            "above were not the one the dispatch named, so no run evaluated their tree "
+            "-- which matters on rollback and bisect, where such a commit becomes the "
+            "deployed one.\n"
+            "\n"
+            "Backfill one with:\n"
+            "  gh api repos/OWNER/REPO/git/refs "
+            "-f ref=refs/tags/main-releasability-SHA -f sha=SHA\n"
+            "  gh workflow run main-releasability.yml --ref main-releasability-SHA "
+            "-f expected_sha=SHA -f triggering_pr=backfill\n"
+            "\n"
+            "A commit predating those inputs takes a bare dispatch instead: the workflow "
+            "that runs is the one defined at that revision, not this one."
         )
     return 1 if (ungated and arguments.fail_on_gap) else 0
 

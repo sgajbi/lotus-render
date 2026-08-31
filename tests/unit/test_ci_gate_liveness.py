@@ -139,3 +139,34 @@ def test_the_commit_enumeration_states_the_merge_method_it_depends_on() -> None:
 
     assert "allow_squash_merge, .allow_merge_commit, .allow_rebase_merge" in dispatcher
     assert "rebase-only merging" in dispatcher
+
+
+def test_the_gate_coverage_audit_runs_and_can_fail() -> None:
+    """A gap in gate coverage is not a failure anywhere, so something must look for it.
+
+    The dispatcher fires a run per revision a pull request adds (#174); this audit is
+    what proves it kept doing so. Configured is not running, so this asserts the
+    schedule exists and that the invocation passes `--fail-on-gap` -- reporting a gap
+    without failing on it is the arrangement that let the first one sit unnoticed.
+
+    It cannot be in `make check`, which runs offline, and it cannot be inside the
+    releasability gate: the runs for a multi-commit pull request are dispatched
+    together, so an audit within one of them would race the others.
+    """
+
+    workflow_path = ROOT / ".github/workflows/main-gate-coverage-audit.yml"
+    assert workflow_path.exists(), "nothing audits which commits the gate evaluated"
+
+    workflow = yaml.safe_load(workflow_path.read_text(encoding="utf-8"))
+    # `on` is parsed as the boolean True by YAML 1.1, which is what PyYAML implements.
+    triggers = workflow.get("on", workflow.get(True))
+
+    assert "schedule" in triggers, "the audit is dispatch-only, so nothing runs it"
+    assert triggers["schedule"], "the schedule declares no cron entry"
+
+    steps = workflow["jobs"]["audit"]["steps"]
+    invocation = "\n".join(step.get("run", "") for step in steps)
+    assert "audit_main_gate_coverage.py" in invocation
+    assert "--fail-on-gap" in invocation, (
+        "the audit reports gaps without failing on them, which is how the first one sat unnoticed"
+    )
