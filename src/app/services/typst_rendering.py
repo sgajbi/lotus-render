@@ -23,7 +23,11 @@ from app.domain.templates.digest import template_digest
 from app.domain.templates.registry import shared_design_directory
 from app.observability.render_metrics import record_render_empty_content_blocks
 from app.services.render_intake import RenderIntakeService
-from app.services.render_ports import RenderEngineTimeoutError, RenderRuntimeMetadata
+from app.services.render_ports import (
+    RenderCompileFailedError,
+    RenderEngineTimeoutError,
+    RenderRuntimeMetadata,
+)
 from app.services.template_context import TemplateContextRegistry, TemplateContextRenderer
 from app.services.typst_contexts import (
     build_outcome_review_context,
@@ -456,7 +460,10 @@ class TypstRenderService:
             if process.returncode != 0:
                 category, diagnostic_summary = _classify_compile_failure(process)
                 attempt.mark_failed(category, diagnostic_summary)
-                raise RuntimeError(diagnostic_summary)
+                # The category rides on the exception. Raised bare, it was re-derived
+                # downstream by matching the message, and a killed compile came back as
+                # a template failure.
+                raise RenderCompileFailedError(category, diagnostic_summary)
 
             artifact_bytes = output_path.read_bytes()
 

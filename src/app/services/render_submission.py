@@ -10,10 +10,8 @@ from app.contracts.render_package import RenderPackage
 from app.contracts.renders import (
     RenderArtifactMetadataResponse,
     RenderFailureCategory,
-    RenderHandoffOwner,
     RenderJobDiagnosticsResponse,
     RenderJobStatusResponse,
-    RenderRecoveryAction,
     RenderStaleState,
     RenderSubmitResponse,
 )
@@ -29,10 +27,12 @@ from app.observability.render_log import log_render_accepted, log_render_failed
 from app.observability.render_metrics import record_render_artifact_size, record_render_operation
 from app.services.render_execution import RenderExecutionLimiter
 from app.services.render_ports import (
+    RenderCompileFailedError,
     RenderEnginePort,
     RenderEngineTimeoutError,
     RenderJobStorePort,
 )
+from app.services.render_recovery import diagnostic_recovery
 
 
 class RenderPackageInvalidError(ValueError):
@@ -443,7 +443,7 @@ class RenderSubmissionService:
         stale_state: RenderStaleState = "not_applicable"
         if stale_threshold_seconds is not None:
             stale_state = "stale" if age_seconds >= stale_threshold_seconds else "fresh"
-        retryable, recovery_action, handoff_owner, support_message = _diagnostic_recovery(
+        retryable, recovery_action, handoff_owner, support_message = diagnostic_recovery(
             status=stored.status,
             failure_category=stored.failure_category,
             stale_state=stale_state,
@@ -516,6 +516,12 @@ def _unexpected_failure_category(exc: Exception) -> RenderFailureCategory:
     A ``RuntimeError`` keeps its runtime classification (engine vs template);
     anything else is a genuinely unexpected internal error.
     """
+    if isinstance(exc, RenderCompileFailedError):
+        # The runtime already decided; matching on the message would discard it.
+        # `.value` crosses from the runtime StrEnum to the contract Literal, which
+        # `test_the_two_failure_category_spellings_agree` holds to the same members --
+        # they had drifted, and that drift is why this category had nowhere to land.
+        return exc.failure_category.value
     if isinstance(exc, RuntimeError):
         return _runtime_failure_category(str(exc))
     return "unexpected_render_error"
@@ -545,72 +551,3 @@ def _stale_threshold_seconds(
     if status == "rendering":
         return rendering_stale_seconds
     return None
-
-
-def _diagnostic_recovery(
-    *,
-    status: str,
-    failure_category: RenderFailureCategory | None,
-    stale_state: str,
-) -> tuple[bool, RenderRecoveryAction, RenderHandoffOwner, str]:
-    if status == "rendered":
-        return (
-            False,
-            "read_artifact_metadata",
-            "lotus-render",
-            "Render completed; use artifact metadata for deterministic proof.",
-        )
-    if status in {"accepted", "rendering"}:
-        if stale_state == "stale":
-            return (
-                True,
-                "resubmit_identical_package_or_escalate_runtime",
-                "reporting-platform-on-call",
-                (
-                    "Render is stale; resubmit the identical package for idempotent recovery or "
-                    "escalate runtime support if it remains non-terminal."
-                ),
-            )
-        return (
-            False,
-            "wait_for_completion",
-            "lotus-render",
-            "Render is in progress inside the governed runtime envelope.",
-        )
-    if failure_category == "package_validation_failed":
-        return (
-            False,
-            "fix_upstream_render_package",
-            "lotus-report",
-            "Render package validation failed; fix or replay the upstream report package.",
-        )
-    if failure_category == "template_not_supported":
-        return (
-            False,
-            "fix_template_registry_or_package",
-            "template-owner",
-            "Template compatibility failed; align the package with the governed template registry.",
-        )
-    if failure_category in {"engine_unavailable", "timeout"}:
-        return (
-            True,
-            "escalate_render_runtime",
-            "reporting-platform-on-call",
-            (
-                "Render runtime failed; check runtime availability, timeout posture, and retry "
-                "envelope."
-            ),
-        )
-    if failure_category in {"template_render_failed", "artifact_validation_failed"}:
-        return (
-            True,
-            "escalate_template_support",
-            "reporting-platform-on-call",
-            "Template or artifact generation failed inside the governed runtime envelope.",
-        )
-    return (
-        True,
-        "escalate_reporting_platform",
-        "reporting-platform-on-call",
-        "Render requires operator intervention inside the reporting platform support boundary.",
-    )

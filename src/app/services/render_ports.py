@@ -5,6 +5,9 @@ from typing import Protocol
 
 from app.contracts.render_package import RenderPackage
 from app.contracts.renders import RenderFailureCategory
+from app.domain.render_attempts.models import (
+    RenderFailureCategory as RuntimeFailureCategory,
+)
 from app.domain.rendering.models import RenderResult
 from app.infrastructure.render_store import CreateOrGetRenderJobResult, StoredRenderJob
 
@@ -64,6 +67,22 @@ class RenderEnginePort(Protocol):
     def runtime_metadata(self) -> RenderRuntimeMetadata: ...
 
     def render(self, render_package: RenderPackage) -> RenderResult: ...
+
+
+class RenderCompileFailedError(RuntimeError):
+    """A compile that failed, carrying why rather than only what it said.
+
+    The runtime classifies its own failures -- a killed process and a rejected
+    template arrive differently and mean different things -- and that verdict used to
+    end at a local attempt object while the submission surface re-derived a category by
+    matching on the message text. Anything the matcher did not recognise became
+    `template_render_failed`, which is the answer for a broken template and the wrong
+    answer for a document too large to draw.
+    """
+
+    def __init__(self, failure_category: RuntimeFailureCategory, summary: str) -> None:
+        super().__init__(summary)
+        self.failure_category = failure_category
 
 
 class RenderEngineTimeoutError(RuntimeError):
