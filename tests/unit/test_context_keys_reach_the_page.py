@@ -64,9 +64,14 @@ ORPHANED_KEYS: dict[str, frozenset[str]] = {
             "SOURCE_SERVICES",
             "TEMPLATE_ID",
             "TEMPLATE_VERSION",
-            # Content built and discarded (#154).
+            # Content built and discarded (#154). Both of these are alternative views of
+            # data the document draws by another key -- holdings through
+            # HOLDING_BAR_ROWS, the monthly series through
+            # PERFORMANCE_MONTHLY_TABLE_ROWS -- so the reader loses nothing by their
+            # absence. OBSERVATION_NOTES was in this list too and did not belong: it
+            # carries review_observations, which the contract requires, so it was not a
+            # debt but content missing from every document. It is drawn now.
             "HOLDING_ROWS",
-            "OBSERVATION_NOTES",
             "PERFORMANCE_MONTHLY_CHART_ROWS",
         }
     ),

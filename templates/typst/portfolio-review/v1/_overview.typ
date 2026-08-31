@@ -1,5 +1,5 @@
 #import "_theme.typ": empty-state, section-subtitle, small-caps, soft-rule
-#import "_components.typ": allocation-row, metric-card, note-panel, report-panel, section-lead, section-marker
+#import "_components.typ": allocation-row, metric-card, note-panel, report-panel, review-note, section-lead, section-marker
 
 #let scope-page() = [
   #section-marker("Overview", "Mandate, relationship context, and scope of analysis", header: "Scope of analysis")
@@ -45,4 +45,16 @@
       #note-panel("Relationship context", "Booking center ${BOOKING_CENTER} under advisor ${ADVISOR_ID}.")
     ],
   )
+
+  // What the review found, in the reviewer's own words. The package cannot be accepted
+  // without at least one of these, and the service has built the markup for them on
+  // every render since April while no template drew it.
+  #v(16pt)
+  #block(sticky: true, width: 100%)[
+    #section-subtitle("Review observations")
+    #v(5pt)
+    #soft-rule()
+  ]
+  #v(9pt)
+  ${OBSERVATION_NOTES}
 ]
