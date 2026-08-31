@@ -58,7 +58,14 @@ def _workflows_triggered_by_push_to_main() -> list[Path]:
 
 
 def test_merged_pr_dispatch_binds_main_releasability_to_exact_sha() -> None:
-    """A merged PR must dispatch one gate for its immutable merge revision."""
+    """A merged PR must dispatch one gate for every revision it puts on main.
+
+    It dispatched one, for `merge_commit_sha`. This repository merges by rebase, so a
+    pull request holding N commits puts N on main and only the last was the merge SHA:
+    PR #189 held two, and 762a401 -- the earlier -- was never evaluated by any run. That
+    is not a failure anywhere, which is why it went unnoticed; the loss is on rollback
+    and bisect, where a commit that was never head becomes the deployed tree (#174).
+    """
 
     dispatcher = (ROOT / ".github/workflows/merged-pr-main-releasability.yml").read_text(
         encoding="utf-8"
@@ -67,8 +74,14 @@ def test_merged_pr_dispatch_binds_main_releasability_to_exact_sha() -> None:
 
     assert not _workflows_triggered_by_push_to_main()
     assert "MERGE_COMMIT_SHA: ${{ github.event.pull_request.merge_commit_sha }}" in dispatcher
-    assert 'dispatch_ref="main-releasability-${MERGE_COMMIT_SHA}"' in dispatcher
-    assert '-f expected_sha="$MERGE_COMMIT_SHA"' in dispatcher
+    assert "COMMIT_COUNT: ${{ github.event.pull_request.commits }}" in dispatcher
+    # Every revision the PR added, not only the one that ended up as head.
+    assert 'git rev-list -n "$COMMIT_COUNT" "$MERGE_COMMIT_SHA"' in dispatcher
+    assert "for revision in $revisions; do" in dispatcher
+    assert 'dispatch_ref="main-releasability-${revision}"' in dispatcher
+    assert '-f expected_sha="$revision"' in dispatcher
+    # The whole history has to be present for the earlier revisions to be enumerable.
+    assert "fetch-depth: 0" in dispatcher
     assert "expected_sha:" in main_gate
     assert 'actual_sha="$(git rev-parse HEAD)"' in main_gate
     assert "inputs.expected_sha || github.sha" in main_gate
@@ -108,3 +121,21 @@ def test_every_compiling_test_job_declares_the_render_runtime() -> None:
             f"{path.name} runs pytest but never verifies the render runtime is present, so a "
             "runner without docker or typst would fail confusingly instead of by name."
         )
+
+
+def test_the_commit_enumeration_states_the_merge_method_it_depends_on() -> None:
+    """ "The last N commits ending at the merge SHA" is true of a rebase merge only.
+
+    A squash adds one commit however many the PR held, so N-1 of the dispatches would
+    name revisions belonging to earlier pull requests. A merge commit adds a second
+    parent, so `rev-list -n N` walks into main's own history. Either would gate the
+    wrong set of trees and report success, which is worse than the gap it replaces, so
+    the dispatcher asserts the setting rather than assuming it.
+    """
+
+    dispatcher = (ROOT / ".github/workflows/merged-pr-main-releasability.yml").read_text(
+        encoding="utf-8"
+    )
+
+    assert "allow_squash_merge, .allow_merge_commit, .allow_rebase_merge" in dispatcher
+    assert "rebase-only merging" in dispatcher
