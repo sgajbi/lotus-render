@@ -13,6 +13,10 @@ RenderFailureCategory = Literal[
     "package_validation_failed",
     "template_not_supported",
     "template_render_failed",
+    # A compile killed for exceeding its memory or CPU bound. The domain enum has had
+    # this since #169; this list did not, so the runtime could classify a document as
+    # too large and the response had no way to say so.
+    "resource_limit_exceeded",
     "engine_unavailable",
     "artifact_validation_failed",
     "timeout",
@@ -28,6 +32,9 @@ RenderRecoveryAction = Literal[
     "fix_template_registry_or_package",
     "escalate_render_runtime",
     "escalate_template_support",
+    # A document too large is not a support case: it fails identically on retry until
+    # the document is smaller or the envelope is larger.
+    "reduce_document_size_or_raise_envelope",
     "escalate_reporting_platform",
 ]
 RenderHandoffOwner = Literal[
