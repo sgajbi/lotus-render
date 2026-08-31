@@ -14,6 +14,7 @@ context dictionary rather than the document. This one reads the documents.
 from __future__ import annotations
 
 import io
+import re
 from pathlib import Path
 
 import pypdf
@@ -42,6 +43,15 @@ MACHINE_VALUES = (
     "object at 0x",
 )
 
+# Template source that reached the page instead of drawing anything. In Typst markup a
+# bare `name(...)` is text, not a call, so an emitter that forgets the leading `#`
+# prints the call. That happened to the advisory disclosures: a governed advisor memo
+# carried `advisory-disclosure-block([memo.advisor_use_only.v1], [Advisor use only...])`
+# under the heading "Disclosures" -- the compliance line rendered as its own source.
+#
+# The values above are all words. This is a shape, so it needs a pattern.
+CALL_SYNTAX = re.compile(r"[a-z][a-z0-9]*(?:-[a-z0-9]+)+\(\[")
+
 
 def _packages() -> list[Path]:
     return sorted(GOLDEN_ROOT.rglob("render-package.json"))
@@ -69,10 +79,16 @@ def test_no_banked_document_shows_a_machine_value(
     document = "\n".join(page.extract_text() for page in reader.pages)
 
     found = {value: document.count(value) for value in MACHINE_VALUES if value in document}
+    printed_calls = sorted(set(CALL_SYNTAX.findall(document)))
 
     assert not found, (
         f"{package_path.parent.name} shows values meant for a program: {found}. A field "
         "that did not arrive reads 'Not available'."
+    )
+    assert not printed_calls, (
+        f"{package_path.parent.name} prints template source instead of drawing it: "
+        f"{printed_calls}. A bare `name(...)` in Typst markup is text; `markup_calls` "
+        "adds the `#` that invokes it."
     )
 
 
