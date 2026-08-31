@@ -17,33 +17,82 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - name: Dispatch main releasability gate
+      # Every commit the pull request puts on main has to be fetched before it can be
+      # enumerated, and a shallow clone would not contain the earlier ones.
+      - uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Dispatch main releasability gate for every commit this PR added
+        shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
           MERGE_COMMIT_SHA: ${{ github.event.pull_request.merge_commit_sha }}
+          COMMIT_COUNT: ${{ github.event.pull_request.commits }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
+          set -euo pipefail
+
           if [ -z "$MERGE_COMMIT_SHA" ]; then
             echo "::error::pull_request.merge_commit_sha is required for exact-main releasability dispatch"
             exit 1
           fi
-          dispatch_ref="main-releasability-${MERGE_COMMIT_SHA}"
-          existing_ref_sha=""
-          if existing_ref_sha="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$dispatch_ref" --jq .object.sha 2>/dev/null)"; then
-            if [ "$existing_ref_sha" != "$MERGE_COMMIT_SHA" ]; then
-              echo "::error::Dispatch ref $dispatch_ref points to $existing_ref_sha, expected $MERGE_COMMIT_SHA"
+          if [ -z "$COMMIT_COUNT" ] || [ "$COMMIT_COUNT" -lt 1 ]; then
+            echo "::error::pull_request.commits is required to enumerate the revisions this PR added"
+            exit 1
+          fi
+
+          # The enumeration below is "the last N commits ending at the merge SHA", which
+          # is what a rebase merge produces and only what a rebase merge produces. A
+          # squash would add one commit however many the PR held, and a merge commit
+          # would add a second parent. Assert the repository still allows neither, so a
+          # settings change fails here loudly rather than silently gating the wrong set.
+          merge_methods="$(gh api "repos/$GITHUB_REPOSITORY" \
+            --jq '[.allow_squash_merge, .allow_merge_commit, .allow_rebase_merge] | join(",")')"
+          if [ "$merge_methods" != "false,false,true" ]; then
+            echo "::error::Repository merge methods are squash,merge,rebase = $merge_methods."
+            echo "::error::This dispatcher enumerates a PR's commits as the last N ending at the merge SHA, which holds only for rebase-only merging."
+            exit 1
+          fi
+
+          # Every commit the PR put on main, oldest first, so the earliest is dispatched
+          # first and a reader of the run list sees them in the order they landed.
+          revisions="$(git rev-list -n "$COMMIT_COUNT" "$MERGE_COMMIT_SHA" | tac)"
+          echo "PR #$PR_NUMBER added $COMMIT_COUNT revision(s) ending at $MERGE_COMMIT_SHA:"
+          echo "$revisions"
+
+          for revision in $revisions; do
+            # HEAD is main as it stood when this checkout ran, which is the tree the
+            # revision has to belong to. A remote-tracking ref would depend on the
+            # fetch refspec the checkout action happened to use.
+            if ! git merge-base --is-ancestor "$revision" HEAD; then
+              echo "::error::Revision $revision is not reachable from main; refusing to dispatch."
               exit 1
             fi
-          else
+
+            # A tag pins the revision so the dispatched run checks out that exact tree.
+            # `workflow_dispatch` takes a ref, and a branch name would move underneath it.
+            dispatch_ref="main-releasability-${revision}"
             existing_ref_sha=""
-          fi
-          if [ -z "$existing_ref_sha" ]; then
-            gh api "repos/$GITHUB_REPOSITORY/git/refs" \
-              -f ref="refs/tags/$dispatch_ref" \
-              -f sha="$MERGE_COMMIT_SHA" >/dev/null
-          fi
-          gh workflow run main-releasability.yml \
-            --repo "$GITHUB_REPOSITORY" \
-            --ref "$dispatch_ref" \
-            -f expected_sha="$MERGE_COMMIT_SHA" \
-            -f triggering_pr="$PR_NUMBER"
+            if existing_ref_sha="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$dispatch_ref" --jq .object.sha 2>/dev/null)"; then
+              if [ "$existing_ref_sha" != "$revision" ]; then
+                echo "::error::Dispatch ref $dispatch_ref points to $existing_ref_sha, expected $revision"
+                exit 1
+              fi
+            else
+              existing_ref_sha=""
+            fi
+            if [ -z "$existing_ref_sha" ]; then
+              gh api "repos/$GITHUB_REPOSITORY/git/refs" \
+                -f ref="refs/tags/$dispatch_ref" \
+                -f sha="$revision" >/dev/null
+            fi
+
+            gh workflow run main-releasability.yml \
+              --repo "$GITHUB_REPOSITORY" \
+              --ref "$dispatch_ref" \
+              -f expected_sha="$revision" \
+              -f triggering_pr="$PR_NUMBER"
+            echo "dispatched main-releasability for $revision"
+          done
