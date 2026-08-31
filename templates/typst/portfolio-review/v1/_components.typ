@@ -100,13 +100,21 @@
 // produce both defects #138 named: a subtitle stranded at the foot of a page, and rows
 // continuing under no column labels, because the row grids are not `table()` elements
 // and a header does not repeat on a continuation page (#184).
-#let labelled-table(subtitle, labels, rows) = block(breakable: false)[
-  #section-subtitle(subtitle)
-  #v(7pt)
+#let labelled-table(subtitle, labels, rows) = [
+  // Sticky rather than one unbreakable block around the whole table. Unbreakable kept
+  // the subtitle with its rows and also made a table taller than a page undrawable:
+  // Typst put what fitted on the page and dropped the rest without a word. Sixty
+  // monthly rows drew thirty-one. The contract admits 10,000 and the fixture has 12.
+  #block(sticky: true, breakable: false, width: 100%)[
+    #section-subtitle(subtitle)
+    #v(7pt)
+  ]
   #report-panel([
-    #labels
-    #v(5pt)
-    #soft-rule()
+    #block(sticky: true, breakable: false, width: 100%)[
+      #labels
+      #v(5pt)
+      #soft-rule()
+    ]
     #v(6pt)
     #rows
   ])
