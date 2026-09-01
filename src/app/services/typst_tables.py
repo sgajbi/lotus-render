@@ -188,18 +188,26 @@ def render_observation_notes(observations: object) -> str:
     return "\n#v(8pt)\n".join(f'#review-note("{escape_typst_string(note)}")' for note in notes)
 
 
-def render_performance_period_rows(periods: object) -> str:
+def render_performance_period_rows(periods: object, *, benchmarked: bool) -> str:
+    """Period returns, with the benchmark comparison only where there is one.
+
+    `benchmarked` is `benchmark_columns_are_drawn`, which the appendix reads too, so a
+    Benchmark column and a definition of "Benchmark" appear together or not at all. The
+    table used to draw four columns whenever there were periods, so a package with no
+    benchmark got two columns of "Not available" under a heading promising a comparison.
+    """
     empty_message = '#empty-state("No governed performance periods available.")'
     rendered: list[str] = []
     for item in mapping_entries(periods):
+        period = escape_typst_string(str(item.get("period", "n/a")))
+        net = escape_typst_string(group_digits(supplied_text(item.get("net_return_pct"))))
+        if not benchmarked:
+            rendered.append(f'#period-return-row("{period}", "{net}")')
+            continue
         relative = item.get("relative_return_pct")
         parsed_relative = optional_percent(relative)
         rendered.append(
-            '#period-row("'
-            + escape_typst_string(str(item.get("period", "n/a")))
-            + '", "'
-            + escape_typst_string(group_digits(supplied_text(item.get("net_return_pct"))))
-            + '", "'
+            f'#period-row("{period}", "{net}", "'
             + escape_typst_string(group_digits(supplied_text(item.get("benchmark_return_pct"))))
             + '", "'
             + escape_typst_string(str(relative if relative is not None else "Not available"))

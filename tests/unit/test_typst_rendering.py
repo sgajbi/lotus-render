@@ -936,8 +936,12 @@ def test_typst_render_service_helper_fallbacks_cover_sparse_structures() -> None
     assert "No 12-month performance series is available" in render_performance_chart_section({})
     assert "No allocation breakdown is available" in render_allocation_chart_section({})
     assert "No governed observations available." in render_observation_notes("bad")
-    assert "No governed performance periods available." in render_performance_period_rows("bad")
-    assert "No governed performance periods available." in render_performance_period_rows([123])
+    assert "No governed performance periods available." in render_performance_period_rows(
+        "bad", benchmarked=True
+    )
+    assert "No governed performance periods available." in render_performance_period_rows(
+        [123], benchmarked=True
+    )
     performance_summary_fallback = render_performance_summary_table("bad")
     assert "No governed performance summary available." in performance_summary_fallback
     assert "No governed performance summary available." in render_performance_summary_table([123])

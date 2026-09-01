@@ -1,28 +1,48 @@
 #import "_charts.typ": line-chart
 #import "_theme.typ": empty-state, rule, section-subtitle
-#import "_components.typ": chart-card, chart-placeholder, chart-scale-note, labelled-table, performance-chart-row, performance-detail-row, performance-summary-cell, period-row, section-marker, table-label
+#import "_components.typ": chart-card, chart-placeholder, chart-scale-note, labelled-table, performance-chart-row, performance-detail-row, performance-summary-cell, period-return-row, period-row, section-marker, table-label
 
 #let performance-page() = [
-  #section-marker("Performance", "Period returns, benchmark comparison, and return history")
+  // The marker names what the page holds, so it stops promising a comparison the
+  // package cannot make.
+  #section-marker("Performance", if "${HAS_BENCHMARK}" == "yes" {
+    "Period returns, benchmark comparison, and return history"
+  } else {
+    "Period returns and return history"
+  })
   #v(8pt)
   #section-subtitle("Performance summary (TWR)")
   #v(7pt)
   ${PERFORMANCE_SUMMARY_TABLE}
 
-  // The section marker above promises a benchmark comparison. The render package has
-  // carried benchmark and relative return per period all along; nothing drew them.
+  // The render package carried benchmark and relative return per period all along and
+  // nothing drew them. Now they are drawn -- but only where they exist. Four columns
+  // for a package with no benchmark meant two of them reading "Not available" on every
+  // line, under a heading promising a comparison; the appendix, which asked the
+  // stricter question, withheld the definitions for the same document.
   #if "${HAS_PERFORMANCE_PERIODS}" == "yes" [
     #v(15pt)
-    #labelled-table(
-      "Performance against benchmark (TWR)",
-      grid(columns: (0.9fr, 1fr, 1fr, 1fr), column-gutter: 12pt,
-        [#table-label("Period")],
-        [#table-label("Portfolio", placement: right)],
-        [#table-label("Benchmark", placement: right)],
-        [#table-label("Relative", placement: right)],
-      ),
-      [${PERFORMANCE_PERIOD_ROWS}],
-    )
+    #if "${HAS_BENCHMARK}" == "yes" [
+      #labelled-table(
+        "Performance against benchmark (TWR)",
+        grid(columns: (0.9fr, 1fr, 1fr, 1fr), column-gutter: 12pt,
+          [#table-label("Period")],
+          [#table-label("Portfolio", placement: right)],
+          [#table-label("Benchmark", placement: right)],
+          [#table-label("Relative", placement: right)],
+        ),
+        [${PERFORMANCE_PERIOD_ROWS}],
+      )
+    ] else [
+      #labelled-table(
+        "Period returns (TWR)",
+        grid(columns: (0.9fr, 1fr), column-gutter: 12pt,
+          [#table-label("Period")],
+          [#table-label("Portfolio", placement: right)],
+        ),
+        [${PERFORMANCE_PERIOD_ROWS}],
+      )
+    ]
   ]
 
   #v(15pt)

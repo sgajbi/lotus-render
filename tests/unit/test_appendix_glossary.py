@@ -297,3 +297,81 @@ def test_the_appendix_defines_the_supplemental_view_the_page_drew(
     assert title in document, f"the page does not draw the {title!r} table"
     assert term in document, f"the page draws {title!r} and the appendix never defines {term!r}"
     assert not strays, f"the appendix defines a view the page did not draw: {strays}"
+
+
+BENCHMARK_TERMS = ("Benchmark", "Relative return")
+
+
+def _without_benchmark(package: dict[str, Any]) -> dict[str, Any]:
+    for key in ("performance_periods", "performance_monthly_history", "performance_annual_history"):
+        for row in package["report_data"].get(key) or ():
+            for field in (
+                "benchmark_return_pct",
+                "benchmark_cumulative_twr",
+                "benchmark_cumulative_twr_pct",
+                "relative_return_pct",
+            ):
+                row.pop(field, None)
+    return package
+
+
+def test_a_document_with_no_benchmark_draws_no_benchmark_columns() -> None:
+    """A column that is "Not available" on every line is a promise the data cannot keep.
+
+    The table drew Period / Portfolio / Benchmark / Relative whenever there were periods
+    at all, under the heading "Performance against benchmark (TWR)". With no benchmark
+    that rendered three rows of "Not available Not available" -- while the appendix, which
+    asked the stricter question, withheld both definitions for the same document. The
+    mismatch was the symptom; the table was the fault.
+
+    Both now read `benchmark_columns_are_drawn`, so the columns and their definitions
+    appear together or not at all.
+    """
+
+    package = _without_benchmark(json.loads(GOLDEN_PACKAGE.read_text(encoding="utf-8")))
+
+    document = _rendered_text(package)
+    periods = document[document.find("Period returns (TWR)") :][:200]
+
+    assert "Period returns (TWR)" in document, "the period returns are gone, not just the columns"
+    assert "Performance against benchmark" not in document
+    assert "Not available" not in periods, f"a column of nothing was drawn: {periods!r}"
+    assert "Period returns and return history" in document, "the marker still promises a benchmark"
+    for term in BENCHMARK_TERMS:
+        assert term not in document, f"the appendix defines {term!r} for a document without one"
+
+
+def test_a_document_with_a_benchmark_draws_the_columns_and_defines_them() -> None:
+    """The other direction, so the fix cannot be "never draw a benchmark"."""
+
+    document = _rendered_text(json.loads(GOLDEN_PACKAGE.read_text(encoding="utf-8")))
+    periods = document[document.find("Performance against benchmark") :][:200]
+
+    assert "Performance against benchmark (TWR)" in document
+    assert "Not available" not in periods, f"the benchmark columns are empty: {periods!r}"
+    for term in BENCHMARK_TERMS:
+        assert term in document, f"the page draws a benchmark and never defines {term!r}"
+
+
+def test_a_benchmark_on_the_chart_alone_defines_the_term_and_not_the_relative_return() -> None:
+    """The boundary between the two questions, which is why there are two of them.
+
+    The chart plots a benchmark line from the monthly series; the table draws Benchmark
+    and Relative from the period rows. A package can carry one and not the other, and
+    then "Benchmark" is on the page and "Relative return" is not -- the chart has no
+    relative line to explain.
+
+    Asking one question for both is what defined "Benchmark" off the back of
+    `performance_annual_history`, which draws no benchmark at all: `_performance_chart_row`
+    reads `twr_pct` and `cumulative_twr_pct` and nothing else.
+    """
+
+    package = _without_benchmark(json.loads(GOLDEN_PACKAGE.read_text(encoding="utf-8")))
+    for row in package["report_data"]["performance_monthly_history"]:
+        row["benchmark_cumulative_twr"] = row["cumulative_twr_pct"]
+
+    document = _rendered_text(package)
+
+    assert "Period returns (TWR)" in document, "the table has no benchmark and drew one"
+    assert "Benchmark" in document, "the chart plots a benchmark line and never defines it"
+    assert "Relative return" not in document, "nothing on the page draws a relative return"
