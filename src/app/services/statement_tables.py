@@ -130,13 +130,23 @@ def render_header(columns: Sequence[StatementColumn]) -> str:
 
 
 def _cell(column: StatementColumn, row: Row) -> str:
+    """One stacked cell, with its lines still under the labels the header gave them.
+
+    Skipping a field this row does not supply shifts every value below it up one line,
+    and the header stack is the only thing naming them. A coupon with no transaction
+    value drew its net interest under "Transaction value". So an absent field keeps its
+    line, blank, whenever something below it is present.
+    """
+    resolved = [field.resolve(row) for field in column.fields]
+    last_present = max(
+        (index for index, value in enumerate(resolved) if value is not None),
+        default=-1,
+    )
+
     lines = []
-    for field in column.fields:
-        value = field.resolve(row)
-        if value is None:
-            continue
+    for field, value in zip(column.fields[: last_present + 1], resolved[: last_present + 1]):
         lines.append(
-            f'(value: "{escape_typst_string(value)}", size: {field.size}, '
+            f'(value: "{escape_typst_string(value or "")}", size: {field.size}, '
             f'tone: "{field.tone}", weight: {field.weight})'
         )
     body = ", ".join(lines)
