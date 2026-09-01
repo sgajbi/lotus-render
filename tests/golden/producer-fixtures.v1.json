@@ -145,7 +145,7 @@
         "src/app/contracts/examples/portfolio-review-render-package.v1.json"
       ],
       "provenance": "Portfolio review carrying an approved advisor-use package so the advisor proposal memo section is rendered and banked; that section previously had no compiled proof (issue #118).",
-      "bounded_determinism_fingerprint": "7a7a1348976c84713f1ceb2addcd570f70f6365666c973ab0e87ec7236ef3df4",
+      "bounded_determinism_fingerprint": "f53e776e0b010cc3f078bd2cd03efa8cca088279a73b30c94691f53580eea15b",
       "page_image_hashes": [
         "3b640d9a0e161831409a63e51cf8e71860a00b8b137b4eacce32c9483c6d124a",
         "8043da1fb7cbaeeb2c666e23e3f978082a78b761f230968d1827c283f172aec4",
@@ -155,7 +155,7 @@
         "a785f47dd6688066771e3913f2f17337e732aece2e7d9bcc9ce6ade8deb78a72",
         "b8c448f4c6d73082dcbcc902e6936daeb3251354bdcc88977130c0adddaf6611",
         "f715f8db1c3f7bae1450ebc575472db7afb27bb0aea7c8113719307e20e0f82d",
-        "1fdd59b4f2e6fc4bde7b14fef85c848144fe3c4e88a20f1fa8b91051ab3af849",
+        "998f97393e453986d1e21e4610e02e141e87344a3309d02bf385d5fab014206d",
         "37532eb0a0ebc39c5fd1136b977682ecbd784016858edbb5daf156a59f1675a3",
         "27d06eb9d6d4cebd87d76cd504e2f0425ff9c37aab6ba4f166478b66ccdbf6ff"
       ]
@@ -182,6 +182,34 @@
         "93f7dc0a6e57c76866f284407119e381ac33c2dca5a64d602eaf5f78543cee2c",
         "cac78b04703f04e7054373e40fbd0684057e6544408413f1f5147dec1cea58e0",
         "a371e829a4a6ab07535ce702ed8858ddd8a79a647d78c6d117cfcef20f87bbfc"
+      ]
+    },
+    {
+      "template_id": "portfolio-review",
+      "template_version": "v1",
+      "golden_sample_id": "golden-portfolio-review-advisor-commentary-en-SG-private-banking-v1",
+      "report_data_contract_version": "portfolio_review.v1",
+      "package_path": "tests/golden/portfolio-review/v1/advisor-commentary/render-package.json",
+      "expected_pdf_path": "tests/golden/portfolio-review/v1/advisor-commentary/expected.pdf",
+      "producer_repository": "sgajbi/lotus-report",
+      "producer_source_paths": [
+        "src/app/reporting_render/package_builder.py",
+        "src/app/contracts/examples/portfolio-review-render-package.v1.json"
+      ],
+      "provenance": "Portfolio review carrying an accepted advisor-commentary package, so the AI-assisted commentary section is compiled and banked rather than asserted only as a context key (render#218, report#166). All three narrative tones appear, because a vocabulary exercised at one value is exercised nowhere.",
+      "bounded_determinism_fingerprint": "f87f18d574438cb856b95a3ce5a2c0e920491b847e9e729d3e4feb31edb01bf5",
+      "page_image_hashes": [
+        "3b640d9a0e161831409a63e51cf8e71860a00b8b137b4eacce32c9483c6d124a",
+        "caddc1cbdac7316af1eaccad0f5793d47980630b17b0c21dc2a3509b7ecb396c",
+        "ff06eeee9f11b379dcb463520a9e349430f028c495b755b5da178fecc99b627e",
+        "cda106a0d53a045f566f39213e6e35782cc7ec1d44931ed8e75bb50e4166ecf2",
+        "db6ebb1bf948414426be0b66dee4a3e946dd5224683471b2755f5c1e76756fe4",
+        "a785f47dd6688066771e3913f2f17337e732aece2e7d9bcc9ce6ade8deb78a72",
+        "b8c448f4c6d73082dcbcc902e6936daeb3251354bdcc88977130c0adddaf6611",
+        "f715f8db1c3f7bae1450ebc575472db7afb27bb0aea7c8113719307e20e0f82d",
+        "64fd755ab6c473ab2bb1a769ffa50d1874ab4b803e46d57921961705d67f1d05",
+        "37532eb0a0ebc39c5fd1136b977682ecbd784016858edbb5daf156a59f1675a3",
+        "27d06eb9d6d4cebd87d76cd504e2f0425ff9c37aab6ba4f166478b66ccdbf6ff"
       ]
     }
   ]

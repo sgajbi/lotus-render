@@ -1,7 +1,7 @@
 // Palette and type scale come from the shared design system; this file holds only what
 // is specific to the portfolio review -- its spacing scale and its text roles -- and
 // re-exports exactly the shared tokens its own consumers import through it.
-#import "_design.typ": accent, accent-soft, gain, ink, loss, mist, navy, rule, slate, text-body, text-body-strong, text-caption, text-cover, text-fine, text-head, text-lead, text-micro, text-section, text-small
+#import "_design.typ": TONE_PALETTE, accent, accent-soft, gain, ink, loss, mist, navy, rule, slate, text-body, text-body-strong, text-caption, text-cover, text-fine, text-head, text-lead, text-micro, text-section, text-small
 
 #let page-margin-x = 16mm
 #let page-margin-y = 16mm

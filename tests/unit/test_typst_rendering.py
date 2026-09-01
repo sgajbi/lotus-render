@@ -14,8 +14,6 @@ from app.services.compile_failures import classify_compile_failure
 from app.services.render_intake import RenderIntakeService
 from app.services.render_ports import RenderEngineTimeoutError
 from app.services.typst_contexts import (
-    DEFAULT_PORTFOLIO_REVIEW_SECTIONS_WITH_ADVISORY_MEMO,
-    DEFAULT_PORTFOLIO_REVIEW_SECTIONS_WITH_ADVISORY_NARRATIVE,
     build_outcome_review_context,
     build_portfolio_review_context,
     build_proof_pack_context,
@@ -900,37 +898,52 @@ def test_typst_render_service_helper_fallbacks_cover_sparse_structures() -> None
         ["detailed-positions", "asset-allocation", "unknown", "asset_allocation"]
     ) == ["positions", "allocation"]
     assert requested_section_keys(["detailed_positions"]) == ["positions"]
-    assert requested_section_keys(
-        None,
-        include_advisory_narrative=True,
-    ) == list(DEFAULT_PORTFOLIO_REVIEW_SECTIONS_WITH_ADVISORY_NARRATIVE)
-    assert requested_section_keys(
-        None,
-        include_advisor_memo=True,
-    ) == list(DEFAULT_PORTFOLIO_REVIEW_SECTIONS_WITH_ADVISORY_MEMO)
-    assert requested_section_keys(
-        ["unknown"],
-        include_advisor_memo=True,
-    ) == list(DEFAULT_PORTFOLIO_REVIEW_SECTIONS_WITH_ADVISORY_MEMO)
-    assert requested_section_keys(
-        ["unknown"],
-        include_advisory_narrative=True,
-    ) == list(DEFAULT_PORTFOLIO_REVIEW_SECTIONS_WITH_ADVISORY_NARRATIVE)
+    base = [
+        "cover",
+        "contents",
+        "overview",
+        "performance",
+        "allocation",
+        "positions",
+        "transactions",
+    ]
+    assert requested_section_keys(None, included={"advisory_narrative"}) == [
+        *base,
+        "advisory_narrative",
+        "appendix",
+    ]
+    assert requested_section_keys(None, included={"advisor_memo"}) == [
+        *base,
+        "advisor_memo",
+        "appendix",
+    ]
+    # An unrecognised request falls back to the default, which is still bounded by what
+    # the package carries.
+    assert requested_section_keys(["unknown"], included={"advisor_memo"}) == [
+        *base,
+        "advisor_memo",
+        "appendix",
+    ]
+    assert requested_section_keys(["unknown"], included={"advisory_narrative"}) == [
+        *base,
+        "advisory_narrative",
+        "appendix",
+    ]
     assert requested_section_keys(
         ["reviewed-advisory-narrative"],
-        include_advisory_narrative=True,
+        included={"advisory_narrative"},
     ) == ["advisory_narrative"]
     assert requested_section_keys(
         ["advisor-proposal-memo"],
-        include_advisor_memo=True,
+        included={"advisor_memo"},
     ) == ["advisor_memo"]
     assert requested_section_keys(
         ["reviewed-advisory-narrative"],
-        include_advisory_narrative=False,
+        included=set(),
     ) == list(requested_section_keys(None))
     assert requested_section_keys(
         ["advisor-proposal-memo"],
-        include_advisor_memo=False,
+        included=set(),
     ) == list(requested_section_keys(None))
     assert "No item evidence supplied." in render_wave_item_rows("bad")
     assert "No event evidence supplied." in render_wave_event_rows("bad")

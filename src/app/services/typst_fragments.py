@@ -268,3 +268,109 @@ def render_advisory_disclosure_blocks(disclosures: object) -> str:
     # rendered as source, on the page, under the heading "Disclosures". Exactly the
     # defect `markup_calls` was written for, in the one emitter that did not use it.
     return markup_calls(blocks, separator="\n#v(6pt)\n")
+
+
+# lotus-report normalises the commentary tone vocabulary before the package is built, and
+# anything it does not recognise arrives as `neutral`. So a tone outside this set is a
+# contract violation rather than a colour Render should invent one for -- and the template
+# looks it up in `TONE_PALETTE`, where an unknown key is a compile error rather than a
+# silent default. Falling back here keeps that failure out of a client's document.
+COMMENTARY_TONES = frozenset({"positive", "neutral", "warning"})
+NEUTRAL_TONE = "neutral"
+
+
+def _commentary_tone(value: object) -> str:
+    tone = str(value or "").strip()
+    return tone if tone in COMMENTARY_TONES else NEUTRAL_TONE
+
+
+def _commentary_evidence(refs: object) -> str:
+    """What a claim was grounded on, as one line under it.
+
+    lotus-ai supplies metric label, value and source for each ref and all three are
+    required; lotus-report drops any ref that is not complete. So a ref arriving here is
+    whole, and a partial one is not a case to handle.
+    """
+    rendered = [
+        f"{escape_typst_text(supplied_text(ref.get('metric_label')))} "
+        f"{escape_typst_text(supplied_text(ref.get('metric_value')))} "
+        f"({escape_typst_text(supplied_text(ref.get('source_ref')))})"
+        for ref in (mapping(item) for item in mapping_entries(refs))
+    ]
+    if not rendered:
+        return ""
+    return "#commentary-evidence([" + escape_typst_text("Grounded on: ") + " ".join(rendered) + "])"
+
+
+def render_commentary_points(
+    commentary: Mapping[str, object], field: str, *, empty_message: str
+) -> str:
+    """Talking points or risks -- one shape, because they are the same thing to a reader.
+
+    Empty when the package carries no accepted commentary, rather than a placeholder: the
+    section is not drawn then, and a placeholder nobody sees still counts towards the
+    empty-block metric. Two of them appeared on every review before this guard.
+
+    The body is AI-drafted prose that a human accepted, which makes it the least trusted
+    input this service takes. `escape_typst_text` neutralises every markup token, and
+    `test_commentary_markup_reaches_the_page_as_text` reads each one back off a rendered
+    page rather than trusting the escaper from here.
+    """
+    if commentary.get("status") != "included":
+        return ""
+
+    points: list[str] = []
+    for entry in mapping_entries(commentary.get(field)):
+        item = mapping(entry)
+        headline = str(item.get("headline", "")).strip()
+        detail = str(item.get("detail", "")).strip()
+        if not headline and not detail:
+            continue
+        points.append(
+            "#commentary-point("
+            f"[{escape_typst_text(headline)}], "
+            f"[{escape_typst_text(detail)}], "
+            f'"{_commentary_tone(item.get("tone"))}", '
+            f"[{_commentary_evidence(item.get('evidence_refs'))}]"
+            ")"
+        )
+    if not points:
+        return f"#empty-state([{escape_typst_text(empty_message)}])"
+    return "\n".join(points)
+
+
+def render_advisor_commentary_fact_rows(commentary: Mapping[str, object]) -> str:
+    """The lineage a reader needs to trace an accepted commentary back to its run."""
+    review = mapping(commentary.get("review"))
+    context = mapping(commentary.get("context"))
+    rows = (
+        ("Status", supplied_text(commentary.get("advisor_brief_status"))),
+        ("Coverage", supplied_text(commentary.get("coverage_state"))),
+        ("Reviewed by", supplied_text(review.get("reviewed_by"))),
+        ("Reviewed at", supplied_text(review.get("reviewed_at"))),
+        ("Run", supplied_text(commentary.get("run_id"))),
+        ("Pack", supplied_text(commentary.get("pack_id"))),
+        ("Authority owner", supplied_text(commentary.get("workflow_authority_owner"))),
+        ("Period", supplied_text(context.get("period"))),
+        ("Content hash", supplied_text(commentary.get("content_hash"))),
+    )
+    # `markup_calls` prefixes the `#` per fragment, so handing it one newline-joined
+    # string invokes the first row and prints the rest as source. That is the defect the
+    # printed-call-syntax gate exists for, and it happened here on the first attempt.
+    return markup_calls(
+        [
+            f"advisory-fact-row([{escape_typst_text(label)}], [{escape_typst_text(value)}])"
+            for label, value in rows
+        ]
+    )
+
+
+def render_advisor_commentary_prose(commentary: Mapping[str, object], field: str) -> str:
+    """One free-prose field of the commentary, escaped for the markup slot it lands in.
+
+    Here rather than in `typst_contexts` because that module emits Typst *string
+    literals* and this is markup -- `test_a_string_literal_emitter_never_uses_the_markup_escaper`
+    holds that line, and it is the line that keeps a value containing a quote from
+    breaking out of a literal into code.
+    """
+    return escape_typst_text(supplied_text(commentary.get(field)))
