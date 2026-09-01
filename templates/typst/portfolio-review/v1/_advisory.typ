@@ -46,7 +46,7 @@
 
 // One governed talking point. The tone marker is a word as well as a colour, because
 // these documents are printed and a colour-only encoding says nothing in monochrome.
-#let commentary-point(headline, detail, tone, evidence) = block(
+#let commentary-point(headline, detail, tone, grounding, evidence) = block(
   breakable: false,
   width: 100%,
   below: 9pt,
@@ -62,7 +62,18 @@
     columns: (1fr, auto),
     column-gutter: 6pt,
     [#text(size: text-small, weight: 650, fill: navy)[#headline]],
-    [#align(right)[#text(size: text-micro, weight: 700, fill: TONE_PALETTE.at(tone))[#upper(tone)]]],
+    [#align(right)[
+      // Neutral, not the tone colour: a named reviewer accepted this claim, and the tone
+      // chip already owns the warning vocabulary. Marking it as a warning would say the
+      // reviewer flagged something they did not. Only the ungrounded case is marked --
+      // a grounded point already carries its "Grounded on:" line, and a second chip
+      // saying so would be the redundancy that makes readers stop reading chips.
+      #if grounding != "grounded" [
+        #text(size: text-micro, weight: 600, fill: slate)[NOT CHECKABLE]
+        #h(6pt)
+      ]
+      #text(size: text-micro, weight: 700, fill: TONE_PALETTE.at(tone))[#upper(tone)]
+    ]],
   )
   #v(3pt)
   #set par(justify: true, leading: 0.9em)

@@ -103,6 +103,10 @@ def test_the_grounding_of_a_claim_is_on_the_page(commentary_pages: list[str]) ->
 
     assert "Grounded on:" in document
     assert "YTD TWR 7.93% (perf:ytd:twr)" in document
+    # And the point that cites nothing is marked, not merely missing a line. This is the
+    # half that was absent: the test passed while an ungrounded claim was distinguishable
+    # only by contrast with the grounded ones beside it.
+    assert "NOT CHECKABLE" in document
 
 
 def test_the_page_names_lotus_ai_as_the_source(commentary_pages: list[str]) -> None:
@@ -276,3 +280,74 @@ def test_a_point_with_neither_headline_nor_detail_is_not_drawn() -> None:
 
     assert rendered.count("#commentary-point(") == 1
     assert "Real point" in rendered
+
+
+def test_a_page_where_nothing_is_grounded_still_says_so() -> None:
+    """The case contrast cannot signal, and the reason the posture exists.
+
+    An ungrounded point drew exactly like a grounded one minus its "Grounded on:" line.
+    A reader seeing three grounded points and one bare one notices; a reader seeing a
+    page where none are grounded has nothing to compare against and cannot tell that
+    grounding was ever expected. Absence is legible only beside presence -- the weakest
+    possible signal, and it fails exactly when the problem is worst.
+
+    Presence of a marker does not have that property.
+    """
+
+    package = json.loads(COMMENTARY_PACKAGE.read_text(encoding="utf-8"))
+    commentary = package["report_data"]["advisor_commentary"]
+    for key in ("talking_points", "risks_and_exceptions"):
+        for point in commentary[key]:
+            point["evidence_refs"] = []
+            point["grounding"] = "ungrounded"
+
+    document = _flat("\n".join(_pages(package)))
+
+    assert "Grounded on:" not in document, "the fixture did not reach the all-ungrounded case"
+    assert document.count("NOT CHECKABLE") == 4, (
+        "a page where nothing is checkable has to say so on every claim, because there is "
+        "no grounded point left to contrast against"
+    )
+
+
+def test_grounding_is_read_from_the_package_and_never_derived() -> None:
+    """Report states it; Render must not work it out from the refs.
+
+    If Render infers what Report states, the page can contradict the lineage archived
+    beside it. A point carrying refs and a stated grounding of `ungrounded` draws as
+    ungrounded: Report knows something about those refs that Render does not, and the
+    archived record is the one a reader would be held to.
+    """
+
+    package = json.loads(COMMENTARY_PACKAGE.read_text(encoding="utf-8"))
+    package["report_data"]["advisor_commentary"]["talking_points"][0]["grounding"] = "ungrounded"
+
+    document = _flat("\n".join(_pages(package)))
+
+    assert document.count("NOT CHECKABLE") == 2, (
+        "the point Report called ungrounded is drawn as grounded, so Render counted its "
+        "refs instead of reading the posture"
+    )
+
+
+def test_an_unrecognised_grounding_is_treated_as_not_checkable() -> None:
+    """The conservative reading, because the two errors are not symmetric.
+
+    Telling a reader a claim is checkable when it is not invites them to trust it;
+    telling them it is not checkable when it is costs them a second look.
+    """
+
+    from app.services.typst_fragments import render_commentary_points
+
+    rendered = render_commentary_points(
+        {
+            "status": "included",
+            "talking_points": [
+                {"headline": "H", "detail": "D", "tone": "neutral", "grounding": "probably"}
+            ],
+        },
+        "talking_points",
+        empty_message="none",
+    )
+
+    assert '"ungrounded"' in rendered
