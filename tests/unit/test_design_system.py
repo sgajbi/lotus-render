@@ -265,3 +265,61 @@ def test_no_emitter_decides_what_a_colour_is() -> None:
         f"these modules name a colour instead of naming a series: {offenders}. Declare it "
         "in _design.typ and emit the name."
     )
+
+
+SIZE_LITERAL = re.compile(r"size:\s*([\d.]+)pt")
+# The declarations in the design module are where the numbers are allowed to be.
+SIZE_DECLARATION = re.compile(r"#let\s+(text-[a-z-]+)\s*=\s*([\d.]+)pt")
+
+
+def test_no_template_spells_a_text_size() -> None:
+    """A scale nothing references is a record of the sizes in use, not a scale.
+
+    `_design.typ` declared nine steps and `TYPE_SCALE` beside them, and **no template
+    referenced either**: 118 inline `size: Npt` literals against zero uses of a token. The
+    convergence from 53 distinct sizes to 12 had been done by hand, so the scale described
+    the result rather than governing it -- and "make the small text slightly larger" was
+    still a search across twelve numbers in twelve files.
+
+    That is the shape this repository keeps producing: a governed helper exists, and every
+    site reads around it. `weight_width_token` and `supplied_text` were the same defect in
+    Python in the same week.
+    """
+
+    offenders = {
+        path.relative_to(TEMPLATE_ROOT).as_posix(): SIZE_LITERAL.findall(
+            path.read_text(encoding="utf-8")
+        )
+        for path in sorted(TEMPLATE_ROOT.rglob("*.typ"))
+        if path != DESIGN_MODULE and SIZE_LITERAL.search(path.read_text(encoding="utf-8"))
+    }
+
+    assert not offenders, (
+        f"these templates spell a text size instead of naming one: {offenders}. Sizes are "
+        "declared in _design.typ; a literal here is a twelfth value nobody can find."
+    )
+
+
+def test_the_scale_is_used_rather_than_merely_declared() -> None:
+    """The other half, so the rule above cannot be satisfied by drawing no text.
+
+    A guard that only forbids literals is satisfied by a template that sets no sizes at
+    all. This one requires every declared step to be reachable and actually asked for --
+    a step nothing uses is a size that was retired without being deleted.
+    """
+
+    design = DESIGN_MODULE.read_text(encoding="utf-8")
+    declared = {name for name, _ in SIZE_DECLARATION.findall(design)}
+    assert declared, "the design module declares no text sizes"
+
+    used: set[str] = set()
+    for path in sorted(TEMPLATE_ROOT.rglob("*.typ")):
+        text = path.read_text(encoding="utf-8") if path != DESIGN_MODULE else ""
+        used |= {name for name in declared if re.search(rf"size:\s*{re.escape(name)}\b", text)}
+
+    assert used, "no template names a single scale step; the scale is decorative"
+    assert declared == used, (
+        f"declared but never asked for: {sorted(declared - used)}. A step nothing sets is "
+        "a size that was retired without being deleted, and it will be picked up again by "
+        "someone reading the scale as a menu."
+    )

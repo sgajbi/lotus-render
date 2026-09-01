@@ -1,28 +1,28 @@
-#import "_theme.typ": accent, empty-state, ink, mist, navy, rule, slate
+#import "_theme.typ": accent, empty-state, ink, mist, navy, rule, slate, text-body, text-body-strong, text-caption, text-fine, text-lead, text-small
 #import "_components.typ": report-panel, section-lead, section-marker
 
 #let advisory-fact-row(label, value) = [
   #grid(
     columns: (0.42fr, 0.58fr),
     column-gutter: 9pt,
-    [#text(size: 6.8pt, fill: slate)[#label]],
-    [#text(size: 6.8pt, weight: 520, fill: ink)[#value]],
+    [#text(size: text-caption, fill: slate)[#label]],
+    [#text(size: text-caption, weight: 520, fill: ink)[#value]],
   )
   #v(3pt)
 ]
 
 #let advisory-narrative-block(title, body) = report-panel([
-  #text(size: 9.5pt, weight: 650, fill: navy)[#title]
+  #text(size: text-body-strong, weight: 650, fill: navy)[#title]
   #v(5pt)
   #set par(justify: true, leading: 0.94em)
-  #text(size: 8.1pt, fill: ink)[#body]
+  #text(size: text-small, fill: ink)[#body]
 ], inset: 10pt)
 
 #let advisory-disclosure-block(disclosure-id, body) = [
-  #text(size: 6.8pt, weight: 650, fill: ink)[#disclosure-id]
+  #text(size: text-caption, weight: 650, fill: ink)[#disclosure-id]
   #linebreak()
   #set par(justify: true, leading: 0.82em)
-  #text(size: 6.8pt, fill: slate)[#body]
+  #text(size: text-caption, fill: slate)[#body]
 ]
 
 #let advisory-boundary-panel() = block(
@@ -31,10 +31,10 @@
   stroke: (paint: rule, thickness: 0.45pt),
   radius: 4pt,
 )[
-  #text(size: 7.4pt, weight: 700, fill: accent)[Advisor-use boundary]
+  #text(size: text-fine, weight: 700, fill: accent)[Advisor-use boundary]
   #v(4pt)
   #set par(justify: true, leading: 0.86em)
-  #text(size: 7.4pt, fill: ink)[
+  #text(size: text-fine, fill: ink)[
     This page presents a reviewed advisory narrative package supplied by lotus-advise through
     lotus-report. lotus-render does not approve, rewrite, infer, or source additional advice
     facts; it renders only the bounded package carried in the render request.
@@ -56,17 +56,17 @@
       #advisory-boundary-panel()
       #v(10pt)
       #report-panel([
-        #text(size: 8.1pt, weight: 650, fill: navy)[Package lineage]
+        #text(size: text-small, weight: 650, fill: navy)[Package lineage]
         #v(7pt)
         ${REVIEWED_ADVISORY_FACT_ROWS}
       ], inset: 10pt)
     ],
     [
-      #text(size: 11pt, weight: 700, fill: navy)[Approved narrative sections]
+      #text(size: text-lead, weight: 700, fill: navy)[Approved narrative sections]
       #v(8pt)
       ${REVIEWED_ADVISORY_NARRATIVE_BLOCKS}
       #v(12pt)
-      #text(size: 8.8pt, weight: 650, fill: navy)[Disclosures]
+      #text(size: text-body, weight: 650, fill: navy)[Disclosures]
       #v(6pt)
       ${REVIEWED_ADVISORY_DISCLOSURE_BLOCKS}
     ],
@@ -88,17 +88,17 @@
       #advisory-boundary-panel()
       #v(10pt)
       #report-panel([
-        #text(size: 8.1pt, weight: 650, fill: navy)[Memo lineage]
+        #text(size: text-small, weight: 650, fill: navy)[Memo lineage]
         #v(7pt)
         ${ADVISOR_MEMO_FACT_ROWS}
       ], inset: 10pt)
     ],
     [
-      #text(size: 11pt, weight: 700, fill: navy)[Memo sections]
+      #text(size: text-lead, weight: 700, fill: navy)[Memo sections]
       #v(8pt)
       ${ADVISOR_MEMO_SECTION_BLOCKS}
       #v(12pt)
-      #text(size: 8.8pt, weight: 650, fill: navy)[Disclosures]
+      #text(size: text-body, weight: 650, fill: navy)[Disclosures]
       #v(6pt)
       ${ADVISOR_MEMO_DISCLOSURE_BLOCKS}
     ],

@@ -1,5 +1,5 @@
 #import "_appendix_text.typ": GLOSSARY
-#import "_theme.typ": body-muted, empty-state, ink, section-subtitle, slate, soft-rule
+#import "_theme.typ": body-muted, empty-state, ink, section-subtitle, slate, soft-rule, text-fine, text-small
 #import "_components.typ": section-marker
 
 // The appendix was a six-page statement spread: its own title block, its own navigation
@@ -14,9 +14,9 @@
 // this document's own typography, chosen by what it contains.
 
 #let glossary-entry(entry) = block(breakable: false, width: 100%)[
-  #text(size: 8.1pt, weight: 600, fill: ink)[#entry.term]
+  #text(size: text-small, weight: 600, fill: ink)[#entry.term]
   #v(2.5pt)
-  #text(size: 7.4pt, fill: slate)[#entry.body]
+  #text(size: text-fine, fill: slate)[#entry.body]
 ]
 
 // `sticky` keeps the heading with the entries beneath it. Without it the heading is a
