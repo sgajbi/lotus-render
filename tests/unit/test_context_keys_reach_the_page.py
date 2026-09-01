@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import json
 import re
+from functools import partial
 from pathlib import Path
 
 import pytest
@@ -264,12 +265,19 @@ def test_an_empty_collection_says_so_rather_than_rendering_nothing() -> None:
         render_performance_period_rows,
     )
 
-    for emitter in (render_observation_notes, render_performance_period_rows):
+    # The period rows need to know whether a benchmark is drawn; nothing about an empty
+    # collection depends on the answer, so the loop supplies one.
+    emitters = (
+        render_observation_notes,
+        partial(render_performance_period_rows, benchmarked=True),
+    )
+    for emitter in emitters:
         absent = emitter(None)
         empty = emitter([])
-        assert "empty-state(" in absent, f"{emitter.__name__} says nothing when the list is absent"
+        name = getattr(emitter, "__name__", "render_performance_period_rows")
+        assert "empty-state(" in absent, f"{name} says nothing when the list is absent"
         assert "empty-state(" in empty, (
-            f"{emitter.__name__} renders nothing at all for an empty list, which reads as a "
+            f"{name} renders nothing at all for an empty list, which reads as a "
             "layout fault rather than as an absence of data"
         )
 

@@ -205,7 +205,13 @@ def test_every_listed_section_plants_a_marker_for_the_contents_page() -> None:
     marked = {
         call
         for call in listed
-        if re.search(rf"#let {re.escape(call[:-2])}\(\) = \[\s*\n\s*#section-marker", sources)
+        # Comment lines between the opening bracket and the marker are skipped: a
+        # comment is not a statement, and requiring the marker on the very next line
+        # made explaining a decision at the marker fail the check.
+        if re.search(
+            rf"#let {re.escape(call[:-2])}\(\) = \[\s*\n(?:\s*//[^\n]*\n)*\s*#section-marker",
+            sources,
+        )
     }
     assert marked == listed, (
         "these section pages plant no marker, so the contents page cannot list them: "

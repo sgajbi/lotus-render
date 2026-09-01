@@ -250,6 +250,20 @@
   #line(length: 100%, stroke: (paint: rule, thickness: 0.35pt))
 ]
 
+// The same row for a portfolio with no benchmark to compare against. Drawing the four
+// columns anyway gave two of them "Not available" on every line, under a heading that
+// promised a comparison the package could not make.
+#let period-return-row(period, net) = [
+  #grid(
+    columns: (0.9fr, 1fr),
+    column-gutter: 12pt,
+    [#text(size: 8.8pt, fill: ink)[#period]],
+    [#align(right)[#text(size: 8.8pt, fill: ink)[#net]]],
+  )
+  #v(6pt)
+  #line(length: 100%, stroke: (paint: rule, thickness: 0.35pt))
+]
+
 #let performance-summary-cell(label, value, annualized) = block(
   inset: 9pt,
   fill: white,

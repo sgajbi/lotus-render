@@ -62,7 +62,8 @@ APPENDIX_GLOSSARY: tuple[GlossaryGroup, ...] = (
                 "inflows_and_outflows",
                 "annualisation",
             ),
-            *_entries("benchmark", "benchmark", "relative_return"),
+            *_entries("benchmark", "benchmark"),
+            *_entries("benchmark.relative", "relative_return"),
         ),
     ),
     GlossaryGroup(
@@ -122,8 +123,11 @@ _RISK_SUBJECT_FIELDS = {
     "risk.value_at_risk": "value_at_risk_pct",
 }
 
-# A benchmark column is drawn only where a period carries one of these.
-_BENCHMARK_FIELDS = ("benchmark_return_pct", "benchmark_cumulative_twr", "relative_return_pct")
+# The two surfaces that can show a benchmark read different data, so each is asked its
+# own question. This used to be one scan over three keys, one of which --
+# `performance_annual_history` -- nothing draws a benchmark from at all.
+_PERIOD_BENCHMARK_FIELDS = ("benchmark_return_pct", "relative_return_pct")
+_SERIES_BENCHMARK_FIELDS = ("benchmark_cumulative_twr", "benchmark_cumulative_twr_pct")
 
 
 def _has_rows(value: object) -> bool:
@@ -135,14 +139,29 @@ def _mapping(value: object) -> Mapping[str, object]:
     return value if isinstance(value, Mapping) else {}
 
 
-def _benchmark_is_drawn(report_data: Mapping[str, object]) -> bool:
-    for key in ("performance_periods", "performance_monthly_history", "performance_annual_history"):
-        for row in row_sequence(report_data.get(key)) or ():
-            if isinstance(row, Mapping) and any(
-                is_supplied(row.get(field)) for field in _BENCHMARK_FIELDS
-            ):
-                return True
-    return False
+def _any_row_supplies(rows: object, fields: Sequence[str]) -> bool:
+    return any(
+        isinstance(row, Mapping) and any(is_supplied(row.get(field)) for field in fields)
+        for row in row_sequence(rows) or ()
+    )
+
+
+def benchmark_columns_are_drawn(report_data: Mapping[str, object]) -> bool:
+    """Whether the period table draws its Benchmark and Relative columns.
+
+    Read by the page as well as by the appendix, so the columns and their definitions
+    cannot disagree. They did: the table drew both columns whenever there were periods at
+    all, so a package with no benchmark got two columns of "Not available" under the
+    heading "Performance against benchmark (TWR)", and an appendix that -- correctly --
+    defined neither term.
+    """
+    return _any_row_supplies(report_data.get("performance_periods"), _PERIOD_BENCHMARK_FIELDS)
+
+
+def _chart_benchmark_is_drawn(report_data: Mapping[str, object]) -> bool:
+    """The 12-month chart's benchmark line, plotted from the same series the chart uses."""
+    series = report_data.get("performance_series") or report_data.get("performance_monthly_history")
+    return _any_row_supplies(series, _SERIES_BENCHMARK_FIELDS)
 
 
 def _performance_subjects(report_data: Mapping[str, object]) -> set[str]:
@@ -157,7 +176,11 @@ def _performance_subjects(report_data: Mapping[str, object]) -> set[str]:
         )
     ):
         subjects.add("performance")
-    if _benchmark_is_drawn(report_data):
+    # "Benchmark" is on the page if either surface shows one. "Relative return" only if
+    # the table does: the chart plots a benchmark line and no relative line.
+    if benchmark_columns_are_drawn(report_data):
+        subjects.update(("benchmark", "benchmark.relative"))
+    elif _chart_benchmark_is_drawn(report_data):
         subjects.add("benchmark")
     return subjects
 

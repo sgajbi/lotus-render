@@ -11,7 +11,7 @@ from collections.abc import Mapping, Sequence
 
 from app.contracts.render_package import RenderPackage
 from app.services.absence import supplied_text
-from app.services.appendix_glossary import applicable_glossary
+from app.services.appendix_glossary import applicable_glossary, benchmark_columns_are_drawn
 from app.services.date_format import format_date, format_dates_in_text
 from app.services.number_format import group_digits
 from app.services.render_content import (
@@ -137,6 +137,7 @@ def build_portfolio_review_context(render_package: RenderPackage) -> dict[str, s
         allocation_breakdowns
     )
 
+    benchmarked = benchmark_columns_are_drawn(report_data)
     reporting_period_label = _reporting_period_label(report_data)
 
     position_widths, position_header, position_rows = render_position_table(
@@ -233,13 +234,16 @@ def build_portfolio_review_context(render_package: RenderPackage) -> dict[str, s
         # unconditional #pagebreak() that fired even for an all-empty report, so a
         # portfolio with no history still shipped three near-blank pages (issue #138).
         "HAS_PERFORMANCE_PERIODS": _presence_flag(report_data.get("performance_periods")),
+        # The same fact the appendix reads to decide whether "Benchmark" needs defining,
+        # so the columns and their definitions cannot disagree.
+        "HAS_BENCHMARK": "yes" if benchmarked else "no",
         "HAS_ANNUAL_PERFORMANCE": _presence_flag(report_data.get("performance_annual_history")),
         "HAS_MONTHLY_PERFORMANCE": _presence_flag(report_data.get("performance_monthly_history")),
         "HAS_RISK_PROFILE": _presence_flag(risk_summary),
         "APPENDIX_GLOSSARY_GROUPS": render_appendix_glossary_groups(report_data),
         "OBSERVATION_NOTES": render_observation_notes(observations),
         "PERFORMANCE_PERIOD_ROWS": render_performance_period_rows(
-            report_data.get("performance_periods")
+            report_data.get("performance_periods"), benchmarked=benchmarked
         ),
         "PERFORMANCE_SUMMARY_TABLE": render_performance_summary_table(
             report_data.get("performance_summary_table")
