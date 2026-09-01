@@ -383,21 +383,35 @@
 // One allocation dimension the package asked for. The column headings live with the rows
 // they label, so a dimension that has no rows to show does not get a header over nothing
 // -- that is `allocation-dimension-note` below, and the two look different on purpose.
-#let allocation-dimension-block(title, rows) = [
-  #section-subtitle(title)
-  #v(8pt)
-  #grid(
-    columns: (1.15fr, 1.15fr, 0.55fr, 0.75fr),
-    column-gutter: 8pt,
-    [#table-label("Group")],
-    [#table-label("Proportion")],
-    [#table-label("Weight", placement: right)],
-    [#table-label("Value", placement: right)],
-  )
-  #v(4pt)
-  #soft-rule()
+// Unbreakable as a whole, which the row bound is what makes safe. `labelled-table` had to
+// stay breakable because a table taller than a page is undrawable -- Typst puts what fits
+// and drops the rest without a word, which is how sixty monthly rows drew thirty-one. A
+// composition is capped at nine rows and cannot outgrow a page, so it moves whole instead
+// of leaving its column headings on the previous one.
+#let allocation-dimension-block(title, rows, note: none) = block(breakable: false, width: 100%)[
+  #block(width: 100%)[
+    #section-subtitle(title)
+    #v(8pt)
+    #grid(
+      columns: (1.15fr, 1.15fr, 0.55fr, 0.75fr),
+      column-gutter: 8pt,
+      [#table-label("Group")],
+      [#table-label("Proportion")],
+      [#table-label("Weight", placement: right)],
+      [#table-label("Value", placement: right)],
+    )
+    #v(4pt)
+    #soft-rule()
+  ]
   #v(8pt)
   #report-panel([#rows])
+  // What this grouping does not say. A composition looks like a whole thing, so a table
+  // covering 62% of the portfolio has to say so -- the donut beside it already does, and
+  // one coverage statement on a page with two compositions reads as covering both.
+  #if note != none [
+    #v(4pt)
+    #text(size: text-micro, fill: slate)[#note]
+  ]
 ]
 
 // A dimension the document presents and has nothing to draw for. The heading stays,

@@ -383,6 +383,55 @@ def render_transaction_table(transactions: object) -> tuple[str, str, str]:
     return _statement_parts(TRANSACTION_COLUMNS, transactions, _NO_TRANSACTIONS_CELL)
 
 
+# What the allocation page holds beside the donut, measured rather than chosen: the
+# bucket rows sit at a uniform 26.9pt pitch and nine of them fit before the list runs onto
+# the next page. A tenth bucket is not a design decision, it is a page.
+MAX_COMPOSITION_ROWS = 9
+
+
+def _folded_buckets(
+    ordered: list[tuple[str, dict[str, float]]],
+) -> tuple[list[tuple[str, dict[str, float]]], int]:
+    """The buckets to draw, and how many were folded into the last of them.
+
+    A country breakdown has thirty-odd buckets and a reader scans none of them. The tail
+    becomes one row that says how many it stands for, because an "Other" indistinguishable
+    from a real group is a bucket the reader will try to look up.
+    """
+    if len(ordered) <= MAX_COMPOSITION_ROWS:
+        return ordered, 0
+    kept = ordered[: MAX_COMPOSITION_ROWS - 1]
+    folded = ordered[MAX_COMPOSITION_ROWS - 1 :]
+    other = {
+        "weight": sum(totals["weight"] for _, totals in folded),
+        "value": sum(totals["value"] for _, totals in folded),
+    }
+    return [*kept, (f"Other ({len(folded)} groups)", other)], len(folded)
+
+
+def composition_note(rows: object) -> str:
+    """What this grouping does not say, or `none` when it says everything.
+
+    Two separate facts, and a grouping can need either, both or neither: how much of the
+    portfolio it covers, and how many groups were folded. Stated only where true -- a note
+    that always appears is furniture a reader stops reading.
+    """
+    items = row_sequence(rows)
+    aggregates = _aggregated_allocation_buckets(items) if items is not None else {}
+    if not aggregates:
+        return "none"
+    coverage = sum(totals["weight"] for totals in aggregates.values())
+    sentences = []
+    if coverage < float(DONUT_FULL_COVERAGE_PCT):
+        sentences.append(f"This grouping covers {format_percent(coverage)} of portfolio value.")
+    if len(aggregates) > MAX_COMPOSITION_ROWS:
+        folded = len(aggregates) - (MAX_COMPOSITION_ROWS - 1)
+        sentences.append(f"The {folded} smallest groups are shown together as Other.")
+    if not sentences:
+        return "none"
+    return f'"{escape_typst_string(" ".join(sentences))}"'
+
+
 def render_allocation_breakdown_rows(rows: object) -> str:
     empty = '#empty-state("No allocation detail available.", size: 8pt)'
     items = row_sequence(rows)
@@ -391,7 +440,9 @@ def render_allocation_breakdown_rows(rows: object) -> str:
     aggregates = _aggregated_allocation_buckets(items)
     if not aggregates:
         return empty
-    ordered = sorted(aggregates.items(), key=lambda entry: entry[1]["weight"], reverse=True)
+    ordered, _ = _folded_buckets(
+        sorted(aggregates.items(), key=lambda entry: entry[1]["weight"], reverse=True)
+    )
     rendered = [
         '#compact-allocation-row("'
         + escape_typst_string(name)
@@ -453,8 +504,10 @@ def render_allocation_dimension_blocks(report_data: Mapping[str, object]) -> str
     for item in presented:
         title = escape_typst_string(item.title)
         if item.posture == READY:
-            rows = render_allocation_breakdown_rows(presented_rows(report_data, item))
-            blocks.append(f'[#allocation-dimension-block("{title}")[\n{rows}\n]]')
+            source = presented_rows(report_data, item)
+            rows = render_allocation_breakdown_rows(source)
+            note = composition_note(source)
+            blocks.append(f'[#allocation-dimension-block("{title}", note: {note})[\n{rows}\n]]')
         else:
             note = escape_typst_string(_POSTURE_NOTES[item.posture])
             blocks.append(f'[#allocation-dimension-note("{title}", "{note}")]')
