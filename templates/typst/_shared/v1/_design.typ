@@ -87,6 +87,29 @@
 #let label(value) = text(size: 6.8pt, fill: muted, weight: "semibold", upper(value))
 #let value(value) = text(size: 9.5pt, fill: ink, weight: "medium", value)
 
+// One row of governed evidence: a labelled field per column, laid out on shares of the
+// line rather than on the row's own content.
+//
+// The three governance families each had their own copy of this with `auto` columns, so
+// every row sized itself and a column landed somewhere different on each one -- the STATE
+// label of a four-item rebalance wave spanned 55mm across four rows. Shares are the
+// caller's, because the families carry different fields; the geometry is not, because
+// alignment is not a per-family question.
+//
+// `fields` is a list of `(name, share, body)`.
+#let evidence-row(fields) = block(
+  below: 5pt,
+  stroke: (left: (paint: accent, thickness: 1.1pt)),
+  inset: (left: 5pt, y: 3pt),
+)[
+  #grid(
+    columns: fields.map(field => field.share * 1fr),
+    gutter: 4mm,
+    ..fields.map(field => [#label(field.name) #linebreak() #field.body]),
+  )
+]
+
+
 // --- Direction ----------------------------------------------------------------
 // Named for meaning, not hue. `gain` must mean "this number went up" everywhere, which
 // it could not while #286446 was simultaneously proof-pack's brand accent; unifying

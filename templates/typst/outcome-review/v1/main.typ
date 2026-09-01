@@ -1,4 +1,4 @@
-#import "_design.typ": accent, ink, key-value-row, key-value-rows, label, muted, rule, value
+#import "_design.typ": accent, evidence-row, ink, key-value-row, key-value-rows, label, muted, rule, value
 #set page(
   paper: "a4",
   margin: (x: 18mm, y: 16mm),
@@ -17,22 +17,16 @@
 #set text(size: 8.8pt, fill: ink)
 #set par(leading: 1.1em, spacing: 0.45em)
 
-#let dimension-row(dimension, state, expected, realized, variance, explanation) = block(
-  below: 5pt,
-  stroke: (left: (paint: accent, thickness: 1.1pt)),
-  inset: (left: 5pt, y: 3pt),
-)[
-  #grid(
-    columns: (auto, auto, auto, auto, auto, 1fr),
-    gutter: 4mm,
-    [#label("Dimension") #linebreak() #value(dimension)],
-    [#label("State") #linebreak() #value(state)],
-    [#label("Expected") #linebreak() #value(expected)],
-    [#label("Realized") #linebreak() #value(realized)],
-    [#label("Variance") #linebreak() #value(variance)],
-    [#label("Explanation") #linebreak() #explanation],
-  )
-]
+#let dimension-row(dimension, state, expected, realized, variance, explanation) = evidence-row((
+  // The three measures hold a number or "Not available"; the explanation holds a
+  // sentence, so it takes the width the measures do not need.
+  (name: "Dimension", share: 1.15, body: value(dimension)),
+  (name: "State", share: 1.15, body: value(state)),
+  (name: "Expected", share: 0.85, body: value(expected)),
+  (name: "Realized", share: 0.85, body: value(realized)),
+  (name: "Variance", share: 0.85, body: value(variance)),
+  (name: "Explanation", share: 2.15, body: explanation),
+))
 
 #text(size: 18pt, weight: "medium", fill: ink)[#"${TITLE}"]
 #v(4pt)

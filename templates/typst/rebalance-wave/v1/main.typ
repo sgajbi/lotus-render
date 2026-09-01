@@ -1,4 +1,4 @@
-#import "_design.typ": accent, ink, key-value-row, key-value-rows, label, muted, rule, value
+#import "_design.typ": accent, evidence-row, ink, key-value-row, key-value-rows, label, muted, rule, value
 #set page(
   paper: "a4",
   margin: (x: 18mm, y: 16mm),
@@ -17,21 +17,15 @@
 #set text(size: 8.8pt, fill: ink)
 #set par(leading: 1.1em, spacing: 0.45em)
 
-#let wave-item-row(portfolio, state, proof-pack, proof-state, alternative, reasons) = block(
-  below: 5pt,
-  stroke: (left: (paint: accent, thickness: 1.1pt)),
-  inset: (left: 5pt, y: 3pt),
-)[
-  #grid(
-    columns: (auto, auto, auto, auto, 1fr),
-    gutter: 4mm,
-    [#label("Portfolio") #linebreak() #value(portfolio)],
-    [#label("State") #linebreak() #value(state)],
-    [#label("Proof pack") #linebreak() #value(proof-pack)],
-    [#label("Proof state") #linebreak() #value(proof-state)],
-    [#label("Alternative") #linebreak() #value(alternative) #linebreak() #label("Reasons") #linebreak() #reasons],
-  )
-]
+#let wave-item-row(portfolio, state, proof-pack, proof-state, alternative, reasons) = evidence-row((
+  (name: "Portfolio", share: 1.2, body: value(portfolio)),
+  (name: "State", share: 1.1, body: value(state)),
+  (name: "Proof pack", share: 0.85, body: value(proof-pack)),
+  (name: "Proof state", share: 0.85, body: value(proof-state)),
+  (name: "Alternative", share: 1.5, body: [
+    #value(alternative) #linebreak() #label("Reasons") #linebreak() #reasons
+  ]),
+))
 
 #text(size: 18pt, weight: "medium", fill: ink)[#"${TITLE}"]
 #v(4pt)

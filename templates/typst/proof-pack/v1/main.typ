@@ -1,4 +1,4 @@
-#import "_design.typ": accent, ink, key-value-row, key-value-rows, label, muted, rule, value
+#import "_design.typ": accent, evidence-row, ink, key-value-row, key-value-rows, label, muted, rule, value
 #set page(
   paper: "a4",
   margin: (x: 18mm, y: 16mm),
@@ -17,20 +17,14 @@
 #set text(size: 8.8pt, fill: ink)
 #set par(leading: 1.1em, spacing: 0.45em)
 
-#let section-row(title, section-type, state, summary, reasons) = block(
-  below: 5pt,
-  stroke: (left: (paint: accent, thickness: 1.1pt)),
-  inset: (left: 5pt, y: 3pt),
-)[
-  #grid(
-    columns: (auto, auto, auto, 1fr),
-    gutter: 4mm,
-    [#label("Section") #linebreak() #value(title)],
-    [#label("Type") #linebreak() #value(section-type)],
-    [#label("State") #linebreak() #value(state)],
-    [#label("Summary") #linebreak() #summary #linebreak() #label("Reasons") #linebreak() #reasons],
-  )
-]
+#let section-row(title, section-type, state, summary, reasons) = evidence-row((
+  (name: "Section", share: 1.3, body: value(title)),
+  (name: "Type", share: 0.9, body: value(section-type)),
+  (name: "State", share: 1.0, body: value(state)),
+  (name: "Summary", share: 2.2, body: [
+    #summary #linebreak() #label("Reasons") #linebreak() #reasons
+  ]),
+))
 
 #text(size: 18pt, weight: "medium", fill: ink)[#"${TITLE}"]
 #v(4pt)
