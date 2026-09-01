@@ -44,8 +44,14 @@ def _git(*arguments: str) -> list[str]:
     return [line for line in completed.stdout.splitlines() if line]
 
 
+# A run only counts as evidence if it reached a verdict. A cancelled or skipped run
+# evaluated nothing, and counting it says a commit was gated when the gate did not
+# finish -- which is the failure this script exists to find.
+VERDICT_CONCLUSIONS = frozenset({"success", "failure"})
+
+
 def _run_count(sha: str) -> int | None:
-    """How many gate runs exist for this exact commit, or None if it cannot be asked."""
+    """Gate runs that reached a verdict for this commit, or None if it cannot be asked."""
     completed = subprocess.run(
         [
             "gh",
@@ -64,9 +70,16 @@ def _run_count(sha: str) -> int | None:
     if completed.returncode != 0:
         return None
     try:
-        return len(json.loads(completed.stdout))
+        runs = json.loads(completed.stdout)
     except json.JSONDecodeError:
         return None
+    verdicts = sum(1 for run in runs if run.get("conclusion") in VERDICT_CONCLUSIONS)
+    if verdicts:
+        return verdicts
+    # A run with no conclusion yet is in flight. It is not evidence, and it is not a
+    # gap either -- reported as pending so a commit merged minutes ago is not called
+    # ungated, and so a run that never finishes stays visible by name.
+    return -1 if runs else 0
 
 
 def main() -> int:
@@ -80,18 +93,29 @@ def main() -> int:
     arguments = parser.parse_args()
 
     if shutil.which("gh") is None:
-        print("gh is not available; cannot ask which commits the gate evaluated.")
+        print("gh is not available, so which commits the gate evaluated cannot be asked.")
+        if arguments.fail_on_gap:
+            print(
+                "Refusing to report success: an audit that inspected nothing is the "
+                "condition it exists to detect."
+            )
+            return 1
         return 0
 
     commits = _git("log", f"-{arguments.limit}", "--format=%H %h %s", "origin/main")
     ungated: list[str] = []
     unknown = 0
 
+    pending: list[str] = []
     for entry in commits:
         sha, short, subject = entry.split(" ", 2)
         count = _run_count(sha)
         if count is None:
             unknown += 1
+            continue
+        if count < 0:
+            pending.append(f"{short}  {subject[:70]}")
+            print(f"PENDING  {short}  {subject[:70]}")
             continue
         if count == 0:
             ungated.append(f"{short}  {subject[:70]}")
@@ -118,7 +142,19 @@ def main() -> int:
             "A commit predating those inputs takes a bare dispatch instead: the workflow "
             "that runs is the one defined at that revision, not this one."
         )
-    return 1 if (ungated and arguments.fail_on_gap) else 0
+    if pending:
+        print(
+            f"{len(pending)} commit(s) have a run still going, so they are neither gated "
+            "nor a gap yet. This does not fail: a merge landing near the schedule would "
+            "otherwise report one every time. A commit still pending on the next daily "
+            "run is worth looking at, and is named above so it can be."
+        )
+    if unknown:
+        print(
+            f"{unknown} commit(s) could not be checked at all -- the API did not answer. "
+            "Their gate coverage is unknown, which is not the same as fine."
+        )
+    return 1 if ((ungated or unknown) and arguments.fail_on_gap) else 0
 
 
 if __name__ == "__main__":

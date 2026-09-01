@@ -170,3 +170,43 @@ def test_the_gate_coverage_audit_runs_and_can_fail() -> None:
     assert "--fail-on-gap" in invocation, (
         "the audit reports gaps without failing on them, which is how the first one sat unnoticed"
     )
+
+
+def test_the_gate_coverage_audit_cannot_pass_by_inspecting_nothing() -> None:
+    """The audit is itself a gate, and it had all three ways of verifying nothing.
+
+    `gh` missing printed a line and returned 0. Any API failure marked a commit
+    "unknown" and unknowns never failed, so a fully rate-limited run printed
+    "audited 0 commit(s); 0 with no run" and exited green. And it asked for each run's
+    conclusion, then counted rows -- so a cancelled dispatch, which evaluated nothing,
+    counted as evidence that the commit was gated.
+
+    That is the same liveness class the script exists to catch, in the script.
+    """
+
+    source = (ROOT / "scripts/audit_main_gate_coverage.py").read_text(encoding="utf-8")
+
+    # Only a run that reached a verdict is evidence.
+    assert 'VERDICT_CONCLUSIONS = frozenset({"success", "failure"})' in source
+    assert 'run.get("conclusion") in VERDICT_CONCLUSIONS' in source
+    # A commit that could not be checked is not a commit that is fine.
+    assert "return 1 if ((ungated or unknown) and arguments.fail_on_gap) else 0" in source
+    # And an audit that could not run at all must not report success.
+    assert "Refusing to report success" in source
+
+
+def test_the_audit_separates_a_run_in_flight_from_no_run_at_all() -> None:
+    """Counting only verdicts made a commit merged two minutes ago look ungated.
+
+    Pending is neither evidence nor a gap. Failing on it would make the daily audit
+    report a false gap whenever a merge lands near the schedule, so it is named instead
+    -- which is also how a run that never finishes stays visible.
+    """
+
+    source = (ROOT / "scripts/audit_main_gate_coverage.py").read_text(encoding="utf-8")
+
+    assert "PENDING" in source
+    assert "still going" in source
+    # Pending is deliberately not part of the failure condition.
+    assert "ungated or unknown" in source
+    assert "pending or" not in source
