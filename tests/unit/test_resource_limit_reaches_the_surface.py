@@ -1,6 +1,6 @@
 """A document too large to render says so where an operator will read it.
 
-`_classify_compile_failure` tells a killed compile from a rejected template and returns
+`classify_compile_failure` tells a killed compile from a rejected template and returns
 `resource_limit_exceeded` for the first. It stamped that on a local attempt and then
 raised a bare `RuntimeError`, and `_unexpected_failure_category` re-derived the category
 from `str(exc)` -- a matcher that knows only `engine_unavailable` and
@@ -22,16 +22,16 @@ These test the surface a caller sees.
 from __future__ import annotations
 
 import subprocess
-from typing import get_args
+from typing import cast, get_args
 
 import pytest
 
 from app.contracts.renders import RenderFailureCategory as ContractFailureCategory
 from app.domain.render_attempts.models import RenderFailureCategory as RuntimeFailureCategory
+from app.services.compile_failures import classify_compile_failure
 from app.services.render_ports import RenderCompileFailedError
 from app.services.render_recovery import diagnostic_recovery
 from app.services.render_submission import _unexpected_failure_category
-from app.services.typst_rendering import _classify_compile_failure
 
 
 def _killed_process(signal_number: int = 9) -> subprocess.CompletedProcess[str]:
@@ -43,7 +43,7 @@ def _killed_process(signal_number: int = 9) -> subprocess.CompletedProcess[str]:
 
 
 def test_the_classifier_still_names_a_killed_compile_for_what_it_is() -> None:
-    category, summary = _classify_compile_failure(_killed_process())
+    category, summary = classify_compile_failure(_killed_process())
 
     assert category == RuntimeFailureCategory.RESOURCE_LIMIT_EXCEEDED
     assert "too large" in summary
@@ -52,7 +52,7 @@ def test_the_classifier_still_names_a_killed_compile_for_what_it_is() -> None:
 def test_the_category_survives_the_raise() -> None:
     """The step that was missing: it reached a local attempt and went no further."""
 
-    category, summary = _classify_compile_failure(_killed_process())
+    category, summary = classify_compile_failure(_killed_process())
     error = RenderCompileFailedError(category, summary)
 
     assert _unexpected_failure_category(error) == "resource_limit_exceeded"
@@ -62,7 +62,7 @@ def test_a_template_failure_is_still_a_template_failure() -> None:
     """The classification must discriminate, not relabel everything."""
 
     rejected = subprocess.CompletedProcess(["typst"], 1, "error: unknown variable", "")
-    category, summary = _classify_compile_failure(rejected)
+    category, summary = classify_compile_failure(rejected)
 
     assert _unexpected_failure_category(RenderCompileFailedError(category, summary)) == (
         "template_render_failed"
@@ -135,3 +135,68 @@ def test_every_category_the_runtime_can_produce_has_recovery_advice(
         f"{category} falls through to the generic recovery action, so an operator is "
         f"told only to escalate: {message}"
     )
+
+
+# What each signal can and cannot mean. Only the first group is reachable from a resource
+# bound: SIGXCPU and SIGXFSZ exist for no other reason, and SIGKILL and SIGABRT are how
+# the container's memory limit and this service's own `ulimit -v` are measured to arrive.
+SIGNAL_CLASSIFICATION = [
+    pytest.param(9, RuntimeFailureCategory.RESOURCE_LIMIT_EXCEEDED, id="SIGKILL-container-oom"),
+    pytest.param(6, RuntimeFailureCategory.RESOURCE_LIMIT_EXCEEDED, id="SIGABRT-ulimit-v"),
+    pytest.param(24, RuntimeFailureCategory.RESOURCE_LIMIT_EXCEEDED, id="SIGXCPU-ulimit-t"),
+    pytest.param(15, RuntimeFailureCategory.ENGINE_UNAVAILABLE, id="SIGTERM-deploy"),
+    pytest.param(2, RuntimeFailureCategory.ENGINE_UNAVAILABLE, id="SIGINT"),
+    pytest.param(11, RuntimeFailureCategory.UNEXPECTED_RENDER_ERROR, id="SIGSEGV-engine-crash"),
+    pytest.param(7, RuntimeFailureCategory.UNEXPECTED_RENDER_ERROR, id="SIGBUS"),
+    pytest.param(30, RuntimeFailureCategory.UNEXPECTED_RENDER_ERROR, id="unrecognised-signal"),
+]
+
+
+@pytest.mark.parametrize(("signal_number", "expected"), SIGNAL_CLASSIFICATION)
+def test_a_signal_death_is_read_for_what_that_signal_can_mean(
+    signal_number: int, expected: RuntimeFailureCategory
+) -> None:
+    """Every silent kill used to be `resource_limit_exceeded`, whatever killed it.
+
+    Both streams are empty on all of these, so the number is the only evidence there is
+    -- and it is enough to rule the bound out for most of them.
+    """
+
+    category, _ = classify_compile_failure(_killed_process(signal_number))
+
+    assert category == expected
+
+
+@pytest.mark.parametrize(
+    ("signal_number", "expected"),
+    [
+        case
+        for case in SIGNAL_CLASSIFICATION
+        if case.values[1] is not RuntimeFailureCategory.RESOURCE_LIMIT_EXCEEDED
+    ],
+)
+def test_a_death_no_bound_can_cause_is_not_answered_with_send_fewer_rows(
+    signal_number: int, expected: RuntimeFailureCategory
+) -> None:
+    """The consequence, which is what makes the misclassification cost something.
+
+    `resource_limit_exceeded` is not retryable, is owned by lotus-report, and its action
+    is `reduce_document_size_or_raise_envelope`. A deploy's SIGTERM therefore told a
+    caller its document was permanently over the envelope, when in fact resubmitting the
+    identical package would have rendered it. A segfault told it the same, and no
+    package is small enough to stop the compiler crashing.
+    """
+
+    category, summary = classify_compile_failure(_killed_process(signal_number))
+    retryable, action, owner, _ = diagnostic_recovery(
+        # The classifier returns the runtime enum and the recovery table takes the
+        # contract Literal. `test_the_two_failure_category_spellings_agree` is what
+        # holds the two spellings equal; this cast is that fact, written down.
+        status="failed",
+        failure_category=cast(ContractFailureCategory, str(category)),
+        stale_state="fresh",
+    )
+
+    assert retryable, f"{summary}: a transient death was reported as permanent"
+    assert action != "reduce_document_size_or_raise_envelope"
+    assert owner != "lotus-report", "the caller was handed a failure it cannot act on"
