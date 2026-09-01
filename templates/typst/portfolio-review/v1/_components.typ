@@ -1,4 +1,4 @@
-#import "_theme.typ": accent, accent-soft, body-muted, body-strong, empty-state, gain, grid-gap, hairline, ink, loss, mist, navy, page-kicker, panel-radius, rule, section-subtitle, section-title, slate, small-caps, soft-rule
+#import "_theme.typ": accent, accent-soft, body-muted, body-strong, empty-state, gain, grid-gap, hairline, ink, loss, mist, navy, page-kicker, panel-radius, rule, section-subtitle, section-title, slate, small-caps, soft-rule, text-body, text-body-strong, text-caption, text-fine, text-head, text-lead, text-micro, text-small
 
 // Laid out by `set page(header:)` in main.typ rather than emitted into the flow, so a
 // section that spills onto another page is still headed there. While this was an
@@ -45,7 +45,7 @@
 #let section-lead(title, body) = report-panel([
   #section-subtitle(title)
   #v(5pt)
-  #text(size: 8.8pt, fill: ink)[#body]
+  #text(size: text-body, fill: ink)[#body]
 ], fill: mist)
 
 // Fills its container, for the reason note-panel does: without a width the block hugs
@@ -61,7 +61,7 @@
 )[
   #small-caps(label)
   #v(4pt)
-  #text(size: 11pt, weight: 650, fill: ink)[#value]
+  #text(size: text-lead, weight: 650, fill: ink)[#value]
   #if detail != none [
     #v(3pt)
     #body-muted(detail)
@@ -88,7 +88,7 @@
 )[
   #small-caps(title)
   #v(4pt)
-  #text(size: 8.1pt, fill: ink)[#body]
+  #text(size: text-small, fill: ink)[#body]
 ]
 
 // Planted at the top of each section page so the contents page can compute the page a
@@ -132,9 +132,9 @@
   #grid(
     columns: (28pt, 1fr, 28pt),
     column-gutter: 10pt,
-    [#text(size: 13pt, weight: 300, fill: accent)[#index]],
+    [#text(size: text-head, weight: 300, fill: accent)[#index]],
     [
-      #text(size: 9.5pt, weight: 600, fill: ink)[#title]
+      #text(size: text-body-strong, weight: 600, fill: ink)[#title]
       #linebreak()
       #body-muted(detail)
     ],
@@ -163,16 +163,16 @@
   radius: panel-radius,
   breakable: false,
 )[
-  #text(size: 11pt, weight: 700, fill: navy)[#title]
+  #text(size: text-lead, weight: 700, fill: navy)[#title]
   #if subtitle != none [
     #v(2pt)
-    #text(size: 8.1pt, fill: slate)[#subtitle]
+    #text(size: text-small, fill: slate)[#subtitle]
   ]
   #v(8pt)
   #body
   #if note != none [
     #v(6pt)
-    #text(size: 7.4pt, fill: slate)[#note]
+    #text(size: text-fine, fill: slate)[#note]
   ]
 ]
 
@@ -183,9 +183,9 @@
   radius: panel-radius,
   breakable: false,
 )[
-  #text(size: 11pt, weight: 700, fill: navy)[#title]
+  #text(size: text-lead, weight: 700, fill: navy)[#title]
   #v(8pt)
-  #text(size: 8.8pt, fill: slate)[#message]
+  #text(size: text-body, fill: slate)[#message]
 ]
 
 #let table-label(value, placement: left) = align(placement)[#small-caps(value)]
@@ -227,7 +227,7 @@
     columns: (10pt, 1fr),
     column-gutter: 8pt,
     [#rect(width: 6pt, height: 6pt, radius: 2pt, fill: accent)],
-    [#text(size: 8.8pt, fill: ink)[#body]],
+    [#text(size: text-body, fill: ink)[#body]],
   )
 ]
 
@@ -237,11 +237,11 @@
   #grid(
     columns: (0.9fr, 1fr, 1fr, 1fr),
     column-gutter: 12pt,
-    [#text(size: 8.8pt, fill: ink)[#period]],
-    [#align(right)[#text(size: 8.8pt, fill: ink)[#net]]],
-    [#align(right)[#text(size: 8.8pt, fill: slate)[#benchmark]]],
+    [#text(size: text-body, fill: ink)[#period]],
+    [#align(right)[#text(size: text-body, fill: ink)[#net]]],
+    [#align(right)[#text(size: text-body, fill: slate)[#benchmark]]],
     [#align(right)[#text(
-      size: 8.8pt,
+      size: text-body,
       weight: 500,
       fill: if relative-negative { loss } else { gain },
     )[#relative]]],
@@ -257,8 +257,8 @@
   #grid(
     columns: (0.9fr, 1fr),
     column-gutter: 12pt,
-    [#text(size: 8.8pt, fill: ink)[#period]],
-    [#align(right)[#text(size: 8.8pt, fill: ink)[#net]]],
+    [#text(size: text-body, fill: ink)[#period]],
+    [#align(right)[#text(size: text-body, fill: ink)[#net]]],
   )
   #v(6pt)
   #line(length: 100%, stroke: (paint: rule, thickness: 0.35pt))
@@ -270,11 +270,11 @@
   stroke: (paint: rule, thickness: hairline),
   radius: panel-radius,
 )[
-  #text(size: 7.4pt, fill: slate)[#label]
+  #text(size: text-fine, fill: slate)[#label]
   #linebreak()
-  #text(size: 9.5pt, weight: 600, fill: ink)[#value]
+  #text(size: text-body-strong, weight: 600, fill: ink)[#value]
   #linebreak()
-  #text(size: 6.8pt, fill: slate)[Ann. #annualized]
+  #text(size: text-caption, fill: slate)[Ann. #annualized]
 ]
 
 // A return runs either side of zero, so the track it is drawn on has a middle.
@@ -306,7 +306,7 @@
 
 // An auto-scaled bar with an unstated domain is only half-honest: two charts in one
 // document can share a visual language and not share a scale. Say what the track means.
-#let chart-scale-note(domain) = text(size: 6.1pt, fill: slate)[
+#let chart-scale-note(domain) = text(size: text-micro, fill: slate)[
   Bars scaled to #sym.plus.minus#domain, the largest move in this series
 ]
 
@@ -314,10 +314,10 @@
   #grid(
     columns: (34pt, 1fr, 42pt, 42pt),
     column-gutter: 7pt,
-    [#text(size: 6.1pt, fill: slate)[#period]],
+    [#text(size: text-micro, fill: slate)[#period]],
     [#diverging-track(magnitude, negative)],
-    [#align(right)[#text(size: 6.1pt, weight: 500, fill: if negative { loss } else { ink })[#value]]],
-    [#align(right)[#text(size: 6.1pt, fill: slate)[#cumulative]]],
+    [#align(right)[#text(size: text-micro, weight: 500, fill: if negative { loss } else { ink })[#value]]],
+    [#align(right)[#text(size: text-micro, fill: slate)[#cumulative]]],
   )
 ]
 
@@ -325,14 +325,14 @@
   #grid(
     columns: (0.72fr, 1fr, 1fr, 1fr, 1fr, 0.7fr, 1fr, 0.7fr),
     column-gutter: 6pt,
-    [#text(size: 6.1pt, fill: ink)[#period]],
-    [#align(right)[#text(size: 6.1pt, fill: slate)[#final_value]]],
-    [#align(right)[#text(size: 6.1pt, fill: slate)[#inflows]]],
-    [#align(right)[#text(size: 6.1pt, fill: slate)[#outflows]]],
-    [#align(right)[#text(size: 6.1pt, fill: ink)[#value]]],
-    [#align(right)[#text(size: 6.1pt, weight: 500, fill: accent)[#twr]]],
-    [#align(right)[#text(size: 6.1pt, fill: ink)[#cumulative_value]]],
-    [#align(right)[#text(size: 6.1pt, weight: 500, fill: accent)[#cumulative_twr]]],
+    [#text(size: text-micro, fill: ink)[#period]],
+    [#align(right)[#text(size: text-micro, fill: slate)[#final_value]]],
+    [#align(right)[#text(size: text-micro, fill: slate)[#inflows]]],
+    [#align(right)[#text(size: text-micro, fill: slate)[#outflows]]],
+    [#align(right)[#text(size: text-micro, fill: ink)[#value]]],
+    [#align(right)[#text(size: text-micro, weight: 500, fill: accent)[#twr]]],
+    [#align(right)[#text(size: text-micro, fill: ink)[#cumulative_value]]],
+    [#align(right)[#text(size: text-micro, weight: 500, fill: accent)[#cumulative_twr]]],
   )
   #v(1.6pt)
   #line(length: 100%, stroke: (paint: rule, thickness: 0.22pt))
@@ -342,7 +342,7 @@
   #grid(
     columns: (1.25fr, 1.4fr, 0.6fr, 0.75fr),
     column-gutter: 10pt,
-    [#text(size: 8.8pt, fill: ink)[#name]],
+    [#text(size: text-body, fill: ink)[#name]],
     [
       #block(
         width: 100%,
@@ -353,8 +353,8 @@
         #rect(width: width, height: 8pt, radius: 99pt, fill: accent-soft)
       ]
     ],
-    [#align(right)[#text(size: 8.8pt, fill: ink)[#weight]]],
-    [#align(right)[#text(size: 8.8pt, fill: slate)[#value]]],
+    [#align(right)[#text(size: text-body, fill: ink)[#weight]]],
+    [#align(right)[#text(size: text-body, fill: slate)[#value]]],
   )
 ]
 
@@ -362,7 +362,7 @@
   #grid(
     columns: (1.15fr, 1.15fr, 0.55fr, 0.75fr),
     column-gutter: 8pt,
-    [#text(size: 8.1pt, fill: ink)[#name]],
+    [#text(size: text-small, fill: ink)[#name]],
     [
       #block(
         width: 100%,
@@ -373,8 +373,8 @@
         #rect(width: width, height: 6pt, radius: 99pt, fill: accent-soft)
       ]
     ],
-    [#align(right)[#text(size: 7.4pt, fill: ink)[#weight]]],
-    [#align(right)[#text(size: 7.4pt, fill: slate)[#value]]],
+    [#align(right)[#text(size: text-fine, fill: ink)[#weight]]],
+    [#align(right)[#text(size: text-fine, fill: slate)[#value]]],
   )
   #v(3.5pt)
   #line(length: 100%, stroke: (paint: rule, thickness: 0.25pt))

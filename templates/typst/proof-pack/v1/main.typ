@@ -1,4 +1,4 @@
-#import "_design.typ": accent, evidence-row, ink, key-value-row, key-value-rows, label, muted, rule, value
+#import "_design.typ": accent, evidence-row, ink, key-value-row, key-value-rows, label, muted, rule, text-body, text-caption, text-document, text-lead, text-small, text-subhead, value
 #set page(
   paper: "a4",
   margin: (x: 18mm, y: 16mm),
@@ -7,14 +7,14 @@
     #v(5pt)
     #grid(
       columns: (1fr, auto),
-      [#text(size: 6.8pt, fill: muted)[#"${PORTFOLIO_ID}" / #"${PROOF_PACK_ID}"]],
-      [#text(size: 6.8pt, fill: ink)[#counter(page).display("1 / 1")]],
+      [#text(size: text-caption, fill: muted)[#"${PORTFOLIO_ID}" / #"${PROOF_PACK_ID}"]],
+      [#text(size: text-caption, fill: ink)[#counter(page).display("1 / 1")]],
     )
   ],
   footer-descent: 38%,
 )
 
-#set text(size: 8.8pt, fill: ink)
+#set text(size: text-body, fill: ink)
 #set par(leading: 1.1em, spacing: 0.45em)
 
 #let section-row(title, section-type, state, summary, reasons) = evidence-row((
@@ -26,9 +26,9 @@
   ]),
 ))
 
-#text(size: 18pt, weight: "medium", fill: ink)[#"${TITLE}"]
+#text(size: text-document, weight: "medium", fill: ink)[#"${TITLE}"]
 #v(4pt)
-#text(size: 8.1pt, fill: muted)[Governed pre-trade proof-pack report / #"${STATE}"]
+#text(size: text-small, fill: muted)[Governed pre-trade proof-pack report / #"${STATE}"]
 
 #v(10pt)
 #grid(
@@ -44,7 +44,7 @@
   columns: (1fr, 1fr),
   gutter: 8mm,
   [
-    #text(size: 11pt, weight: "medium")[Decision Summary]
+    #text(size: text-lead, weight: "medium")[Decision Summary]
     #v(3pt)
     #key-value-rows((
       ([Action], [#"${DECISION_ACTION}"]),
@@ -54,7 +54,7 @@
     #"${DECISION_RATIONALE}"
   ],
   [
-    #text(size: 11pt, weight: "medium")[Supportability]
+    #text(size: text-lead, weight: "medium")[Supportability]
     #v(3pt)
     #key-value-rows((
       ([Status], [#"${SUPPORTABILITY_STATUS}"]),
@@ -65,17 +65,17 @@
 )
 
 #v(8pt)
-#text(size: 12pt, weight: "medium")[Proof-Pack Sections]
+#text(size: text-subhead, weight: "medium")[Proof-Pack Sections]
 #v(3pt)
 ${SECTION_ROWS}
 
 #v(8pt)
-#text(size: 11pt, weight: "medium")[Source Hashes]
+#text(size: text-lead, weight: "medium")[Source Hashes]
 #v(3pt)
 ${SOURCE_HASH_ROWS}
 
 #v(6pt)
-#text(size: 11pt, weight: "medium")[Source Authority Boundary]
+#text(size: text-lead, weight: "medium")[Source Authority Boundary]
 #v(3pt)
 #key-value-rows((
   ([Source contract], [#"${SOURCE_CONTRACT_VERSION}"]),
@@ -84,7 +84,7 @@ ${SOURCE_HASH_ROWS}
 ${SOURCE_LINEAGE_ROWS}
 
 #v(6pt)
-#text(size: 11pt, weight: "medium")[Report Lineage]
+#text(size: text-lead, weight: "medium")[Report Lineage]
 #v(3pt)
 #key-value-rows((
   ([Report input], [#"${CONTENT_HASH}"]),
@@ -94,6 +94,6 @@ ${SOURCE_LINEAGE_ROWS}
 #v(10pt)
 #line(length: 100%, stroke: (paint: rule, thickness: 0.35pt))
 #v(4pt)
-#text(size: 6.8pt, fill: muted)[Render #"${RENDER_JOB_ID}" / #"${TEMPLATE_ID}" #"${TEMPLATE_VERSION}" / #"${TIMEZONE}"]
+#text(size: text-caption, fill: muted)[Render #"${RENDER_JOB_ID}" / #"${TEMPLATE_ID}" #"${TEMPLATE_VERSION}" / #"${TIMEZONE}"]
 #linebreak()
-#text(size: 6.8pt, fill: muted)[#"${DETERMINISM_STATEMENT}"]
+#text(size: text-caption, fill: muted)[#"${DETERMINISM_STATEMENT}"]

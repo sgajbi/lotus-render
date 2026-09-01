@@ -18,7 +18,7 @@
 // tick arithmetic belongs where it can be unit-tested. These functions place; they do
 // not decide.
 
-#import "_design.typ": SERIES_PALETTE, accent, ink, navy, rule, slate
+#import "_design.typ": SERIES_PALETTE, accent, ink, navy, rule, slate, text-caption, text-fine, text-lead, text-micro, text-small
 
 // `curve` needs concrete lengths, so the width is read from the container with `layout`
 // rather than hardcoded. Hardcoding it meant the plot filled 452pt of a 727pt card and
@@ -59,7 +59,7 @@
 
 // `gridlines` and `points` carry fractions of the plot box, already clamped to it by the
 // caller. `at` runs left to right, `value` runs top to bottom, both in [0, 1].
-#let _legend(series-label, benchmark-label) = text(size: 6.8pt, fill: ink)[
+#let _legend(series-label, benchmark-label) = text(size: text-caption, fill: ink)[
   #box(baseline: -0.5pt, circle(radius: 2.4pt, fill: white, stroke: 1.4pt + accent))
   #h(3pt)#series-label
   #if benchmark-label != none [
@@ -100,7 +100,7 @@
             dx: -AXIS_GUTTER,
             dy: _plot-y(gridline.at, height) - 4pt,
             box(width: AXIS_GUTTER - 5pt)[
-              #align(right)[#text(size: 6.1pt, fill: slate)[#gridline.label]]
+              #align(right)[#text(size: text-micro, fill: slate)[#gridline.label]]
             ],
           )
         ]
@@ -114,7 +114,7 @@
         top + left,
         dx: AXIS_GUTTER + _plot-x(label.at, width) - 16pt,
         dy: height + 18pt,
-        box(width: 32pt)[#align(center)[#text(size: 6.1pt, fill: slate)[#label.text]]],
+        box(width: 32pt)[#align(center)[#text(size: text-micro, fill: slate)[#label.text]]],
       )
     ]
   ]
@@ -161,9 +161,9 @@
   ..entries
     .map(entry => (
       align(horizon)[#rect(width: 8pt, height: 8pt, radius: 1pt, fill: SERIES_PALETTE.at(entry.colour))],
-      align(horizon)[#text(size: 8.1pt, fill: ink)[#entry.label]],
-      align(horizon + right)[#text(size: 8.1pt, weight: 500, fill: ink)[#entry.weight]],
-      align(horizon + right)[#text(size: 7.4pt, fill: slate)[#entry.value]],
+      align(horizon)[#text(size: text-small, fill: ink)[#entry.label]],
+      align(horizon + right)[#text(size: text-small, weight: 500, fill: ink)[#entry.weight]],
+      align(horizon + right)[#text(size: text-fine, fill: slate)[#entry.value]],
     ))
     .flatten(),
 )
@@ -190,9 +190,9 @@
       #for segment in segments [#place(top + left, _donut-path(segment, size))]
       #place(center + horizon)[
         #align(center)[
-          #text(size: 6.8pt, fill: slate)[#centre-label]
+          #text(size: text-caption, fill: slate)[#centre-label]
           #linebreak()
-          #text(size: 11pt, weight: 700, fill: navy)[#centre-value]
+          #text(size: text-lead, weight: 700, fill: navy)[#centre-value]
         ]
       ]
     ]
@@ -201,7 +201,7 @@
     #_donut-legend(entries)
     #if coverage-note != none [
       #v(8pt)
-      #text(size: 6.8pt, fill: slate)[#coverage-note]
+      #text(size: text-caption, fill: slate)[#coverage-note]
     ]
   ],
 )

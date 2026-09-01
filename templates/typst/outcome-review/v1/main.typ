@@ -1,4 +1,4 @@
-#import "_design.typ": accent, evidence-row, ink, key-value-row, key-value-rows, label, muted, rule, value
+#import "_design.typ": accent, evidence-row, ink, key-value-row, key-value-rows, label, muted, rule, text-body, text-caption, text-document, text-lead, text-small, text-subhead, value
 #set page(
   paper: "a4",
   margin: (x: 18mm, y: 16mm),
@@ -7,14 +7,14 @@
     #v(5pt)
     #grid(
       columns: (1fr, auto),
-      [#text(size: 6.8pt, fill: muted)[#"${PORTFOLIO_ID}" / #"${OUTCOME_REVIEW_ID}"]],
-      [#text(size: 6.8pt, fill: ink)[#counter(page).display("1 / 1")]],
+      [#text(size: text-caption, fill: muted)[#"${PORTFOLIO_ID}" / #"${OUTCOME_REVIEW_ID}"]],
+      [#text(size: text-caption, fill: ink)[#counter(page).display("1 / 1")]],
     )
   ],
   footer-descent: 38%,
 )
 
-#set text(size: 8.8pt, fill: ink)
+#set text(size: text-body, fill: ink)
 #set par(leading: 1.1em, spacing: 0.45em)
 
 #let dimension-row(dimension, state, expected, realized, variance, explanation) = evidence-row((
@@ -28,9 +28,9 @@
   (name: "Explanation", share: 2.15, body: explanation),
 ))
 
-#text(size: 18pt, weight: "medium", fill: ink)[#"${TITLE}"]
+#text(size: text-document, weight: "medium", fill: ink)[#"${TITLE}"]
 #v(4pt)
-#text(size: 8.1pt, fill: muted)[Governed post-trade outcome-review report / #"${STATE}"]
+#text(size: text-small, fill: muted)[Governed post-trade outcome-review report / #"${STATE}"]
 
 #v(10pt)
 #grid(
@@ -42,12 +42,12 @@
 )
 
 #v(8pt)
-#text(size: 12pt, weight: "medium")[Outcome Summary]
+#text(size: text-subhead, weight: "medium")[Outcome Summary]
 #v(3pt)
 #"${OVERALL_OUTCOME}"
 
 #v(8pt)
-#text(size: 12pt, weight: "medium")[Dimension Evidence]
+#text(size: text-subhead, weight: "medium")[Dimension Evidence]
 #v(3pt)
 ${DIMENSION_ROWS}
 
@@ -56,7 +56,7 @@ ${DIMENSION_ROWS}
   columns: (1fr, 1fr),
   gutter: 8mm,
   [
-    #text(size: 11pt, weight: "medium")[Lineage]
+    #text(size: text-lead, weight: "medium")[Lineage]
     #v(3pt)
     #key-value-rows((
       ([Source services], [#"${SOURCE_SERVICES}"]),
@@ -67,7 +67,7 @@ ${DIMENSION_ROWS}
     ))
   ],
   [
-    #text(size: 11pt, weight: "medium")[Hashes]
+    #text(size: text-lead, weight: "medium")[Hashes]
     #v(3pt)
     #key-value-rows((
       ([Report input], [#"${CONTENT_HASH}"]),
@@ -77,18 +77,18 @@ ${DIMENSION_ROWS}
 )
 
 #v(8pt)
-#text(size: 11pt, weight: "medium")[Source Hashes]
+#text(size: text-lead, weight: "medium")[Source Hashes]
 #v(3pt)
 ${SOURCE_HASH_ROWS}
 
 #v(6pt)
-#text(size: 11pt, weight: "medium")[Proof-Pack Section Hashes]
+#text(size: text-lead, weight: "medium")[Proof-Pack Section Hashes]
 #v(3pt)
 ${SECTION_HASH_ROWS}
 
 #v(10pt)
 #line(length: 100%, stroke: (paint: rule, thickness: 0.35pt))
 #v(4pt)
-#text(size: 6.8pt, fill: muted)[Render #"${RENDER_JOB_ID}" / #"${TEMPLATE_ID}" #"${TEMPLATE_VERSION}" / #"${TIMEZONE}"]
+#text(size: text-caption, fill: muted)[Render #"${RENDER_JOB_ID}" / #"${TEMPLATE_ID}" #"${TEMPLATE_VERSION}" / #"${TIMEZONE}"]
 #linebreak()
-#text(size: 6.8pt, fill: muted)[#"${DETERMINISM_STATEMENT}"]
+#text(size: text-caption, fill: muted)[#"${DETERMINISM_STATEMENT}"]

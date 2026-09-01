@@ -1,4 +1,4 @@
-#import "_theme.typ": accent, body-muted, cover-title, empty-state, grid-gap, ink, mist, section-title, small-caps, soft-rule
+#import "_theme.typ": accent, body-muted, cover-title, empty-state, grid-gap, ink, mist, section-title, small-caps, soft-rule, text-body-strong, text-head, text-lead
 #import "_components.typ": content-row, metric-card, report-panel, section-lead
 
 #let cover-page() = [
@@ -16,13 +16,13 @@
           row-gutter: 8pt,
           column-gutter: grid-gap,
           [#small-caps("Client")],
-          [#text(size: 13pt, weight: 600, fill: ink)[#"${CLIENT_NAME}"]],
+          [#text(size: text-head, weight: 600, fill: ink)[#"${CLIENT_NAME}"]],
           [#small-caps("Portfolio")],
-          [#text(size: 11pt, weight: 500, fill: ink)[#"${PORTFOLIO_NAME}"]],
+          [#text(size: text-lead, weight: 500, fill: ink)[#"${PORTFOLIO_NAME}"]],
           [#small-caps("Review period")],
-          [#text(size: 9.5pt, fill: ink)[#"${REVIEW_PERIOD_RANGE}"]],
+          [#text(size: text-body-strong, fill: ink)[#"${REVIEW_PERIOD_RANGE}"]],
           [#small-caps("Reporting currency")],
-          [#text(size: 9.5pt, fill: ink)[#"${CURRENCY}"]],
+          [#text(size: text-body-strong, fill: ink)[#"${CURRENCY}"]],
         )
       ])
       #v(13pt)

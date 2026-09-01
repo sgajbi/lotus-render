@@ -1,4 +1,4 @@
-#import "_theme.typ": empty-state, ink, page-margin-x, page-margin-y, rule, slate
+#import "_theme.typ": empty-state, ink, page-margin-x, page-margin-y, rule, slate, text-body, text-caption, text-micro
 #import "_components.typ": running-header
 
 #set page(
@@ -16,14 +16,14 @@
     #v(5pt)
     #grid(
       columns: (1fr, auto),
-      [#text(size: 6.1pt, fill: slate)[#"${PORTFOLIO_NAME}"]],
-      [#text(size: 6.8pt, fill: ink)[#counter(page).display("1 / 1")]],
+      [#text(size: text-micro, fill: slate)[#"${PORTFOLIO_NAME}"]],
+      [#text(size: text-caption, fill: ink)[#counter(page).display("1 / 1")]],
     )
   ],
   footer-descent: 38%,
 )
 
-#set text(size: 8.8pt, fill: ink)
+#set text(size: text-body, fill: ink)
 #set par(leading: 1.08em, spacing: 0.42em)
 
 #import "_allocation.typ": allocation-page

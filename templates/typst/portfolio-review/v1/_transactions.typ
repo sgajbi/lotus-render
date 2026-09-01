@@ -1,12 +1,12 @@
-#import "_theme.typ": accent, empty-state, rule, slate
+#import "_theme.typ": accent, empty-state, rule, slate, text-body
 #import "_components.typ": report-panel, section-marker, stacked-table-label, statement-cell
 
 #let transactions-page() = [
   #section-marker("Transactions", "Transaction activity across the review period", header: "Transaction list")
   #v(4pt)
-  #text(size: 8.8pt, fill: accent)[#"${TRANSACTION_PERIOD_LABEL}"]
+  #text(size: text-body, fill: accent)[#"${TRANSACTION_PERIOD_LABEL}"]
   #v(10pt)
-  #align(right)[#text(size: 8.8pt, fill: slate)[Valued in #"${CURRENCY}"]]
+  #align(right)[#text(size: text-body, fill: slate)[Valued in #"${CURRENCY}"]]
   #v(6pt)
   #report-panel([
     // A real table so the header repeats on every page the transactions span, and the
