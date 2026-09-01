@@ -284,6 +284,21 @@ def _commentary_tone(value: object) -> str:
     return tone if tone in COMMENTARY_TONES else NEUTRAL_TONE
 
 
+GROUNDED = "grounded"
+UNGROUNDED = "ungrounded"
+
+
+def _commentary_grounding(item: Mapping[str, object]) -> str:
+    """Whether the claim is checkable, as Report stated it.
+
+    Never derived from `len(evidence_refs)`. Report states it, and a page that infers
+    what the archived lineage states can contradict it. An unrecognised value is treated
+    as ungrounded: the conservative reading is the one that does not tell a reader a
+    claim is checkable when Render cannot tell.
+    """
+    return GROUNDED if str(item.get("grounding") or "").strip() == GROUNDED else UNGROUNDED
+
+
 def _commentary_evidence(refs: object) -> str:
     """What a claim was grounded on, as one line under it.
 
@@ -306,6 +321,12 @@ def render_commentary_points(
     commentary: Mapping[str, object], field: str, *, empty_message: str
 ) -> str:
     """Talking points or risks -- one shape, because they are the same thing to a reader.
+
+    Each point carries the grounding Report stated. An ungrounded claim used to draw
+    exactly like a grounded one minus its "Grounded on:" line, so it was distinguishable
+    only by CONTRAST with grounded points on the same page -- and not at all on a page
+    where none are grounded, which is the case that matters. Presence of a marker is
+    legible where absence of a line is not.
 
     Empty when the package carries no accepted commentary, rather than a placeholder: the
     section is not drawn then, and a placeholder nobody sees still counts towards the
@@ -331,6 +352,7 @@ def render_commentary_points(
             f"[{escape_typst_text(headline)}], "
             f"[{escape_typst_text(detail)}], "
             f'"{_commentary_tone(item.get("tone"))}", '
+            f'"{_commentary_grounding(item)}", '
             f"[{_commentary_evidence(item.get('evidence_refs'))}]"
             ")"
         )

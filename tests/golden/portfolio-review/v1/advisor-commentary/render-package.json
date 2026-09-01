@@ -591,7 +591,8 @@
               "metric_value": "4.10pp",
               "source_ref": "perf:contrib:equity"
             }
-          ]
+          ],
+          "grounding": "grounded"
         },
         {
           "headline": "Tracking error has risen with the equity overweight",
@@ -603,13 +604,15 @@
               "metric_value": "3.10%",
               "source_ref": "risk:te:ytd"
             }
-          ]
+          ],
+          "grounding": "grounded"
         },
         {
           "headline": "Currency exposure is unchanged",
           "detail": "USD and SGD weights are within 0.4pp of the prior review. No action indicated.",
           "tone": "neutral",
-          "evidence_refs": []
+          "evidence_refs": [],
+          "grounding": "ungrounded"
         }
       ],
       "risks_and_exceptions": [
@@ -623,7 +626,8 @@
               "metric_value": "1.64%",
               "source_ref": "alloc:cash:weight"
             }
-          ]
+          ],
+          "grounding": "grounded"
         }
       ],
       "context": {

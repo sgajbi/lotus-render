@@ -198,7 +198,7 @@
         "src/app/contracts/examples/portfolio-review-render-package.v1.json"
       ],
       "provenance": "Portfolio review carrying an accepted advisor-commentary package, so the AI-assisted commentary section is compiled and banked rather than asserted only as a context key (render#218, report#166). All three narrative tones appear, because a vocabulary exercised at one value is exercised nowhere.",
-      "bounded_determinism_fingerprint": "73c0de9a2fa81296629e881709e7a8408b2150af646117887777715c3515019f",
+      "bounded_determinism_fingerprint": "8d85dfc1f9e99980997ad055fcd209014a6c6e2ca17bfd7884d32c4c0e05f670",
       "page_image_hashes": [
         "3b640d9a0e161831409a63e51cf8e71860a00b8b137b4eacce32c9483c6d124a",
         "caddc1cbdac7316af1eaccad0f5793d47980630b17b0c21dc2a3509b7ecb396c",
@@ -208,7 +208,7 @@
         "6cb87b5a7f2437f90161118eeec3e325042a005046c25a7ab230e1d571f5ba64",
         "b8c448f4c6d73082dcbcc902e6936daeb3251354bdcc88977130c0adddaf6611",
         "f715f8db1c3f7bae1450ebc575472db7afb27bb0aea7c8113719307e20e0f82d",
-        "64fd755ab6c473ab2bb1a769ffa50d1874ab4b803e46d57921961705d67f1d05",
+        "c7b0c004513948a5bb3823074c8e24828916daafcf4cc31d3c5f23c4cd326153",
         "37532eb0a0ebc39c5fd1136b977682ecbd784016858edbb5daf156a59f1675a3",
         "27d06eb9d6d4cebd87d76cd504e2f0425ff9c37aab6ba4f166478b66ccdbf6ff"
       ]
