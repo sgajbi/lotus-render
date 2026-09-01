@@ -20,9 +20,11 @@ from decimal import Decimal, InvalidOperation
 from app.services.typst_values import row_sequence
 
 # Series names, not colours: what they look like is decided in `_design.typ` with the
-# rest of the document's palette. Six is the palette, and the allocation grouping folds
-# anything past the fifth-largest slice into "Other", so a wrap here would mean two
-# slices sharing a colour.
+# rest of the document's palette. Six is the whole palette, and `_grouped_with_other`
+# holds the slice count to it, so the index into it needs no modulo. It used to have
+# one, and the comment here claimed the grouping folded everything past the fifth
+# slice -- it folded everything under 2%, so a seventh slice above 2% took `series-1`
+# back from the first.
 ALLOCATION_PALETTE = (
     "series-1",
     "series-2",
@@ -45,10 +47,26 @@ class PerformancePoint:
 
 @dataclass(frozen=True)
 class AllocationSlice:
+    """One wedge of the donut, and the one legend row beside it.
+
+    Both are drawn from the same list and joined only by position, so a slice the ring
+    declines to draw leaves a legend row naming nothing. The ring declined exactly one
+    thing -- a wedge with no sweep, which is a hairline at the twelve o'clock seam --
+    so that is refused here instead, where it is a fact about the slice rather than a
+    decision taken halfway down the drawing.
+    """
+
     label: str
     weight_pct: Decimal
     market_value: Decimal
     color: str
+
+    def __post_init__(self) -> None:
+        if self.weight_pct <= 0:
+            raise ValueError(
+                f"{self.label!r} has weight {self.weight_pct}: a slice with no sweep "
+                "draws a hairline and a legend row pointing at nothing."
+            )
 
 
 def performance_series_from_report_data(
@@ -99,7 +117,7 @@ def allocation_items_from_report_data(report_data: Mapping[str, object]) -> list
             label=label,
             weight_pct=weight,
             market_value=value,
-            color=ALLOCATION_PALETTE[index % len(ALLOCATION_PALETTE)],
+            color=ALLOCATION_PALETTE[index],
         )
         for index, (label, weight, value) in enumerate(grouped)
     ]
@@ -126,20 +144,53 @@ def _parsed_allocation_entries(rows: Sequence[object]) -> list[tuple[str, Decima
     return entries
 
 
+# A slice under this is a hairline the eye cannot separate from the seam beside it. It
+# only applies once there are enough slices for that to be crowding: four or fewer, and
+# a 1% slice has the room to be itself.
+NAMEABLE_SLICE_PCT = Decimal("2.0")
+UNCROWDED_SLICE_COUNT = 4
+
+
+def _nameable_count(entries: Sequence[tuple[str, Decimal, Decimal]]) -> int:
+    """How many of the leading slices the donut can name.
+
+    Both cuts land on a prefix because the entries are sorted largest first. The second
+    is the palette bound, and it takes a colour back whenever anything will be folded,
+    because "Other" needs one too.
+    """
+    named = len(entries)
+    if len(entries) > UNCROWDED_SLICE_COUNT:
+        named = sum(1 for _, weight, _ in entries if weight >= NAMEABLE_SLICE_PCT)
+    if named < len(entries) or named > len(ALLOCATION_PALETTE):
+        return min(named, len(ALLOCATION_PALETTE) - 1)
+    return named
+
+
 def _grouped_with_other(
     entries: Sequence[tuple[str, Decimal, Decimal]],
 ) -> list[tuple[str, Decimal, Decimal]]:
-    grouped: list[tuple[str, Decimal, Decimal]] = []
-    other_weight = Decimal("0")
-    other_value = Decimal("0")
-    for label, weight, value in entries:
-        if weight < Decimal("2.0") and len(entries) > 4:
-            other_weight += weight
-            other_value += value
-        else:
-            grouped.append((label, weight, value))
-    if other_weight:
-        grouped.append(("Other", other_weight, other_value))
+    """The slices the donut can name, with everything else summed into "Other".
+
+    Two things stop a slice being nameable and both end in the same place: it can be too
+    small to see, and it can be past the end of the palette. Colour is the only key a
+    donut has, so the count is held to `ALLOCATION_PALETTE` -- and "Other" takes a
+    colour of its own, so whenever anything is folded there is one fewer to give out.
+
+    Entries arrive sorted largest first, so both rules cut at a prefix and what gets
+    folded is always the tail. Which is what "Other" means. Nothing is lost from the
+    document: the allocation breakdown below itemises every row in full.
+    """
+    named = _nameable_count(entries)
+    grouped = list(entries[:named])
+    folded = entries[named:]
+    if folded:
+        grouped.append(
+            (
+                "Other",
+                sum((weight for _, weight, _ in folded), Decimal("0")),
+                sum((value for _, _, value in folded), Decimal("0")),
+            )
+        )
     return grouped
 
 

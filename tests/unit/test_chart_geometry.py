@@ -8,8 +8,11 @@ plot box, so the geometry can be checked without rendering anything.
 
 from __future__ import annotations
 
+import json
 import math
+import re
 from decimal import Decimal
+from pathlib import Path
 
 import pytest
 
@@ -21,6 +24,11 @@ from app.services.chart_geometry import (
     performance_chart_geometry,
 )
 from app.services.portfolio_charts import AllocationSlice, PerformancePoint
+from app.services.typst_tables import render_allocation_chart_section
+
+# The swatch colour is the only thing joining a legend row to a wedge, and both
+# halves spell it the same way: `colour: "series-N"`.
+_COLOURS = re.compile(r'colour: "([^"]+)"')
 
 
 def _series(*values: float) -> list[PerformancePoint]:
@@ -223,11 +231,15 @@ def test_slices_are_laid_out_end_to_end_from_twelve_oclock() -> None:
         assert end_of_outer == pytest.approx(later.commands[0][1], abs=1e-9)
 
 
-def test_a_weightless_breakdown_draws_nothing() -> None:
-    """Zero total weight has no angles in it; a donut of nothing is a placeholder."""
+def test_a_breakdown_with_no_slices_draws_nothing() -> None:
+    """No slices means no angles; the section falls back to a placeholder card.
+
+    This used to also assert `donut_segments([_slice("Empty", "0")]) == []` -- the drop
+    that left a legend row behind. A weightless slice no longer builds, so the empty
+    list is the only emptiness left here.
+    """
 
     assert donut_segments([]) == []
-    assert donut_segments([_slice("Empty", "0")]) == []
 
 
 def test_a_flat_axis_places_its_values_mid_plot() -> None:
@@ -242,14 +254,77 @@ def test_a_flat_axis_places_its_values_mid_plot() -> None:
     assert _fraction_down(0.0, 4.0, 1.0) == 0.5
 
 
-def test_a_weightless_slice_is_dropped_rather_than_drawn() -> None:
-    """A zero-weight slice is a hairline at the seam and nothing else."""
+def test_a_weightless_slice_cannot_be_built() -> None:
+    """Dropping it here left its legend row behind, pointing at a wedge nobody drew.
 
-    segments = donut_segments(
-        [_slice("Equity", "100", colour="#1F5AA6"), _slice("Dust", "0", colour="#ABCDEF")]
+    The ring and the legend come from one list joined only by position, so `donut_segments`
+    skipping a slice was a decision the legend never heard about. This test asserted the
+    skip and never looked at the legend. The slice refuses to exist instead, which is
+    where the fact belongs -- and `_allocation_entry` has always dropped a weightless row
+    before one is built, so nothing legitimate reaches this.
+    """
+
+    with pytest.raises(ValueError, match="pointing at nothing"):
+        _slice("Dust", "0")
+
+
+def test_the_legend_and_the_ring_name_the_same_slices() -> None:
+    """Both halves render whatever they are given, so a disagreement is silent.
+
+    Read back off the emitted markup rather than off the list they were built from: the
+    swatch colour is the only thing tying a legend row to a wedge, and this is the check
+    that would have caught either half dropping one.
+    """
+
+    for name, report_data in _allocation_cases():
+        section = render_allocation_chart_section(report_data)
+        if "chart-placeholder" in section:
+            continue
+        drawn, _, listed = section.partition("entries:")
+        wedges = [colour for colour in _COLOURS.findall(drawn) if colour != UNCHARTED_COLOUR]
+        rows = _COLOURS.findall(listed)
+        assert wedges == rows, (
+            f"{name}: the ring draws {wedges} and the legend names {rows}; a row with no "
+            "wedge is a swatch naming nothing."
+        )
+        assert len(rows) == len(set(rows)), (
+            f"{name}: two rows share a swatch, {rows}. Colour is the only key a donut has."
+        )
+
+
+def _allocation_cases() -> list[tuple[str, dict[str, object]]]:
+    """Every shipped fixture, plus the crowded breakdown none of them is.
+
+    All three fixtures with a real donut have three slices, so the goldens alone would
+    have watched the two halves agree while never reaching the count at which they came
+    apart. Nine asset classes is not exotic -- it is what a breakdown looks like once
+    sub-classes are reported separately.
+    """
+    cases = [
+        (
+            path.parent.name,
+            json.loads(path.read_text(encoding="utf-8")).get("report_data") or {},
+        )
+        for path in sorted(Path("tests/golden").rglob("render-package.json"))
+    ]
+    cases.append(
+        (
+            "nine asset classes",
+            {
+                "allocation_breakdowns": {
+                    "by_asset_class": [
+                        {
+                            "name": f"Class {index}",
+                            "weight_pct": f"{10 - index}.00%",
+                            "market_value": "1000",
+                        }
+                        for index in range(9)
+                    ]
+                }
+            },
+        )
     )
-
-    assert [segment.colour for segment in segments] == ["#1F5AA6"], "the weightless slice was drawn"
+    return cases
 
 
 def _angle(point: tuple[float, ...]) -> float:

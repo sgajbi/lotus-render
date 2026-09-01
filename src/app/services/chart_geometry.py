@@ -234,21 +234,18 @@ def donut_segments(
     Weights that overshoot a full circle are renormalised, because slices that overlap
     are worse than slices that are individually understated.
 
-    A slice that rounds to no sweep is dropped rather than drawn: a zero-width wedge
-    contributes a hairline artefact at the twelve o'clock seam and nothing else.
+    Every slice gets a wedge. Skipping one here would leave the legend -- built from the
+    same list, beside this ring -- showing a swatch that names nothing, so the case that
+    used to be skipped is refused by :class:`AllocationSlice` instead.
     """
-    total = sum((item.weight_pct for item in slices), Decimal("0"))
-    if total <= 0:
+    if not slices:
         return []
-    whole = max(total, Decimal("100"))
+    whole = max(sum((item.weight_pct for item in slices), Decimal("0")), Decimal("100"))
 
     segments: list[DonutSegment] = []
     angle = 0.0
     for item in slices:
-        sweep = float(item.weight_pct / whole) * math.tau
-        if sweep <= 0:
-            continue
-        end = angle + sweep
+        end = angle + float(item.weight_pct / whole) * math.tau
         commands = _ring_commands(angle, end, outer, inner)
         segments.append(DonutSegment(colour=item.color, commands=commands))
         angle = end
