@@ -27,9 +27,10 @@
     "golden-portfolio-review-en-SG-private-banking-v1",
     "golden-portfolio-review-advisory-narrative-en-SG-private-banking-v1",
     "golden-portfolio-review-advisor-memo-en-SG-private-banking-v1",
-    "golden-portfolio-review-degraded-en-SG-private-banking-v1"
+    "golden-portfolio-review-degraded-en-SG-private-banking-v1",
+    "golden-portfolio-review-advisor-commentary-en-SG-private-banking-v1"
   ],
   "runtime_engine": "typst",
   "runtime_engine_version": "0.14.2",
-  "template_digest": "sha256:41151f948eca955d4443493eb315cca7dec71d3496ec678a7cf1fb259d92f026"
+  "template_digest": "sha256:7e5a5d93657d893cef95167802bca9db85d763668c97cd27a8cd94cbc6684fa0"
 }

@@ -7,7 +7,7 @@ here too, since the requested sections decide which fragments are emitted.
 
 from __future__ import annotations
 
-from collections.abc import Mapping, Sequence
+from collections.abc import Collection, Mapping, Sequence
 
 from app.contracts.render_package import RenderPackage
 from app.services.absence import supplied_text
@@ -21,10 +21,13 @@ from app.services.render_content import (
     parse_rebalance_wave_content,
 )
 from app.services.typst_fragments import (
+    render_advisor_commentary_fact_rows,
+    render_advisor_commentary_prose,
     render_advisor_memo_fact_rows,
     render_advisor_memo_section_blocks,
     render_advisory_disclosure_blocks,
     render_advisory_narrative_blocks,
+    render_commentary_points,
     render_key_value_rows,
     render_outcome_dimension_rows,
     render_proof_pack_section_rows,
@@ -65,19 +68,14 @@ PORTFOLIO_REVIEW_SECTION_CALLS = {
     "transactions": "transactions-page()",
     "advisory_narrative": "reviewed-advisory-narrative-page()",
     "advisor_memo": "advisor-proposal-memo-page()",
+    "advisor_commentary": "advisor-commentary-page()",
     "appendix": "appendix-page()",
 }
-DEFAULT_PORTFOLIO_REVIEW_SECTIONS = (
-    "cover",
-    "contents",
-    "overview",
-    "performance",
-    "allocation",
-    "positions",
-    "transactions",
-    "appendix",
-)
-DEFAULT_PORTFOLIO_REVIEW_SECTIONS_WITH_ADVISORY_NARRATIVE = (
+# Every section this family can draw, in the order a document presents them. One order,
+# filtered by what the package carries -- not one tuple per combination of optional
+# sections. Three tuples covered two of the four combinations two optional sections have,
+# and a package with an approved narrative AND an approved memo drew only the memo.
+PORTFOLIO_REVIEW_SECTION_ORDER = (
     "cover",
     "contents",
     "overview",
@@ -86,19 +84,14 @@ DEFAULT_PORTFOLIO_REVIEW_SECTIONS_WITH_ADVISORY_NARRATIVE = (
     "positions",
     "transactions",
     "advisory_narrative",
-    "appendix",
-)
-DEFAULT_PORTFOLIO_REVIEW_SECTIONS_WITH_ADVISORY_MEMO = (
-    "cover",
-    "contents",
-    "overview",
-    "performance",
-    "allocation",
-    "positions",
-    "transactions",
     "advisor_memo",
+    "advisor_commentary",
     "appendix",
 )
+
+# Sections that appear only when the package carries them. Everything else is on every
+# portfolio review, and the appendix is on unless it would explain nothing.
+OPTIONAL_SECTIONS = frozenset({"advisory_narrative", "advisor_memo", "advisor_commentary"})
 
 
 def _reporting_period_label(report_data: Mapping[str, object]) -> str:
@@ -129,8 +122,18 @@ def build_portfolio_review_context(render_package: RenderPackage) -> dict[str, s
     governance_summary = mapping(report_data.get("governance_summary"))
     reviewed_advisory_narrative = mapping(report_data.get("reviewed_advisory_narrative"))
     advisor_proposal_memo = mapping(report_data.get("advisor_proposal_memo"))
-    include_reviewed_advisory_narrative = reviewed_advisory_narrative.get("status") == "included"
-    include_advisor_proposal_memo = advisor_proposal_memo.get("status") == "included"
+    advisor_commentary = mapping(report_data.get("advisor_commentary"))
+    # Which optional sections this package carries. One set rather than one flag each, so
+    # a package carrying two of them draws two -- the enumerated form could only pick one.
+    included_sections = {
+        key
+        for key, package in (
+            ("advisory_narrative", reviewed_advisory_narrative),
+            ("advisor_memo", advisor_proposal_memo),
+            ("advisor_commentary", advisor_commentary),
+        )
+        if package.get("status") == "included"
+    }
     benchmarked = benchmark_columns_are_drawn(report_data)
     reporting_period_label = _reporting_period_label(report_data)
 
@@ -144,15 +147,15 @@ def build_portfolio_review_context(render_package: RenderPackage) -> dict[str, s
     return {
         "REPORT_SECTIONS": render_report_sections(
             render_context.get("sections"),
-            include_advisory_narrative=include_reviewed_advisory_narrative,
-            include_advisor_memo=include_advisor_proposal_memo,
+            included=included_sections,
             # The appendix explains the terms this document uses. A report that uses
             # none of them would otherwise ship a page saying so.
             include_appendix=bool(applicable_glossary(report_data)),
         ),
         "OPTIONAL_ADVISORY_IMPORT": (
-            '#import "_advisory.typ": reviewed-advisory-narrative-page, advisor-proposal-memo-page'
-            if include_reviewed_advisory_narrative or include_advisor_proposal_memo
+            '#import "_advisory.typ": advisor-commentary-page, '
+            "advisor-proposal-memo-page, reviewed-advisory-narrative-page"
+            if included_sections
             else ""
         ),
         "CLIENT_NAME": escape_typst_string(str(report_data["client_name"])),
@@ -292,6 +295,25 @@ def build_portfolio_review_context(render_package: RenderPackage) -> dict[str, s
         ),
         "ADVISOR_MEMO_DISCLOSURE_BLOCKS": render_advisory_disclosure_blocks(
             advisor_proposal_memo.get("disclosures")
+        ),
+        "ADVISOR_COMMENTARY_FACT_ROWS": render_advisor_commentary_fact_rows(advisor_commentary),
+        # Composed by lotus-report, placed by Render. Required output: this is AI-drafted
+        # narrative, and who accepted it and when is part of the content.
+        "ADVISOR_COMMENTARY_PROVENANCE": render_advisor_commentary_prose(
+            advisor_commentary, "disclosure_text"
+        ),
+        "ADVISOR_COMMENTARY_SUMMARY": render_advisor_commentary_prose(
+            advisor_commentary, "grounded_summary"
+        ),
+        "ADVISOR_COMMENTARY_TALKING_POINTS": render_commentary_points(
+            advisor_commentary,
+            "talking_points",
+            empty_message="No talking points were supplied with the accepted commentary.",
+        ),
+        "ADVISOR_COMMENTARY_RISKS": render_commentary_points(
+            advisor_commentary,
+            "risks_and_exceptions",
+            empty_message="No risks or exceptions were supplied with the accepted commentary.",
         ),
         "RENDER_JOB_ID": escape_typst_string(render_package.render_job_id),
         "TEMPLATE_ID": escape_typst_string(render_package.template_id),
@@ -465,15 +487,11 @@ def _presence_flag(value: object) -> str:
 def render_report_sections(
     requested_sections: object,
     *,
-    include_advisory_narrative: bool = False,
-    include_advisor_memo: bool = False,
+    included: Collection[str] = (),
     include_appendix: bool = True,
 ) -> str:
     section_keys = requested_section_keys(
-        requested_sections,
-        include_advisory_narrative=include_advisory_narrative,
-        include_advisor_memo=include_advisor_memo,
-        include_appendix=include_appendix,
+        requested_sections, included=included, include_appendix=include_appendix
     )
     rendered = [f"#{PORTFOLIO_REVIEW_SECTION_CALLS[key]}" for key in section_keys]
     return "\n#pagebreak()\n".join(rendered)
@@ -482,24 +500,36 @@ def render_report_sections(
 def requested_section_keys(
     requested_sections: object,
     *,
-    include_advisory_narrative: bool = False,
-    include_advisor_memo: bool = False,
+    included: Collection[str] = (),
     include_appendix: bool = True,
 ) -> list[str]:
+    """The sections to draw: what the caller asked for, bounded by what the package has.
+
+    `included` names the optional sections this package carries. A section the package
+    does not carry cannot be requested into existence.
+    """
     if not isinstance(requested_sections, Sequence) or isinstance(
         requested_sections, (str, bytes, bytearray)
     ):
-        return _default_section_keys(
-            include_advisory_narrative=include_advisory_narrative,
-            include_advisor_memo=include_advisor_memo,
-            include_appendix=include_appendix,
-        )
+        return _default_section_keys(included=included, include_appendix=include_appendix)
 
-    allowed = set(PORTFOLIO_REVIEW_SECTION_CALLS) - _excluded_section_keys(
-        include_advisory_narrative=include_advisory_narrative,
-        include_advisor_memo=include_advisor_memo,
-        include_appendix=include_appendix,
-    )
+    allowed = {
+        key
+        for key in PORTFOLIO_REVIEW_SECTION_CALLS
+        if _is_drawable(key, included=included, include_appendix=include_appendix)
+    }
+    normalized = _normalized_request(requested_sections, allowed)
+    if normalized:
+        return normalized
+    return _default_section_keys(included=included, include_appendix=include_appendix)
+
+
+def _normalized_request(requested_sections: Sequence[object], allowed: set[str]) -> list[str]:
+    """The caller's list, canonicalised, deduplicated, and bounded by what can be drawn.
+
+    Order is the caller's: they asked for these sections in this sequence, and a document
+    that reorders a request answers a question nobody asked.
+    """
     normalized: list[str] = []
     seen: set[str] = set()
     for item in requested_sections:
@@ -508,13 +538,7 @@ def requested_section_keys(
             continue
         normalized.append(key)
         seen.add(key)
-    if normalized:
-        return normalized
-    return _default_section_keys(
-        include_advisory_narrative=include_advisory_narrative,
-        include_advisor_memo=include_advisor_memo,
-        include_appendix=include_appendix,
-    )
+    return normalized
 
 
 _SECTION_KEY_ALIASES = {
@@ -540,31 +564,29 @@ def _normalized_section_key(item: object) -> str:
     return _SECTION_KEY_ALIASES.get(key, key).replace("-", "_")
 
 
-def _excluded_section_keys(
-    *, include_advisory_narrative: bool, include_advisor_memo: bool, include_appendix: bool
-) -> set[str]:
-    excluded: set[str] = set()
-    if not include_advisory_narrative:
-        excluded.add("advisory_narrative")
-    if not include_advisor_memo:
-        excluded.add("advisor_memo")
-    if not include_appendix:
-        excluded.add("appendix")
-    return excluded
+def _is_drawable(key: str, *, included: Collection[str], include_appendix: bool) -> bool:
+    """Whether this document can draw that section at all.
+
+    One predicate, because the default list and an explicit request are bounded by the
+    same thing: a section the package does not carry cannot be requested into existence.
+    """
+    if key in OPTIONAL_SECTIONS:
+        return key in included
+    return key != "appendix" or include_appendix
 
 
-def _default_section_keys(
-    *, include_advisory_narrative: bool, include_advisor_memo: bool, include_appendix: bool
-) -> list[str]:
-    if include_advisor_memo:
-        keys = list(DEFAULT_PORTFOLIO_REVIEW_SECTIONS_WITH_ADVISORY_MEMO)
-    elif include_advisory_narrative:
-        keys = list(DEFAULT_PORTFOLIO_REVIEW_SECTIONS_WITH_ADVISORY_NARRATIVE)
-    else:
-        keys = list(DEFAULT_PORTFOLIO_REVIEW_SECTIONS)
-    if not include_appendix:
-        keys = [key for key in keys if key != "appendix"]
-    return keys
+def _default_section_keys(*, included: Collection[str], include_appendix: bool) -> list[str]:
+    """Every section this document can draw, in document order.
+
+    A filter rather than a lookup, so a package that carries two optional sections gets
+    both. The enumerated form got that wrong and could not have got it right: it had one
+    tuple per optional section and had to choose between them.
+    """
+    return [
+        key
+        for key in PORTFOLIO_REVIEW_SECTION_ORDER
+        if _is_drawable(key, included=included, include_appendix=include_appendix)
+    ]
 
 
 # Every "not available" on a page goes through one theme component, so counting its call

@@ -225,6 +225,18 @@ def test_the_scale_steps_are_far_enough_apart_to_be_choices() -> None:
 DESIGN_TOKENS = Path("templates/typst/_shared/v1/_design.typ")
 
 
+def _palette_keys(name: str) -> set[str]:
+    """The keys of one named lookup in the design system.
+
+    Scoped to the block rather than to every `"key":` line in the file. There are two
+    lookups now -- series colours and narrative tones -- and a whole-file scan read the
+    tone names as undeclared series.
+    """
+    source = DESIGN_TOKENS.read_text(encoding="utf-8")
+    block = source.split(f"#let {name} = (", 1)[1].split(")", 1)[0]
+    return set(re.findall(r'"([a-z0-9-]+)":', block))
+
+
 def test_every_series_a_chart_can_name_is_declared_in_the_design_system() -> None:
     """A name with no colour behind it fails the whole document, not just its chart.
 
@@ -236,9 +248,7 @@ def test_every_series_a_chart_can_name_is_declared_in_the_design_system() -> Non
     from app.services.chart_geometry import UNCHARTED_COLOUR
     from app.services.portfolio_charts import ALLOCATION_PALETTE
 
-    declared = set(
-        re.findall(r'^  "([a-z0-9-]+)": ', DESIGN_TOKENS.read_text(encoding="utf-8"), re.M)
-    )
+    declared = _palette_keys("SERIES_PALETTE")
     named = {*ALLOCATION_PALETTE, UNCHARTED_COLOUR}
 
     assert declared, "no series were parsed out of the design system"
@@ -323,3 +333,26 @@ def test_the_scale_is_used_rather_than_merely_declared() -> None:
         "a size that was retired without being deleted, and it will be picked up again by "
         "someone reading the scale as a menu."
     )
+
+
+def test_every_tone_a_commentary_can_carry_is_declared_in_the_design_system() -> None:
+    """The same compile-time lookup as the series palette, one analytic later.
+
+    `TONE_PALETTE.at(tone)` resolves when the template compiles, so a tone with no colour
+    behind it fails the whole document rather than one talking point. lotus-report
+    normalises the vocabulary before the package is built and Render falls back to
+    `neutral` for anything else, but neither of those helps if the two lists drift: the
+    fallback is only safe while `neutral` itself is declared.
+    """
+
+    from app.services.typst_fragments import COMMENTARY_TONES, NEUTRAL_TONE
+
+    declared = _palette_keys("TONE_PALETTE")
+
+    assert declared, "no tones were parsed out of the design system"
+    assert COMMENTARY_TONES == declared, (
+        f"the emitter and the palette disagree about the tone vocabulary: "
+        f"only in the emitter {sorted(COMMENTARY_TONES - declared)}, "
+        f"only in the palette {sorted(declared - COMMENTARY_TONES)}"
+    )
+    assert NEUTRAL_TONE in declared, "the fallback tone has no colour behind it"

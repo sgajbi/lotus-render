@@ -161,3 +161,22 @@
 #let gain = rgb("#286446")
 #let loss = rgb("#A6321F")
 
+// --- Narrative tone -------------------------------------------------------------
+// The tone a reviewer assigned to a governed talking point, which is not the direction
+// of a number: `gain` means "this figure went up" everywhere, and a positive talking
+// point is a judgement about a claim. Two meanings on one token is how `accent` came to
+// carry four values, so tone gets its own names even where a value is shared.
+//
+// lotus-report normalises the vocabulary to exactly these three before the package is
+// built, and anything it does not recognise arrives as `neutral` -- so an unknown tone
+// here is a contract violation, not a colour to invent.
+#let tone-positive = gain
+#let tone-caution = rgb("#B4791C")
+#let tone-neutral = slate
+
+#let TONE_PALETTE = (
+  "positive": tone-positive,
+  "warning": tone-caution,
+  "neutral": tone-neutral,
+)
+
