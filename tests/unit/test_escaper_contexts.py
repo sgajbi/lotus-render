@@ -3,7 +3,13 @@
 Typst has two escaping contexts and they are not interchangeable:
 
 - a **string literal**, ``"..."``, where only ``\\`` and ``"`` can change the structure;
-- **markup**, ``[...]``, where ``#``, ``[``, ``]``, ``{``, ``}``, ``$`` and ``@`` can.
+- **markup**, ``[...]``, where every token in ``MARKUP_TOKENS`` can change the page.
+
+That second list used to stop at ``#``, ``[``, ``]``, ``{``, ``}``, ``$`` and ``@`` --
+the tokens that introduce code -- and so did the escaper. The rest of Typst's markup
+stayed live, which cost a rendered narrative its tildes and its asterisks and drew
+headings the data never asked for. ``test_report_text_survives_the_page`` reads that
+back off a page; what is here is the two contexts staying distinguishable.
 
 #103 was the first half going wrong: the markup escaper leaves ``"`` live, so a quote in
 a security name closed the literal and broke the compile. The gate written then checks

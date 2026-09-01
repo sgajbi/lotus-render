@@ -9,16 +9,52 @@ import math
 from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass
 
+# Every token Typst reads as markup. The first row can introduce code, groups or math;
+# the rest only change how the text is drawn, which is why they were missed. Neither is
+# less serious in a governed document: a rendered narrative that says `5 10bp` where the
+# data said `5~10bp` is wrong in the way a reader cannot detect.
+#
+# Verified against typst 0.14.2: `\X` renders X for every one of these.
+MARKUP_TOKENS = (
+    "#",  # a call
+    "{",  # a code block
+    "}",
+    "[",  # a content block
+    "]",
+    "$",  # math
+    "@",  # a reference
+    "*",  # strong: the asterisks vanish and the text is drawn bold
+    "_",  # emphasis, likewise
+    "`",  # raw text, likewise
+    "<",  # a label: `<x>` draws nothing at all, so the text silently disappears
+    ">",
+    "=",  # a heading, at the start of a line
+    "-",  # a list item, and `--` is an en dash anywhere
+    "+",  # an enumeration item
+    "/",  # a term-list item
+    "~",  # a non-breaking space, drawn in place of the tilde
+)
+
 
 def escape_typst_text(value: str) -> str:
     """Escape a value for Typst *markup* (content-block) context: ``[ ... ]``.
 
-    Neutralises the markup control tokens so report text cannot introduce
-    functions, groups or math. Not valid for string-literal context -- use
-    :func:`escape_typst_string` for a value emitted between ``"`` delimiters.
+    Neutralises every markup token, so the document says what the data said. This used
+    to stop after the tokens that introduce code, on the reasoning that a bare ``*``
+    cannot run anything -- true, and beside the point. ``*`` deletes itself and redraws
+    the text bold, ``~`` is drawn as a space, and ``<x>`` is drawn as nothing at all.
+
+    Two deliberate omissions. ``'`` and ``"`` are left live because Typst turns them
+    into typographic quotes, which is the right rendering for prose and cannot change
+    the document's structure. ``.`` is left live because a leading ``3.`` makes an
+    enumeration item that keeps both its number and its text, so only the indentation
+    moves -- not worth a backslash on every full stop in the report.
+
+    Not valid for string-literal context -- use :func:`escape_typst_string` for a value
+    emitted between ``"`` delimiters.
     """
     escaped = value.replace("\\", "\\\\")
-    for token in ("#", "{", "}", "[", "]", "$", "@"):
+    for token in MARKUP_TOKENS:
         escaped = escaped.replace(token, f"\\{token}")
     return escaped
 
