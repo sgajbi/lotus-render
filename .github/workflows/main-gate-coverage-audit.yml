@@ -10,6 +10,14 @@ name: Main Gate Coverage Audit
 # runs exist. It cannot live in the releasability gate either -- the runs for a
 # multi-commit pull request are dispatched together, so an audit inside one of them
 # would see the others as missing and fail on a race. A schedule sees the settled state.
+#
+# The window is a span of time rather than a count of commits. Forty commits at this
+# repository's rate is about a day, so a busy day pushed the earliest out of sight before
+# the next run looked -- and eleven commits from 2026-08-29, by then 71 to 92 behind head,
+# had aged past it ungated and unreported by anything.
+#
+# A schedule is also not a guarantee that anything runs, so the merge dispatcher asks this
+# workflow when it last succeeded. See `--assert-recent-audit`.
 
 on:
   schedule:
@@ -18,10 +26,10 @@ on:
     - cron: "0 13 * * *"
   workflow_dispatch:
     inputs:
-      limit:
-        description: "How many commits back from main to audit."
+      since:
+        description: "How far back to audit, as a git date expression."
         required: false
-        default: "40"
+        default: "3 days ago"
         type: string
 
 permissions:
@@ -50,5 +58,5 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           python scripts/audit_main_gate_coverage.py \
-            --limit "${{ inputs.limit || 40 }}" \
+            --since "${{ inputs.since || '3 days ago' }}" \
             --fail-on-gap

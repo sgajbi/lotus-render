@@ -189,8 +189,11 @@ def test_the_gate_coverage_audit_cannot_pass_by_inspecting_nothing() -> None:
     # Only a run that reached a verdict is evidence.
     assert 'VERDICT_CONCLUSIONS = frozenset({"success", "failure"})' in source
     assert 'run.get("conclusion") in VERDICT_CONCLUSIONS' in source
-    # A commit that could not be checked is not a commit that is fine.
-    assert "return 1 if ((ungated or unknown) and arguments.fail_on_gap) else 0" in source
+    # A commit that could not be checked is not a commit that is fine, and a window the
+    # audit stopped part-way through is not a window it inspected.
+    assert (
+        "return 1 if ((ungated or unknown or truncated) and arguments.fail_on_gap) else 0" in source
+    )
     # And an audit that could not run at all must not report success.
     assert "Refusing to report success" in source
 
@@ -210,3 +213,50 @@ def test_the_audit_separates_a_run_in_flight_from_no_run_at_all() -> None:
     # Pending is deliberately not part of the failure condition.
     assert "ungated or unknown" in source
     assert "pending or" not in source
+
+
+def test_the_audit_window_is_a_span_of_time_rather_than_a_count() -> None:
+    """A count narrows exactly when the repository is busiest.
+
+    The audit looked at the last 40 commits, once a day. At this repository's rate that
+    is about a day, so a busy day pushed the earliest out of sight before the next run
+    looked -- and eleven commits from 2026-08-29, by then 71 to 92 behind head, had aged
+    past it ungated and unreported by anything. Three of them turned out to fail their
+    own releasability gate.
+
+    The count survives as a ceiling on the loop, and reaching it is reported as a gap:
+    a prefix of the window is not the window.
+    """
+
+    source = (ROOT / "scripts/audit_main_gate_coverage.py").read_text(encoding="utf-8")
+    workflow = (ROOT / ".github/workflows/main-gate-coverage-audit.yml").read_text(encoding="utf-8")
+
+    assert "--since=" in source, "the window is not selected by time"
+    assert "truncated = len(commits) >= arguments.limit" in source
+    assert "--since" in workflow, "the scheduled run still passes a commit count"
+    assert "--limit" not in workflow, "a count in the workflow is a window that ages out"
+
+
+def test_the_scheduled_audit_is_watched_by_something_that_is_not_a_schedule() -> None:
+    """A cron that stops firing fails nowhere, which is the class the audit exists for.
+
+    GitHub disables scheduled workflows after sixty days of repository inactivity, and an
+    edit that breaks the cron expression stops it silently. So the merge dispatcher --
+    the one trigger driven by the activity that creates the commits the audit checks --
+    asks when the audit last succeeded.
+
+    It is a separate job, because a check that cannot fail the run is not a check, and
+    one that blocks the dispatch it is watching would be worse than the gap.
+    """
+
+    source = (ROOT / "scripts/audit_main_gate_coverage.py").read_text(encoding="utf-8")
+    dispatcher = (ROOT / ".github/workflows/merged-pr-main-releasability.yml").read_text(
+        encoding="utf-8"
+    )
+
+    assert "--assert-recent-audit" in source
+    assert "has never completed successfully" in source, "never-run is not distinguished"
+    assert "Refusing to report success" in source, "an unanswerable check is not a pass"
+    assert "audit-liveness:" in dispatcher, "nothing checks that the audit still runs"
+    assert "--assert-recent-audit 40" in dispatcher
+    assert "continue-on-error" not in dispatcher, "a check that cannot fail is not a check"
