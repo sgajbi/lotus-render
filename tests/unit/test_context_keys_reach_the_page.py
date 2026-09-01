@@ -29,6 +29,7 @@ import pytest
 
 from app.contracts.render_package import RenderPackage
 from app.services.typst_contexts import (
+    EMPTY_STATE_MARKER,
     build_outcome_review_context,
     build_portfolio_review_context,
     build_proof_pack_context,
@@ -64,15 +65,15 @@ ORPHANED_KEYS: dict[str, frozenset[str]] = {
             "SOURCE_SERVICES",
             "TEMPLATE_ID",
             "TEMPLATE_VERSION",
-            # Content built and discarded (#154). Both of these are alternative views of
-            # data the document draws by another key -- holdings through
-            # HOLDING_BAR_ROWS, the monthly series through
-            # PERFORMANCE_MONTHLY_TABLE_ROWS -- so the reader loses nothing by their
-            # absence. OBSERVATION_NOTES was in this list too and did not belong: it
+            # HOLDING_ROWS and PERFORMANCE_MONTHLY_CHART_ROWS were here (#154), with a
+            # note explaining that the reader loses nothing by their absence -- holdings
+            # are drawn through HOLDING_BAR_ROWS and the monthly series through
+            # PERFORMANCE_MONTHLY_TABLE_ROWS. That is the argument for deleting the work,
+            # not for allowing it: an entry here is a standing decision to keep building
+            # output nobody reads. Both are gone, with their emitter and its template
+            # helper. OBSERVATION_NOTES was in this list too and did not belong: it
             # carries review_observations, which the contract requires, so it was not a
             # debt but content missing from every document. It is drawn now.
-            "HOLDING_ROWS",
-            "PERFORMANCE_MONTHLY_CHART_ROWS",
         }
     ),
     # All four families compute who asked for the document and print it on none of them
@@ -259,12 +260,11 @@ def test_an_empty_collection_says_so_rather_than_rendering_nothing() -> None:
     """
 
     from app.services.typst_tables import (
-        render_holding_rows,
         render_observation_notes,
         render_performance_period_rows,
     )
 
-    for emitter in (render_observation_notes, render_holding_rows, render_performance_period_rows):
+    for emitter in (render_observation_notes, render_performance_period_rows):
         absent = emitter(None)
         empty = emitter([])
         assert "empty-state(" in absent, f"{emitter.__name__} says nothing when the list is absent"
@@ -289,3 +289,41 @@ def test_a_section_is_present_only_when_it_has_content() -> None:
     assert _presence_flag({}) == "no"
     assert _presence_flag(None) == "no"
     assert _presence_flag("text") == "yes"
+
+
+@pytest.mark.parametrize(
+    "fixture",
+    _fixtures(),
+    ids=lambda fixture: fixture.get("golden_sample_id", fixture["template_id"]),
+)
+def test_no_orphaned_key_can_inflate_the_empty_block_count(fixture: dict[str, str]) -> None:
+    """`count_empty_content_blocks` sums the placeholder marker over the whole context.
+
+    That equals what a reader sees missing only while every key able to carry a
+    placeholder reaches a page. It did not: `HOLDING_ROWS` and
+    `PERFORMANCE_MONTHLY_CHART_ROWS` were built, dropped, and counted, so the degraded
+    portfolio review reported eleven placeholders where nine were visible -- and the
+    metric that exists to say how much of a document is missing was overstating it by
+    two on every render of that shape.
+
+    Both are deleted. What is left on the orphan list is scalars, and this is what keeps
+    it that way: an orphaned key carrying a placeholder is a number no reader can check.
+    """
+
+    template_id = fixture["template_id"]
+    package = RenderPackage.model_validate_json(
+        Path(fixture["package_path"]).read_text(encoding="utf-8")
+    )
+    context = CONTEXT_BUILDERS[template_id](package)
+
+    inflating = {
+        key: context[key]
+        for key in ORPHANED_KEYS[template_id]
+        if EMPTY_STATE_MARKER in context.get(key, "")
+    }
+
+    assert not inflating, (
+        f"these {template_id} keys reach no page and still count towards the empty-block "
+        f"metric: {sorted(inflating)}. Draw the key or delete the work; do not measure "
+        "an absence nobody can see."
+    )

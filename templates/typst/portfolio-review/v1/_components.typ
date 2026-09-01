@@ -365,19 +365,3 @@
   #v(3.5pt)
   #line(length: 100%, stroke: (paint: rule, thickness: 0.25pt))
 ]
-
-#let holding-row(name, asset_class, weight, value, pnl, contribution) = [
-  #grid(
-    columns: (2.1fr, 1.1fr, 0.8fr, 1fr, 1fr, 0.9fr),
-    column-gutter: 10pt,
-    [#text(size: 8.8pt, fill: ink)[#name]],
-    [#text(size: 8.8pt, fill: slate)[#asset_class]],
-    [#align(right)[#text(size: 8.8pt, fill: ink)[#weight]]],
-    [#align(right)[#text(size: 8.8pt, fill: slate)[#value]]],
-    [#align(right)[#text(size: 8.8pt, fill: slate)[#pnl]]],
-    [#align(right)[#text(size: 8.8pt, weight: 500, fill: accent)[#contribution]]],
-  )
-  #v(6pt)
-  #line(length: 100%, stroke: (paint: rule, thickness: 0.3pt))
-]
-
