@@ -86,6 +86,31 @@ def _fraction_down(value: float, low: float, high: float) -> float:
     return min(max((high - value) / (high - low), 0.0), 1.0)
 
 
+# How many decimals a set of ticks needs to be named honestly. `_nice_step` returns 1,
+# 2, 2.5, 5 or 10 times a power of ten, so a 2.5 or 0.5 step is ordinary; at zero
+# decimals its lines were labelled with values they are not drawn at, and a series near
+# zero got two lines both reading "0%".
+#
+# Two is enough for every step that function can produce down to 0.25, and stops a
+# floating-point remainder turning into a tail of digits.
+MAX_LABEL_DECIMALS = 2
+
+
+def _label_decimals(ticks: list[float]) -> int:
+    """The fewest decimals that name every tick as the value it sits at."""
+    for decimals in range(MAX_LABEL_DECIMALS + 1):
+        if all(abs(tick - round(tick, decimals)) < ZERO_TOLERANCE for tick in ticks):
+            return decimals
+    return MAX_LABEL_DECIMALS
+
+
+def _tick_label(tick: float, decimals: int) -> str:
+    """A gridline's name. Zero is zero, never "-0"."""
+    if abs(tick) < ZERO_TOLERANCE:
+        tick = 0.0
+    return f"{tick:.{decimals}f}%"
+
+
 def performance_chart_geometry(points: list[PerformancePoint]) -> ChartGeometry | None:
     """Plot-box fractions for a cumulative performance series, or None when empty."""
     if not points:
@@ -94,9 +119,10 @@ def performance_chart_geometry(points: list[PerformancePoint]) -> ChartGeometry 
     low, high, ticks = _chart_axis(points)
     count = len(points)
 
+    decimals = _label_decimals(ticks)
     gridlines = [
         ChartGridline(
-            label=f"{tick:.0f}%",
+            label=_tick_label(tick, decimals),
             at=_fraction_down(tick, low, high),
             zero=abs(tick) < ZERO_TOLERANCE,
         )
