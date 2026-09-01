@@ -112,3 +112,73 @@ def test_no_emitter_spells_absence_for_itself() -> None:
         f"these modules carry the sentinel themselves: {sorted(offenders)}. Absence is "
         "decided in absence.py, and what a reader sees is 'Not available'."
     )
+
+
+def _code_without_comments(path: Path) -> str:
+    """The module's code with comment text removed.
+
+    A structural rule that scans raw source also reads the comment explaining the defect
+    it forbids, so writing the explanation trips the rule and deleting the explanation
+    satisfies it. Both of those are the wrong way round.
+    """
+    lines = []
+    for line in path.read_text(encoding="utf-8").splitlines():
+        stripped = line.lstrip()
+        if stripped.startswith("#"):
+            continue
+        lines.append(line.split("  # ")[0])
+    return "\n".join(lines)
+
+
+def test_no_emitter_takes_a_default_where_the_value_may_be_null() -> None:
+    """`x.get(key, "Not available")` fires only when the key is *missing*.
+
+    A key present with a null value takes the value, and `str(None)` is "None". That is
+    how the literal reached a governed proof pack, and ten more sites still had the
+    shape afterwards -- five of them the risk panel of the client-facing review, where a
+    volatility of null would have printed "None" beside "Beta" and "Tracking error".
+
+    `supplied_text` asks whether the value is there rather than whether the key is.
+    """
+
+    offenders = {
+        path.as_posix(): found
+        for path in sorted(Path("src").rglob("*.py"))
+        if (
+            found := re.findall(
+                r'\w+\.get\([^)]*,\s*"Not available"\)', _code_without_comments(path)
+            )
+        )
+    }
+
+    assert not offenders, (
+        f"these sites default on a missing key rather than on an absent value: "
+        f"{offenders}. A key present and null renders 'None'; use supplied_text."
+    )
+
+
+def test_no_emitter_sizes_a_bar_for_itself() -> None:
+    """`weight_width_token` is the governed width and floors nothing.
+
+    It says so in its own docstring: flooring at 8% drew a 1.64% liquidity sleeve five
+    times its true length. `render_allocation_breakdown_rows` kept its own
+    `max(weight, 8.0)` inline, so the allocation page drew Cash at 8% beside the donut
+    that shows it honestly at 1.64% -- two pictures of one number on one page.
+    """
+
+    offenders = {
+        path.as_posix(): found
+        for path in sorted(Path("src").rglob("*.py"))
+        if path.name != "typst_values.py"
+        and (
+            found := re.findall(
+                r"max\(\s*[\w\[\]'\"]+\[?'?\w*'?\]?,\s*[1-9][\d.]*\s*\)",
+                _code_without_comments(path),
+            )
+        )
+    }
+
+    assert not offenders, (
+        f"these sites floor a bar width themselves: {offenders}. The floor is what made "
+        "a negligible weight look like a real one; weight_width_token has none."
+    )

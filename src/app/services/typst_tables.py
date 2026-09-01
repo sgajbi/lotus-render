@@ -9,6 +9,7 @@ from __future__ import annotations
 from collections.abc import Iterable, Mapping, Sequence
 from decimal import Decimal
 
+from app.services.absence import supplied_text
 from app.services.appendix_glossary import applicable_glossary
 from app.services.chart_geometry import (
     DonutSegment,
@@ -196,9 +197,9 @@ def render_performance_period_rows(periods: object) -> str:
             '#period-row("'
             + escape_typst_string(str(item.get("period", "n/a")))
             + '", "'
-            + escape_typst_string(group_digits(item.get("net_return_pct", "Not available")))
+            + escape_typst_string(group_digits(supplied_text(item.get("net_return_pct"))))
             + '", "'
-            + escape_typst_string(group_digits(item.get("benchmark_return_pct", "Not available")))
+            + escape_typst_string(group_digits(supplied_text(item.get("benchmark_return_pct"))))
             + '", "'
             + escape_typst_string(str(relative if relative is not None else "Not available"))
             + '", '
@@ -219,7 +220,7 @@ def render_performance_summary_table(rows: object) -> str:
             'performance-summary-cell("'
             + escape_typst_string(str(item.get("label", "Period")))
             + '", "'
-            + escape_typst_string(group_digits(item.get("net_return_pct", "Not available")))
+            + escape_typst_string(group_digits(supplied_text(item.get("net_return_pct"))))
             + '", "'
             + escape_typst_string(group_digits(item.get("annualized_return_pct", "n/a")))
             + '")'
@@ -239,9 +240,9 @@ def _performance_chart_row(item: Mapping[str, object], domain: float) -> str:
         'performance-chart-row("'
         + escape_typst_string(str(item.get("period", "n/a")))
         + '", "'
-        + escape_typst_string(group_digits(item.get("twr_pct", "Not available")))
+        + escape_typst_string(group_digits(supplied_text(item.get("twr_pct"))))
         + '", "'
-        + escape_typst_string(group_digits(item.get("cumulative_twr_pct", "Not available")))
+        + escape_typst_string(group_digits(supplied_text(item.get("cumulative_twr_pct"))))
         + '", '
         + geometry.magnitude
         + ", "
@@ -279,21 +280,21 @@ def render_performance_detail_rows(rows: object) -> str:
             '#performance-detail-row("'
             + escape_typst_string(str(item.get("period", "n/a")))
             + '", "'
-            + escape_typst_string(group_digits(item.get("final_value", "Not available")))
+            + escape_typst_string(group_digits(supplied_text(item.get("final_value"))))
             + '", "'
-            + escape_typst_string(group_digits(item.get("inflows", "Not available")))
+            + escape_typst_string(group_digits(supplied_text(item.get("inflows"))))
             + '", "'
-            + escape_typst_string(group_digits(item.get("outflows", "Not available")))
+            + escape_typst_string(group_digits(supplied_text(item.get("outflows"))))
             + '", "'
-            + escape_typst_string(group_digits(item.get("performance_value", "Not available")))
+            + escape_typst_string(group_digits(supplied_text(item.get("performance_value"))))
             + '", "'
-            + escape_typst_string(group_digits(item.get("twr_pct", "Not available")))
+            + escape_typst_string(group_digits(supplied_text(item.get("twr_pct"))))
             + '", "'
             + escape_typst_string(
-                group_digits(item.get("cumulative_performance_value", "Not available"))
+                group_digits(supplied_text(item.get("cumulative_performance_value")))
             )
             + '", "'
-            + escape_typst_string(group_digits(item.get("cumulative_twr_pct", "Not available")))
+            + escape_typst_string(group_digits(supplied_text(item.get("cumulative_twr_pct"))))
             + '")'
         )
     if not rendered:
@@ -308,15 +309,15 @@ def render_holding_rows(holdings: object) -> str:
             '#holding-row("'
             + escape_typst_string(str(item.get("security_name", "Unknown holding")))
             + '", "'
-            + escape_typst_string(str(item.get("asset_class", "Not available")))
+            + escape_typst_string(supplied_text(item.get("asset_class")))
             + '", "'
-            + escape_typst_string(group_digits(item.get("weight_pct", "Not available")))
+            + escape_typst_string(group_digits(supplied_text(item.get("weight_pct"))))
             + '", "'
-            + escape_typst_string(group_digits(item.get("market_value", "Not available")))
+            + escape_typst_string(group_digits(supplied_text(item.get("market_value"))))
             + '", "'
-            + escape_typst_string(group_digits(item.get("unrealized_pnl", "Not available")))
+            + escape_typst_string(group_digits(supplied_text(item.get("unrealized_pnl"))))
             + '", "'
-            + escape_typst_string(group_digits(item.get("ytd_contribution_pct", "Not available")))
+            + escape_typst_string(group_digits(supplied_text(item.get("ytd_contribution_pct"))))
             + '")'
         )
     if not rendered:
@@ -331,9 +332,9 @@ def render_holding_bar_rows(holdings: object) -> str:
             '#allocation-row("'
             + escape_typst_string(str(item.get("security_name", "Unknown holding")))
             + '", "'
-            + escape_typst_string(group_digits(item.get("weight_pct", "Not available")))
+            + escape_typst_string(group_digits(supplied_text(item.get("weight_pct"))))
             + '", "'
-            + escape_typst_string(group_digits(item.get("market_value", "Not available")))
+            + escape_typst_string(group_digits(supplied_text(item.get("market_value"))))
             + '", '
             + weight_width_token(item.get("weight_pct"))
             + ")"
@@ -390,7 +391,10 @@ def render_allocation_breakdown_rows(rows: object) -> str:
         + '", "'
         + escape_typst_string(format_money(totals["value"]))
         + '", '
-        + f"{min(max(totals['weight'], 8.0), 100.0):.2f}%"
+        # `weight_width_token` is the governed one and floors nothing; this site kept
+        # its own `max(weight, 8.0)`, so Cash at 1.64% drew an 8% bar beside a donut
+        # showing 1.64%.
+        + weight_width_token(totals["weight"])
         + ")"
         for name, totals in ordered
     ]

@@ -182,27 +182,25 @@ def build_portfolio_review_context(render_package: RenderPackage) -> dict[str, s
         "BOOKING_CENTER": escape_typst_string(supplied_text(mandate.get("booking_center_code"))),
         "ADVISOR_ID": escape_typst_string(supplied_text(mandate.get("advisor_id"))),
         "INVESTED_VALUE": escape_typst_string(
-            group_digits(portfolio_metrics.get("invested_value", "Not available"))
+            group_digits(supplied_text(portfolio_metrics.get("invested_value")))
         ),
         "CASH_BALANCE": escape_typst_string(
-            group_digits(portfolio_metrics.get("cash_balance", "Not available"))
+            group_digits(supplied_text(portfolio_metrics.get("cash_balance")))
         ),
         "CASH_WEIGHT_PCT": escape_typst_string(
-            str(portfolio_metrics.get("cash_weight_pct", "Not available"))
+            supplied_text(portfolio_metrics.get("cash_weight_pct"))
         ),
         "ALLOCATION_LARGEST_NAME": escape_typst_string(
-            str(allocation_summary.get("largest_asset_class_name", "Not available"))
+            supplied_text(allocation_summary.get("largest_asset_class_name"))
         ),
         "ALLOCATION_LARGEST_WEIGHT": escape_typst_string(
-            str(allocation_summary.get("largest_asset_class_weight_pct", "Not available"))
+            supplied_text(allocation_summary.get("largest_asset_class_weight_pct"))
         ),
         "ALLOCATION_LARGEST_VALUE": escape_typst_string(
-            group_digits(
-                allocation_summary.get("largest_asset_class_market_value", "Not available")
-            )
+            group_digits(supplied_text(allocation_summary.get("largest_asset_class_market_value")))
         ),
         "ALLOCATION_POSITION_COUNT": escape_typst_string(
-            str(allocation_summary.get("largest_asset_class_position_count", "Not available"))
+            supplied_text(allocation_summary.get("largest_asset_class_position_count"))
         ),
         "TOP_CONTRIBUTOR_NAME": escape_typst_string(
             str(
@@ -223,19 +221,15 @@ def build_portfolio_review_context(render_package: RenderPackage) -> dict[str, s
         "BENCHMARK_STATUS": escape_typst_string(
             supplied_text(performance_highlight.get("benchmark_comparison_status"))
         ),
-        "RISK_VOLATILITY": escape_typst_string(
-            str(risk_summary.get("volatility_pct", "Not available"))
-        ),
-        "RISK_BETA": escape_typst_string(str(risk_summary.get("beta", "Not available"))),
+        "RISK_VOLATILITY": escape_typst_string(supplied_text(risk_summary.get("volatility_pct"))),
+        "RISK_BETA": escape_typst_string(supplied_text(risk_summary.get("beta"))),
         "RISK_TRACKING_ERROR": escape_typst_string(
-            str(risk_summary.get("tracking_error_pct", "Not available"))
+            supplied_text(risk_summary.get("tracking_error_pct"))
         ),
         "RISK_INFORMATION_RATIO": escape_typst_string(
-            str(risk_summary.get("information_ratio", "Not available"))
+            supplied_text(risk_summary.get("information_ratio"))
         ),
-        "RISK_VAR": escape_typst_string(
-            str(risk_summary.get("value_at_risk_pct", "Not available"))
-        ),
+        "RISK_VAR": escape_typst_string(supplied_text(risk_summary.get("value_at_risk_pct"))),
         # Whether a sub-page has anything to show. Each of these guards an
         # unconditional #pagebreak() that fired even for an all-empty report, so a
         # portfolio with no history still shipped three near-blank pages (issue #138).
