@@ -91,7 +91,6 @@ GOLDEN_PACKAGE = Path("tests/golden/portfolio-review/v1/render-package.json")
 
 # The banked golden's layout. #184 moves these as it merges under-filled pages; when it
 # does, re-measure rather than widen the bounds.
-RISK_PROFILE_PAGE = 6
 RISK_CARD_BAND = (0.71, 0.88)
 
 # The emptiest page of the banked golden, measured. A baseline rather than a bound: it
@@ -106,16 +105,37 @@ RISK_CARD_BAND = (0.71, 0.88)
 WORST_TAIL_BLANK = 0.556
 
 
-@pytest.fixture(scope="module")
-def golden_pages() -> list[bytes]:
+def _golden_service() -> tuple[TypstRenderService, RenderPackage]:
     settings = Settings()
     registry = TemplateRegistry.load_from_directory(Path(settings.template_registry_path))
-    service = TypstRenderService(settings, RenderIntakeService(registry))
-    package = RenderPackage.model_validate_json(GOLDEN_PACKAGE.read_text(encoding="utf-8"))
+    return (
+        TypstRenderService(settings, RenderIntakeService(registry)),
+        RenderPackage.model_validate_json(GOLDEN_PACKAGE.read_text(encoding="utf-8")),
+    )
+
+
+@pytest.fixture(scope="module")
+def golden_pages() -> list[bytes]:
+    service, package = _golden_service()
     return service.render_page_images(package)
 
 
-def test_a_card_fills_the_column_it_is_placed_in(golden_pages: list[bytes]) -> None:
+def _page_carrying(pages: list[bytes], texts: list[str], phrase: str) -> bytes:
+    """The page whose text carries `phrase`.
+
+    A page index is a fact about the current document, not about the layout being
+    checked. `RISK_PROFILE_PAGE = 6` was right until the document grew a section, and
+    then the risk test asserted against whatever had moved into position six.
+    """
+    for index, text in enumerate(texts):
+        if phrase in text:
+            return pages[index]
+    raise AssertionError(f"no page carries {phrase!r}")
+
+
+def test_a_card_fills_the_column_it_is_placed_in(
+    golden_pages: list[bytes], golden_page_text: list[str]
+) -> None:
     """A panel that hugs its own text leaves the grid it sits in looking broken.
 
     `note-panel` carried no width, so in the three-column risk grid each card sized to
@@ -124,7 +144,10 @@ def test_a_card_fills_the_column_it_is_placed_in(golden_pages: list[bytes]) -> N
     sentences that wrap to fill, which is why the defect was invisible there (#184).
     """
 
-    page = golden_pages[RISK_PROFILE_PAGE - 1]
+    # Found by what is on it rather than by a page number. The constant was 6 and the
+    # document grew a section, so the test asserted against a page that had moved -- a
+    # page index is a fact about the current document, not about the layout being checked.
+    page = _page_carrying(golden_pages, golden_page_text, "Risk profile")
     band = region_ink(page, top=RISK_CARD_BAND[0], bottom=RISK_CARD_BAND[1])
     # The page's own body width, taken from the rule under its header rather than from a
     # constant, so the two margins the document uses do not need to be tracked here.
