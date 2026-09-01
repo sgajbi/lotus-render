@@ -17,6 +17,7 @@ rows produced -- including the "Not available" runs, which they held in place.
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 from typing import Any
 
@@ -126,16 +127,30 @@ def test_the_header_and_the_body_always_carry_the_same_columns() -> None:
 
 
 def test_the_golden_statement_tables_print_no_absence() -> None:
-    """Every label the document draws has a value under it somewhere."""
+    """Every label the document draws has a value under it somewhere.
+
+    A blank line inside a cell is not an absence: it is the place a field this row does
+    not supply would occupy, held open so the values below stay under their own labels.
+    This asserted there were none, which was the same mistake as skipping them -- the
+    banked golden's Cash holding has no rating, so its sector was drawn under "Rating",
+    its country under "Sector" and its liquidity under "Country of risk".
+    """
 
     for columns, rows in (
         (POSITION_COLUMNS, _golden("top_holdings")),
         (TRANSACTION_COLUMNS, _golden("transactions")),
     ):
-        body = render_rows(live_columns(columns, rows), rows)
+        live = live_columns(columns, rows)
+        body = render_rows(live, rows)
 
         assert "Not available" not in body
-        assert '(value: "", ' not in body
+        # A cell never ends on a blank: there is nothing below it to keep in place.
+        for line in body.splitlines():
+            for cell in line.split("[#statement-cell(")[1:]:
+                values = re.findall(r'value: "([^"]*)"', cell)
+                assert not values or values[-1] != "", (
+                    f"a cell ends with a blank line, which holds nothing open: {values}"
+                )
 
 
 def test_an_absence_spelt_any_of_its_ways_counts_as_absent() -> None:
@@ -241,3 +256,92 @@ _CANDIDATE_KEYS = (
     "ytd_total_return_pct",
     "yield_to_maturity",
 )
+
+
+def _cell_values(rendered_row: str, column_index: int) -> list[str]:
+    """The stacked values of one cell, in the order they are drawn."""
+    cells = rendered_row.split("[#statement-cell(")[1:]
+    return re.findall(r'value: "([^"]*)"', cells[column_index])
+
+
+def test_a_row_missing_a_field_keeps_its_other_values_under_their_own_labels() -> None:
+    """The header stack names the lines; only position joins the two.
+
+    `live_columns` keeps a field because some row supplies it, and the cell used to skip
+    the fields a particular row does not -- so every value below a gap shifted up one
+    line. On a transaction list whose last column reads "Transaction value / Net
+    interest / Withholding tax", a coupon with no transaction value drew its net
+    interest of 7.00 under "Transaction value". Mixed transaction types reach this
+    immediately; the banked fixture is three trades of one shape, so it cannot.
+    """
+
+    rows: list[dict[str, Any]] = [
+        {
+            "trade_date": "2026-01-09",
+            "description": "Purchase",
+            "transaction_value": "450000",
+            "net_interest_amount_reporting_currency": "0",
+            "withholding_tax_amount_reporting_currency": "0",
+        },
+        {
+            "trade_date": "2026-02-17",
+            "description": "Coupon",
+            "net_interest_amount_reporting_currency": "7.00",
+            "withholding_tax_amount_reporting_currency": "1.00",
+        },
+        {
+            "trade_date": "2026-03-31",
+            "description": "Fee",
+            "withholding_tax_amount_reporting_currency": "2.50",
+        },
+    ]
+    live = live_columns(TRANSACTION_COLUMNS, rows)
+    money_column = len(live) - 1
+    labels = [field.label for field in live[money_column].fields]
+    assert labels == ["Transaction value", "Net interest", "Withholding tax"]
+
+    body = render_rows(live, rows).splitlines()
+
+    assert _cell_values(body[0], money_column) == ["450,000", "0", "0"]
+    # The coupon has no transaction value, so that line is blank rather than absent.
+    assert _cell_values(body[1], money_column) == ["", "7.00", "1.00"]
+    assert _cell_values(body[2], money_column) == ["", "", "2.50"]
+
+
+def test_a_value_is_never_drawn_on_a_line_that_names_something_else() -> None:
+    """Stated as the property, over every column and every row shape.
+
+    Whatever a row supplies, the nth drawn line of a cell must belong to the nth label
+    of that column -- which is the only guarantee a reader has, because the body lines
+    carry no labels of their own.
+    """
+
+    rows: list[dict[str, Any]] = [
+        {
+            "trade_date": "2026-01-09",
+            "description": "All",
+            "transaction_value": "1",
+            "net_interest_amount_reporting_currency": "2",
+            "withholding_tax_amount_reporting_currency": "3",
+            "price": "4",
+            "gross_amount_reporting_currency": "5",
+            "amount": "6",
+        },
+        {
+            "trade_date": "2026-02-17",
+            "description": "Sparse",
+            "withholding_tax_amount_reporting_currency": "9",
+        },
+    ]
+    live = live_columns(TRANSACTION_COLUMNS, rows)
+    body = render_rows(live, rows).splitlines()
+
+    for row_index, row in enumerate(rows):
+        for column_index, column in enumerate(live):
+            drawn = _cell_values(body[row_index], column_index)
+            for line_index, value in enumerate(drawn):
+                expected = column.fields[line_index].resolve(row)
+                assert value == (expected or ""), (
+                    f"row {row_index}, column {column_index}: line {line_index} is "
+                    f"labelled {column.fields[line_index].label!r} and carries {value!r}"
+                )

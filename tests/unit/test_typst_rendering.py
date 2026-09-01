@@ -587,9 +587,11 @@ def test_typst_render_service_builds_richer_portfolio_review_context() -> None:
     # the page and that nothing beside them is blank.
     assert "9 Jan 2026" in template_context["DENSE_TRANSACTION_ROWS"]
     assert "NAV 102.35" in template_context["DENSE_TRANSACTION_ROWS"]
-    assert '"", size:' not in template_context["DENSE_TRANSACTION_ROWS"], (
-        "a transaction cell carries an empty line for a field that never arrives"
-    )
+    # A blank line inside a cell is not an absence any more: it is the place a field
+    # this row does not supply would occupy, held open so the values below stay under
+    # their own labels. A field *no* row supplies is removed by `live_columns` instead,
+    # which is what this was reaching for.
+    assert "Not available" not in template_context["DENSE_TRANSACTION_ROWS"]
     assert "#review-note(" in template_context["OBSERVATION_NOTES"]
 
 
