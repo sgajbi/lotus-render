@@ -79,9 +79,31 @@
     term: "Invested value",
     body: "The total market value of the portfolio on the valuation date, in the reporting currency. Where a chart or table covers only part of it, that is stated with the chart.",
   ),
+  // One per supplemental allocation view. The document has room for exactly one and
+  // draws whichever the report package carries, so a reader can meet any of these.
   currency_exposure: (
     term: "Currency exposure",
     body: "Holdings grouped by the currency they are denominated in. It shows where the portfolio value would move if exchange rates moved, before the effect of any hedging.",
+  ),
+  regional_exposure: (
+    term: "Regional exposure",
+    body: "Holdings grouped by the region an issuer is based in or an instrument's underlying market sits in. It shows how concentrated the portfolio is in one part of the world, which is not the same as its currency exposure: an Asian company can report and be traded in US dollars.",
+  ),
+  sector_exposure: (
+    term: "Sector exposure",
+    body: "Holdings grouped by the industry an issuer operates in. Companies in one sector tend to be moved by the same conditions, so a large sector weight is a concentration even where the individual names are diversified.",
+  ),
+  country_exposure: (
+    term: "Country exposure",
+    body: "Holdings grouped by the country of the issuer or, for funds, of the underlying market. It is a finer view than regional exposure and is the one used for country-level limits and for tax and regulatory reporting.",
+  ),
+  product_type_exposure: (
+    term: "Product type exposure",
+    body: "Holdings grouped by the form the investment takes -- a direct holding, a fund, a structured product, a deposit -- rather than by what it is invested in. Two holdings with the same market exposure can differ here in liquidity, cost and how they are priced.",
+  ),
+  credit_rating_exposure: (
+    term: "Credit rating exposure",
+    body: "Fixed income holdings grouped by the credit rating of the issuer or the issue. The rating is an agency's assessment of the likelihood of being repaid; investment grade runs to BBB- or Baa3, and anything below that carries materially higher default risk.",
   ),
 
   //  Positions

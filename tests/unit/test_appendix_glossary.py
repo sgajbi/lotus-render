@@ -14,19 +14,26 @@ nothing.
 
 from __future__ import annotations
 
+import io
 import json
 import re
 from pathlib import Path
 from typing import Any
 
+import pypdf
 import pytest
 
+from app.contracts.render_package import RenderPackage
+from app.core.settings import Settings
+from app.domain.templates.registry import TemplateRegistry
 from app.services.appendix_glossary import (
     APPENDIX_GLOSSARY,
     all_glossary_keys,
     applicable_glossary,
 )
+from app.services.render_intake import RenderIntakeService
 from app.services.typst_contexts import requested_section_keys
+from app.services.typst_rendering import TypstRenderService
 from app.services.typst_tables import render_appendix_glossary_groups
 
 GOLDEN_PACKAGE = Path("tests/golden/portfolio-review/v1/render-package.json")
@@ -47,6 +54,20 @@ def _titles(report_data: dict[str, Any]) -> list[str]:
 
 def _keys(report_data: dict[str, Any]) -> set[str]:
     return {entry.key for group in applicable_glossary(report_data) for entry in group.entries}
+
+
+def _rendered_text(package: dict[str, Any]) -> str:
+    """The compiled document's text. The appendix and the table only meet on the page."""
+    settings = Settings()
+    service = TypstRenderService(
+        settings,
+        RenderIntakeService(
+            TemplateRegistry.load_from_directory(Path(settings.template_registry_path))
+        ),
+    )
+    rendered = service.render(RenderPackage.model_validate(package))
+    reader = pypdf.PdfReader(io.BytesIO(rendered.artifact_bytes))
+    return re.sub(r"\s+", " ", "\n".join(page.extract_text() for page in reader.pages))
 
 
 def test_every_key_the_selection_can_ask_for_exists_in_the_template() -> None:
@@ -225,3 +246,54 @@ def test_an_explicitly_requested_appendix_is_still_dropped_when_it_explains_noth
         "contents",
         "overview",
     ], "dropping the appendix disturbed the sections around it"
+
+
+# Every supplemental view the page can draw, and the term the appendix owes a reader who
+# meets it. The page has room for exactly one, chosen by priority, so these are the six
+# documents this fixture family can produce.
+SUPPLEMENTAL_VIEW_CASES = [
+    pytest.param("by_currency", "By currency", "Currency exposure", id="by-currency"),
+    pytest.param("by_region", "By region", "Regional exposure", id="by-region"),
+    pytest.param("by_sector", "By sector", "Sector exposure", id="by-sector"),
+    pytest.param("by_country", "By country", "Country exposure", id="by-country"),
+    pytest.param("by_product_type", "By product type", "Product type exposure", id="by-product"),
+    pytest.param("by_rating", "By rating", "Credit rating exposure", id="by-rating"),
+]
+
+
+@pytest.mark.parametrize(("key", "title", "term"), SUPPLEMENTAL_VIEW_CASES)
+def test_the_appendix_defines_the_supplemental_view_the_page_drew(
+    key: str, title: str, term: str
+) -> None:
+    """Which view is drawn and which is defined used to be decided separately.
+
+    The table takes the first breakdown with rows, in priority order. The glossary added
+    the currency subject whenever *any* non-asset-class breakdown had rows, and always
+    named currency -- so a package carrying only `by_sector` drew a sector table and
+    defined "Currency exposure", a term the document does not contain. Both halves were
+    internally consistent; only the page shows the disagreement.
+
+    The other five views were drawn and defined nowhere at all, which is the same gap
+    facing the other way.
+    """
+
+    package = json.loads(GOLDEN_PACKAGE.read_text(encoding="utf-8"))
+    breakdowns = package["report_data"]["allocation_breakdowns"]
+    package["report_data"]["allocation_breakdowns"] = {
+        "by_asset_class": breakdowns["by_asset_class"],
+        key: [
+            {"name": "Alpha", "weight_pct": "60.00%", "market_value": "6000"},
+            {"name": "Beta", "weight_pct": "40.00%", "market_value": "4000"},
+        ],
+    }
+
+    document = _rendered_text(package)
+    strays = [
+        str(case.values[2])
+        for case in SUPPLEMENTAL_VIEW_CASES
+        if str(case.values[2]) != term and str(case.values[2]) in document
+    ]
+
+    assert title in document, f"the page does not draw the {title!r} table"
+    assert term in document, f"the page draws {title!r} and the appendix never defines {term!r}"
+    assert not strays, f"the appendix defines a view the page did not draw: {strays}"
