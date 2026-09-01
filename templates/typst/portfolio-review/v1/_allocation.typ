@@ -1,6 +1,6 @@
 #import "_charts.typ": donut-chart
-#import "_theme.typ": empty-state, mist, rule, section-subtitle, soft-rule
-#import "_components.typ": chart-card, chart-placeholder, compact-allocation-row, key-stat, note-panel, report-panel, section-marker, table-label
+#import "_theme.typ": empty-state, mist, rule, section-subtitle
+#import "_components.typ": allocation-dimension-block, allocation-dimension-note, chart-card, chart-placeholder, compact-allocation-row, key-stat, note-panel, report-panel, section-marker
 
 #let allocation-page() = [
   #section-marker("Asset allocation", "Asset mix, exposure detail, and risk profile")
@@ -31,46 +31,8 @@
   )
 
   #v(14pt)
-  #grid(
-    columns: (1fr, 1fr),
-    column-gutter: 18pt,
-    [
-      #section-subtitle("By asset class")
-      #v(8pt)
-      #grid(
-        columns: (1.15fr, 1.15fr, 0.55fr, 0.75fr),
-        column-gutter: 8pt,
-        [#table-label("Category")],
-        [#table-label("Proportion")],
-        [#table-label("Weight", placement: right)],
-        [#table-label("Value", placement: right)],
-      )
-      #v(4pt)
-      #soft-rule()
-      #v(8pt)
-      #report-panel([
-        ${ASSET_CLASS_ROWS}
-      ])
-    ],
-    [
-      #section-subtitle("${SUPPLEMENTAL_ALLOCATION_TITLE}")
-      #v(8pt)
-      #grid(
-        columns: (1.15fr, 1.15fr, 0.55fr, 0.75fr),
-        column-gutter: 8pt,
-        [#table-label("Group")],
-        [#table-label("Proportion")],
-        [#table-label("Weight", placement: right)],
-        [#table-label("Value", placement: right)],
-      )
-      #v(4pt)
-      #soft-rule()
-      #v(8pt)
-      #report-panel([
-        ${SUPPLEMENTAL_ALLOCATION_ROWS}
-      ])
-    ],
-  )
+  ${ALLOCATION_DIMENSION_BLOCKS}
+
   // #138 guarded this against an absent risk summary; the break that remained gave six
   // values a full landscape page, 68% of it blank, under a third consecutive "Asset
   // allocation" header. It flows into the section it belongs to now (#184).

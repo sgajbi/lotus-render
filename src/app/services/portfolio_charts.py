@@ -102,12 +102,14 @@ def _performance_point(item: object) -> PerformancePoint | None:
     )
 
 
-def allocation_items_from_report_data(report_data: Mapping[str, object]) -> list[AllocationSlice]:
-    breakdowns = report_data.get("allocation_breakdowns")
-    nested = breakdowns.get("by_asset_class") if isinstance(breakdowns, Mapping) else None
-    rows = row_sequence(nested)
-    if rows is None:
-        rows = row_sequence(report_data.get("allocation_items"))
+def allocation_items_from_rows(source: object) -> list[AllocationSlice]:
+    """Slices from the rows of one dimension, chosen by the caller rather than here.
+
+    This used to reach into `allocation_breakdowns["by_asset_class"]` itself. Which
+    dimension a document draws is Report's decision, so the key is read in one place
+    (`allocation_presentation`) and the rows arrive here already selected.
+    """
+    rows = row_sequence(source)
     if rows is None:
         return []
 

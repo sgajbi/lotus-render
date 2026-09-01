@@ -60,7 +60,7 @@ def test_the_chart_legend_and_the_table_agree_on_convention() -> None:
         ]
 
     legend_amounts = _amounts(context["ALLOCATION_DONUT_CHART_SECTION"])
-    table_amounts = _amounts(context["ASSET_CLASS_ROWS"])
+    table_amounts = _amounts(context["ALLOCATION_DIMENSION_BLOCKS"])
     assert legend_amounts and table_amounts, "one of the two emitters produced no amounts"
 
     for amount in legend_amounts + table_amounts:

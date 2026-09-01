@@ -379,3 +379,32 @@
   #v(3.5pt)
   #line(length: 100%, stroke: (paint: rule, thickness: 0.25pt))
 ]
+
+// One allocation dimension the package asked for. The column headings live with the rows
+// they label, so a dimension that has no rows to show does not get a header over nothing
+// -- that is `allocation-dimension-note` below, and the two look different on purpose.
+#let allocation-dimension-block(title, rows) = [
+  #section-subtitle(title)
+  #v(8pt)
+  #grid(
+    columns: (1.15fr, 1.15fr, 0.55fr, 0.75fr),
+    column-gutter: 8pt,
+    [#table-label("Group")],
+    [#table-label("Proportion")],
+    [#table-label("Weight", placement: right)],
+    [#table-label("Value", placement: right)],
+  )
+  #v(4pt)
+  #soft-rule()
+  #v(8pt)
+  #report-panel([#rows])
+]
+
+// A dimension the document presents and has nothing to draw for. The heading stays,
+// because the reader asked for this grouping and is owed an answer about it; the table
+// furniture does not, because there is no table.
+#let allocation-dimension-note(title, message) = [
+  #section-subtitle(title)
+  #v(8pt)
+  #report-panel([#empty-state(message)])
+]

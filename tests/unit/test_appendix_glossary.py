@@ -267,23 +267,31 @@ def test_the_appendix_defines_the_supplemental_view_the_page_drew(
 ) -> None:
     """Which view is drawn and which is defined used to be decided separately.
 
-    The table takes the first breakdown with rows, in priority order. The glossary added
-    the currency subject whenever *any* non-asset-class breakdown had rows, and always
-    named currency -- so a package carrying only `by_sector` drew a sector table and
-    defined "Currency exposure", a term the document does not contain. Both halves were
-    internally consistent; only the page shows the disagreement.
+    The table took the first breakdown with rows, in a priority order Render held. The
+    glossary added the currency subject whenever *any* non-asset-class breakdown had rows
+    and always named currency -- so a package carrying only `by_sector` drew a sector
+    table and defined "Currency exposure". Both halves were internally consistent; only
+    the page showed the disagreement.
 
-    The other five views were drawn and defined nowhere at all, which is the same gap
-    facing the other way.
+    Both now read `allocation_presentation`, so they cannot disagree by construction.
+    This drives it through the package, which is also what a caller ordering that
+    dimension produces: the rows for every dimension still ship, and only the named one
+    is presented.
     """
 
     package = json.loads(GOLDEN_PACKAGE.read_text(encoding="utf-8"))
-    breakdowns = package["report_data"]["allocation_breakdowns"]
-    package["report_data"]["allocation_breakdowns"] = {
-        "by_asset_class": breakdowns["by_asset_class"],
-        key: [
-            {"name": "Alpha", "weight_pct": "60.00%", "market_value": "6000"},
-            {"name": "Beta", "weight_pct": "40.00%", "market_value": "4000"},
+    package["report_data"]["allocation_breakdowns"][key] = [
+        {"name": "Alpha", "weight_pct": "60.00%", "market_value": "6000"},
+        {"name": "Beta", "weight_pct": "40.00%", "market_value": "4000"},
+    ]
+    package["report_data"]["allocation_presentation"] = {
+        "resolved_by": "caller_request",
+        "dimensions": [
+            {
+                "dimension": key.removeprefix("by_"),
+                "package_key": key,
+                "posture": "ready",
+            }
         ],
     }
 

@@ -575,6 +575,21 @@
           "text": "Advisor use only. Client-ready memo publication remains blocked."
         }
       ]
+    },
+    "allocation_presentation": {
+      "resolved_by": "caller_request",
+      "dimensions": [
+        {
+          "dimension": "asset_class",
+          "package_key": "by_asset_class",
+          "posture": "ready"
+        },
+        {
+          "dimension": "currency",
+          "package_key": "by_currency",
+          "posture": "ready"
+        }
+      ]
     }
   },
   "lineage_refs": [

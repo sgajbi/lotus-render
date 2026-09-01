@@ -543,7 +543,22 @@
       "Equity positioning remained the main contributor to year-to-date performance.",
       "Risk posture stayed within the monitored balanced mandate range.",
       "Cash reserves remained available for near-term client liquidity needs."
-    ]
+    ],
+    "allocation_presentation": {
+      "resolved_by": "caller_request",
+      "dimensions": [
+        {
+          "dimension": "asset_class",
+          "package_key": "by_asset_class",
+          "posture": "ready"
+        },
+        {
+          "dimension": "currency",
+          "package_key": "by_currency",
+          "posture": "ready"
+        }
+      ]
+    }
   },
   "lineage_refs": [
     "rlineage_golden_portfolio_review_v1"

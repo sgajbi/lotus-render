@@ -34,8 +34,8 @@ from app.services.typst_fragments import (
     render_wave_item_rows,
 )
 from app.services.typst_tables import (
-    render_allocation_breakdown_rows,
     render_allocation_chart_section,
+    render_allocation_dimension_blocks,
     render_appendix_glossary_groups,
     render_holding_bar_rows,
     render_observation_notes,
@@ -46,7 +46,6 @@ from app.services.typst_tables import (
     render_performance_summary_table,
     render_position_table,
     render_transaction_table,
-    supplemental_allocation_view,
 )
 from app.services.typst_values import (
     escape_typst_string,
@@ -125,7 +124,6 @@ def build_portfolio_review_context(render_package: RenderPackage) -> dict[str, s
     mandate = mapping(report_data.get("mandate"))
     portfolio_metrics = mapping(report_data.get("portfolio_metrics"))
     allocation_summary = mapping(report_data.get("allocation_summary"))
-    allocation_breakdowns = mapping(report_data.get("allocation_breakdowns"))
     performance_highlight = mapping(report_data.get("performance_highlight"))
     risk_summary = mapping(report_data.get("risk_summary"))
     governance_summary = mapping(report_data.get("governance_summary"))
@@ -133,10 +131,6 @@ def build_portfolio_review_context(render_package: RenderPackage) -> dict[str, s
     advisor_proposal_memo = mapping(report_data.get("advisor_proposal_memo"))
     include_reviewed_advisory_narrative = reviewed_advisory_narrative.get("status") == "included"
     include_advisor_proposal_memo = advisor_proposal_memo.get("status") == "included"
-    supplemental_allocation_title, supplemental_allocation_rows = supplemental_allocation_view(
-        allocation_breakdowns
-    )
-
     benchmarked = benchmark_columns_are_drawn(report_data)
     reporting_period_label = _reporting_period_label(report_data)
 
@@ -256,12 +250,10 @@ def build_portfolio_review_context(render_package: RenderPackage) -> dict[str, s
         ),
         "PERFORMANCE_12M_CHART_SECTION": render_performance_chart_section(report_data),
         "HOLDING_BAR_ROWS": render_holding_bar_rows(report_data.get("top_holdings")),
-        "ASSET_CLASS_ROWS": render_allocation_breakdown_rows(
-            allocation_breakdowns.get("by_asset_class") or report_data.get("top_holdings")
-        ),
         "ALLOCATION_DONUT_CHART_SECTION": render_allocation_chart_section(report_data),
-        "SUPPLEMENTAL_ALLOCATION_TITLE": escape_typst_string(supplemental_allocation_title),
-        "SUPPLEMENTAL_ALLOCATION_ROWS": supplemental_allocation_rows,
+        # One block per dimension the package named, in its order. Replaces a hard-coded
+        # asset-class table beside one supplemental slot Render chose for itself.
+        "ALLOCATION_DIMENSION_BLOCKS": render_allocation_dimension_blocks(report_data),
         "POSITION_TABLE_WIDTHS": position_widths,
         "POSITION_TABLE_HEADER": position_header,
         "DENSE_POSITION_ROWS": position_rows,

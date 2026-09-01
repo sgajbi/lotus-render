@@ -119,7 +119,10 @@ def test_the_degraded_fixture_renders_the_empty_data_fallbacks() -> None:
     for fallback in (
         "No position detail available.",
         "No transaction detail available.",
-        "No allocation detail available.",
+        # The degraded package carries no breakdowns at all, so its allocation posture is
+        # `unavailable` -- the source did not answer. That is a different sentence from an
+        # empty grouping, and the page has to say the one that is true.
+        "could not be retrieved for this report",
     ):
         assert fallback in document, f"the degraded document never shows {fallback!r}"
 
