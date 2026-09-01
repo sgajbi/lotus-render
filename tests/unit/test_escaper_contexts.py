@@ -43,7 +43,12 @@ SERVICES = Path("src/app/services")
 # Emitters that build `name([value], ...)`, where the value sits in markup.
 MARKUP_EMITTERS = ("typst_fragments.py",)
 # Emitters that build `name("value", ...)`, where the value sits in a string literal.
-STRING_LITERAL_EMITTERS = ("typst_tables.py", "typst_contexts.py")
+STRING_LITERAL_EMITTERS = (
+    "typst_tables.py",
+    "typst_contexts.py",
+    # One module per analytic, holding both how Render reads it and how it draws it.
+    "contribution_ranking.py",
+)
 
 # Would execute if it reached markup unescaped: `#panic` aborts the compile outright, and
 # the brackets and braces would restructure whatever contains them.

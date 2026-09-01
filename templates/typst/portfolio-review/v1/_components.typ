@@ -422,3 +422,31 @@
   #v(8pt)
   #report-panel([#empty-state(message)])
 ]
+
+
+// One contributor, on the same signed track the annual return bars use: a shared domain
+// and a drawn zero, because without a zero a short loss looks like a short gain. The name
+// takes the place the period label takes there -- the primitive is the same one.
+#let contribution-row(name, contribution, weight, return-pct, magnitude, negative) = [
+  #grid(
+    columns: (1.5fr, 1.6fr, 0.62fr, 0.62fr, 0.62fr),
+    column-gutter: 7pt,
+    [#text(size: text-micro, fill: ink)[#name]],
+    [#diverging-track(magnitude, negative)],
+    [#align(right)[#text(size: text-micro, weight: 500, fill: if negative { loss } else { gain })[#contribution]]],
+    [#align(right)[#text(size: text-micro, fill: slate)[#weight]]],
+    [#align(right)[#text(size: text-micro, fill: slate)[#return-pct]]],
+  )
+]
+
+// What the ranking does not say. Both lines are required output: the reconciliation
+// because a top-N presented without it invites a reader to think the list is the whole
+// story, and the methodology because NET versus GROSS changes what every number means.
+#let contribution-reconciliation(reconciliation, methodology) = block(
+  breakable: false,
+  width: 100%,
+)[
+  #text(size: text-micro, fill: slate)[#reconciliation]
+  #linebreak()
+  #text(size: text-micro, fill: slate)[#methodology]
+]

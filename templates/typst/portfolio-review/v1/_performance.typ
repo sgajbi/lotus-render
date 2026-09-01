@@ -1,6 +1,6 @@
 #import "_charts.typ": line-chart
 #import "_theme.typ": empty-state, rule, section-subtitle
-#import "_components.typ": chart-card, chart-placeholder, chart-scale-note, labelled-table, performance-chart-row, performance-detail-row, performance-summary-cell, period-return-row, period-row, section-marker, table-label
+#import "_components.typ": chart-card, chart-placeholder, chart-scale-note, contribution-reconciliation, contribution-row, labelled-table, performance-chart-row, performance-detail-row, performance-summary-cell, period-return-row, period-row, section-marker, table-label
 
 #let performance-page() = [
   // The marker names what the page holds, so it stops promising a comparison the
@@ -48,6 +48,7 @@
   #v(15pt)
   ${PERFORMANCE_12M_CHART_SECTION}
 
+
   // Guarded so an all-empty report does not ship a near-blank page (issue #138).
   #if "${HAS_ANNUAL_PERFORMANCE}" == "yes" [
     #v(16pt)
@@ -79,6 +80,23 @@
         [#table-label("TWR", placement: right)],
       ),
       [${PERFORMANCE_MONTHLY_TABLE_ROWS}],
+    )
+  ]
+
+  // The ranking answers "which holdings made that line", so it sits under the line rather
+  // than claiming a page. Drawn only when the package carries contribution.
+  #if "${HAS_CONTRIBUTION_RANKING}" == "yes" [
+    #v(14pt)
+    #labelled-table(
+      "Contribution to return",
+      grid(columns: (1.5fr, 1.6fr, 0.62fr, 0.62fr, 0.62fr), column-gutter: 7pt,
+        [#table-label("Holding")],
+        [#table-label("Effect")],
+        [#table-label("Contribution", placement: right)],
+        [#table-label("Avg weight", placement: right)],
+        [#table-label("Return", placement: right)],
+      ),
+      [${CONTRIBUTION_RANKING_ROWS}],
     )
   ]
 ]
