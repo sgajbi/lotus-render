@@ -10,7 +10,14 @@ from collections.abc import Iterable, Mapping, Sequence
 from decimal import Decimal
 
 from app.services.absence import supplied_text
-from app.services.allocation_views import supplemental_allocation_choice
+from app.services.allocation_presentation import (
+    EMPTY,
+    READY,
+    UNAVAILABLE,
+    presented_dimension,
+    presented_dimensions,
+    presented_rows,
+)
 from app.services.appendix_glossary import applicable_glossary
 from app.services.chart_geometry import (
     DonutSegment,
@@ -19,7 +26,8 @@ from app.services.chart_geometry import (
 )
 from app.services.number_format import format_money, format_percent, group_digits
 from app.services.portfolio_charts import (
-    allocation_items_from_report_data,
+    AllocationSlice,
+    allocation_items_from_rows,
     performance_series_from_report_data,
 )
 from app.services.statement_layouts import POSITION_COLUMNS, TRANSACTION_COLUMNS
@@ -132,9 +140,34 @@ def _donut_path_literal(segment: DonutSegment) -> str:
     return '(colour: "%s", commands: %s)' % (escape_typst_string(segment.colour), commands)
 
 
+def _donut_coverage_note(items: list[AllocationSlice]) -> str:
+    """What the chart says when its slices do not add up to the whole portfolio.
+
+    A donut looks like a whole thing. When the slices cover less than all of it the chart
+    says so, rather than leaving a reader to infer it from a total that disagrees with the
+    invested value printed beside it. The golden package covers 89.64%.
+    """
+    coverage = sum((item.weight_pct for item in items), Decimal("0"))
+    if coverage >= DONUT_FULL_COVERAGE_PCT:
+        return "none"
+    return f'"Chart covers {escape_typst_string(format_percent(coverage))} of portfolio value"'
+
+
 def render_allocation_chart_section(report_data: Mapping[str, object]) -> str:
-    """The allocation donut, drawn natively. The last chart that was an SVG asset."""
-    items = allocation_items_from_report_data(report_data)
+    """The allocation donut, drawn when the package says asset class is presented.
+
+    Asset class is a dimension like any other in Report's catalogue -- its default is
+    `asset_class_when_omitted`, which is a statement about silence, not a mandate. A
+    caller who asked for sector allocation and received an asset-class donut they did not
+    order is the same defect the supplemental slot had, one level up.
+    """
+    asset_class = presented_dimension(report_data, "asset_class")
+    if asset_class is None or asset_class.posture != READY:
+        return (
+            '#chart-placeholder("Asset Allocation", '
+            '"This report does not present an asset-class breakdown.")'
+        )
+    items = allocation_items_from_rows(presented_rows(report_data, asset_class))
     segments = donut_segments(items)
     if not segments:
         return (
@@ -153,13 +186,7 @@ def render_allocation_chart_section(report_data: Mapping[str, object]) -> str:
         for item in items
     )
     total = sum((item.market_value for item in items), Decimal("0"))
-    coverage = sum((item.weight_pct for item in items), Decimal("0"))
-    # A donut looks like a whole thing. When the slices do not add up to one, the chart
-    # says so rather than leaving a reader to infer it from a total that disagrees with
-    # the invested value printed beside it. The golden package covers 89.64%.
-    note = "none"
-    if coverage < DONUT_FULL_COVERAGE_PCT:
-        note = f'"Chart covers {escape_typst_string(format_percent(coverage))} of portfolio value"'
+    note = _donut_coverage_note(items)
 
     return (
         '#chart-card("Asset Allocation", '
@@ -399,20 +426,44 @@ def _aggregated_allocation_buckets(rows: Sequence[object]) -> dict[str, dict[str
     return aggregates
 
 
-def supplemental_allocation_view(
-    allocation_breakdowns: Mapping[str, object],
-) -> tuple[str, str]:
-    """The one supplemental view the page has room for, drawn.
+# What a posture says, in the reader's terms. `empty` is a fact about the portfolio -- a
+# client with no fixed income legitimately has no rating buckets -- and `unavailable` is a
+# fact about the data. They must not read alike, which is why they are two sentences and
+# not one, and why neither draws a column header over nothing.
+_POSTURE_NOTES = {
+    EMPTY: "No holdings fall into this grouping.",
+    UNAVAILABLE: "This grouping could not be retrieved for this report.",
+}
 
-    Which one is `supplemental_allocation_choice`'s to say, because the appendix asks the
-    same question to decide what to define. It used to be decided here and again there,
-    with different rules, so a sector table came with a definition of currency exposure.
+
+def render_allocation_dimension_blocks(report_data: Mapping[str, object]) -> str:
+    """One block per presented dimension, in the order the package named them.
+
+    Render used to choose: the first breakdown with rows, from a priority order of its
+    own, in one slot. Because currency led that order and the package ships all seven
+    dimensions unconditionally, six of the seven single-dimension orders drew a currency
+    table -- and #211 had made the appendix agree with it, so the document was internally
+    consistent about presenting the wrong analytic.
     """
-    chosen = supplemental_allocation_choice(allocation_breakdowns)
-    if chosen is None:
-        return "Allocation detail", render_allocation_breakdown_rows([])
-    key, title = chosen
-    return title, render_allocation_breakdown_rows(allocation_breakdowns.get(key))
+    presented = presented_dimensions(report_data)
+    if not presented:
+        return '#empty-state("No allocation dimensions were named for this report.")'
+
+    blocks: list[str] = []
+    for item in presented:
+        title = escape_typst_string(item.title)
+        if item.posture == READY:
+            rows = render_allocation_breakdown_rows(presented_rows(report_data, item))
+            blocks.append(f'[#allocation-dimension-block("{title}")[\n{rows}\n]]')
+        else:
+            note = escape_typst_string(_POSTURE_NOTES[item.posture])
+            blocks.append(f'[#allocation-dimension-note("{title}", "{note}")]')
+
+    return (
+        "#grid(columns: (1fr, 1fr), column-gutter: 18pt, row-gutter: 16pt,\n"
+        + ",\n".join(blocks)
+        + "\n)"
+    )
 
 
 def render_appendix_glossary_groups(report_data: Mapping[str, object]) -> str:

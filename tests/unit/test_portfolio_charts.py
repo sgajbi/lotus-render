@@ -11,7 +11,7 @@ from app.services.portfolio_charts import (
     _nice_ticks,
     _parse_currency_number,
     _parse_percent_or_number,
-    allocation_items_from_report_data,
+    allocation_items_from_rows,
     performance_series_from_report_data,
 )
 
@@ -38,19 +38,15 @@ def test_performance_series_uses_latest_12_months_and_benchmark_when_present() -
 
 
 def test_allocation_items_sort_and_group_small_slices() -> None:
-    report_data = {
-        "allocation_breakdowns": {
-            "by_asset_class": [
-                {"name": "Cash", "weight_pct": "1.00%", "market_value": "100"},
-                {"name": "Equity", "weight_pct": "60.00%", "market_value": "6000"},
-                {"name": "Alternatives", "weight_pct": "1.50%", "market_value": "150"},
-                {"name": "Fixed Income", "weight_pct": "28.00%", "market_value": "2800"},
-                {"name": "Real Estate", "weight_pct": "9.50%", "market_value": "950"},
-            ]
-        }
-    }
-
-    items = allocation_items_from_report_data(report_data)
+    items = allocation_items_from_rows(
+        [
+            {"name": "Cash", "weight_pct": "1.00%", "market_value": "100"},
+            {"name": "Equity", "weight_pct": "60.00%", "market_value": "6000"},
+            {"name": "Alternatives", "weight_pct": "1.50%", "market_value": "150"},
+            {"name": "Fixed Income", "weight_pct": "28.00%", "market_value": "2800"},
+            {"name": "Real Estate", "weight_pct": "9.50%", "market_value": "950"},
+        ]
+    )
 
     assert [item.label for item in items] == ["Equity", "Fixed Income", "Real Estate", "Other"]
     assert items[-1].weight_pct == Decimal("2.50")
@@ -79,18 +75,21 @@ def test_performance_series_skips_invalid_rows_and_uses_period_fallback() -> Non
     assert series[0].benchmark_cumulative_twr == 0.5
 
 
-def test_allocation_items_use_fallback_rows_and_skip_invalid_values() -> None:
-    items = allocation_items_from_report_data(
-        {
-            "allocation_items": [
-                "bad row",
-                {"label": "", "weight_pct": "5.00%", "market_value": "500"},
-                {"label": "Zero", "weight_pct": "0.00%", "market_value": "0"},
-                {"label": "Invalid", "weight_pct": "n/a", "market_value": "100"},
-                {"label": "Equity", "weight_pct": "70.00%", "market_value": "USD 7,000"},
-                {"label": "Cash", "weight_pct": "1.00%", "market_value": ""},
-            ]
-        }
+def test_allocation_items_skip_rows_that_carry_no_usable_slice() -> None:
+    """The fallback to `allocation_items` went with the key-picking.
+
+    Which rows the donut draws is the package's decision now, so this reads a row list
+    directly -- the same rows, without a second place that could choose them.
+    """
+    items = allocation_items_from_rows(
+        [
+            "bad row",
+            {"label": "", "weight_pct": "5.00%", "market_value": "500"},
+            {"label": "Zero", "weight_pct": "0.00%", "market_value": "0"},
+            {"label": "Invalid", "weight_pct": "n/a", "market_value": "100"},
+            {"label": "Equity", "weight_pct": "70.00%", "market_value": "USD 7,000"},
+            {"label": "Cash", "weight_pct": "1.00%", "market_value": ""},
+        ]
     )
 
     assert [item.label for item in items] == ["Equity", "Cash"]
@@ -98,15 +97,11 @@ def test_allocation_items_use_fallback_rows_and_skip_invalid_values() -> None:
     assert items[1].market_value == Decimal("0")
 
 
-def _classes(count: int, weight: str = "3.00%") -> dict[str, object]:
-    return {
-        "allocation_breakdowns": {
-            "by_asset_class": [
-                {"name": f"Class {index}", "weight_pct": weight, "market_value": "300"}
-                for index in range(count)
-            ]
-        }
-    }
+def _classes(count: int, weight: str = "3.00%") -> list[dict[str, str]]:
+    return [
+        {"name": f"Class {index}", "weight_pct": weight, "market_value": "300"}
+        for index in range(count)
+    ]
 
 
 def test_a_seventh_slice_does_not_take_the_first_slice_colour() -> None:
@@ -119,7 +114,7 @@ def test_a_seventh_slice_does_not_take_the_first_slice_colour() -> None:
     portfolio. This test asserted the wrap as the expected result.
     """
 
-    items = allocation_items_from_report_data(_classes(7))
+    items = allocation_items_from_rows(_classes(7))
 
     colours = [item.color for item in items]
     assert len(colours) == len(set(colours)), f"two slices share a colour: {colours}"
@@ -136,7 +131,7 @@ def test_the_donut_never_needs_a_colour_it_does_not_have(count: int) -> None:
     move it, not lose it.
     """
 
-    items = allocation_items_from_report_data(_classes(count))
+    items = allocation_items_from_rows(_classes(count))
 
     assert len(items) <= len(ALLOCATION_PALETTE)
     assert len({item.color for item in items}) == len(items)
@@ -169,13 +164,11 @@ def test_non_finite_numerics_degrade_charts_instead_of_crashing() -> None:
     assert _parse_percent_or_number("inf") is None
     assert _parse_currency_number("NaN") is None
 
-    items = allocation_items_from_report_data(
-        {
-            "allocation_items": [
-                {"label": "Bad", "weight_pct": "NaN", "market_value": "10"},
-                {"label": "Good", "weight_pct": "40", "market_value": "20"},
-            ]
-        }
+    items = allocation_items_from_rows(
+        [
+            {"label": "Bad", "weight_pct": "NaN", "market_value": "10"},
+            {"label": "Good", "weight_pct": "40", "market_value": "20"},
+        ]
     )
     assert [item.label for item in items] == ["Good"]
 

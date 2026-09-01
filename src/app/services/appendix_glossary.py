@@ -22,10 +22,7 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 
 from app.services.absence import is_supplied
-from app.services.allocation_views import (
-    SUPPLEMENTAL_SUBJECTS,
-    supplemental_allocation_choice,
-)
+from app.services.allocation_presentation import READY, presented_dimensions
 from app.services.typst_values import row_sequence
 
 
@@ -195,20 +192,24 @@ def _risk_subjects(report_data: Mapping[str, object]) -> set[str]:
 
 
 def _allocation_subjects(report_data: Mapping[str, object]) -> set[str]:
-    breakdowns = _mapping(report_data.get("allocation_breakdowns"))
-    subjects: set[str] = set()
-    if _has_rows(breakdowns.get("by_asset_class")) or _has_rows(
-        report_data.get("allocation_items")
-    ):
-        subjects.add("allocation")
-    # The page draws one supplemental view, so the appendix defines that one. This used
-    # to fire on *any* non-asset-class breakdown having rows and always name currency, so
-    # a package carrying only `by_sector` drew a sector table and defined currency
-    # exposure -- a term the document does not contain.
-    chosen = supplemental_allocation_choice(breakdowns)
-    if chosen is not None:
-        subjects.add(SUPPLEMENTAL_SUBJECTS[chosen[0]])
-    return subjects
+    """Define what the page draws -- which is what the package said to present.
+
+    Two rewrites ago this fired on any non-asset-class breakdown having rows and always
+    named currency, so a sector table came with a definition of currency exposure. One
+    rewrite ago it followed Render's own choice, which was the same wrong choice the table
+    made. It follows the package now, so the two cannot disagree by construction.
+
+    Only a `ready` dimension takes definitions. `empty` and `unavailable` put a heading and
+    a sentence on the page and no data, so the terms the entries explain -- weight, market
+    value, proportion -- appear nowhere in the document. Defining them there would be the
+    same defect the currency substitution was: reference material for content that is not
+    present. The degraded fixture found this by gaining a page.
+    """
+    return {
+        subject
+        for item in presented_dimensions(report_data)
+        if item.posture == READY and (subject := item.subject) is not None
+    }
 
 
 def _holding_subjects(report_data: Mapping[str, object]) -> set[str]:

@@ -8,7 +8,7 @@ ordinary characters inside a string.
 But `${NAME}` is this service's own syntax, applied to the template after the escaping,
 and it used to be applied one key at a time over the whole file. A value substituted
 early was therefore read again by every later key. A client called
-`${ASSET_CLASS_ROWS}` had that name replaced with a block of allocation markup, and the
+`${ALLOCATION_DIMENSION_BLOCKS}` had that name replaced with a block of allocation markup, and the
 quotes in that markup closed the string literal the name was sitting in:
 
     #body-muted("#compact-allocation-row("Equity", "60.00%", ...
@@ -40,7 +40,7 @@ GOLDEN_PACKAGE = Path("tests/golden/portfolio-review/v1/render-package.json")
 # Each of these ends a document if it is treated as anything but text.
 PAYLOADS = [
     # This service's own placeholder syntax, naming a value whose markup carries quotes.
-    "${ASSET_CLASS_ROWS}",
+    "${ALLOCATION_DIMENSION_BLOCKS}",
     "${REPORT_SECTIONS}",
     "${DETERMINISM_STATEMENT}",
     # A name that does not exist: it must not empty the field either.
@@ -103,7 +103,7 @@ def test_a_placeholder_is_not_expanded_from_any_field(
     """Seventy context values take text from report data; the name of the field a
     payload arrives in decides only which of them carries it."""
 
-    payload = "${ASSET_CLASS_ROWS}"
+    payload = "${ALLOCATION_DIMENSION_BLOCKS}"
     result = render_service.render(_package_with(field, payload))
     document = "\n".join(
         page.extract_text() for page in pypdf.PdfReader(io.BytesIO(result.artifact_bytes)).pages

@@ -46,6 +46,7 @@ from app.services.typst_rendering import (
 from app.services.typst_tables import (
     render_allocation_breakdown_rows,
     render_allocation_chart_section,
+    render_allocation_dimension_blocks,
     render_holding_bar_rows,
     render_observation_notes,
     render_performance_chart_rows,
@@ -55,7 +56,6 @@ from app.services.typst_tables import (
     render_performance_summary_table,
     render_position_table,
     render_transaction_table,
-    supplemental_allocation_view,
 )
 from app.services.typst_values import (
     escape_typst_text,
@@ -548,13 +548,12 @@ def test_typst_render_service_builds_richer_portfolio_review_context() -> None:
     assert "#line-chart(" in template_context["PERFORMANCE_12M_CHART_SECTION"]
     assert "assets/charts" not in template_context["PERFORMANCE_12M_CHART_SECTION"]
     assert "#allocation-row(" in template_context["HOLDING_BAR_ROWS"]
-    assert "#compact-allocation-row(" in template_context["ASSET_CLASS_ROWS"]
+    assert "#compact-allocation-row(" in template_context["ALLOCATION_DIMENSION_BLOCKS"]
     donut = template_context["ALLOCATION_DONUT_CHART_SECTION"]
     assert "#donut-chart(" in donut
     assert "assets/charts" not in donut
     # Drawn, not merely declared: a donut with no curve commands is an empty card.
     assert 'kind: "cubic"' in donut
-    assert "#compact-allocation-row(" in template_context["SUPPLEMENTAL_ALLOCATION_ROWS"]
     # Rows are spread into a Typst table, so each is a tuple of cells in code context
     # rather than a markup block carrying a leading '#' (issue #138).
     for statement in ("POSITION", "TRANSACTION"):
@@ -573,9 +572,12 @@ def test_typst_render_service_builds_richer_portfolio_review_context() -> None:
     # Report composes this label itself, in dotted dates; the document writes them
     # its own way so the page does not carry two forms (#150).
     assert template_context["TRANSACTION_PERIOD_LABEL"] == "From 1 Jan 2026 to 23 Apr 2026"
-    assert template_context["SUPPLEMENTAL_ALLOCATION_TITLE"] == "By currency"
-    assert "Equity" in template_context["ASSET_CLASS_ROWS"]
-    assert "USD" in template_context["SUPPLEMENTAL_ALLOCATION_ROWS"]
+    blocks = template_context["ALLOCATION_DIMENSION_BLOCKS"]
+    # The fixture presents asset class then currency, and the emitted order is the
+    # package's order -- not a priority Render holds.
+    assert blocks.index("By asset class") < blocks.index("By currency")
+    assert "Equity" in blocks
+    assert "USD" in blocks
     assert "EQ-1" in template_context["DENSE_POSITION_ROWS"]
     assert "US0000000001" in template_context["DENSE_POSITION_ROWS"]
     # This used to assert "Not available;Not available;8,118,290.51;2024-01-15" and
@@ -934,7 +936,10 @@ def test_typst_render_service_helper_fallbacks_cover_sparse_structures() -> None
     assert "No event evidence supplied." in render_wave_event_rows("bad")
     assert "No dimension evidence supplied." in render_outcome_dimension_rows("bad")
     assert "No 12-month performance series is available" in render_performance_chart_section({})
-    assert "No allocation breakdown is available" in render_allocation_chart_section({})
+    # An empty package names no dimensions, so the donut says the report does not present
+    # one -- which is a different statement from "the breakdown is empty", and the one
+    # that is true.
+    assert "does not present an asset-class breakdown" in render_allocation_chart_section({})
     assert "No governed observations available." in render_observation_notes("bad")
     assert "No governed performance periods available." in render_performance_period_rows(
         "bad", benchmarked=True
@@ -972,26 +977,64 @@ def test_typst_render_service_helper_fallbacks_cover_sparse_structures() -> None
     )
 
 
-def test_typst_render_service_renders_supplemental_allocation_views_with_priority() -> None:
-    title, rows = supplemental_allocation_view(
-        {
-            "by_region": [
-                {"name": "North America", "weight_pct": "62.00%", "market_value": "620000.00"}
+def test_a_dimension_the_package_did_not_name_is_not_presented() -> None:
+    """The priority order this replaced drew a currency table for six of seven orders.
+
+    `by_*` rows are shipped unconditionally as evidence, so presence cannot mean
+    presentation. A dimension appears because `allocation_presentation` names it.
+    """
+
+    report_data = {
+        "allocation_breakdowns": {
+            "by_currency": [{"name": "USD", "weight_pct": "60.00%", "market_value": "600"}],
+            "by_sector": [{"name": "Technology", "weight_pct": "40.00%", "market_value": "400"}],
+        },
+        "allocation_presentation": {
+            "resolved_by": "caller_request",
+            "dimensions": [{"dimension": "sector", "package_key": "by_sector", "posture": "ready"}],
+        },
+    }
+
+    blocks = render_allocation_dimension_blocks(report_data)
+
+    assert "By sector" in blocks
+    assert "Technology" in blocks
+    assert "By currency" not in blocks, "a dimension with rows was drawn without being named"
+    assert "USD" not in blocks
+
+
+def test_the_two_absent_postures_do_not_read_alike() -> None:
+    """`empty` is a fact about the portfolio; `unavailable` is a fact about the data.
+
+    A client with no fixed income legitimately has no rating buckets, and that is not the
+    same statement as "we could not get this". Neither draws a column header over nothing.
+    """
+
+    report_data = {
+        "allocation_presentation": {
+            "resolved_by": "caller_request",
+            "dimensions": [
+                {"dimension": "rating", "package_key": "by_rating", "posture": "empty"},
+                {"dimension": "country", "package_key": "by_country", "posture": "unavailable"},
             ],
-            "by_currency": [],
         }
-    )
+    }
 
-    assert title == "By region"
-    assert "#compact-allocation-row(" in rows
-    assert "North America" in rows
+    blocks = render_allocation_dimension_blocks(report_data)
+
+    assert "No holdings fall into this grouping." in blocks
+    assert "could not be retrieved" in blocks
+    assert "allocation-dimension-block(" not in blocks, "a header was drawn over no rows"
 
 
-def test_typst_render_service_allocation_view_falls_back_when_no_breakdowns_exist() -> None:
-    title, rows = supplemental_allocation_view({})
+def test_a_package_that_names_no_dimensions_says_so_on_the_page() -> None:
+    """Fail closed and visibly. `allocation_presentation` is always sent, so its absence
+    is a contract regression -- and a regression that empties a section silently is worse
+    than one that says the section was never asked for."""
 
-    assert title == "Allocation detail"
-    assert "No allocation detail available." in rows
+    blocks = render_allocation_dimension_blocks({})
+
+    assert "No allocation dimensions were named for this report." in blocks
 
 
 def test_typst_render_service_returns_empty_messages_when_sequences_have_no_mapping_rows() -> None:
@@ -1695,7 +1738,19 @@ def test_a_donut_that_covers_the_whole_portfolio_carries_no_coverage_note() -> N
                     {"label": "Equity", "weight_pct": "60.00", "market_value": "600000"},
                     {"label": "Fixed Income", "weight_pct": "40.00", "market_value": "400000"},
                 ]
-            }
+            },
+            # The donut is drawn because the package presents asset class, not because
+            # its rows exist -- rows for every dimension ship either way.
+            "allocation_presentation": {
+                "resolved_by": "caller_request",
+                "dimensions": [
+                    {
+                        "dimension": "asset_class",
+                        "package_key": "by_asset_class",
+                        "posture": "ready",
+                    }
+                ],
+            },
         }
     )
 

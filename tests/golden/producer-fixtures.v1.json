@@ -15,14 +15,14 @@
         "src/app/contracts/examples/portfolio-review-render-package.v1.json"
       ],
       "provenance": "Portfolio review package is the canonical lotus-report render package example mirrored into the golden fixture tree for registry-to-artifact gating.",
-      "bounded_determinism_fingerprint": "4c6c9e167789fec2bd85ba87bcd6fc955021912ea3e1b371794b5864d029a813",
+      "bounded_determinism_fingerprint": "5b08d13d6c6996ad2239ce21391cdb3c9d9bbfbc1c673642ddd83c06fc0ec4e0",
       "page_image_hashes": [
         "3b640d9a0e161831409a63e51cf8e71860a00b8b137b4eacce32c9483c6d124a",
         "4c6cb3201e8ec4904d8cf6e83674f1de7eadd603201de765422ba34f85556eb1",
         "ff06eeee9f11b379dcb463520a9e349430f028c495b755b5da178fecc99b627e",
         "cda106a0d53a045f566f39213e6e35782cc7ec1d44931ed8e75bb50e4166ecf2",
         "db6ebb1bf948414426be0b66dee4a3e946dd5224683471b2755f5c1e76756fe4",
-        "dd69cd9309e19d0e0473a8fb7642e82b617c26d26b22e5d825d048ee62f0581c",
+        "a785f47dd6688066771e3913f2f17337e732aece2e7d9bcc9ce6ade8deb78a72",
         "b8c448f4c6d73082dcbcc902e6936daeb3251354bdcc88977130c0adddaf6611",
         "f715f8db1c3f7bae1450ebc575472db7afb27bb0aea7c8113719307e20e0f82d",
         "a0e9896464e4001c8fdc497dbb2432a5cc890991678c5bc3de7e54404b0ef809",
@@ -117,14 +117,14 @@
         "src/app/contracts/examples/portfolio-review-render-package.v1.json"
       ],
       "provenance": "Portfolio review carrying an approved advisor-use package so the reviewed advisory narrative section is rendered and banked; that section previously had no compiled proof (issue #118).",
-      "bounded_determinism_fingerprint": "0decddaac41d95c76adcd8d3ed3bf165ee040a9a80a94db71fe74e1c5cfc305e",
+      "bounded_determinism_fingerprint": "e9f8dccf43f89fde62b83a65cfb3f280d33da3066f2e8652d968568c01f7b289",
       "page_image_hashes": [
         "3b640d9a0e161831409a63e51cf8e71860a00b8b137b4eacce32c9483c6d124a",
         "39d72761cfe4962173e33aa085ac259089613dd4bf13650f6f58ea68a870a8aa",
         "ff06eeee9f11b379dcb463520a9e349430f028c495b755b5da178fecc99b627e",
         "cda106a0d53a045f566f39213e6e35782cc7ec1d44931ed8e75bb50e4166ecf2",
         "db6ebb1bf948414426be0b66dee4a3e946dd5224683471b2755f5c1e76756fe4",
-        "dd69cd9309e19d0e0473a8fb7642e82b617c26d26b22e5d825d048ee62f0581c",
+        "a785f47dd6688066771e3913f2f17337e732aece2e7d9bcc9ce6ade8deb78a72",
         "b8c448f4c6d73082dcbcc902e6936daeb3251354bdcc88977130c0adddaf6611",
         "f715f8db1c3f7bae1450ebc575472db7afb27bb0aea7c8113719307e20e0f82d",
         "cb3db5149b44c62cdd7041940545868036c0b0e0f8127c3d1d9bf6b3c7d6924e",
@@ -145,14 +145,14 @@
         "src/app/contracts/examples/portfolio-review-render-package.v1.json"
       ],
       "provenance": "Portfolio review carrying an approved advisor-use package so the advisor proposal memo section is rendered and banked; that section previously had no compiled proof (issue #118).",
-      "bounded_determinism_fingerprint": "be59075fd0f24b645e60b1a1026af66ba6735b07bde31e4f003cb067fd8fe1c0",
+      "bounded_determinism_fingerprint": "7a7a1348976c84713f1ceb2addcd570f70f6365666c973ab0e87ec7236ef3df4",
       "page_image_hashes": [
         "3b640d9a0e161831409a63e51cf8e71860a00b8b137b4eacce32c9483c6d124a",
         "8043da1fb7cbaeeb2c666e23e3f978082a78b761f230968d1827c283f172aec4",
         "ff06eeee9f11b379dcb463520a9e349430f028c495b755b5da178fecc99b627e",
         "cda106a0d53a045f566f39213e6e35782cc7ec1d44931ed8e75bb50e4166ecf2",
         "db6ebb1bf948414426be0b66dee4a3e946dd5224683471b2755f5c1e76756fe4",
-        "dd69cd9309e19d0e0473a8fb7642e82b617c26d26b22e5d825d048ee62f0581c",
+        "a785f47dd6688066771e3913f2f17337e732aece2e7d9bcc9ce6ade8deb78a72",
         "b8c448f4c6d73082dcbcc902e6936daeb3251354bdcc88977130c0adddaf6611",
         "f715f8db1c3f7bae1450ebc575472db7afb27bb0aea7c8113719307e20e0f82d",
         "1fdd59b4f2e6fc4bde7b14fef85c848144fe3c4e88a20f1fa8b91051ab3af849",
@@ -173,13 +173,13 @@
         "src/app/contracts/examples/portfolio-review-render-package.v1.json"
       ],
       "provenance": "Portfolio review whose optional collections are all empty, so every degraded-path fallback is compiled and banked rather than asserted only as a Python string (#118).",
-      "bounded_determinism_fingerprint": "8bed636051dc8d208457bf9413b7d89e7550606f71cd86c0d9bb79dfb2b16c1d",
+      "bounded_determinism_fingerprint": "fd1248386d74f78a765d53120ef64ad97aedcdb7f57f64403e3660ab98896cad",
       "page_image_hashes": [
         "4f2cf91be5cfc5de7e5177f2b69df1349b8836063bfa2371ce552ea6396622f0",
         "7c71af72273a31f4708b08fa6188518947b20a0f66a2d2f3da8dec5130981be0",
         "ae9a841c11754924d9a30f29114d16d4cbfee6769aedaace64ba71df25819659",
         "30c6fa4b6ebb5786483146b302384987e476d37778cff6ee89591dee521a6039",
-        "1f24462bd5aacbe547cfdd4290ed722d3bac56e3c8aa8d2fbdee2e1f3f12e691",
+        "93f7dc0a6e57c76866f284407119e381ac33c2dca5a64d602eaf5f78543cee2c",
         "cac78b04703f04e7054373e40fbd0684057e6544408413f1f5147dec1cea58e0",
         "a371e829a4a6ab07535ce702ed8858ddd8a79a647d78c6d117cfcef20f87bbfc"
       ]

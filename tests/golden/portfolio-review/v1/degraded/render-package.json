@@ -37,7 +37,17 @@
     "governance_summary": {},
     "review_observations": [
       "No governed observations were produced for this period."
-    ]
+    ],
+    "allocation_presentation": {
+      "resolved_by": "report_default_policy",
+      "dimensions": [
+        {
+          "dimension": "asset_class",
+          "package_key": "by_asset_class",
+          "posture": "unavailable"
+        }
+      ]
+    }
   },
   "lineage_refs": [
     "rlineage_golden_portfolio_review_v1"

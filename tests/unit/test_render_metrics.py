@@ -240,7 +240,7 @@ def test_a_degraded_document_is_distinguishable_from_a_complete_one() -> None:
     degraded = _blocks("tests/golden/portfolio-review/v1/degraded/render-package.json")
 
     assert complete == 0, f"the complete golden should have no placeholders, found {complete}"
-    assert degraded == 9, (
+    assert degraded == 7, (
         f"the degraded golden renders {degraded} placeholder blocks, banked at 11. If the "
         "document genuinely changed, re-bank; if it did not, a content block silently "
         "stopped rendering."
