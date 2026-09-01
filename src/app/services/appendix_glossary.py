@@ -22,6 +22,10 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 
 from app.services.absence import is_supplied
+from app.services.allocation_views import (
+    SUPPLEMENTAL_SUBJECTS,
+    supplemental_allocation_choice,
+)
 from app.services.typst_values import row_sequence
 
 
@@ -75,7 +79,14 @@ APPENDIX_GLOSSARY: tuple[GlossaryGroup, ...] = (
         title="Asset allocation",
         entries=(
             *_entries("allocation", "asset_class", "market_value", "weight", "invested_value"),
+            # One per supplemental view, because the page draws exactly one of them and a
+            # reader who meets "By rating" needs it explained as much as "By currency".
             *_entries("allocation.currency", "currency_exposure"),
+            *_entries("allocation.region", "regional_exposure"),
+            *_entries("allocation.sector", "sector_exposure"),
+            *_entries("allocation.country", "country_exposure"),
+            *_entries("allocation.product_type", "product_type_exposure"),
+            *_entries("allocation.rating", "credit_rating_exposure"),
         ),
     ),
     GlossaryGroup(
@@ -167,8 +178,13 @@ def _allocation_subjects(report_data: Mapping[str, object]) -> set[str]:
         report_data.get("allocation_items")
     ):
         subjects.add("allocation")
-    if any(_has_rows(rows) for key, rows in breakdowns.items() if key != "by_asset_class"):
-        subjects.add("allocation.currency")
+    # The page draws one supplemental view, so the appendix defines that one. This used
+    # to fire on *any* non-asset-class breakdown having rows and always name currency, so
+    # a package carrying only `by_sector` drew a sector table and defined currency
+    # exposure -- a term the document does not contain.
+    chosen = supplemental_allocation_choice(breakdowns)
+    if chosen is not None:
+        subjects.add(SUPPLEMENTAL_SUBJECTS[chosen[0]])
     return subjects
 
 

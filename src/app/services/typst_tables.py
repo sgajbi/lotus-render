@@ -10,6 +10,7 @@ from collections.abc import Iterable, Mapping, Sequence
 from decimal import Decimal
 
 from app.services.absence import supplied_text
+from app.services.allocation_views import supplemental_allocation_choice
 from app.services.appendix_glossary import applicable_glossary
 from app.services.chart_geometry import (
     DonutSegment,
@@ -393,19 +394,17 @@ def _aggregated_allocation_buckets(rows: Sequence[object]) -> dict[str, dict[str
 def supplemental_allocation_view(
     allocation_breakdowns: Mapping[str, object],
 ) -> tuple[str, str]:
-    candidate_views = [
-        ("By currency", allocation_breakdowns.get("by_currency")),
-        ("By region", allocation_breakdowns.get("by_region")),
-        ("By sector", allocation_breakdowns.get("by_sector")),
-        ("By country", allocation_breakdowns.get("by_country")),
-        ("By product type", allocation_breakdowns.get("by_product_type")),
-        ("By rating", allocation_breakdowns.get("by_rating")),
-    ]
-    for title, rows in candidate_views:
-        rendered = render_allocation_breakdown_rows(rows)
-        if "No allocation detail available." not in rendered:
-            return title, rendered
-    return "Allocation detail", render_allocation_breakdown_rows([])
+    """The one supplemental view the page has room for, drawn.
+
+    Which one is `supplemental_allocation_choice`'s to say, because the appendix asks the
+    same question to decide what to define. It used to be decided here and again there,
+    with different rules, so a sector table came with a definition of currency exposure.
+    """
+    chosen = supplemental_allocation_choice(allocation_breakdowns)
+    if chosen is None:
+        return "Allocation detail", render_allocation_breakdown_rows([])
+    key, title = chosen
+    return title, render_allocation_breakdown_rows(allocation_breakdowns.get(key))
 
 
 def render_appendix_glossary_groups(report_data: Mapping[str, object]) -> str:
