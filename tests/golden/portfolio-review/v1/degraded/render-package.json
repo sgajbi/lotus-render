@@ -47,7 +47,8 @@
           "posture": "unavailable"
         }
       ]
-    }
+    },
+    "positions": []
   },
   "lineage_refs": [
     "rlineage_golden_portfolio_review_v1"
