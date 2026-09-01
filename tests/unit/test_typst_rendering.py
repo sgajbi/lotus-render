@@ -47,7 +47,6 @@ from app.services.typst_tables import (
     render_allocation_breakdown_rows,
     render_allocation_chart_section,
     render_holding_bar_rows,
-    render_holding_rows,
     render_observation_notes,
     render_performance_chart_rows,
     render_performance_chart_section,
@@ -542,14 +541,12 @@ def test_typst_render_service_builds_richer_portfolio_review_context() -> None:
     assert "lotus-core, lotus-performance, lotus-risk" in template_context["SOURCE_SERVICES"]
     assert "#period-row(" in template_context["PERFORMANCE_PERIOD_ROWS"]
     assert "performance-summary-cell(" in template_context["PERFORMANCE_SUMMARY_TABLE"]
-    assert "performance-chart-row(" in template_context["PERFORMANCE_MONTHLY_CHART_ROWS"]
     assert "#performance-chart-row(" in template_context["PERFORMANCE_ANNUAL_CHART_ROWS"]
     assert "#performance-detail-row(" in template_context["PERFORMANCE_MONTHLY_TABLE_ROWS"]
     # Drawn natively rather than shipped as an SVG asset, so the section carries the
     # chart's geometry rather than a path to an image.
     assert "#line-chart(" in template_context["PERFORMANCE_12M_CHART_SECTION"]
     assert "assets/charts" not in template_context["PERFORMANCE_12M_CHART_SECTION"]
-    assert "#holding-row(" in template_context["HOLDING_ROWS"]
     assert "#allocation-row(" in template_context["HOLDING_BAR_ROWS"]
     assert "#compact-allocation-row(" in template_context["ASSET_CLASS_ROWS"]
     donut = template_context["ALLOCATION_DONUT_CHART_SECTION"]
@@ -948,8 +945,6 @@ def test_typst_render_service_helper_fallbacks_cover_sparse_structures() -> None
     assert "No performance history available." in render_performance_chart_rows([123])
     assert "No monthly performance detail available." in render_performance_detail_rows("bad")
     assert "No monthly performance detail available." in render_performance_detail_rows([123])
-    assert "No governed holdings available." in render_holding_rows("bad")
-    assert "No governed holdings available." in render_holding_rows([123])
     assert "No governed allocation rows available." in render_holding_bar_rows("bad")
     assert "No position detail available." in render_position_table("bad")[2]
     assert "No position detail available." in render_position_table([123])[2]
@@ -996,7 +991,6 @@ def test_typst_render_service_allocation_view_falls_back_when_no_breakdowns_exis
 
 
 def test_typst_render_service_returns_empty_messages_when_sequences_have_no_mapping_rows() -> None:
-    assert "No governed holdings available." in render_holding_rows([123, 456])
     assert "No governed allocation rows available." in render_holding_bar_rows([123, 456])
     assert "No position detail available." in render_position_table([123, 456])[2]
     assert "No transaction detail available." in render_transaction_table([123, 456])[2]

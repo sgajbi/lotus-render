@@ -251,7 +251,12 @@ def _performance_chart_row(item: Mapping[str, object], domain: float) -> str:
     )
 
 
-def render_performance_chart_rows(rows: object, *, two_column: bool = False) -> str:
+def render_performance_chart_rows(rows: object) -> str:
+    """The annual performance bars. The two-column variant went with its only caller.
+
+    `PERFORMANCE_MONTHLY_CHART_ROWS` was the one key that passed `two_column=True`, and
+    no template ever substituted it.
+    """
     empty_message = '#empty-state("No performance history available.", size: 8pt)'
     entries = mapping_entries(rows)
     if not entries:
@@ -259,17 +264,8 @@ def render_performance_chart_rows(rows: object, *, two_column: bool = False) -> 
     # One domain for the whole series: bars are only comparable to each other if
     # every bar in the chart is drawn against the same scale.
     domain = performance_bar_domain(item.get("twr_pct") for item in entries)
-    rendered = [_performance_chart_row(item, domain) for item in entries]
-    scale_note = f'\n#v(4pt)\n#chart-scale-note("{domain:.2f}%")'
-    if two_column:
-        return (
-            "#grid(columns: (1fr, 1fr), column-gutter: 12pt, row-gutter: 1.5pt,\n"
-            + ",\n".join(rendered)
-            + "\n)"
-            + scale_note
-        )
-    rendered = [f"#{row}" for row in rendered]
-    return "\n#v(1.5pt)\n".join(rendered) + scale_note
+    rendered = [f"#{_performance_chart_row(item, domain)}" for item in entries]
+    return "\n#v(1.5pt)\n".join(rendered) + f'\n#v(4pt)\n#chart-scale-note("{domain:.2f}%")'
 
 
 def render_performance_detail_rows(rows: object) -> str:
@@ -300,29 +296,6 @@ def render_performance_detail_rows(rows: object) -> str:
     if not rendered:
         return empty_message
     return "\n#v(2pt)\n".join(rendered)
-
-
-def render_holding_rows(holdings: object) -> str:
-    rendered: list[str] = []
-    for item in mapping_entries(holdings):
-        rendered.append(
-            '#holding-row("'
-            + escape_typst_string(str(item.get("security_name", "Unknown holding")))
-            + '", "'
-            + escape_typst_string(supplied_text(item.get("asset_class")))
-            + '", "'
-            + escape_typst_string(group_digits(supplied_text(item.get("weight_pct"))))
-            + '", "'
-            + escape_typst_string(group_digits(supplied_text(item.get("market_value"))))
-            + '", "'
-            + escape_typst_string(group_digits(supplied_text(item.get("unrealized_pnl"))))
-            + '", "'
-            + escape_typst_string(group_digits(supplied_text(item.get("ytd_contribution_pct"))))
-            + '")'
-        )
-    if not rendered:
-        return '#empty-state("No governed holdings available.")'
-    return "\n#v(8pt)\n".join(rendered)
 
 
 def render_holding_bar_rows(holdings: object) -> str:

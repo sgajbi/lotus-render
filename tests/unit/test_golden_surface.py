@@ -12,10 +12,12 @@ a duplicate of the base document while still passing its fingerprint assertion.
 
 from __future__ import annotations
 
+import io
 import json
 import re
 from pathlib import Path
 
+import pypdf
 import pytest
 
 from app.contracts.render_package import RenderPackage
@@ -36,19 +38,31 @@ def _fixtures() -> dict[str, dict[str, str]]:
     return {fixture["golden_sample_id"]: fixture for fixture in manifest["fixtures"]}
 
 
-def _template_context(sample_id: str) -> dict[str, str]:
-    fixtures = _fixtures()
+def _service() -> TypstRenderService:
     settings = Settings()
-    service = TypstRenderService(
+    return TypstRenderService(
         settings,
         RenderIntakeService(
             TemplateRegistry.load_from_directory(Path(settings.template_registry_path))
         ),
     )
-    package = RenderPackage.model_validate_json(
-        Path(fixtures[sample_id]["package_path"]).read_text(encoding="utf-8")
+
+
+def _package(sample_id: str) -> RenderPackage:
+    return RenderPackage.model_validate_json(
+        Path(_fixtures()[sample_id]["package_path"]).read_text(encoding="utf-8")
     )
-    return service._build_template_context(package)
+
+
+def _template_context(sample_id: str) -> dict[str, str]:
+    return _service()._build_template_context(_package(sample_id))
+
+
+def _rendered_text(sample_id: str) -> str:
+    """The text of the compiled document, which is the only thing a reader has."""
+    rendered = _service().render(_package(sample_id))
+    reader = pypdf.PdfReader(io.BytesIO(rendered.artifact_bytes))
+    return "\n".join(page.extract_text() for page in reader.pages)
 
 
 def test_every_banked_fixture_carries_a_fingerprint_literal() -> None:
@@ -91,18 +105,23 @@ def test_the_advisory_fixtures_actually_select_their_advisory_sections() -> None
 
 
 def test_the_degraded_fixture_renders_the_empty_data_fallbacks() -> None:
-    """The ~40 fallback strings were asserted only as Python strings before this."""
+    """Read off the page, because the context is not the document.
 
-    context = _template_context(DEGRADED_SAMPLE)
-    rendered = "\n".join(context.values())
+    The ~40 fallback strings were first asserted as Python strings; this then checked the
+    built context, which is closer and still not it. A key can carry a fallback and reach
+    no template -- "No governed holdings available." did exactly that, in `HOLDING_ROWS`,
+    which nothing substituted. Passing on a string no reader could see is the failure this
+    test exists to rule out, so it renders.
+    """
+
+    document = _rendered_text(DEGRADED_SAMPLE)
 
     for fallback in (
-        "No governed holdings available.",
         "No position detail available.",
         "No transaction detail available.",
         "No allocation detail available.",
     ):
-        assert fallback in rendered, f"the degraded fixture never renders {fallback!r}"
+        assert fallback in document, f"the degraded document never shows {fallback!r}"
 
 
 def test_the_golden_package_and_the_shipped_example_do_not_drift() -> None:

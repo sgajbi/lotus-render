@@ -38,7 +38,6 @@ from app.services.typst_tables import (
     render_allocation_chart_section,
     render_appendix_glossary_groups,
     render_holding_bar_rows,
-    render_holding_rows,
     render_observation_notes,
     render_performance_chart_rows,
     render_performance_chart_section,
@@ -245,10 +244,6 @@ def build_portfolio_review_context(render_package: RenderPackage) -> dict[str, s
         "PERFORMANCE_SUMMARY_TABLE": render_performance_summary_table(
             report_data.get("performance_summary_table")
         ),
-        "PERFORMANCE_MONTHLY_CHART_ROWS": render_performance_chart_rows(
-            report_data.get("performance_monthly_history"),
-            two_column=True,
-        ),
         "PERFORMANCE_ANNUAL_CHART_ROWS": render_performance_chart_rows(
             report_data.get("performance_annual_history")
         ),
@@ -256,7 +251,6 @@ def build_portfolio_review_context(render_package: RenderPackage) -> dict[str, s
             report_data.get("performance_monthly_history")
         ),
         "PERFORMANCE_12M_CHART_SECTION": render_performance_chart_section(report_data),
-        "HOLDING_ROWS": render_holding_rows(report_data.get("top_holdings")),
         "HOLDING_BAR_ROWS": render_holding_bar_rows(report_data.get("top_holdings")),
         "ASSET_CLASS_ROWS": render_allocation_breakdown_rows(
             allocation_breakdowns.get("by_asset_class") or report_data.get("top_holdings")
@@ -577,8 +571,12 @@ def _default_section_keys(
     return keys
 
 
-# Every "not available" on a page goes through one theme component, so counting its
-# call sites in the built context counts exactly what a reader would see missing.
+# Every "not available" on a page goes through one theme component, so counting its call
+# sites counts what a reader sees missing -- but only because every key that can carry
+# one is substituted into a template. That was not true: `HOLDING_ROWS` and
+# `PERFORMANCE_MONTHLY_CHART_ROWS` were built and dropped, and the degraded review
+# reported eleven placeholders where a reader could see nine. Both are gone, and
+# `test_no_unreferenced_key_can_inflate_the_empty_block_count` is what keeps it so.
 EMPTY_STATE_MARKER = "empty-state("
 
 
@@ -586,7 +584,7 @@ def count_empty_content_blocks(template_context: Mapping[str, str]) -> int:
     """How many content blocks this render replaced with a placeholder.
 
     A measurement of the output, not a judgement about the data: whether a document with
-    eleven empty blocks is publishable belongs to the caller, and deciding it here would
-    be Render forming an opinion about report completeness it has no standing to hold.
+    nine empty blocks is publishable belongs to the caller, and deciding it here would be
+    Render forming an opinion about report completeness it has no standing to hold.
     """
     return sum(value.count(EMPTY_STATE_MARKER) for value in template_context.values())
