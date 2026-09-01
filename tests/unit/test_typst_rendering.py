@@ -59,6 +59,7 @@ from app.services.typst_tables import (
     supplemental_allocation_view,
 )
 from app.services.typst_values import (
+    escape_typst_text,
     mapping,
     parse_number,
     parse_percent,
@@ -518,6 +519,19 @@ def test_typst_render_service_rejects_empty_review_observations() -> None:
         service.render(invalid_package)
 
 
+def _in_markup(value: str) -> str:
+    r"""The form a value takes in a markup fragment: escaped, because markup is not text.
+
+    These assertions used to spell the raw value, which held only while the escaper left
+    most markup tokens live. It neutralises all of them now, so `dpp_001` is emitted
+    `dpp\_001` -- and reaches the page as `dpp_001`, which is the point of the change.
+
+    Only the values a report supplies. `wave-item-row(` next to these is the emitter's
+    own call, and the emitter does not escape itself.
+    """
+    return escape_typst_text(value)
+
+
 def test_typst_render_service_builds_richer_portfolio_review_context() -> None:
     template_context = build_portfolio_review_context(_load_golden_package())
 
@@ -601,15 +615,19 @@ def test_typst_render_service_builds_reviewed_advisory_narrative_context() -> No
     )
 
     assert "#reviewed-advisory-narrative-page()" in template_context["REPORT_SECTIONS"]
-    assert "INCLUDED_REVIEWED_NARRATIVE" in template_context["REVIEWED_ADVISORY_FACT_ROWS"]
-    assert "APPROVED_FOR_ADVISOR_USE" in template_context["REVIEWED_ADVISORY_FACT_ROWS"]
-    assert "sha256:reviewed-narrative" in template_context["REVIEWED_ADVISORY_FACT_ROWS"]
+    assert (
+        _in_markup("INCLUDED_REVIEWED_NARRATIVE") in template_context["REVIEWED_ADVISORY_FACT_ROWS"]
+    )
+    assert _in_markup("APPROVED_FOR_ADVISOR_USE") in template_context["REVIEWED_ADVISORY_FACT_ROWS"]
+    assert (
+        _in_markup("sha256:reviewed-narrative") in template_context["REVIEWED_ADVISORY_FACT_ROWS"]
+    )
     assert (
         "The proposal keeps the balanced mandate"
         in template_context["REVIEWED_ADVISORY_NARRATIVE_BLOCKS"]
     )
     assert (
-        "proposal_narrative.advisor_use_only.v1"
+        _in_markup("proposal_narrative.advisor_use_only.v1")
         in template_context["REVIEWED_ADVISORY_DISCLOSURE_BLOCKS"]
     )
 
@@ -627,14 +645,18 @@ def test_typst_render_service_builds_advisor_proposal_memo_context() -> None:
     )
 
     assert "#advisor-proposal-memo-page()" in template_context["REPORT_SECTIONS"]
-    assert "INCLUDED_ADVISOR_PROPOSAL_MEMO" in template_context["ADVISOR_MEMO_FACT_ROWS"]
-    assert "APPROVE_FOR_ADVISOR_USE" in template_context["ADVISOR_MEMO_FACT_ROWS"]
+    assert (
+        _in_markup("INCLUDED_ADVISOR_PROPOSAL_MEMO") in template_context["ADVISOR_MEMO_FACT_ROWS"]
+    )
+    assert _in_markup("APPROVE_FOR_ADVISOR_USE") in template_context["ADVISOR_MEMO_FACT_ROWS"]
     assert "BLOCKED" in template_context["ADVISOR_MEMO_FACT_ROWS"]
     assert (
         "The advisor proposal memo is ready for advisor use."
         in template_context["ADVISOR_MEMO_SECTION_BLOCKS"]
     )
-    assert "memo.advisor_use_only.v1" in template_context["ADVISOR_MEMO_DISCLOSURE_BLOCKS"]
+    assert (
+        _in_markup("memo.advisor_use_only.v1") in template_context["ADVISOR_MEMO_DISCLOSURE_BLOCKS"]
+    )
 
 
 def test_typst_render_service_builds_outcome_review_context() -> None:
@@ -696,8 +718,11 @@ def test_typst_render_service_builds_idea_evidence_proof_pack_context() -> None:
     assert (
         "lotus_idea_evidence_pack_report_input.v1" in (template_context["SOURCE_CONTRACT_VERSION"])
     )
-    assert "lotus-idea:IdeaEvidencePacket" in template_context["SOURCE_LINEAGE_ROWS"]
-    assert "ievp_001 / sha256:idea-evidence-content" in template_context["SOURCE_LINEAGE_ROWS"]
+    assert _in_markup("lotus-idea:IdeaEvidencePacket") in template_context["SOURCE_LINEAGE_ROWS"]
+    assert (
+        _in_markup("ievp_001 / sha256:idea-evidence-content")
+        in template_context["SOURCE_LINEAGE_ROWS"]
+    )
 
 
 def test_typst_render_service_builds_wave_context() -> None:
@@ -708,8 +733,8 @@ def test_typst_render_service_builds_wave_context() -> None:
     assert template_context["SUPPORTABILITY_STATUS"] == "ready"
     assert template_context["PROOF_PACK_READY_COUNT"] == "1"
     assert "wave-item-row(" in template_context["ITEM_ROWS"]
-    assert "dpp_001" in template_context["ITEM_ROWS"]
-    assert "STATE_TRANSITION" in template_context["EVENT_ROWS"]
+    assert _in_markup("dpp_001") in template_context["ITEM_ROWS"]
+    assert _in_markup("STATE_TRANSITION") in template_context["EVENT_ROWS"]
     assert "sha256:report-input" in template_context["CONTENT_HASH"]
 
 
