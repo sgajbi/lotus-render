@@ -260,3 +260,83 @@ def test_the_scheduled_audit_is_watched_by_something_that_is_not_a_schedule() ->
     assert "audit-liveness:" in dispatcher, "nothing checks that the audit still runs"
     assert "--assert-recent-audit 40" in dispatcher
     assert "continue-on-error" not in dispatcher, "a check that cannot fail is not a check"
+
+
+# Two classes of run, and the concurrency policy is the difference between them.
+#
+# A lane run is evidence about "this branch as it stands", so a newer push supersedes it
+# and cancelling is right. A releasability run is evidence about one immutable tree, and
+# it is the only such evidence there is (#79) -- so it keys on the revision and must not
+# be cancelled by anything that lands after it.
+EVIDENCE_WORKFLOWS = ("main-releasability.yml", "main-gate-coverage-audit.yml")
+SUPERSEDABLE_WORKFLOWS = ("feature-lane.yml", "pr-merge-gate.yml")
+
+
+def _concurrency(workflow: str) -> dict[str, object]:
+    parsed = yaml.safe_load((ROOT / ".github" / "workflows" / workflow).read_text(encoding="utf-8"))
+    concurrency = parsed.get("concurrency")
+    assert isinstance(concurrency, dict), f"{workflow} declares no concurrency policy"
+    return concurrency
+
+
+def test_a_run_that_is_the_only_evidence_for_a_tree_is_never_cancelled() -> None:
+    """Parsed, not grepped, and asserted rather than assumed.
+
+    The property is correct in both workflows and nothing checked it, so an edit could
+    flip it back and no test would fail -- which is the same shape as the gaps in this
+    file: a policy that is right today and unguarded tomorrow.
+
+    Cancellation does not merely lose the evidence, it inverts the report.
+    `audit_main_gate_coverage.py` counts only `success` and `failure` as a verdict,
+    because a cancelled run evaluated nothing -- so a cancelled releasability run makes
+    its commit read as **ungated**, and the audit says so. The two mechanisms are the
+    same guarantee approached from opposite ends, and this is what holds them together.
+    """
+
+    for workflow in EVIDENCE_WORKFLOWS:
+        concurrency = _concurrency(workflow)
+        assert concurrency.get("cancel-in-progress") is False, (
+            f"{workflow} allows a run in flight to be cancelled. That run is the only "
+            "evidence its commit has, and a cancelled run reaches no verdict -- so the "
+            "coverage audit reports the commit as ungated rather than as interrupted."
+        )
+
+
+def test_releasability_is_keyed_on_the_revision_rather_than_on_the_ref() -> None:
+    """A ref-keyed group lets the next commit cancel the run proving the previous one.
+
+    That is #79 exactly: the group has to name the immutable thing the run is evidence
+    about. `expected_sha` leads because a dispatched backfill names the revision it was
+    asked to gate; `github.sha` is the fallback, and on a tag ref it is that same
+    revision.
+    """
+
+    group = str(_concurrency("main-releasability.yml").get("group", ""))
+
+    assert "github.sha" in group or "expected_sha" in group, (
+        f"the releasability concurrency group is {group!r} and names no revision."
+    )
+    assert "github.ref" not in group, (
+        f"the releasability concurrency group is {group!r}. Keyed on a ref, a push to "
+        "main cancels the run that is the previous commit's only releasability evidence."
+    )
+
+
+def test_the_two_concurrency_policies_stay_distinguishable() -> None:
+    """Stated as a test so "make them all the same" has to confront the difference.
+
+    The lanes should cancel: a superseded branch state is not something anyone needs a
+    verdict on, and keeping those runs alive would only spend CI on trees nobody will
+    ship. Asserting both halves keeps the rule readable as a rule rather than as two
+    unexplained settings.
+    """
+
+    for workflow in SUPERSEDABLE_WORKFLOWS:
+        concurrency = _concurrency(workflow)
+        assert concurrency.get("cancel-in-progress") is True, (
+            f"{workflow} keeps superseded branch runs alive; only the runs that are a "
+            "commit's sole evidence need that."
+        )
+        assert "github.ref" in str(concurrency.get("group", "")), (
+            f"{workflow} is not keyed on the ref it supersedes."
+        )
