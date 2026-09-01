@@ -1,7 +1,10 @@
 from decimal import Decimal
 
+import pytest
+
 from app.services.chart_geometry import performance_chart_geometry
 from app.services.portfolio_charts import (
+    ALLOCATION_PALETTE,
     PerformancePoint,
     _chart_axis,
     _chart_value_bounds,
@@ -95,20 +98,49 @@ def test_allocation_items_use_fallback_rows_and_skip_invalid_values() -> None:
     assert items[1].market_value == Decimal("0")
 
 
-def test_allocation_items_wrap_palette_without_grouping_large_rows() -> None:
-    items = allocation_items_from_report_data(
-        {
-            "allocation_breakdowns": {
-                "by_asset_class": [
-                    {"name": f"Class {index}", "weight_pct": "3.00%", "market_value": "300"}
-                    for index in range(7)
-                ]
-            }
+def _classes(count: int, weight: str = "3.00%") -> dict[str, object]:
+    return {
+        "allocation_breakdowns": {
+            "by_asset_class": [
+                {"name": f"Class {index}", "weight_pct": weight, "market_value": "300"}
+                for index in range(count)
+            ]
         }
-    )
+    }
 
-    assert len(items) == 7
-    assert items[0].color == items[6].color
+
+def test_a_seventh_slice_does_not_take_the_first_slice_colour() -> None:
+    """Colour is the only key a donut has, so two wedges sharing one is two lies.
+
+    The palette holds six and the index into it wrapped, so a seventh slice was drawn in
+    `series-1` beside the first. The comment above the palette said the grouping folded
+    everything past the fifth-largest slice, so this could not happen; the grouping
+    folded everything under 2%, and seven asset classes each above 2% is an ordinary
+    portfolio. This test asserted the wrap as the expected result.
+    """
+
+    items = allocation_items_from_report_data(_classes(7))
+
+    colours = [item.color for item in items]
+    assert len(colours) == len(set(colours)), f"two slices share a colour: {colours}"
+    assert [item.label for item in items][-1] == "Other"
+    assert items[-1].weight_pct == Decimal("6.00"), "the folded tail lost weight"
+
+
+@pytest.mark.parametrize("count", range(1, 13))
+def test_the_donut_never_needs_a_colour_it_does_not_have(count: int) -> None:
+    """The bound is the point, not the seven that happened to expose it.
+
+    Every slice above 2%, so the small-slice rule folds nothing and only the palette
+    bound can hold the count. Weight is checked too: folding a tail into "Other" must
+    move it, not lose it.
+    """
+
+    items = allocation_items_from_report_data(_classes(count))
+
+    assert len(items) <= len(ALLOCATION_PALETTE)
+    assert len({item.color for item in items}) == len(items)
+    assert sum(item.weight_pct for item in items) == Decimal("3.00") * count
 
 
 def test_chart_helper_fallbacks_are_stable() -> None:
