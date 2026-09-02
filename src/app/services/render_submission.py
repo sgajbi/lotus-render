@@ -34,6 +34,7 @@ from app.services.render_ports import (
     RenderJobStorePort,
 )
 from app.services.render_recovery import diagnostic_recovery
+from app.services.section_selection import section_selection_refusal
 
 
 class RenderPackageInvalidError(ValueError):
@@ -151,6 +152,20 @@ class RenderSubmissionService:
                 error_type=RenderPackageInvalidError,
                 fallback_message="resource_limit_exceeded",
                 cause=ValueError(refusal),
+                started_at=started_at,
+            )
+        # An explicit section selection that cannot be honoured exactly refuses here
+        # too: the same selection refuses identically on retry, and honouring part of
+        # it -- or widening it to the default -- expands caller intent.
+        selection_refusal = section_selection_refusal(render_package)
+        if selection_refusal is not None:
+            return self._fail_submit(
+                render_package.render_job_id,
+                failure_category="package_validation_failed",
+                failure_message=selection_refusal,
+                error_type=RenderPackageInvalidError,
+                fallback_message="section_selection_invalid",
+                cause=ValueError(selection_refusal),
                 started_at=started_at,
             )
         if not self._execution_limiter.acquire():
