@@ -11,7 +11,8 @@ from collections.abc import Collection, Mapping, Sequence
 
 from app.contracts.render_package import RenderPackage
 from app.services.absence import supplied_text
-from app.services.appendix_glossary import applicable_glossary, benchmark_columns_are_drawn
+from app.services.appendix_glossary import applicable_glossary
+from app.services.benchmark_presentation import benchmark_note, benchmark_presentation
 from app.services.contribution_ranking import render_contribution_ranking_section
 from app.services.date_format import format_date, format_dates_in_text
 from app.services.number_format import group_digits
@@ -135,7 +136,12 @@ def build_portfolio_review_context(render_package: RenderPackage) -> dict[str, s
         )
         if package.get("status") == "included"
     }
-    benchmarked = benchmark_columns_are_drawn(report_data)
+    # A fact about the mandate, stated by Report. Inferring it from whether any period
+    # row supplied a benchmark value removed the columns during an upstream outage, so a
+    # benchmarked client received a report that read as unbenchmarked.
+    benchmark = benchmark_presentation(report_data)
+    benchmarked = benchmark.columns_are_drawn
+    benchmark_caveat = benchmark_note(benchmark) or ""
     reporting_period_label = _reporting_period_label(report_data)
 
     position_widths, position_header, position_rows = render_position_table(
@@ -235,6 +241,9 @@ def build_portfolio_review_context(render_package: RenderPackage) -> dict[str, s
         # The same fact the appendix reads to decide whether "Benchmark" needs defining,
         # so the columns and their definitions cannot disagree.
         "HAS_BENCHMARK": "yes" if benchmarked else "no",
+        # Empty when the comparison arrived. A note that is always there is furniture.
+        "BENCHMARK_NOTE": escape_typst_string(benchmark_caveat),
+        "HAS_BENCHMARK_NOTE": _presence_flag(benchmark_caveat),
         "HAS_ANNUAL_PERFORMANCE": _presence_flag(report_data.get("performance_annual_history")),
         "HAS_MONTHLY_PERFORMANCE": _presence_flag(report_data.get("performance_monthly_history")),
         "HAS_RISK_PROFILE": _presence_flag(risk_summary),

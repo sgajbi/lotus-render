@@ -126,6 +126,7 @@ def test_a_portfolio_with_no_benchmark_is_not_told_what_a_benchmark_is() -> None
     report_data["performance_periods"] = [{"label": "YTD", "portfolio_return_pct": "3.93%"}]
     report_data["performance_monthly_history"] = []
     report_data["performance_annual_history"] = []
+    report_data["benchmark_presentation"] = {"posture": "not_requested"}
     report_data["risk_summary"] = {"volatility_pct": "12.00%", "value_at_risk_pct": "-2.00%"}
 
     keys = _keys(report_data)
@@ -310,7 +311,13 @@ def test_the_appendix_defines_the_supplemental_view_the_page_drew(
 BENCHMARK_TERMS = ("Benchmark", "Relative return")
 
 
-def _without_benchmark(package: dict[str, Any]) -> dict[str, Any]:
+def _without_benchmark(package: dict[str, Any], posture: str = "not_requested") -> dict[str, Any]:
+    """A package with no benchmark values, and a posture saying why.
+
+    Stripping the values used to be the whole of it, because Render inferred
+    benchmarked-ness from whether any row supplied one. It does not: a mandate can be
+    benchmarked and the comparison can fail, and those are different documents.
+    """
     for key in ("performance_periods", "performance_monthly_history", "performance_annual_history"):
         for row in package["report_data"].get(key) or ():
             for field in (
@@ -320,6 +327,7 @@ def _without_benchmark(package: dict[str, Any]) -> dict[str, Any]:
                 "relative_return_pct",
             ):
                 row.pop(field, None)
+    package["report_data"]["benchmark_presentation"] = {"posture": posture}
     return package
 
 
@@ -383,3 +391,55 @@ def test_a_benchmark_on_the_chart_alone_defines_the_term_and_not_the_relative_re
     assert "Period returns (TWR)" in document, "the table has no benchmark and drew one"
     assert "Benchmark" in document, "the chart plots a benchmark line and never defines it"
     assert "Relative return" not in document, "nothing on the page draws a relative return"
+
+
+def test_a_failed_comparison_still_draws_the_columns_it_could_not_fill() -> None:
+    """The defect this posture exists for, and it was mine.
+
+    `is_supplied` treats the string "Not available" as absent, so a benchmarked mandate
+    whose comparison failed upstream had no supplied benchmark value in any period row --
+    and the inference removed the columns. **During an upstream outage a benchmarked
+    client received a report indistinguishable from an unbenchmarked portfolio's**, with
+    nothing on the page to ask about.
+
+    The columns stay, because the mandate has a benchmark. What changes is that the page
+    says the comparison did not arrive, which is the thing a reader can act on.
+    """
+
+    package = _without_benchmark(
+        json.loads(GOLDEN_PACKAGE.read_text(encoding="utf-8")), posture="unavailable"
+    )
+    package["report_data"]["benchmark_presentation"] = {
+        "posture": "unavailable",
+        "benchmark_code": "40/60 Global Balanced",
+        "reason_code": "benchmark_upstream_timeout",
+    }
+
+    document = _rendered_text(package)
+
+    assert "Performance against benchmark (TWR)" in document, (
+        "a benchmarked mandate lost its comparison columns because the comparison failed"
+    )
+    assert "could not be sourced for this period" in document
+    assert "40/60 Global Balanced" in document, "the page does not name the missing benchmark"
+    # And the appendix still defines what the columns mean, because they are on the page.
+    assert "Relative return" in document
+
+
+def test_only_an_unordered_benchmark_removes_the_columns() -> None:
+    """`not_requested` is the genuinely unbenchmarked portfolio, and the only case.
+
+    This is what the original fix was reaching for: two empty columns under a heading
+    promising a comparison. It was the right document for a mandate with no benchmark and
+    the wrong one for a mandate whose benchmark was merely missing.
+    """
+
+    package = _without_benchmark(
+        json.loads(GOLDEN_PACKAGE.read_text(encoding="utf-8")), posture="not_requested"
+    )
+
+    document = _rendered_text(package)
+
+    assert "Period returns (TWR)" in document
+    assert "Performance against benchmark" not in document
+    assert "could not be sourced" not in document
