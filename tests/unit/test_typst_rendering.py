@@ -13,6 +13,7 @@ from app.domain.templates.registry import TemplateRegistry
 from app.services.compile_failures import classify_compile_failure
 from app.services.render_intake import RenderIntakeService
 from app.services.render_ports import RenderEngineTimeoutError
+from app.services.section_selection import SectionSelectionError
 from app.services.typst_contexts import (
     build_outcome_review_context,
     build_portfolio_review_context,
@@ -894,9 +895,6 @@ def test_typst_render_service_helper_fallbacks_cover_sparse_structures() -> None
                 update={"report_data": {**wave_package.report_data, "items": "bad"}}
             )
         )
-    assert requested_section_keys(
-        ["detailed-positions", "asset-allocation", "unknown", "asset_allocation"]
-    ) == ["positions", "allocation"]
     assert requested_section_keys(["detailed_positions"]) == ["positions"]
     base = [
         "cover",
@@ -917,18 +915,6 @@ def test_typst_render_service_helper_fallbacks_cover_sparse_structures() -> None
         "advisor_memo",
         "appendix",
     ]
-    # An unrecognised request falls back to the default, which is still bounded by what
-    # the package carries.
-    assert requested_section_keys(["unknown"], included={"advisor_memo"}) == [
-        *base,
-        "advisor_memo",
-        "appendix",
-    ]
-    assert requested_section_keys(["unknown"], included={"advisory_narrative"}) == [
-        *base,
-        "advisory_narrative",
-        "appendix",
-    ]
     assert requested_section_keys(
         ["reviewed-advisory-narrative"],
         included={"advisory_narrative"},
@@ -937,14 +923,13 @@ def test_typst_render_service_helper_fallbacks_cover_sparse_structures() -> None
         ["advisor-proposal-memo"],
         included={"advisor_memo"},
     ) == ["advisor_memo"]
-    assert requested_section_keys(
-        ["reviewed-advisory-narrative"],
-        included=set(),
-    ) == list(requested_section_keys(None))
-    assert requested_section_keys(
-        ["advisor-proposal-memo"],
-        included=set(),
-    ) == list(requested_section_keys(None))
+    # An explicit selection that cannot be honoured refuses; it does not fall back to
+    # the default report. The fallback these lines used to assert was the defect
+    # (test_section_selection_fails_closed.py holds the full contract).
+    with pytest.raises(SectionSelectionError):
+        requested_section_keys(["detailed-positions", "asset-allocation", "unknown"])
+    with pytest.raises(SectionSelectionError):
+        requested_section_keys(["reviewed-advisory-narrative"], included=set())
     assert "No item evidence supplied." in render_wave_item_rows("bad")
     assert "No event evidence supplied." in render_wave_event_rows("bad")
     assert "No dimension evidence supplied." in render_outcome_dimension_rows("bad")
