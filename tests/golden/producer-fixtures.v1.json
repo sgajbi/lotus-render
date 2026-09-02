@@ -15,7 +15,7 @@
         "src/app/contracts/examples/portfolio-review-render-package.v1.json"
       ],
       "provenance": "Portfolio review package is the canonical lotus-report render package example mirrored into the golden fixture tree for registry-to-artifact gating.",
-      "bounded_determinism_fingerprint": "9d62a9b40b0b82095b369e477026b1a0f6a2da9b3c45fe0f7eef09ca62c5b9dd",
+      "bounded_determinism_fingerprint": "61a8de30d0bae3ae74fee58438c12a4949bd6720d7965fa8d2db1af3681de38d",
       "page_image_hashes": [
         "3b640d9a0e161831409a63e51cf8e71860a00b8b137b4eacce32c9483c6d124a",
         "afcc7914861df1793cc597a0b941af68a03468dadd1289a8f8dcb8e56851aaed",
@@ -25,7 +25,7 @@
         "7d253b74723df8f0a09a273466be0bc7a9c0a7a7843e88c8af524f77d6b21ee7",
         "1c26f1d6675a55018d950afa8e521c0dbd3f4936290637844374b3b0abc5eef9",
         "282ca38c315116cfa891cf099ce61d343c247518c012e55f88c45f29a1a6f4c6",
-        "aabad338759eb613b697b3b52ee189f250686a676e07dffafb9f10006d03cd17",
+        "f24d9d4084995521c1c1223fa8ebeba3583ba4edfa3536235260d729abb1f5c0",
         "37532eb0a0ebc39c5fd1136b977682ecbd784016858edbb5daf156a59f1675a3",
         "27d06eb9d6d4cebd87d76cd504e2f0425ff9c37aab6ba4f166478b66ccdbf6ff"
       ]
@@ -118,7 +118,7 @@
         "src/app/contracts/examples/portfolio-review-render-package.v1.json"
       ],
       "provenance": "Portfolio review carrying an approved advisor-use package so the reviewed advisory narrative section is rendered and banked; that section previously had no compiled proof (issue #118).",
-      "bounded_determinism_fingerprint": "47983b48b6b762913eb366ccffe071ee3b8fb2da1dc2d2c72ac9f7cfdb780a19",
+      "bounded_determinism_fingerprint": "2e38a5fc789d2bb60dbf2680531c3c94bfcfa0f4aab1f766dce975dfaa2973b6",
       "page_image_hashes": [
         "3b640d9a0e161831409a63e51cf8e71860a00b8b137b4eacce32c9483c6d124a",
         "39d72761cfe4962173e33aa085ac259089613dd4bf13650f6f58ea68a870a8aa",
@@ -127,7 +127,7 @@
         "db6ebb1bf948414426be0b66dee4a3e946dd5224683471b2755f5c1e76756fe4",
         "6cb87b5a7f2437f90161118eeec3e325042a005046c25a7ab230e1d571f5ba64",
         "b8c448f4c6d73082dcbcc902e6936daeb3251354bdcc88977130c0adddaf6611",
-        "f715f8db1c3f7bae1450ebc575472db7afb27bb0aea7c8113719307e20e0f82d",
+        "85819154d2a0312527ace0d6f9cd088b04b18bfe3d26e88381ecc85608b269e8",
         "cb3db5149b44c62cdd7041940545868036c0b0e0f8127c3d1d9bf6b3c7d6924e",
         "37532eb0a0ebc39c5fd1136b977682ecbd784016858edbb5daf156a59f1675a3",
         "27d06eb9d6d4cebd87d76cd504e2f0425ff9c37aab6ba4f166478b66ccdbf6ff"
@@ -146,7 +146,7 @@
         "src/app/contracts/examples/portfolio-review-render-package.v1.json"
       ],
       "provenance": "Portfolio review carrying an approved advisor-use package so the advisor proposal memo section is rendered and banked; that section previously had no compiled proof (issue #118).",
-      "bounded_determinism_fingerprint": "52f3e05ce7bdd8859540daf82eaaf3a47bdede5ea9dca41395cc69d4528ab854",
+      "bounded_determinism_fingerprint": "43178c5e58962aa4a788814ace2378a1f53b2675584dea8ff796649119739896",
       "page_image_hashes": [
         "3b640d9a0e161831409a63e51cf8e71860a00b8b137b4eacce32c9483c6d124a",
         "8043da1fb7cbaeeb2c666e23e3f978082a78b761f230968d1827c283f172aec4",
@@ -155,7 +155,7 @@
         "db6ebb1bf948414426be0b66dee4a3e946dd5224683471b2755f5c1e76756fe4",
         "6cb87b5a7f2437f90161118eeec3e325042a005046c25a7ab230e1d571f5ba64",
         "b8c448f4c6d73082dcbcc902e6936daeb3251354bdcc88977130c0adddaf6611",
-        "f715f8db1c3f7bae1450ebc575472db7afb27bb0aea7c8113719307e20e0f82d",
+        "85819154d2a0312527ace0d6f9cd088b04b18bfe3d26e88381ecc85608b269e8",
         "998f97393e453986d1e21e4610e02e141e87344a3309d02bf385d5fab014206d",
         "37532eb0a0ebc39c5fd1136b977682ecbd784016858edbb5daf156a59f1675a3",
         "27d06eb9d6d4cebd87d76cd504e2f0425ff9c37aab6ba4f166478b66ccdbf6ff"
@@ -174,7 +174,7 @@
         "src/app/contracts/examples/portfolio-review-render-package.v1.json"
       ],
       "provenance": "Portfolio review whose optional collections are all empty, so every degraded-path fallback is compiled and banked rather than asserted only as a Python string (#118).",
-      "bounded_determinism_fingerprint": "bc76687873c6abab4c73c1fbb3400a3c2fec5bdd9176cf783ae8df13fa32e231",
+      "bounded_determinism_fingerprint": "49187327feea13a0a018054d8fdcd67b7b46df25a960ae62380d73bf42945378",
       "page_image_hashes": [
         "4f2cf91be5cfc5de7e5177f2b69df1349b8836063bfa2371ce552ea6396622f0",
         "7c71af72273a31f4708b08fa6188518947b20a0f66a2d2f3da8dec5130981be0",
@@ -182,7 +182,7 @@
         "30c6fa4b6ebb5786483146b302384987e476d37778cff6ee89591dee521a6039",
         "93f7dc0a6e57c76866f284407119e381ac33c2dca5a64d602eaf5f78543cee2c",
         "cac78b04703f04e7054373e40fbd0684057e6544408413f1f5147dec1cea58e0",
-        "a371e829a4a6ab07535ce702ed8858ddd8a79a647d78c6d117cfcef20f87bbfc"
+        "90aa8a33aec2846a86da69a56f8a6df27f44c0072400c930cb995a181634f3bb"
       ]
     },
     {
@@ -198,7 +198,7 @@
         "src/app/contracts/examples/portfolio-review-render-package.v1.json"
       ],
       "provenance": "Portfolio review carrying an accepted advisor-commentary package, so the AI-assisted commentary section is compiled and banked rather than asserted only as a context key (render#218, report#166). All three narrative tones appear, because a vocabulary exercised at one value is exercised nowhere.",
-      "bounded_determinism_fingerprint": "8d85dfc1f9e99980997ad055fcd209014a6c6e2ca17bfd7884d32c4c0e05f670",
+      "bounded_determinism_fingerprint": "8e9257c5c9568d31e8b506005a81e18caaecc52e8488752b82e5ed5f32b52f19",
       "page_image_hashes": [
         "3b640d9a0e161831409a63e51cf8e71860a00b8b137b4eacce32c9483c6d124a",
         "caddc1cbdac7316af1eaccad0f5793d47980630b17b0c21dc2a3509b7ecb396c",
@@ -207,7 +207,7 @@
         "db6ebb1bf948414426be0b66dee4a3e946dd5224683471b2755f5c1e76756fe4",
         "6cb87b5a7f2437f90161118eeec3e325042a005046c25a7ab230e1d571f5ba64",
         "b8c448f4c6d73082dcbcc902e6936daeb3251354bdcc88977130c0adddaf6611",
-        "f715f8db1c3f7bae1450ebc575472db7afb27bb0aea7c8113719307e20e0f82d",
+        "85819154d2a0312527ace0d6f9cd088b04b18bfe3d26e88381ecc85608b269e8",
         "c7b0c004513948a5bb3823074c8e24828916daafcf4cc31d3c5f23c4cd326153",
         "37532eb0a0ebc39c5fd1136b977682ecbd784016858edbb5daf156a59f1675a3",
         "27d06eb9d6d4cebd87d76cd504e2f0425ff9c37aab6ba4f166478b66ccdbf6ff"

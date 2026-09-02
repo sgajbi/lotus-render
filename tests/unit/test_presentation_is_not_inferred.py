@@ -47,7 +47,12 @@ SOURCE_ROOT = Path("src/app/services")
 PRESENTATION_MODULE = SOURCE_ROOT / "allocation_presentation.py"
 GOLDEN_PACKAGE = Path("tests/golden/portfolio-review/v1/render-package.json")
 
-BREAKDOWN_KEY = re.compile(r'"(by_[a-z_]+)"')
+# The allocation breakdown dimensions, specifically -- not every key that starts with
+# `by_`. The earnings statement's income split is `by_type` and is not a dimension
+# anyone selects, and a prefix match read it as one.
+BREAKDOWN_KEY = re.compile(
+    r'"(by_(?:asset_class|currency|region|sector|country|product_type|rating))"'
+)
 
 
 def _code_only(path: Path) -> str:

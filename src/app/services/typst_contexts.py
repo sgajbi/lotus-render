@@ -15,6 +15,7 @@ from app.services.appendix_glossary import applicable_glossary
 from app.services.benchmark_presentation import benchmark_note, benchmark_presentation
 from app.services.contribution_ranking import render_contribution_ranking_section
 from app.services.date_format import format_date, format_dates_in_text
+from app.services.earnings_statement import render_earnings_statement
 from app.services.holdings_presentation import render_holdings_scope_notes
 from app.services.number_format import group_digits
 from app.services.render_content import (
@@ -287,6 +288,7 @@ def build_portfolio_review_context(render_package: RenderPackage) -> dict[str, s
         "TRANSACTION_TABLE_WIDTHS": transaction_widths,
         "TRANSACTION_TABLE_HEADER": transaction_header,
         "DENSE_TRANSACTION_ROWS": transaction_rows,
+        "EARNINGS_STATEMENT": render_earnings_statement(report_data),
         "SOURCE_SERVICES": escape_typst_string(
             ", ".join(string_list(governance_summary.get("source_services"))) or "Not available"
         ),

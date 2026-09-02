@@ -1,5 +1,5 @@
 #import "_theme.typ": accent, empty-state, rule, slate, text-body
-#import "_components.typ": report-panel, section-marker, stacked-table-label, statement-cell
+#import "_components.typ": earnings-line, earnings-statement, panel-note, report-panel, section-marker, stacked-table-label, statement-cell
 
 #let transactions-page() = [
   #section-marker("Transactions", "Transaction activity across the review period", header: "Transaction list")
@@ -26,4 +26,6 @@
       ).flatten(),
     )
   ])
+
+  ${EARNINGS_STATEMENT}
 ]
