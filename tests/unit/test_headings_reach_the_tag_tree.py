@@ -83,7 +83,8 @@ def test_the_tag_tree_carries_one_h1_and_the_section_headings(family: str) -> No
         f"{MINIMUM_H2[family]}: section labels stopped being headings"
     )
     if family == "portfolio-review/v1":
-        # Phase 3: positions, transactions and the monthly detail are real tables with
-        # TH-tagged headers. Falling below means a data table regressed to layout grids.
-        assert counts["/Table"] >= 3, f"only {counts['/Table']} real tables in the tag tree"
-        assert counts["/TH"] >= 23, f"only {counts['/TH']} TH cells: a table lost its header"
+        # Phase 3: positions, transactions, monthly detail, period returns and the two
+        # allocation composition tables are real tables with TH-tagged headers. Falling
+        # below means a data table regressed to layout grids.
+        assert counts["/Table"] >= 6, f"only {counts['/Table']} real tables in the tag tree"
+        assert counts["/TH"] >= 35, f"only {counts['/TH']} TH cells: a table lost its header"

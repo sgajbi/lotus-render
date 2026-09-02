@@ -223,18 +223,23 @@ def render_performance_period_rows(periods: object, *, benchmarked: bool) -> str
     table used to draw four columns whenever there were periods, so a package with no
     benchmark got two columns of "Not available" under a heading promising a comparison.
     """
-    empty_message = '#empty-state("No governed performance periods available.")'
+    columns = 4 if benchmarked else 2
+    # Inline so the empty-block measurement sees the placeholder a reader sees.
+    empty_message = (
+        f"(table.cell(colspan: {columns})"
+        '[#empty-state("No governed performance periods available.")],)'
+    )
     rendered: list[str] = []
     for item in mapping_entries(periods):
         period = escape_typst_string(str(item.get("period", "n/a")))
         net = escape_typst_string(group_digits(supplied_text(item.get("net_return_pct"))))
         if not benchmarked:
-            rendered.append(f'#period-return-row("{period}", "{net}")')
+            rendered.append(f'period-return-row("{period}", "{net}")')
             continue
         relative = item.get("relative_return_pct")
         parsed_relative = optional_percent(relative)
         rendered.append(
-            f'#period-row("{period}", "{net}", "'
+            f'period-row("{period}", "{net}", "'
             + escape_typst_string(group_digits(supplied_text(item.get("benchmark_return_pct"))))
             + '", "'
             + escape_typst_string(str(relative if relative is not None else "Not available"))
@@ -245,7 +250,7 @@ def render_performance_period_rows(periods: object, *, benchmarked: bool) -> str
         )
     if not rendered:
         return empty_message
-    return "\n#v(8pt)\n".join(rendered)
+    return "(\n" + ",\n".join(rendered) + ",\n)"
 
 
 def render_performance_summary_table(rows: object) -> str:
@@ -446,7 +451,10 @@ def composition_note(rows: object) -> str:
 
 
 def render_allocation_breakdown_rows(rows: object) -> str:
-    empty = '#empty-state("No allocation detail available.", size: 8pt)'
+    empty = (
+        "(table.cell(colspan: 4)"
+        '[#empty-state("No allocation detail available.", size: text-small)],)'
+    )
     items = row_sequence(rows)
     if items is None:
         return empty
@@ -457,7 +465,7 @@ def render_allocation_breakdown_rows(rows: object) -> str:
         sorted(aggregates.items(), key=lambda entry: entry[1]["weight"], reverse=True)
     )
     rendered = [
-        '#compact-allocation-row("'
+        'compact-allocation-row("'
         + escape_typst_string(name)
         + '", "'
         + escape_typst_string(format_percent(totals["weight"]))
@@ -471,7 +479,7 @@ def render_allocation_breakdown_rows(rows: object) -> str:
         + ")"
         for name, totals in ordered
     ]
-    return "\n#v(4pt)\n".join(rendered)
+    return "(\n" + ",\n".join(rendered) + ",\n)"
 
 
 def _aggregated_allocation_buckets(rows: Sequence[object]) -> dict[str, dict[str, float]]:
@@ -520,7 +528,7 @@ def render_allocation_dimension_blocks(report_data: Mapping[str, object]) -> str
             source = presented_rows(report_data, item)
             rows = render_allocation_breakdown_rows(source)
             note = composition_note(source)
-            blocks.append(f'[#allocation-dimension-block("{title}", note: {note})[\n{rows}\n]]')
+            blocks.append(f'[#allocation-dimension-block("{title}", {rows}, note: {note})]')
         else:
             note = escape_typst_string(_POSTURE_NOTES[item.posture])
             blocks.append(f'[#allocation-dimension-note("{title}", "{note}")]')
