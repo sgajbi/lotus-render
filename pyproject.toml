@@ -45,6 +45,11 @@ target-version = "py312"
 [tool.ruff.lint]
 select = ["E", "F", "I"]
 
+[tool.ruff.lint.per-file-ignores]
+# The calibration fixtures are the pre-#213 template copies, verbatim -- rewrapping a
+# fixture would measure a document nobody wrote.
+"tests/unit/test_component_promotion_guard.py" = ["E501"]
+
 [tool.pytest.ini_options]
 pythonpath = ["src"]
 testpaths = ["tests"]
