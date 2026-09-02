@@ -187,6 +187,51 @@ def test_no_page_is_emptier_than_the_banked_worst(golden_pages: list[bytes]) -> 
     )
 
 
+# The other families' emptiest pages, measured and banked the same way. Each of these
+# is a one-page governance document, so its tail is the final-page tail -- the floor of
+# this measure, since no following section exists to fill it (recorded on #184). The
+# bank therefore does not demand filling; it catches a page quietly getting emptier
+# (content dropped, layout waste grown) or fuller for an unexamined reason.
+FAMILY_WORST_TAIL_BLANK = {
+    "outcome-review/v1": 0.546,
+    "proof-pack/v1": 0.513,
+    "rebalance-wave/v1": 0.544,
+}
+
+
+@pytest.mark.parametrize("family", sorted(FAMILY_WORST_TAIL_BLANK))
+def test_no_family_page_is_emptier_than_its_banked_worst(family: str) -> None:
+    """The tail ratchet, extended to every family (#184).
+
+    The portfolio review had the ratchet; the governance families had nothing, so a
+    change could empty half of a proof pack and every gate would stay green.
+    """
+    settings = Settings()
+    service = TypstRenderService(
+        settings,
+        RenderIntakeService(
+            TemplateRegistry.load_from_directory(Path(settings.template_registry_path))
+        ),
+    )
+    package = RenderPackage.model_validate_json(
+        Path(f"tests/golden/{family}/render-package.json").read_text(encoding="utf-8")
+    )
+
+    measured = [
+        (index, ink.tail_blank)
+        for index, page in enumerate(service.render_page_images(package), 1)
+        if (ink := region_ink(page)) is not None
+    ]
+    assert measured, f"no page of {family} carried ink"
+    page, worst = max(measured, key=lambda item: item[1])
+
+    assert worst == pytest.approx(FAMILY_WORST_TAIL_BLANK[family], abs=0.01), (
+        f"{family} page {page} ends {worst:.1%} blank against a banked worst of "
+        f"{FAMILY_WORST_TAIL_BLANK[family]:.1%}. Above it, a page got emptier; below "
+        "it, the document improved and the bank should move in the change that moved it."
+    )
+
+
 def test_every_page_carries_content(golden_pages: list[bytes]) -> None:
     """A page with no ink in its body is a break that fired with nothing behind it."""
 
