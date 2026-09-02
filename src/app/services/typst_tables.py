@@ -218,7 +218,7 @@ def render_observation_notes(observations: object) -> str:
 def render_performance_period_rows(periods: object, *, benchmarked: bool) -> str:
     """Period returns, with the benchmark comparison only where there is one.
 
-    `benchmarked` is `benchmark_columns_are_drawn`, which the appendix reads too, so a
+    `benchmarked` comes from `benchmark_presentation`, which the appendix reads too, so a
     Benchmark column and a definition of "Benchmark" appear together or not at all. The
     table used to draw four columns whenever there were periods, so a package with no
     benchmark got two columns of "Not available" under a heading promising a comparison.

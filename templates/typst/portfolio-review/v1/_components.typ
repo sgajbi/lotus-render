@@ -450,3 +450,10 @@
   #linebreak()
   #text(size: text-micro, fill: slate)[#methodology]
 ]
+
+// What the period table cannot say for itself. Drawn only when the comparison is missing
+// or unproven, because a note that is always there is furniture.
+#let benchmark-note(message) = [
+  #v(4pt)
+  #text(size: text-micro, fill: slate)[#message]
+]

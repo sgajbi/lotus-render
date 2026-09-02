@@ -48,7 +48,11 @@
         }
       ]
     },
-    "positions": []
+    "positions": [],
+    "benchmark_presentation": {
+      "posture": "not_requested",
+      "notes": []
+    }
   },
   "lineage_refs": [
     "rlineage_golden_portfolio_review_v1"

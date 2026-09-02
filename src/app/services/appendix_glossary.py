@@ -23,6 +23,7 @@ from dataclasses import dataclass
 
 from app.services.absence import is_supplied
 from app.services.allocation_presentation import READY, presented_dimensions
+from app.services.benchmark_presentation import benchmark_presentation
 from app.services.typst_values import row_sequence
 
 
@@ -120,10 +121,10 @@ _RISK_SUBJECT_FIELDS = {
     "risk.value_at_risk": "value_at_risk_pct",
 }
 
-# The two surfaces that can show a benchmark read different data, so each is asked its
-# own question. This used to be one scan over three keys, one of which --
-# `performance_annual_history` -- nothing draws a benchmark from at all.
-_PERIOD_BENCHMARK_FIELDS = ("benchmark_return_pct", "relative_return_pct")
+# The 12-month chart plots its benchmark line from the series it draws, so that half is
+# still read from the data. The period table's half is not: it is a fact about the
+# mandate, `benchmark_presentation` states it, and inferring it from the table's own
+# values is what removed the columns during an upstream outage.
 _SERIES_BENCHMARK_FIELDS = ("benchmark_cumulative_twr", "benchmark_cumulative_twr_pct")
 
 
@@ -141,18 +142,6 @@ def _any_row_supplies(rows: object, fields: Sequence[str]) -> bool:
         isinstance(row, Mapping) and any(is_supplied(row.get(field)) for field in fields)
         for row in row_sequence(rows) or ()
     )
-
-
-def benchmark_columns_are_drawn(report_data: Mapping[str, object]) -> bool:
-    """Whether the period table draws its Benchmark and Relative columns.
-
-    Read by the page as well as by the appendix, so the columns and their definitions
-    cannot disagree. They did: the table drew both columns whenever there were periods at
-    all, so a package with no benchmark got two columns of "Not available" under the
-    heading "Performance against benchmark (TWR)", and an appendix that -- correctly --
-    defined neither term.
-    """
-    return _any_row_supplies(report_data.get("performance_periods"), _PERIOD_BENCHMARK_FIELDS)
 
 
 def _chart_benchmark_is_drawn(report_data: Mapping[str, object]) -> bool:
@@ -175,7 +164,14 @@ def _performance_subjects(report_data: Mapping[str, object]) -> set[str]:
         subjects.add("performance")
     # "Benchmark" is on the page if either surface shows one. "Relative return" only if
     # the table does: the chart plots a benchmark line and no relative line.
-    if benchmark_columns_are_drawn(report_data):
+    #
+    # The posture says whether the table draws the columns; it does not say whether the
+    # table is drawn at all. Both are needed, because a package with no periods has no
+    # period table to carry them -- and a report with nothing in it was getting benchmark
+    # definitions purely because an absent posture reads as `unavailable`.
+    if _has_rows(report_data.get("performance_periods")) and (
+        benchmark_presentation(report_data).columns_are_drawn
+    ):
         subjects.update(("benchmark", "benchmark.relative"))
     elif _chart_benchmark_is_drawn(report_data):
         subjects.add("benchmark")
