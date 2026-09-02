@@ -506,3 +506,27 @@
     ],
   )
 ]
+
+// One row of the attribution bridge (#160): a segment floating at its cumulative
+// position on a shared track, with the zero line drawn where zero falls in the shared
+// span. `kind` decides the fill: parts are gain/loss, the residual is slate (the
+// source's verdict on its size is prose, never colour), and the total is accent -- the
+// authoritative destination the parts explain, drawn from its own stated figure so a
+// gap between the parts' endpoint and the total stays visible.
+#let bridge-row(label-text, amount, offset, width, negative, kind, zero) = [
+  #grid(
+    columns: (1.5fr, 1.6fr, 0.62fr),
+    column-gutter: 7pt,
+    [#text(size: text-micro, fill: ink)[#label-text]],
+    [#block(width: 100%, height: 9.5pt, fill: mist, radius: 2pt)[
+      #place(left + horizon, dx: zero, rect(width: 0.6pt, height: 12.5pt, fill: slate))
+      #place(left + horizon, dx: offset, rect(
+        width: width,
+        height: 4.5pt,
+        radius: 1pt,
+        fill: if kind == "total" { accent } else if kind == "residual" { slate } else if negative { loss } else { gain },
+      ))
+    ]],
+    [#align(right)[#text(size: text-micro, weight: 500, fill: ink)[#amount]]],
+  )
+]

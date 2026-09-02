@@ -12,6 +12,7 @@ from collections.abc import Collection, Mapping, Sequence
 from app.contracts.render_package import RenderPackage
 from app.services.absence import supplied_text
 from app.services.appendix_glossary import applicable_glossary
+from app.services.attribution_bridge import render_attribution_bridge
 from app.services.benchmark_presentation import benchmark_note, benchmark_presentation
 from app.services.contribution_ranking import render_contribution_ranking_section
 from app.services.date_format import format_date, format_dates_in_text
@@ -146,6 +147,9 @@ def build_portfolio_review_context(render_package: RenderPackage) -> dict[str, s
     benchmarked = benchmark.columns_are_drawn
     benchmark_caveat = benchmark_note(benchmark) or ""
     reporting_period_label = _reporting_period_label(report_data)
+    # Emitted once and flagged from the emission: a block that draws nothing must not
+    # leave the template a "yes" flag over an empty fragment.
+    attribution_bridge = render_attribution_bridge(report_data)
 
     position_widths, position_header, position_rows = render_position_table(
         report_data.get("positions") or report_data.get("top_holdings")
@@ -267,6 +271,8 @@ def build_portfolio_review_context(render_package: RenderPackage) -> dict[str, s
         ),
         "PERFORMANCE_12M_CHART_SECTION": render_performance_chart_section(report_data),
         "CONTRIBUTION_RANKING_ROWS": render_contribution_ranking_section(report_data),
+        "ATTRIBUTION_BRIDGE": attribution_bridge,
+        "HAS_ATTRIBUTION_BRIDGE": _presence_flag(attribution_bridge),
         # Drawn only where the package carries a ranking at all. A posture of `empty` or
         # `unavailable` still draws the section, because the reader asked which holdings
         # explained the period and is owed the answer that none can be shown.
