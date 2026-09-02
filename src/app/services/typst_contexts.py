@@ -22,6 +22,7 @@ from app.services.render_content import (
     parse_proof_pack_content,
     parse_rebalance_wave_content,
 )
+from app.services.risk_supportability import render_risk_supportability_notes
 from app.services.typst_fragments import (
     render_advisor_commentary_fact_rows,
     render_advisor_commentary_prose,
@@ -247,6 +248,7 @@ def build_portfolio_review_context(render_package: RenderPackage) -> dict[str, s
         "HAS_ANNUAL_PERFORMANCE": _presence_flag(report_data.get("performance_annual_history")),
         "HAS_MONTHLY_PERFORMANCE": _presence_flag(report_data.get("performance_monthly_history")),
         "HAS_RISK_PROFILE": _presence_flag(risk_summary),
+        "RISK_SUPPORTABILITY_NOTES": render_risk_supportability_notes(report_data),
         "APPENDIX_GLOSSARY_GROUPS": render_appendix_glossary_groups(report_data),
         "OBSERVATION_NOTES": render_observation_notes(observations),
         "PERFORMANCE_PERIOD_ROWS": render_performance_period_rows(
