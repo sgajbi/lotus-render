@@ -459,3 +459,42 @@
   #v(4pt)
   #text(size: text-micro, fill: slate)[#message]
 ]
+
+// One row of the earnings statement: a label and a money amount, compact enough that the
+// whole statement fits the transaction page's measured empty half (#233).
+#let earnings-line(label, amount) = grid(
+  columns: (1fr, auto),
+  column-gutter: 8pt,
+  [#text(size: text-micro, fill: slate)[#label]],
+  [#align(right)[#text(size: text-micro, weight: 500, fill: ink)[#amount]]],
+)
+
+// What the transaction table adds up to, beside the table it summarises. Two compact
+// blocks -- income and realized -- designed to a 12-14 line budget, because the slot is
+// the bottom of a page the table is already on, not a page of its own.
+#let earnings-statement(income-title, realized-title, income, realized) = block(
+  breakable: false,
+  width: 100%,
+)[
+  #v(10pt)
+  #section-subtitle("Period earnings")
+  #v(6pt)
+  #grid(
+    columns: (1fr, 1fr),
+    column-gutter: 18pt,
+    [
+      #report-panel([
+        #text(size: text-caption, weight: 650, fill: navy)[#income-title]
+        #v(4pt)
+        #income
+      ], inset: 9pt)
+    ],
+    [
+      #report-panel([
+        #text(size: text-caption, weight: 650, fill: navy)[#realized-title]
+        #v(4pt)
+        #realized
+      ], inset: 9pt)
+    ],
+  )
+]

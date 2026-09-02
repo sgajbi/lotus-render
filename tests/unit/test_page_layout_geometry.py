@@ -102,7 +102,10 @@ RISK_CARD_BAND = (0.71, 0.88)
 # printing five fields no transaction supplies, so it draws fewer lines over the same
 # three rows. The measure cannot tell whitespace from removed noise, which is why a move
 # in either direction has to be looked at rather than accepted.
-WORST_TAIL_BLANK = 0.556
+# 0.556 -> 0.521 when the earnings statement landed in the transaction page's empty half
+# (#233): the page that had been the document's emptiest stopped being on the list at
+# all, and the worst is now the contribution tail (#184's remaining item).
+WORST_TAIL_BLANK = 0.521
 
 
 def _golden_service() -> tuple[TypstRenderService, RenderPackage]:

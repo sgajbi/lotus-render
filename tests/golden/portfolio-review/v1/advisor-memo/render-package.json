@@ -608,6 +608,51 @@
       "available_count": 3,
       "presented_weight_pct": "89.64",
       "notes": []
+    },
+    "earnings_statement": {
+      "posture": "ready",
+      "completeness": "complete",
+      "income": {
+        "transaction_count": 3,
+        "gross": "48200.00",
+        "withholding_tax": "-6100.00",
+        "other_deductions": "-350.00",
+        "net": "41750.00",
+        "by_type": [
+          {
+            "income_type": "DIVIDEND",
+            "net": "29450.00",
+            "transaction_count": 2
+          },
+          {
+            "income_type": "INTEREST",
+            "net": "12300.00",
+            "transaction_count": 1
+          }
+        ]
+      },
+      "realized_pnl": {
+        "status": "present",
+        "transaction_count": 2,
+        "net": "40120.00",
+        "gains": "52840.00",
+        "losses": "-12720.00",
+        "largest_gain": {
+          "security_name": "ASML Holding NV",
+          "amount": "38400.00",
+          "transaction_date": "2026-03-12"
+        },
+        "largest_loss": {
+          "security_name": "Vodafone Group PLC",
+          "amount": "-12720.00",
+          "transaction_date": "2026-02-04"
+        }
+      },
+      "methodology": {
+        "basis": "settled",
+        "tax_lot_jurisdiction_treatment": "not_sourced"
+      },
+      "notes": []
     }
   },
   "lineage_refs": [
