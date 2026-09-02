@@ -27,6 +27,10 @@
   footer-descent: 38%,
 )
 
+// Headings carry structure (H tags, bookmarks); they space exactly as the plain
+// paragraphs they used to be (0.42em x 8.8pt body paragraph spacing, absolute so the
+// heading's own text size cannot re-scale it).
+#show heading: set block(above: 3.7pt, below: 3.7pt)
 #set text(size: text-body, fill: ink)
 #set par(leading: 1.08em, spacing: 0.42em)
 

@@ -1,7 +1,11 @@
-#import "_design.typ": accent, document-reference-mark, evidence-row, ink, key-value-row, key-value-rows, label, muted, rule, text-body, text-caption, text-document, text-lead, text-small, text-subhead, value
+#import "_design.typ": accent, document-reference-mark, document-title, evidence-row, ink, key-value-row, key-value-rows, label, muted, rule, section-head, text-body, text-caption, text-document, text-lead, text-small, text-subhead, value
 
 #set document(title: "Outcome review ${OUTCOME_REVIEW_ID}", author: "Lotus")
 
+// Headings carry structure (H tags, bookmarks); they space exactly as the plain
+// paragraphs they used to be (0.45em x 8.8pt body paragraph spacing, absolute so the
+// heading's own text size cannot re-scale it).
+#show heading: set block(above: 3.96pt, below: 3.96pt)
 #set page(
   paper: "a4",
   margin: (x: 18mm, y: 16mm),
@@ -31,7 +35,7 @@
   (name: "Explanation", share: 2.15, body: explanation),
 ))
 
-#text(size: text-document, weight: "medium", fill: ink)[#"${TITLE}"]
+#document-title("${TITLE}", size: text-document)
 #v(4pt)
 #text(size: text-small, fill: muted)[Governed post-trade outcome-review report / #"${STATE}"]
 
@@ -45,12 +49,12 @@
 )
 
 #v(8pt)
-#text(size: text-subhead, weight: "medium")[Outcome Summary]
+#section-head([Outcome Summary], size: text-subhead)
 #v(3pt)
 #"${OVERALL_OUTCOME}"
 
 #v(8pt)
-#text(size: text-subhead, weight: "medium")[Dimension Evidence]
+#section-head([Dimension Evidence], size: text-subhead)
 #v(3pt)
 ${DIMENSION_ROWS}
 
