@@ -773,6 +773,90 @@
         "tax_lot_jurisdiction_treatment": "not_sourced"
       },
       "notes": []
+    },
+    "attribution_bridge": {
+      "period": "YTD",
+      "benchmark_code": "SPX_TR",
+      "metric_basis": "NET",
+      "notes": [],
+      "posture": "ready",
+      "model": "brinson_fachler",
+      "linking": "carino",
+      "grouping_dimension": "asset_class",
+      "level": 1,
+      "period_status": "present",
+      "effects": [
+        {
+          "grouping_dimension": "asset_class",
+          "level": 1,
+          "group_key": "equity",
+          "group_label": "Equity",
+          "allocation_pp": "0.18",
+          "selection_pp": "0.71",
+          "interaction_pp": "0.03",
+          "total_effect_pp": "0.92",
+          "portfolio_weight_avg_pct": "52.10",
+          "benchmark_weight_avg_pct": "48.00",
+          "portfolio_return_pp": "8.40",
+          "benchmark_return_pp": "6.55"
+        },
+        {
+          "grouping_dimension": "asset_class",
+          "level": 1,
+          "group_key": "fixed_income",
+          "group_label": "Fixed Income",
+          "allocation_pp": "0.21",
+          "selection_pp": "0.14",
+          "interaction_pp": "0.03",
+          "total_effect_pp": "0.38",
+          "portfolio_weight_avg_pct": "30.50",
+          "benchmark_weight_avg_pct": "34.00",
+          "portfolio_return_pp": "3.10",
+          "benchmark_return_pp": "2.20"
+        },
+        {
+          "grouping_dimension": "asset_class",
+          "level": 1,
+          "group_key": "cash",
+          "group_label": "Cash",
+          "allocation_pp": "-0.05",
+          "selection_pp": "0.00",
+          "interaction_pp": "0.00",
+          "total_effect_pp": "-0.05",
+          "portfolio_weight_avg_pct": "9.40",
+          "benchmark_weight_avg_pct": "10.00",
+          "portfolio_return_pp": "0.30",
+          "benchmark_return_pp": "0.30"
+        },
+        {
+          "grouping_dimension": "asset_class",
+          "level": 1,
+          "group_key": "alternatives",
+          "group_label": "Alternatives",
+          "allocation_pp": "0.11",
+          "selection_pp": "-0.14",
+          "interaction_pp": "-0.01",
+          "total_effect_pp": "-0.04",
+          "portfolio_weight_avg_pct": "8.00",
+          "benchmark_weight_avg_pct": "8.00",
+          "portfolio_return_pp": "1.90",
+          "benchmark_return_pp": "2.40"
+        }
+      ],
+      "totals": {
+        "allocation_pp": "0.45",
+        "selection_pp": "0.71",
+        "interaction_pp": "0.05",
+        "total_effect_pp": "1.21"
+      },
+      "reconciliation": {
+        "total_active_return_pp": "1.24",
+        "sum_of_effects_pp": "1.21",
+        "residual_pp": "0.03",
+        "residual_classification": "immaterial",
+        "residual_treatment": "disclose"
+      },
+      "period_notes": []
     }
   },
   "lineage_refs": [

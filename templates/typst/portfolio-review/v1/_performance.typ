@@ -1,6 +1,6 @@
 #import "_charts.typ": line-chart
 #import "_theme.typ": empty-state, rule, section-subtitle
-#import "_components.typ": chart-card, chart-placeholder, chart-scale-note, contribution-reconciliation, contribution-row, labelled-table, panel-note, performance-chart-row, performance-detail-row, performance-summary-cell, period-return-row, period-row, section-marker, table-label
+#import "_components.typ": bridge-row, chart-card, chart-placeholder, chart-scale-note, contribution-reconciliation, contribution-row, labelled-table, panel-note, performance-chart-row, performance-detail-row, performance-summary-cell, period-return-row, period-row, section-marker, table-label
 
 #let performance-page() = [
   // The marker names what the page holds, so it stops promising a comparison the
@@ -101,5 +101,13 @@
       ),
       [${CONTRIBUTION_RANKING_ROWS}],
     )
+  ]
+
+  // The bridge answers "why did that line beat or trail the benchmark", so it follows
+  // the ranking that answers "which holdings made the line". Drawn only when ordered:
+  // the section is opt-in upstream, and an absent block promises nothing.
+  #if "${HAS_ATTRIBUTION_BRIDGE}" == "yes" [
+    #v(14pt)
+    ${ATTRIBUTION_BRIDGE}
   ]
 ]

@@ -104,8 +104,13 @@ RISK_CARD_BAND = (0.71, 0.88)
 # in either direction has to be looked at rather than accepted.
 # 0.556 -> 0.521 when the earnings statement landed in the transaction page's empty half
 # (#233): the page that had been the document's emptiest stopped being on the list at
-# all, and the worst is now the contribution tail (#184's remaining item).
-WORST_TAIL_BLANK = 0.521
+# all, and the worst became the contribution tail.
+# 0.521 -> 0.499 when the attribution bridge (#160) landed in that contribution tail --
+# the fourth analytic absorbed into reserved space. The worst is now the contents page,
+# which is exempt by decision (#184): a deliberate pause, not a page to fill. It matters
+# here only as the baseline; if a *content* page ever overtakes it, that page is the one
+# to look at.
+WORST_TAIL_BLANK = 0.499
 
 
 def _golden_service() -> tuple[TypstRenderService, RenderPackage]:
