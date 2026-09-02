@@ -15,6 +15,7 @@ from app.services.appendix_glossary import applicable_glossary
 from app.services.benchmark_presentation import benchmark_note, benchmark_presentation
 from app.services.contribution_ranking import render_contribution_ranking_section
 from app.services.date_format import format_date, format_dates_in_text
+from app.services.holdings_presentation import render_holdings_scope_notes
 from app.services.number_format import group_digits
 from app.services.render_content import (
     parse_outcome_review_content,
@@ -270,6 +271,7 @@ def build_portfolio_review_context(render_package: RenderPackage) -> dict[str, s
         # explained the period and is owed the answer that none can be shown.
         "HAS_CONTRIBUTION_RANKING": _presence_flag(report_data.get("contribution_ranking")),
         "HOLDING_BAR_ROWS": render_holding_bar_rows(report_data.get("top_holdings")),
+        "HOLDINGS_SCOPE_NOTES": render_holdings_scope_notes(report_data),
         "ALLOCATION_DONUT_CHART_SECTION": render_allocation_chart_section(report_data),
         # One block per dimension the package named, in its order. Replaces a hard-coded
         # asset-class table beside one supplemental slot Render chose for itself.

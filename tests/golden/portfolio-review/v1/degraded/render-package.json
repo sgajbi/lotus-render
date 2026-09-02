@@ -52,6 +52,11 @@
     "benchmark_presentation": {
       "posture": "not_requested",
       "notes": []
+    },
+    "holdings_presentation": {
+      "posture": "unavailable",
+      "supportability_status": "ready",
+      "notes": []
     }
   },
   "lineage_refs": [
