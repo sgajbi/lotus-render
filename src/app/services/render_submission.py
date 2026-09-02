@@ -25,6 +25,7 @@ from app.infrastructure.render_store import (
 )
 from app.observability.render_log import log_render_accepted, log_render_failed
 from app.observability.render_metrics import record_render_artifact_size, record_render_operation
+from app.services.render_envelope import envelope_refusal
 from app.services.render_execution import RenderExecutionLimiter
 from app.services.render_ports import (
     RenderCompileFailedError,
@@ -137,6 +138,21 @@ class RenderSubmissionService:
         is always claimable, so the next submission simply renders it (issue #115); it was
         not safe before #105, when a non-terminal row could not be re-executed at all.
         """
+        # Refused before the slot, because the point of refusing is not to spend one. A
+        # document over the envelope holds one of two slots for the whole compile timeout
+        # and then fails, and the caller learns nothing they could not have been told at
+        # admission (#168).
+        refusal = envelope_refusal(render_package.report_data)
+        if refusal is not None:
+            return self._fail_submit(
+                render_package.render_job_id,
+                failure_category="resource_limit_exceeded",
+                failure_message=refusal,
+                error_type=RenderPackageInvalidError,
+                fallback_message="resource_limit_exceeded",
+                cause=ValueError(refusal),
+                started_at=started_at,
+            )
         if not self._execution_limiter.acquire():
             raise RenderCapacityExhaustedError("render_execution_capacity_exhausted")
         try:
