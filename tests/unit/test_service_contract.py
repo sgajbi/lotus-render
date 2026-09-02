@@ -9,7 +9,11 @@ from app.contracts.renders import RENDER_SUBMIT_REQUEST_EXAMPLE
 from app.core.settings import Settings
 from app.domain.render_attempts.models import RenderAttempt, RenderFailureCategory
 from app.domain.templates.digest import template_digest
-from app.domain.templates.models import TemplateLifecycleStatus, TemplateManifest
+from app.domain.templates.models import (
+    TemplateLifecycleStatus,
+    TemplateManifest,
+    TemplatePublication,
+)
 from app.domain.templates.registry import (
     TemplateCompatibilityError,
     TemplateRegistry,
@@ -67,6 +71,7 @@ def _build_manifest(
         approver="lotus-platform-governance",
         approved_at="2026-04-23",
         status=status,
+        publication=TemplatePublication.DEVELOPMENT,
         golden_sample_ids=["golden-portfolio-review-en-SG-private-banking-v1"],
         runtime_engine="typst",
         runtime_engine_version="0.14.2",
@@ -336,6 +341,7 @@ def test_template_registry_exports_manifest_dicts() -> None:
             "approver": "lotus-platform-governance",
             "approved_at": "2026-04-23",
             "status": "active",
+            "publication": "development",
             "golden_sample_ids": ["golden-portfolio-review-en-SG-private-banking-v1"],
             # The manifest names the bytes it describes; the registry refuses to load one
             # that no longer matches its template directory (issue #139).
