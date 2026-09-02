@@ -451,9 +451,11 @@
   #text(size: text-micro, fill: slate)[#methodology]
 ]
 
-// What the period table cannot say for itself. Drawn only when the comparison is missing
-// or unproven, because a note that is always there is furniture.
-#let benchmark-note(message) = [
+// What a panel cannot say for itself: one explanatory line beneath it, drawn only when
+// there is something true to say, because a note that is always there is furniture.
+// Started life as `benchmark-note`; renamed when the risk panel became its second
+// consumer -- the promote-on-second-consumer rule (#150) applied at the first chance.
+#let panel-note(message) = [
   #v(4pt)
   #text(size: text-micro, fill: slate)[#message]
 ]

@@ -596,6 +596,10 @@
       "benchmark_code": "40/60 Global Balanced",
       "return_source": "lotus-performance",
       "notes": []
+    },
+    "risk_posture": {
+      "posture": "ready",
+      "notes": []
     }
   },
   "lineage_refs": [

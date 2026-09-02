@@ -1,6 +1,6 @@
 #import "_charts.typ": donut-chart
 #import "_theme.typ": empty-state, mist, rule, section-subtitle
-#import "_components.typ": allocation-dimension-block, allocation-dimension-note, chart-card, chart-placeholder, compact-allocation-row, key-stat, note-panel, report-panel, section-marker
+#import "_components.typ": allocation-dimension-block, allocation-dimension-note, chart-card, chart-placeholder, compact-allocation-row, key-stat, note-panel, panel-note, report-panel, section-marker
 
 #let allocation-page() = [
   #section-marker("Asset allocation", "Asset mix, exposure detail, and risk profile")
@@ -51,5 +51,8 @@
       [#note-panel("Value at risk", "${RISK_VAR}")],
       [#note-panel("Review period", "${REVIEW_PERIOD_LABEL}")],
     )
+    // Why a measure is missing, in Report's words. "Not available" alone stood for five
+    // different facts, two of which point a reader in opposite directions (#227).
+    ${RISK_SUPPORTABILITY_NOTES}
   ]
 ]

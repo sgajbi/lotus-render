@@ -1,6 +1,6 @@
 #import "_charts.typ": line-chart
 #import "_theme.typ": empty-state, rule, section-subtitle
-#import "_components.typ": chart-card, chart-placeholder, benchmark-note, chart-scale-note, contribution-reconciliation, contribution-row, labelled-table, performance-chart-row, performance-detail-row, performance-summary-cell, period-return-row, period-row, section-marker, table-label
+#import "_components.typ": chart-card, chart-placeholder, chart-scale-note, contribution-reconciliation, contribution-row, labelled-table, panel-note, performance-chart-row, performance-detail-row, performance-summary-cell, period-return-row, period-row, section-marker, table-label
 
 #let performance-page() = [
   // The marker names what the page holds, so it stops promising a comparison the
@@ -34,7 +34,7 @@
         [${PERFORMANCE_PERIOD_ROWS}],
       )
       #if "${HAS_BENCHMARK_NOTE}" == "yes" [
-        #benchmark-note("${BENCHMARK_NOTE}")
+        #panel-note("${BENCHMARK_NOTE}")
       ]
     ] else [
       #labelled-table(
