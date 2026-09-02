@@ -15,7 +15,7 @@
         "src/app/contracts/examples/portfolio-review-render-package.v1.json"
       ],
       "provenance": "Portfolio review package is the canonical lotus-report render package example mirrored into the golden fixture tree for registry-to-artifact gating.",
-      "bounded_determinism_fingerprint": "981326b86b43cdfde429c5fe733b8955f9b3e8309d535b584274e97b38fd9da5",
+      "bounded_determinism_fingerprint": "422843f219854a3aef9be1ff41ea6346aae4a1ad7ba0150c79bceda4d3a0ba58",
       "page_image_hashes": [
         "d35fe01b4d1cd11bf367857c768439b7d61ca70ab15499dacad253f9db7c42a8",
         "04a2f965e4e96102b28c5d6df89b0c7e7f302add36bb9894e2f70c001c2f8014",
@@ -43,7 +43,7 @@
         "tests/unit/reporting_render/test_service.py"
       ],
       "provenance": "Generated from lotus-report ReportJobLedger and typed OutcomeReviewReportJobRequest through _build_render_package.",
-      "bounded_determinism_fingerprint": "e039adc591bc92bba431dbec8be7abb7e80d53a1fb7210fda867fc3cc599f79f",
+      "bounded_determinism_fingerprint": "3623a3181a24b0ea144a4968b9a472e3da24fe9e0adb92d2778d701065ea7a8d",
       "page_image_hashes": [
         "b08150a0b96e825853899fa743fce863aa120062088cd17560573ccfe7d230cd"
       ]
@@ -61,7 +61,7 @@
         "tests/unit/reporting_render/test_service.py"
       ],
       "provenance": "Generated from lotus-report ReportJobLedger and typed ProofPackReportJobRequest through _build_render_package.",
-      "bounded_determinism_fingerprint": "b2265401e470c178366b81c315efb18d4407421e4dca1dc2f60145bb351ba385",
+      "bounded_determinism_fingerprint": "26d1a7a94a79c1aa5d9e8decda93644612d8dd1ea592caf574f4606b5f5f3d8c",
       "page_image_hashes": [
         "16f0ce37e0140d4c1f49cdbc653b558ad85a7ac4c844f99f285b2bfbab2e8467"
       ]
@@ -82,7 +82,7 @@
         "tests/integration/test_idea_evidence_intake_api.py"
       ],
       "provenance": "Mirrors lotus-report reviewed Idea evidence materialization, which adapts lotus_idea_evidence_pack_report_input.v1 into the governed proof-pack render package without granting client-publication or archive authority in lotus-render.",
-      "bounded_determinism_fingerprint": "2dc754ed2587b54205a7bd1897a822bfde849b3a4be3d6b516395f2e1f2cb0fd",
+      "bounded_determinism_fingerprint": "ace3643396ddf65855690f81a09d4a8ddd27c1e693da1b21248a526e3d02a6c5",
       "page_image_hashes": [
         "7f87a82da6c3ee232fe229e446507debbcaaab2de2c04b2ef597406b27b84103"
       ]
@@ -100,7 +100,7 @@
         "tests/unit/reporting_render/test_service.py"
       ],
       "provenance": "Generated from lotus-report ReportJobLedger and typed WaveReportJobRequest through _build_render_package.",
-      "bounded_determinism_fingerprint": "fd1a820eed6c9d468d4f3ebca5473f9f1b07c067ac567cd84b2885694ac4da65",
+      "bounded_determinism_fingerprint": "0cb98e93af336ce87f5d30e26403c81a73fbb3df26237e7b54d6248302e1f9ac",
       "page_image_hashes": [
         "79c18db56e5f0bbd4d51d6f3cf86429d49ff2d7d85cfefd553e52d670651bc5d"
       ]
@@ -118,7 +118,7 @@
         "src/app/contracts/examples/portfolio-review-render-package.v1.json"
       ],
       "provenance": "Portfolio review carrying an approved advisor-use package so the reviewed advisory narrative section is rendered and banked; that section previously had no compiled proof (issue #118).",
-      "bounded_determinism_fingerprint": "738ad859b1e143f83506a0277094b4e62bddce0e2b9153b9968f921d922e70ba",
+      "bounded_determinism_fingerprint": "b95175796a36650658c453608d5fbf2d20bfc66378181800695670b4ad0f5eed",
       "page_image_hashes": [
         "d35fe01b4d1cd11bf367857c768439b7d61ca70ab15499dacad253f9db7c42a8",
         "eb218a4075022253ca9de48b3cad01478006f90cae4147c2603bfe600e9a54f1",
@@ -146,7 +146,7 @@
         "src/app/contracts/examples/portfolio-review-render-package.v1.json"
       ],
       "provenance": "Portfolio review carrying an approved advisor-use package so the advisor proposal memo section is rendered and banked; that section previously had no compiled proof (issue #118).",
-      "bounded_determinism_fingerprint": "7fd3c247b1efef932937761d2f29f5edadfafeff6dff6bf2edf9b7bd5a61a244",
+      "bounded_determinism_fingerprint": "671f67c004b11d59ace3b526732db4ed0d40056af15929b937b10e196d89b595",
       "page_image_hashes": [
         "d35fe01b4d1cd11bf367857c768439b7d61ca70ab15499dacad253f9db7c42a8",
         "c6731d2481a04a4c34a35a957927bea15f8e16f99d8b8aaba350a95d939c1604",
@@ -174,7 +174,7 @@
         "src/app/contracts/examples/portfolio-review-render-package.v1.json"
       ],
       "provenance": "Portfolio review whose optional collections are all empty, so every degraded-path fallback is compiled and banked rather than asserted only as a Python string (#118).",
-      "bounded_determinism_fingerprint": "ca8a71965e55d173502a8931349fd77cee44c0995030d9c5074a8c50d7659c49",
+      "bounded_determinism_fingerprint": "1573f2f4448ce2f1b55cfc165fb44fe8035cb0a492c0e35a5fd71dba490c18be",
       "page_image_hashes": [
         "ce392a2b264f9f95f4f82177b227faee93ca572ec76e275eb360f9ff69b63810",
         "bc1f7c064b6cac151383cf7a2e40e9081a7690c61e59b8cfc7e0b58ea94357ce",
@@ -198,7 +198,7 @@
         "src/app/contracts/examples/portfolio-review-render-package.v1.json"
       ],
       "provenance": "Portfolio review carrying an accepted advisor-commentary package, so the AI-assisted commentary section is compiled and banked rather than asserted only as a context key (render#218, report#166). All three narrative tones appear, because a vocabulary exercised at one value is exercised nowhere.",
-      "bounded_determinism_fingerprint": "770e3333a7640f29d577ad1cd58f77df84b5a46e204a8a42df3db049c4ef8038",
+      "bounded_determinism_fingerprint": "cbc0cc07ff0a5b2d79d39e3804ceb79fd77aa36b0e422d22890d01f3a2d3b47d",
       "page_image_hashes": [
         "d35fe01b4d1cd11bf367857c768439b7d61ca70ab15499dacad253f9db7c42a8",
         "fae4f8b5e54915d315b0f95f82892d584285c715cb80d45a524dfde7390482ae",

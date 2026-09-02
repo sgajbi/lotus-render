@@ -1447,6 +1447,8 @@ def test_typst_render_service_uses_local_typst_when_docker_is_unavailable(
     assert command == [
         "/usr/local/bin/typst",
         "compile",
+        "--pdf-standard",
+        "a-2a",
         str(source_path),
         str(output_path),
     ]
