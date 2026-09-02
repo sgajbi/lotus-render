@@ -1,4 +1,4 @@
-#import "_design.typ": accent, evidence-row, ink, key-value-row, key-value-rows, label, muted, rule, text-body, text-caption, text-document, text-lead, text-small, text-subhead, value
+#import "_design.typ": accent, document-reference-mark, evidence-row, ink, key-value-row, key-value-rows, label, muted, rule, text-body, text-caption, text-document, text-lead, text-small, text-subhead, value
 #set page(
   paper: "a4",
   margin: (x: 18mm, y: 16mm),
@@ -7,7 +7,7 @@
     #v(5pt)
     #grid(
       columns: (1fr, auto),
-      [#text(size: text-caption, fill: muted)[#"${PORTFOLIO_ID}" / #"${OUTCOME_REVIEW_ID}"]],
+      [#text(size: text-caption, fill: muted)[#"${PORTFOLIO_ID}" / #"${OUTCOME_REVIEW_ID}"]#document-reference-mark("${DOCUMENT_REFERENCE}")],
       [#text(size: text-caption, fill: ink)[#counter(page).display("1 / 1")]],
     )
   ],

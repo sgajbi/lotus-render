@@ -48,7 +48,9 @@ CONTEXT_BUILDERS = {
 }
 
 # Keys the render service adds after the builder runs, in `_materialize_template`.
-SERVICE_KEYS = frozenset({"DETERMINISM_STATEMENT", "TRACE_ID", "CORRELATION_ID"})
+SERVICE_KEYS = frozenset(
+    {"DETERMINISM_STATEMENT", "TRACE_ID", "CORRELATION_ID", "DOCUMENT_REFERENCE"}
+)
 
 # Produced today, drawn nowhere. Each line is a debt with an owner, not an exemption.
 ORPHANED_KEYS: dict[str, frozenset[str]] = {

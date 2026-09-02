@@ -148,6 +148,17 @@
 // alignment is not a per-family question.
 //
 // `fields` is a list of `(name, share, body)`.
+// The governed document reference (#158): the one externally meaningful identity a
+// client-facing artifact carries, placed the same way by every family -- no family
+// invents its own provenance treatment. Report mints the reference before render and
+// supplies it in the render context; Render places it verbatim and invents nothing.
+// Internal trace and correlation ids are support evidence, not this. Drawn only when
+// a reference was supplied.
+#let document-reference-mark(reference) = if reference != "" [
+  #h(6pt)#text(size: text-caption, fill: muted)[#reference]
+]
+
+
 #let evidence-row(fields) = block(
   below: 5pt,
   stroke: (left: (paint: accent, thickness: 1.1pt)),
