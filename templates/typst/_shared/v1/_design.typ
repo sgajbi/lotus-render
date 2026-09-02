@@ -10,6 +10,13 @@
 // template digest, so a change here changes the digest of every document it can reach.
 // That is deliberate: a palette edit is a change to every document, and the evidence
 // chain should say so.
+//
+// What earns a component a place here: a second consumer, and nothing else. A component
+// is promoted the moment a second family or file needs it -- the way `evidence-row`
+// arrived, as three drifting copies of one implementation (#213) -- and not before: a
+// shared module with one caller is speculative generality. The copy path is guarded:
+// `test_component_promotion_guard.py` fails when two template files declare
+// near-identical implementations under different names.
 
 // --- Neutrals -------------------------------------------------------------------
 // The near-black used for figures and body text.

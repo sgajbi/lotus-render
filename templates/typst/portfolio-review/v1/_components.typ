@@ -1,3 +1,11 @@
+// Components of the portfolio review family. One family, one file: a component here
+// has exactly one consumer, and it moves to `_shared/_design.typ` the moment a second
+// family or file needs it -- never before (a shared module with one caller is
+// speculative generality), and never by copying (the pre-#213 governance rows drifted
+// as three copies of one implementation for months, found only by a shared defect).
+// The copy path is guarded: `test_component_promotion_guard.py` fails when two
+// template files declare near-identical implementations under different names.
+
 #import "_theme.typ": accent, accent-soft, body-muted, body-strong, empty-state, gain, grid-gap, hairline, ink, loss, mist, navy, page-kicker, panel-radius, rule, section-subtitle, section-title, slate, small-caps, soft-rule, text-body, text-body-strong, text-caption, text-fine, text-head, text-lead, text-micro, text-small
 
 // Laid out by `set page(header:)` in main.typ rather than emitted into the flow, so a
