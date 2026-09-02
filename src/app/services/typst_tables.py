@@ -305,11 +305,24 @@ def render_performance_chart_rows(rows: object) -> str:
 
 
 def render_performance_detail_rows(rows: object) -> str:
-    empty_message = '#empty-state("No monthly performance detail available.", size: 8pt)'
+    """Rows of the monthly table, as a Typst array the table spreads.
+
+    Each row is a `performance-detail-row(...)` call returning eight cells, so the
+    table -- not the row -- owns columns, separator strokes and the repeating header
+    (#246 phase 3). Where no row can be read, one spanning cell states it inside the
+    same table.
+    """
+    # Emitted inline rather than through a component: `count_empty_content_blocks`
+    # counts the `empty-state(` calls in context values, and a placeholder a reader
+    # sees must never hide from the measurement inside a component.
+    empty_message = (
+        "(table.cell(colspan: 8)"
+        '[#empty-state("No monthly performance detail available.", size: text-small)],)'
+    )
     rendered: list[str] = []
     for item in mapping_entries(rows):
         rendered.append(
-            '#performance-detail-row("'
+            'performance-detail-row("'
             + escape_typst_string(str(item.get("period", "n/a")))
             + '", "'
             + escape_typst_string(group_digits(supplied_text(item.get("final_value"))))
@@ -331,7 +344,7 @@ def render_performance_detail_rows(rows: object) -> str:
         )
     if not rendered:
         return empty_message
-    return "\n#v(2pt)\n".join(rendered)
+    return "(\n" + ",\n".join(rendered) + ",\n)"
 
 
 def render_holding_bar_rows(holdings: object) -> str:

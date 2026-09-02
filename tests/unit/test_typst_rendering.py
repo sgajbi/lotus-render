@@ -541,7 +541,7 @@ def test_typst_render_service_builds_richer_portfolio_review_context() -> None:
     assert "#period-row(" in template_context["PERFORMANCE_PERIOD_ROWS"]
     assert "performance-summary-cell(" in template_context["PERFORMANCE_SUMMARY_TABLE"]
     assert "#performance-chart-row(" in template_context["PERFORMANCE_ANNUAL_CHART_ROWS"]
-    assert "#performance-detail-row(" in template_context["PERFORMANCE_MONTHLY_TABLE_ROWS"]
+    assert "performance-detail-row(" in template_context["PERFORMANCE_MONTHLY_TABLE_ROWS"]
     # Drawn natively rather than shipped as an SVG asset, so the section carries the
     # chart's geometry rather than a path to an image.
     assert "#line-chart(" in template_context["PERFORMANCE_12M_CHART_SECTION"]
@@ -950,7 +950,9 @@ def test_typst_render_service_helper_fallbacks_cover_sparse_structures() -> None
     assert "No governed performance summary available." in render_performance_summary_table([123])
     assert "No performance history available." in render_performance_chart_rows("bad")
     assert "No performance history available." in render_performance_chart_rows([123])
-    assert "No monthly performance detail available." in render_performance_detail_rows("bad")
+    # Unreadable monthly rows become one spanning cell stating so, inside the same
+    # table -- inline, so the empty-block measurement still sees the placeholder.
+    assert "table.cell(colspan: 8)" in render_performance_detail_rows("bad")
     assert "No monthly performance detail available." in render_performance_detail_rows([123])
     assert "No governed allocation rows available." in render_holding_bar_rows("bad")
     assert "No position detail available." in render_position_table("bad")[2]
