@@ -161,6 +161,19 @@
 // supplies it in the render context; Render places it verbatim and invents nothing.
 // Internal trace and correlation ids are support evidence, not this. Drawn only when
 // a reference was supplied.
+// Semantic headings (#246 phase 2): the flow title is the document's H1 and section
+// labels are H2, so the tag tree has structure assistive technology can navigate.
+// One implementation of "a heading styled by its caller": every call site names its
+// own scale step and tones, so the type-scale guard still sees each step asked for by
+// a template, and a family with its own voice (the portfolio review's cover) adapts
+// over these rather than copying the chrome.
+#let document-title(value, size: none, weight: "medium", fill: ink) = heading(
+  level: 1,
+)[#text(size: size, weight: weight, fill: fill)[#value]]
+#let section-head(value, size: none, weight: "medium", tracking: 0pt, fill: ink) = heading(
+  level: 2,
+)[#text(size: size, weight: weight, tracking: tracking, fill: fill)[#value]]
+
 #let document-reference-mark(reference) = if reference != "" [
   #h(6pt)#text(size: text-caption, fill: muted)[#reference]
 ]

@@ -197,10 +197,15 @@ def test_no_page_is_emptier_than_the_banked_worst(golden_pages: list[bytes]) -> 
 # this measure, since no following section exists to fill it (recorded on #184). The
 # bank therefore does not demand filling; it catches a page quietly getting emptier
 # (content dropped, layout waste grown) or fuller for an unexamined reason.
+# Moved 0.546/0.513/0.544 -> these when the flow titles became real headings (#246
+# phase 2): heading block spacing is pinned to each family's paragraph spacing in
+# absolute pt, and the ~1mm-per-heading tightening that remains was looked at on the
+# rendered pages -- the rhythm holds, so the tightening is the new baseline rather
+# than slack to win back.
 FAMILY_WORST_TAIL_BLANK = {
-    "outcome-review/v1": 0.546,
-    "proof-pack/v1": 0.513,
-    "rebalance-wave/v1": 0.544,
+    "outcome-review/v1": 0.559,
+    "proof-pack/v1": 0.522,
+    "rebalance-wave/v1": 0.553,
 }
 
 
