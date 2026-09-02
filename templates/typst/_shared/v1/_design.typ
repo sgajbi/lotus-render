@@ -49,10 +49,17 @@
 // name a series now; nothing outside this file decides what the colour is.
 #let series-1 = accent
 #let series-2 = accent-soft
-#let series-3 = rgb("#C38B2E")
-#let series-4 = rgb("#6B7280")
-#let series-5 = rgb("#7C5C99")
-#let series-6 = rgb("#8AA6A3")
+// The six series are luminance-separated (#217): printed in monochrome, a donut's only
+// key is its greyscale, and three of the six used to sit inside a 0.04 luminance band --
+// identical keys to a printer. The gamma-space Rec.709 ladder is now 0.20 / 0.33 / 0.41
+// / 0.55 / 0.67 / 0.76 (min pairwise delta 0.088, guarded by
+// `test_series_survive_a_greyscale_printer`), with the two brand accents unmoved and
+// every other hue kept -- only lightness moved. A greyscale copy loses richness, never
+// which slice is which.
+#let series-3 = rgb("#BE872D")
+#let series-4 = rgb("#BFC2C9")
+#let series-5 = rgb("#3D2D4C")
+#let series-6 = rgb("#98B0AE")
 
 // What a chart draws for the part of a total it is not showing. `rule`, so it reads as
 // an absence against the palette rather than as one more series.
