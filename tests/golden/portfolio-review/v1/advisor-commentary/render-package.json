@@ -747,6 +747,14 @@
     "risk_posture": {
       "posture": "ready",
       "notes": []
+    },
+    "holdings_presentation": {
+      "posture": "ready",
+      "supportability_status": "ready",
+      "presented_count": 3,
+      "available_count": 3,
+      "presented_weight_pct": "89.64",
+      "notes": []
     }
   },
   "lineage_refs": [

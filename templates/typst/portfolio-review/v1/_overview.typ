@@ -1,5 +1,5 @@
 #import "_theme.typ": empty-state, section-subtitle, small-caps, soft-rule
-#import "_components.typ": allocation-row, metric-card, note-panel, report-panel, review-note, section-lead, section-marker
+#import "_components.typ": allocation-row, metric-card, note-panel, panel-note, report-panel, review-note, section-lead, section-marker
 
 #let scope-page() = [
   #section-marker("Overview", "Mandate, relationship context, and scope of analysis", header: "Scope of analysis")
@@ -33,6 +33,9 @@
         #soft-rule()
         #v(8pt)
         ${HOLDING_BAR_ROWS}
+        // What the five rows above do not say: how much of the portfolio they are, and
+        // whether the positions behind them are reconciled (#231).
+        ${HOLDINGS_SCOPE_NOTES}
       ])
     ],
     [
