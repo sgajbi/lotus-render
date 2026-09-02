@@ -48,8 +48,14 @@ PRESENTATION_MODULE = SOURCE_ROOT / "allocation_presentation.py"
 GOLDEN_PACKAGE = Path("tests/golden/portfolio-review/v1/render-package.json")
 
 # The allocation breakdown dimensions, specifically -- not every key that starts with
-# `by_`. The earnings statement's income split is `by_type` and is not a dimension
-# anyone selects, and a prefix match read it as one.
+# `by_`. A prefix match read the earnings statement's income split (`by_type`) as a
+# selectable dimension, which it is not: it is the DIVIDEND/INTEREST decomposition of one
+# income figure, has no posture, appears in no `allocation_presentation`, and is drawn
+# unconditionally whenever Report sends it. The rule this guard holds -- selection is
+# Report's -- simply does not apply to it. If Report ever adds an eighth allocation
+# dimension, its `package_key` arrives via `allocation_presentation` and this list gains
+# a name in the same change; a dimension reachable only by widening this regex would be
+# unreachable through the contract too, which is its own failure.
 BREAKDOWN_KEY = re.compile(
     r'"(by_(?:asset_class|currency|region|sector|country|product_type|rating))"'
 )
