@@ -329,22 +329,19 @@
   )
 ]
 
-#let performance-detail-row(period, final_value, inflows, outflows, value, twr, cumulative_value, cumulative_twr) = [
-  #grid(
-    columns: (0.72fr, 1fr, 1fr, 1fr, 1fr, 0.7fr, 1fr, 0.7fr),
-    column-gutter: 6pt,
-    [#text(size: text-micro, fill: ink)[#period]],
-    [#align(right)[#text(size: text-micro, fill: slate)[#final_value]]],
-    [#align(right)[#text(size: text-micro, fill: slate)[#inflows]]],
-    [#align(right)[#text(size: text-micro, fill: slate)[#outflows]]],
-    [#align(right)[#text(size: text-micro, fill: ink)[#value]]],
-    [#align(right)[#text(size: text-micro, weight: 500, fill: accent)[#twr]]],
-    [#align(right)[#text(size: text-micro, fill: ink)[#cumulative_value]]],
-    [#align(right)[#text(size: text-micro, weight: 500, fill: accent)[#cumulative_twr]]],
-  )
-  #v(1.6pt)
-  #line(length: 100%, stroke: (paint: rule, thickness: 0.22pt))
-]
+// One row of the monthly table, as table cells: the table's own stroke draws the
+// separator (a sibling line can drift away from its row, #138), and each figure is a
+// TD in the tag tree rather than an anonymous Div (#246 phase 3).
+#let performance-detail-row(period, final_value, inflows, outflows, value, twr, cumulative_value, cumulative_twr) = (
+  [#text(size: text-micro, fill: ink)[#period]],
+  [#align(right)[#text(size: text-micro, fill: slate)[#final_value]]],
+  [#align(right)[#text(size: text-micro, fill: slate)[#inflows]]],
+  [#align(right)[#text(size: text-micro, fill: slate)[#outflows]]],
+  [#align(right)[#text(size: text-micro, fill: ink)[#value]]],
+  [#align(right)[#text(size: text-micro, weight: 500, fill: accent)[#twr]]],
+  [#align(right)[#text(size: text-micro, fill: ink)[#cumulative_value]]],
+  [#align(right)[#text(size: text-micro, weight: 500, fill: accent)[#cumulative_twr]]],
+)
 
 #let allocation-row(name, weight, value, width) = [
   #grid(

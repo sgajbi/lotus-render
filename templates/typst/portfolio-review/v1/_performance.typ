@@ -1,6 +1,6 @@
 #import "_charts.typ": line-chart
 #import "_theme.typ": empty-state, rule, section-subtitle
-#import "_components.typ": bridge-row, chart-card, chart-placeholder, chart-scale-note, contribution-reconciliation, contribution-row, labelled-table, panel-note, performance-chart-row, performance-detail-row, performance-summary-cell, period-return-row, period-row, section-marker, table-label
+#import "_components.typ": bridge-row, chart-card, chart-placeholder, chart-scale-note, contribution-reconciliation, contribution-row, labelled-table, panel-note, performance-chart-row, performance-detail-row, performance-summary-cell, period-return-row, period-row, report-panel, section-marker, table-label
 
 #let performance-page() = [
   // The marker names what the page holds, so it stops promising a comparison the
@@ -68,22 +68,34 @@
   ]
   #if "${HAS_MONTHLY_PERFORMANCE}" == "yes" [
     #v(16pt)
-    #labelled-table(
-      "${AS_OF_DATE}: Monthly net performance valued in ${CURRENCY}",
-      grid(
+    #block(sticky: true, breakable: false, width: 100%)[
+      #section-subtitle("${AS_OF_DATE}: Monthly net performance valued in ${CURRENCY}")
+      #v(7pt)
+    ]
+    #report-panel([
+      // A real table (#246 phase 3): the header is a TH row that repeats on every page
+      // the months span, and each figure is a TD rather than an anonymous Div.
+      #table(
         columns: (0.72fr, 1fr, 1fr, 1fr, 1fr, 0.7fr, 1fr, 0.7fr),
         column-gutter: 6pt,
-        [#table-label("Period")],
-        [#table-label("Final value", placement: right)],
-        [#table-label("Inflows", placement: right)],
-        [#table-label("Outflows", placement: right)],
-        [#table-label("Value", placement: right)],
-        [#table-label("TWR", placement: right)],
-        [#table-label("Cumulative", placement: right)],
-        [#table-label("TWR", placement: right)],
-      ),
-      [${PERFORMANCE_MONTHLY_TABLE_ROWS}],
-    )
+        inset: (x: 0pt, y: 3pt),
+        stroke: (x, y) => (bottom: (paint: rule, thickness: 0.22pt)),
+        table.header(
+          repeat: true,
+          [#table-label("Period")],
+          [#table-label("Final value", placement: right)],
+          [#table-label("Inflows", placement: right)],
+          [#table-label("Outflows", placement: right)],
+          [#table-label("Value", placement: right)],
+          [#table-label("TWR", placement: right)],
+          [#table-label("Cumulative", placement: right)],
+          [#table-label("TWR", placement: right)],
+        ),
+        ..(
+          ${PERFORMANCE_MONTHLY_TABLE_ROWS}
+        ).flatten(),
+      )
+    ])
   ]
 
   // The ranking answers "which holdings made that line", so it sits under the line rather
