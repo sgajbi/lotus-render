@@ -224,6 +224,12 @@ def _kill_compile_container(workspace: Path) -> None:
 _PLACEHOLDER = re.compile(r"\$\{([A-Z][A-Z0-9_]*)\}")
 
 
+def _supplied_document_reference(render_package: RenderPackage) -> str:
+    """The reference Report minted, or nothing. Never invented, never coerced."""
+    reference = render_package.render_context.get("document_reference")
+    return reference.strip() if isinstance(reference, str) else ""
+
+
 def _substitute(text: str, replacements: Mapping[str, str]) -> str:
     """Fill every placeholder in one pass, so no value is ever rescanned.
 
@@ -479,6 +485,11 @@ class TypstRenderService:
             "DETERMINISM_STATEMENT": escape_typst_string(determinism_statement),
             "TRACE_ID": escape_typst_string(render_package.trace_id),
             "CORRELATION_ID": escape_typst_string(render_package.correlation_id),
+            # The governed document reference (#158): minted by Report before render,
+            # placed verbatim by every family's footer, invented by nobody. Absent --
+            # or anything but text -- draws nothing: Render must not turn a malformed
+            # identity into a printed one.
+            "DOCUMENT_REFERENCE": escape_typst_string(_supplied_document_reference(render_package)),
         }
         template_directory = template_root.parent
         workspace_template_directory = workspace / "template"

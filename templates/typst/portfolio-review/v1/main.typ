@@ -1,5 +1,6 @@
 #import "_theme.typ": empty-state, ink, page-margin-x, page-margin-y, rule, slate, text-body, text-caption, text-micro
 #import "_components.typ": running-header
+#import "_design.typ": document-reference-mark
 
 #set page(
   paper: "a4",
@@ -16,7 +17,7 @@
     #v(5pt)
     #grid(
       columns: (1fr, auto),
-      [#text(size: text-micro, fill: slate)[#"${PORTFOLIO_NAME}"]],
+      [#text(size: text-micro, fill: slate)[#"${PORTFOLIO_NAME}"]#document-reference-mark("${DOCUMENT_REFERENCE}")],
       [#text(size: text-caption, fill: ink)[#counter(page).display("1 / 1")]],
     )
   ],
