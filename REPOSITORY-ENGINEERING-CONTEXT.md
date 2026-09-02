@@ -18,8 +18,8 @@ operator workflows beyond the render-stage contract defined by RFC-0102.
 `lotus-render` implements the RFC-0102 render-service side for the first-wave portfolio review PDF
 flow. The repository contains the dedicated render-service runtime baseline, explicit render-attempt
 domain models, structured request logging, support-safe system metadata, versioned render package
-validation, source-controlled template registry enforcement, deterministic SVG chart asset
-generation, modular Typst templates, producer-backed golden PDF proof, and the first
+validation, source-controlled template registry enforcement, native Typst chart primitives
+over Python-computed geometry, modular Typst templates, producer-backed golden PDF proof, and the first
 store-backed internal render API. RFC-0105 first-wave render metrics now expose bounded render
 submission, status lookup, diagnostics lookup, artifact metadata lookup, latency,
 failure-category, artifact-size, and source-backed stale in-flight render signals without

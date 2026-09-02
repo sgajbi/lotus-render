@@ -71,19 +71,26 @@ blocked by upstream Advise policy.
 
 ## Chart Pipeline
 
-Charts are generated as deterministic SVG assets before Typst compilation. `portfolio_charts.py`
-prepares the 12-month cumulative performance series and allocation breakdown from structured
-report data, writes SVG assets under `assets/charts/` in the temporary Typst workspace, and the
-Typst template includes those assets with `image(...)`.
+Charts are drawn natively in Typst; no image assets are generated. Python owns the semantic
+half and Typst owns the visual half:
 
-Typst remains responsible for page composition and chart card layout. The chart generator owns
-coordinate calculation, donut geometry, enterprise palette, line/marker treatment, sorting, and
-small-slice grouping. If chart data is absent, the section renders a quiet placeholder instead of
-failing or showing an empty frame.
+- `portfolio_charts.py` reads a chart's inputs out of governed report data (series, slices,
+  sorting, small-slice grouping) and chooses an axis whose ticks a reader can trust.
+- `chart_geometry.py` turns those into positions: gridlines, points, labels, donut arc
+  commands -- unit-tested geometry, computed in Python.
+- `_charts.typ` and the family components draw the geometry with native `grid`/`rect`/`place`
+  primitives, using the shared design tokens in `_shared/v1/_design.typ`. The six chart series
+  are a luminance ladder (min pairwise gamma-space Rec.709 delta 0.088, guarded), so a
+  greyscale print loses richness but never which slice is which.
+
+Per-analytic emitters (contribution ranking, attribution bridge, earnings statement) follow the
+same split: one Python module per analytic composes invoked Typst component calls; the
+components own the visual treatment. If chart data is absent, the section renders a quiet
+placeholder instead of failing or showing an empty frame.
 
 ## Configuration Model
 
-The full report renders by default. `render_context.sections` accepts section keys such as `cover`, `contents`, `overview`, `performance`, `allocation`, `positions`, `transactions`, and `appendix`. When an included reviewed advisory narrative package is present, the full report inserts `advisory_narrative` before the appendix, and callers can request it directly with `reviewed-advisory-narrative`. When an included advisor proposal memo package is present, the full report inserts `advisor_memo` before the appendix, and callers can request it directly with `advisor-proposal-memo`. Common aliases are normalized by the renderer. Unknown keys are ignored; if no valid section remains, the renderer falls back to the full report.
+The full report renders when `sections` is omitted. An explicit `render_context.sections` list is honoured exactly or refused at admission -- an explicit scope can narrow a document or fail; it never silently widens (`section_selection.py`). Section keys include `cover`, `contents`, `overview`, `performance`, `allocation`, `positions`, `transactions`, and `appendix`; common aliases are normalized, duplicates draw once at first position, and caller order is preserved. When an included reviewed advisory narrative package is present, the default composition inserts `advisory_narrative` before the appendix, and callers can request it directly with `reviewed-advisory-narrative`; likewise `advisor_memo` via `advisor-proposal-memo` and `advisor_commentary`. Unknown or unavailable requested sections refuse the whole selection with a typed validation problem naming the tokens; an explicit empty list is refused. The one documented narrowing: an explicitly requested appendix is dropped when the document uses no term it would explain.
 
 ## Rendering
 
@@ -121,4 +128,4 @@ python -m pytest tests/unit/test_typst_rendering.py tests/integration/test_rende
 ```
 
 The test suite verifies deterministic PDF rendering, selected-section rendering, chart data
-transformation, SVG asset generation, client-facing text hygiene, and template context generation.
+transformation, chart geometry, client-facing text hygiene, and template context generation.
