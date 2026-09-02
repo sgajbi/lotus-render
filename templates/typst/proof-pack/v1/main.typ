@@ -1,4 +1,7 @@
 #import "_design.typ": accent, document-reference-mark, evidence-row, ink, key-value-row, key-value-rows, label, muted, rule, text-body, text-caption, text-document, text-lead, text-small, text-subhead, value
+
+#set document(title: "Proof pack ${PROOF_PACK_ID}", author: "Lotus")
+
 #set page(
   paper: "a4",
   margin: (x: 18mm, y: 16mm),

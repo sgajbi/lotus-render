@@ -2,6 +2,9 @@
 #import "_components.typ": running-header
 #import "_design.typ": document-reference-mark
 
+
+#set document(title: "${PORTFOLIO_NAME} - Portfolio review", author: "Lotus")
+
 #set page(
   paper: "a4",
   flipped: true,
