@@ -46,6 +46,16 @@ def _rerecord_digests() -> int:
         measured = template_digest(directory, shared_directory=shared_design_directory())
         if manifest.get("template_digest") == measured:
             continue
+        if manifest.get("publication") == "published":
+            # A published version's bytes are its identity: an archived artifact names
+            # this version forever, so the affordance that re-records development
+            # digests refuses here. The legitimate path is the next version.
+            print(
+                f"REFUSED: {manifest['template_id']} {manifest['template_version']} is "
+                "published and its bytes changed. Published bytes never change -- create "
+                "the next template_version and re-point the change at it."
+            )
+            return 1
         print(f"re-approved {manifest['template_id']} {manifest['template_version']}")
         print(f"            {manifest.get('template_digest')} -> {measured}")
         manifest["template_digest"] = measured

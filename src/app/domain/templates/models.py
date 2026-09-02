@@ -12,6 +12,21 @@ class TemplateLifecycleStatus(StrEnum):
     BLOCKED = "blocked"
 
 
+class TemplatePublication(StrEnum):
+    """Whether this version's bytes are frozen.
+
+    `development` versions change under re-approval (`--write`), which is honest while
+    the visualization grammar is mid-build. `published` versions never change: a change
+    creates the next version, because a published version is the semantic identity an
+    archived artifact names forever after. The trigger for publishing is the first
+    delivery of an artifact to a consumer outside this repository's own test suite --
+    at latest, when the Archive handoff (#120) goes live.
+    """
+
+    DEVELOPMENT = "development"
+    PUBLISHED = "published"
+
+
 class TemplateManifest(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -38,6 +53,15 @@ class TemplateManifest(BaseModel):
     approver: str = Field(..., examples=["lotus-platform-governance"])
     approved_at: str = Field(..., examples=["2026-04-23"])
     status: TemplateLifecycleStatus = Field(..., examples=[TemplateLifecycleStatus.ACTIVE.value])
+    publication: TemplatePublication = Field(
+        ...,
+        description=(
+            "Whether this version's bytes are frozen. A published version never changes; "
+            "a change creates the next version. Explicit rather than defaulted, so a "
+            "manifest cannot be silently treated as development."
+        ),
+        examples=[TemplatePublication.DEVELOPMENT.value],
+    )
     golden_sample_ids: list[str] = Field(
         default_factory=list,
         examples=[["golden-portfolio-review-en-SG-private-banking-v1"]],
