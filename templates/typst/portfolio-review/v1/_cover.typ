@@ -2,7 +2,7 @@
 #import "_components.typ": content-row, metric-card, report-panel, section-lead
 
 #let cover-page() = [
-  #align(left)[#rect(width: 58pt, height: 1.4pt, fill: accent)]
+  #align(left)[#pdf.artifact(rect(width: 58pt, height: 1.4pt, fill: accent))]
   #v(16pt)
   #grid(
     columns: (1.22fr, 0.98fr),

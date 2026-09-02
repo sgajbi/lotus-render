@@ -31,6 +31,8 @@
 // paragraphs they used to be (0.42em x 8.8pt body paragraph spacing, absolute so the
 // heading's own text size cannot re-scale it).
 #show heading: set block(above: 3.7pt, below: 3.7pt)
+#show figure: set block(above: 0pt, below: 0pt)
+#show figure: set align(start)
 #set text(size: text-body, fill: ink)
 #set par(leading: 1.08em, spacing: 0.42em)
 
