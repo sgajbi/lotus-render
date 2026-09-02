@@ -278,7 +278,9 @@
 // A return runs either side of zero, so the track it is drawn on has a middle.
 // `magnitude` is the share of the half-track the bar fills; the caller scales it
 // against the series, so bar length is comparable within one chart.
-#let diverging-track(magnitude, negative, bar-height: 4.5pt) = block(
+// The track is redundant encoding: the figure it draws is printed in the same row,
+// so for assistive technology it is an artifact, not content (#246 phase 4).
+#let diverging-track(magnitude, negative, bar-height: 4.5pt) = pdf.artifact(block(
   width: 100%,
   inset: (y: 2pt),
   fill: mist,
@@ -300,7 +302,7 @@
       #rect(width: magnitude, height: bar-height, radius: (right: 99pt), fill: gain)
     ]]],
   )
-]
+])
 
 // An auto-scaled bar with an unstated domain is only half-honest: two charts in one
 // document can share a visual language and not share a scale. Say what the track means.
@@ -339,14 +341,14 @@
     column-gutter: 10pt,
     [#text(size: text-body, fill: ink)[#name]],
     [
-      #block(
+      #pdf.artifact(block(
         width: 100%,
         inset: (y: 4pt),
         fill: mist,
         radius: 99pt,
       )[
         #rect(width: width, height: 8pt, radius: 99pt, fill: accent-soft)
-      ]
+      ])
     ],
     [#align(right)[#text(size: text-body, fill: ink)[#weight]]],
     [#align(right)[#text(size: text-body, fill: slate)[#value]]],
@@ -358,14 +360,14 @@
 #let compact-allocation-row(name, weight, value, width) = (
   [#text(size: text-small, fill: ink)[#name]],
   [
-    #block(
+    #pdf.artifact(block(
       width: 100%,
       inset: (y: 3pt),
       fill: mist,
       radius: 99pt,
     )[
       #rect(width: width, height: 6pt, radius: 99pt, fill: accent-soft)
-    ]
+    ])
   ],
   [#align(right)[#text(size: text-fine, fill: ink)[#weight]]],
   [#align(right)[#text(size: text-fine, fill: slate)[#value]]],
@@ -506,7 +508,7 @@
     columns: (1.5fr, 1.6fr, 0.62fr),
     column-gutter: 7pt,
     [#text(size: text-micro, fill: ink)[#label-text]],
-    [#block(width: 100%, height: 9.5pt, fill: mist, radius: 2pt)[
+    [#pdf.artifact(block(width: 100%, height: 9.5pt, fill: mist, radius: 2pt)[
       #place(left + horizon, dx: zero, rect(width: 0.6pt, height: 12.5pt, fill: slate))
       #place(left + horizon, dx: offset, rect(
         width: width,
@@ -514,7 +516,7 @@
         radius: 1pt,
         fill: if kind == "total" { accent } else if kind == "residual" { slate } else if negative { loss } else { gain },
       ))
-    ]],
+    ])],
     [#align(right)[#text(size: text-micro, weight: 500, fill: ink)[#amount]]],
   )
 ]

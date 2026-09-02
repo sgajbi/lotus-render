@@ -58,6 +58,8 @@ def _structure_counts(family: str) -> collections.Counter[str]:
         tag = obj.get("/S")
         if tag is not None:
             counts[str(tag)] += 1
+        if str(tag) == "/Figure":
+            assert str(obj.get("/Alt") or "").strip(), "a figure carries no alt text"
         kids = obj.get("/K")
         if kids is None:
             return
@@ -88,3 +90,6 @@ def test_the_tag_tree_carries_one_h1_and_the_section_headings(family: str) -> No
         # below means a data table regressed to layout grids.
         assert counts["/Table"] >= 6, f"only {counts['/Table']} real tables in the tag tree"
         assert counts["/TH"] >= 35, f"only {counts['/TH']} TH cells: a table lost its header"
+        # Phase 4: the three analytical charts are figures whose alt restates the drawn
+        # values -- an empty alt is a figure assistive technology meets as silence.
+        assert counts["/Figure"] >= 3, f"only {counts['/Figure']} figures: a chart lost its role"

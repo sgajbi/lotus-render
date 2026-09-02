@@ -544,12 +544,12 @@ def test_typst_render_service_builds_richer_portfolio_review_context() -> None:
     assert "performance-detail-row(" in template_context["PERFORMANCE_MONTHLY_TABLE_ROWS"]
     # Drawn natively rather than shipped as an SVG asset, so the section carries the
     # chart's geometry rather than a path to an image.
-    assert "#line-chart(" in template_context["PERFORMANCE_12M_CHART_SECTION"]
+    assert "line-chart(" in template_context["PERFORMANCE_12M_CHART_SECTION"]
     assert "assets/charts" not in template_context["PERFORMANCE_12M_CHART_SECTION"]
     assert "#allocation-row(" in template_context["HOLDING_BAR_ROWS"]
     assert "compact-allocation-row(" in template_context["ALLOCATION_DIMENSION_BLOCKS"]
     donut = template_context["ALLOCATION_DONUT_CHART_SECTION"]
-    assert "#donut-chart(" in donut
+    assert "donut-chart(" in donut
     assert "assets/charts" not in donut
     # Drawn, not merely declared: a donut with no curve commands is an empty card.
     assert 'kind: "cubic"' in donut

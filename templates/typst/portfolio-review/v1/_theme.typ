@@ -27,4 +27,5 @@
 #let body-strong(value) = text(size: text-body-strong, weight: 500, fill: ink)[#value]
 #let small-caps(value) = text(size: text-caption, weight: 600, tracking: 0.22pt, fill: slate)[#value]
 
-#let soft-rule() = line(length: 100%, stroke: (paint: rule, thickness: hairline))
+// Decorative: a rule says nothing a heading or table does not already say.
+#let soft-rule() = pdf.artifact(line(length: 100%, stroke: (paint: rule, thickness: hairline)))

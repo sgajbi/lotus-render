@@ -20,6 +20,7 @@ from app.services.allocation_presentation import (
 )
 from app.services.appendix_glossary import applicable_glossary
 from app.services.chart_geometry import (
+    ChartGeometry,
     DonutSegment,
     donut_segments,
     performance_chart_geometry,
@@ -88,6 +89,21 @@ def _typst_array(items: Iterable[str]) -> str:
     return "(" + ", ".join(rendered) + ",)"
 
 
+def _line_chart_alt(geometry: ChartGeometry) -> str:
+    """The alternative description, from the same stated values the chart draws.
+
+    (#246 phase 4) The span of its month labels and whether a benchmark series is
+    drawn beside the portfolio. It describes; it never concludes.
+    """
+    span = ""
+    if geometry.labels:
+        span = f", {geometry.labels[0].text} to {geometry.labels[-1].text}"
+    series = "portfolio and benchmark series" if geometry.benchmark else "portfolio series"
+    return escape_typst_string(
+        f"Line chart of 12-month cumulative net performance{span}, showing the {series}."
+    )
+
+
 def render_performance_chart_section(report_data: Mapping[str, object]) -> str:
     """The 12-month chart, drawn natively rather than shipped as an SVG.
 
@@ -115,17 +131,18 @@ def render_performance_chart_section(report_data: Mapping[str, object]) -> str:
         _typst_dictionary(at=point.at, value=point.value) for point in geometry.benchmark
     )
     benchmark_label = '"Benchmark"' if geometry.benchmark else "none"
+    alt = _line_chart_alt(geometry)
 
     return (
         '#chart-card("12-Month Cumulative Performance", '
         'subtitle: "Net performance, valued in reporting currency")[\n'
-        f"  #line-chart(\n"
+        f'  #figure(alt: "{alt}", line-chart(\n'
         f"    gridlines: {gridlines},\n"
         f"    points: {points},\n"
         f"    labels: {labels},\n"
         f"    benchmark: {benchmark},\n"
         f"    benchmark-label: {benchmark_label},\n"
-        f"  )\n"
+        f"  ))\n"
         "]"
     )
 
@@ -153,6 +170,18 @@ def _donut_coverage_note(items: list[AllocationSlice]) -> str:
     return f'"Chart covers {escape_typst_string(format_percent(coverage))} of portfolio value"'
 
 
+def _donut_alt(items: list[AllocationSlice]) -> str:
+    """The alternative description: the legend the sighted reader gets beside the
+    ring -- labels and weights as Report stated them -- plus the coverage caveat
+    whenever the chart carries one (#246 phase 4)."""
+    described = ", ".join(f"{item.label} {format_percent(item.weight_pct)}" for item in items)
+    alt = f"Donut chart of portfolio composition by market value: {described}."
+    coverage = sum((item.weight_pct for item in items), Decimal("0"))
+    if coverage < DONUT_FULL_COVERAGE_PCT:
+        alt += f" The chart covers {format_percent(coverage)} of portfolio value."
+    return escape_typst_string(alt)
+
+
 def render_allocation_chart_section(report_data: Mapping[str, object]) -> str:
     """The allocation donut, drawn when the package says asset class is presented.
 
@@ -176,6 +205,7 @@ def render_allocation_chart_section(report_data: Mapping[str, object]) -> str:
         )
 
     paths = _typst_array(_donut_path_literal(segment) for segment in segments)
+    alt = _donut_alt(items)
     entries = _typst_array(
         _typst_dictionary(
             colour=item.color,
@@ -191,12 +221,12 @@ def render_allocation_chart_section(report_data: Mapping[str, object]) -> str:
     return (
         '#chart-card("Asset Allocation", '
         'subtitle: "Portfolio composition by market value")[\n'
-        f"  #donut-chart(\n"
+        f'  #figure(alt: "{alt}", donut-chart(\n'
         f"    segments: {paths},\n"
         f"    entries: {entries},\n"
         f'    centre-value: "{escape_typst_string(format_money(total, decimals=0))}",\n'
         f"    coverage-note: {note},\n"
-        f"  )\n"
+        f"  ))\n"
         "]"
     )
 
@@ -302,11 +332,21 @@ def render_performance_chart_rows(rows: object) -> str:
     entries = mapping_entries(rows)
     if not entries:
         return empty_message
+    first = str(entries[0].get("period", ""))
+    last = str(entries[-1].get("period", ""))
+    # The rows ARE the chart; the figure wraps them with the span they draw. The
+    # figures are printed beside each bar, and the alt says so rather than reading
+    # them back one by one.
+    alt = escape_typst_string(
+        f"Bar chart of annual net TWR by year, {first} to {last}, "
+        "with the figures printed beside each bar."
+    )
     # One domain for the whole series: bars are only comparable to each other if
     # every bar in the chart is drawn against the same scale.
     domain = performance_bar_domain(item.get("twr_pct") for item in entries)
     rendered = [f"#{_performance_chart_row(item, domain)}" for item in entries]
-    return "\n#v(1.5pt)\n".join(rendered) + f'\n#v(4pt)\n#chart-scale-note("{domain:.2f}%")'
+    body = "\n#v(1.5pt)\n".join(rendered) + f'\n#v(4pt)\n#chart-scale-note("{domain:.2f}%")'
+    return f'#figure(alt: "{alt}")[\n{body}\n]'
 
 
 def render_performance_detail_rows(rows: object) -> str:

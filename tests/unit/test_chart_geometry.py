@@ -175,8 +175,8 @@ def test_no_document_embeds_an_svg_and_therefore_none_carries_its_text() -> None
         "stay clear of typst#6783."
     )
 
-    assert "#line-chart(" in context["PERFORMANCE_12M_CHART_SECTION"]
-    assert "#donut-chart(" in context["ALLOCATION_DONUT_CHART_SECTION"]
+    assert "line-chart(" in context["PERFORMANCE_12M_CHART_SECTION"]
+    assert "donut-chart(" in context["ALLOCATION_DONUT_CHART_SECTION"]
 
 
 def _slice(
