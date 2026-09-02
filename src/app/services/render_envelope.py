@@ -44,6 +44,15 @@ from collections.abc import Mapping, Sequence
 #: measurement: contribution ranking, advisor commentary, allocation dimension blocks,
 #: the panel note lines -- `--verify-model` re-confirmed the rule on 2026-08-31 and the
 #: margin in `ADMITTED_COST` is what absorbs drift between re-measurements.
+#:
+#: Re-verified 2026-09-03 after the attribution bridge, the earnings statement, the
+#: table conversions and enforced PDF/A-2a landed: the rule held on all five mixed
+#: verification shapes, and the drift the margin exists for was observed for the first
+#: time -- the positions-only boundary tightened one bisect step (3,000 now renders,
+#: 3,125 fails; it was the reverse), while transactions (4,875/5,000) and the both
+#: shape (1,875/2,000) did not move. Admission caps positions-only at 0.85 x 3,125 =
+#: 2,656, comfortably under the tightened 3,000 -- the ceilings stay banked at the
+#: original failure points and the margin keeps carrying the drift.
 CEILING_POSITIONS = 3_125
 CEILING_TRANSACTIONS = 4_875
 
