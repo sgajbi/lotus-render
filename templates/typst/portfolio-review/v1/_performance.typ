@@ -23,28 +23,53 @@
   #if "${HAS_PERFORMANCE_PERIODS}" == "yes" [
     #v(15pt)
     #if "${HAS_BENCHMARK}" == "yes" [
-      #labelled-table(
-        "Performance against benchmark (TWR)",
-        grid(columns: (0.9fr, 1fr, 1fr, 1fr), column-gutter: 12pt,
-          [#table-label("Period")],
-          [#table-label("Portfolio", placement: right)],
-          [#table-label("Benchmark", placement: right)],
-          [#table-label("Relative", placement: right)],
-        ),
-        [${PERFORMANCE_PERIOD_ROWS}],
-      )
+      #block(sticky: true, breakable: false, width: 100%)[
+        #section-subtitle("Performance against benchmark (TWR)")
+        #v(7pt)
+      ]
+      #report-panel([
+        // A real table (#246 phase 3): TH-tagged header, one TR per period.
+        #table(
+          columns: (0.9fr, 1fr, 1fr, 1fr),
+          column-gutter: 12pt,
+          inset: (x: 0pt, y: 6pt),
+          stroke: (x, y) => (bottom: (paint: rule, thickness: 0.35pt)),
+          table.header(
+            repeat: true,
+            [#table-label("Period")],
+            [#table-label("Portfolio", placement: right)],
+            [#table-label("Benchmark", placement: right)],
+            [#table-label("Relative", placement: right)],
+          ),
+          ..(
+            ${PERFORMANCE_PERIOD_ROWS}
+          ).flatten(),
+        )
+      ])
       #if "${HAS_BENCHMARK_NOTE}" == "yes" [
         #panel-note("${BENCHMARK_NOTE}")
       ]
     ] else [
-      #labelled-table(
-        "Period returns (TWR)",
-        grid(columns: (0.9fr, 1fr), column-gutter: 12pt,
-          [#table-label("Period")],
-          [#table-label("Portfolio", placement: right)],
-        ),
-        [${PERFORMANCE_PERIOD_ROWS}],
-      )
+      #block(sticky: true, breakable: false, width: 100%)[
+        #section-subtitle("Period returns (TWR)")
+        #v(7pt)
+      ]
+      #report-panel([
+        #table(
+          columns: (0.9fr, 1fr),
+          column-gutter: 12pt,
+          inset: (x: 0pt, y: 6pt),
+          stroke: (x, y) => (bottom: (paint: rule, thickness: 0.35pt)),
+          table.header(
+            repeat: true,
+            [#table-label("Period")],
+            [#table-label("Portfolio", placement: right)],
+          ),
+          ..(
+            ${PERFORMANCE_PERIOD_ROWS}
+          ).flatten(),
+        )
+      ])
     ]
   ]
 

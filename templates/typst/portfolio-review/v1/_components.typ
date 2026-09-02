@@ -241,36 +241,26 @@
 
 // Relative return is the answer to "did we beat the benchmark", so it is the one
 // figure on the row that carries its sign in colour rather than only in a minus.
-#let period-row(period, net, benchmark, relative, relative-negative) = [
-  #grid(
-    columns: (0.9fr, 1fr, 1fr, 1fr),
-    column-gutter: 12pt,
-    [#text(size: text-body, fill: ink)[#period]],
-    [#align(right)[#text(size: text-body, fill: ink)[#net]]],
-    [#align(right)[#text(size: text-body, fill: slate)[#benchmark]]],
-    [#align(right)[#text(
-      size: text-body,
-      weight: 500,
-      fill: if relative-negative { loss } else { gain },
-    )[#relative]]],
-  )
-  #v(6pt)
-  #line(length: 100%, stroke: (paint: rule, thickness: 0.35pt))
-]
+// One row of the period-returns table, as table cells (#246 phase 3): the table owns
+// the separator stroke, and each figure is a TD rather than an anonymous Div.
+#let period-row(period, net, benchmark, relative, relative-negative) = (
+  [#text(size: text-body, fill: ink)[#period]],
+  [#align(right)[#text(size: text-body, fill: ink)[#net]]],
+  [#align(right)[#text(size: text-body, fill: slate)[#benchmark]]],
+  [#align(right)[#text(
+    size: text-body,
+    weight: 500,
+    fill: if relative-negative { loss } else { gain },
+  )[#relative]]],
+)
 
 // The same row for a portfolio with no benchmark to compare against. Drawing the four
 // columns anyway gave two of them "Not available" on every line, under a heading that
 // promised a comparison the package could not make.
-#let period-return-row(period, net) = [
-  #grid(
-    columns: (0.9fr, 1fr),
-    column-gutter: 12pt,
-    [#text(size: text-body, fill: ink)[#period]],
-    [#align(right)[#text(size: text-body, fill: ink)[#net]]],
-  )
-  #v(6pt)
-  #line(length: 100%, stroke: (paint: rule, thickness: 0.35pt))
-]
+#let period-return-row(period, net) = (
+  [#text(size: text-body, fill: ink)[#period]],
+  [#align(right)[#text(size: text-body, fill: ink)[#net]]],
+)
 
 #let performance-summary-cell(label, value, annualized) = block(
   inset: 9pt,
@@ -363,27 +353,23 @@
   )
 ]
 
-#let compact-allocation-row(name, weight, value, width) = [
-  #grid(
-    columns: (1.15fr, 1.15fr, 0.55fr, 0.75fr),
-    column-gutter: 8pt,
-    [#text(size: text-small, fill: ink)[#name]],
-    [
-      #block(
-        width: 100%,
-        inset: (y: 3pt),
-        fill: mist,
-        radius: 99pt,
-      )[
-        #rect(width: width, height: 6pt, radius: 99pt, fill: accent-soft)
-      ]
-    ],
-    [#align(right)[#text(size: text-fine, fill: ink)[#weight]]],
-    [#align(right)[#text(size: text-fine, fill: slate)[#value]]],
-  )
-  #v(3.5pt)
-  #line(length: 100%, stroke: (paint: rule, thickness: 0.25pt))
-]
+// One bucket of a composition table, as table cells (#246 phase 3). The proportion
+// bar is a TD like its printed weight -- redundant encodings of one figure.
+#let compact-allocation-row(name, weight, value, width) = (
+  [#text(size: text-small, fill: ink)[#name]],
+  [
+    #block(
+      width: 100%,
+      inset: (y: 3pt),
+      fill: mist,
+      radius: 99pt,
+    )[
+      #rect(width: width, height: 6pt, radius: 99pt, fill: accent-soft)
+    ]
+  ],
+  [#align(right)[#text(size: text-fine, fill: ink)[#weight]]],
+  [#align(right)[#text(size: text-fine, fill: slate)[#value]]],
+)
 
 // One allocation dimension the package asked for. The column headings live with the rows
 // they label, so a dimension that has no rows to show does not get a header over nothing
@@ -396,20 +382,25 @@
 #let allocation-dimension-block(title, rows, note: none) = block(breakable: false, width: 100%)[
   #block(width: 100%)[
     #section-subtitle(title)
-    #v(8pt)
-    #grid(
+    #v(7pt)
+  ]
+  #report-panel([
+    // A real table (#246 phase 3): the header is a TH row, each bucket a TR of TDs.
+    #table(
       columns: (1.15fr, 1.15fr, 0.55fr, 0.75fr),
       column-gutter: 8pt,
-      [#table-label("Group")],
-      [#table-label("Proportion")],
-      [#table-label("Weight", placement: right)],
-      [#table-label("Value", placement: right)],
+      inset: (x: 0pt, y: 3pt),
+      stroke: (x, y) => if y == 0 { (bottom: (paint: rule, thickness: 0.35pt)) } else { (bottom: (paint: rule, thickness: 0.25pt)) },
+      table.header(
+        repeat: true,
+        [#table-label("Group")],
+        [#table-label("Proportion")],
+        [#table-label("Weight", placement: right)],
+        [#table-label("Value", placement: right)],
+      ),
+      ..rows.flatten(),
     )
-    #v(4pt)
-    #soft-rule()
-  ]
-  #v(8pt)
-  #report-panel([#rows])
+  ])
   // What this grouping does not say. A composition looks like a whole thing, so a table
   // covering 62% of the portfolio has to say so -- the donut beside it already does, and
   // one coverage statement on a page with two compositions reads as covering both.

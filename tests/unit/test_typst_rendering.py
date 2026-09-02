@@ -538,7 +538,7 @@ def test_typst_render_service_builds_richer_portfolio_review_context() -> None:
     assert template_context["REVIEW_PERIOD_LABEL"] == "YTD"
     assert template_context["TOP_CONTRIBUTOR_NAME"] == "Global Equity Sleeve"
     assert "lotus-core, lotus-performance, lotus-risk" in template_context["SOURCE_SERVICES"]
-    assert "#period-row(" in template_context["PERFORMANCE_PERIOD_ROWS"]
+    assert "period-row(" in template_context["PERFORMANCE_PERIOD_ROWS"]
     assert "performance-summary-cell(" in template_context["PERFORMANCE_SUMMARY_TABLE"]
     assert "#performance-chart-row(" in template_context["PERFORMANCE_ANNUAL_CHART_ROWS"]
     assert "performance-detail-row(" in template_context["PERFORMANCE_MONTHLY_TABLE_ROWS"]
@@ -547,7 +547,7 @@ def test_typst_render_service_builds_richer_portfolio_review_context() -> None:
     assert "#line-chart(" in template_context["PERFORMANCE_12M_CHART_SECTION"]
     assert "assets/charts" not in template_context["PERFORMANCE_12M_CHART_SECTION"]
     assert "#allocation-row(" in template_context["HOLDING_BAR_ROWS"]
-    assert "#compact-allocation-row(" in template_context["ALLOCATION_DIMENSION_BLOCKS"]
+    assert "compact-allocation-row(" in template_context["ALLOCATION_DIMENSION_BLOCKS"]
     donut = template_context["ALLOCATION_DONUT_CHART_SECTION"]
     assert "#donut-chart(" in donut
     assert "assets/charts" not in donut
