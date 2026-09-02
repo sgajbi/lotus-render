@@ -33,6 +33,17 @@ from collections.abc import Mapping, Sequence
 
 #: Rows of each shape the runtime was measured to *fail* at. Not a safe envelope: these
 #: are the failure points themselves, found by doubling and then bisecting.
+#:
+#: Provenance -- the facts a future reader needs to judge staleness without archaeology:
+#: measured 2026-08-31 by `scripts/capacity_probe.py` at 125-row bisect precision, on a
+#: Windows 11 developer machine through the *docker* branch (`--memory 512m`,
+#: ghcr.io/typst/typst:0.14.2); production takes the in-process branch under `ulimit -v`.
+#: Cost per row is a function of how many sections draw that row, so any PR that adds a
+#: section or materially changes a row emitter re-runs `--verify-model` and re-banks
+#: these in the same change if the rule no longer holds. Sections added since the
+#: measurement: contribution ranking, advisor commentary, allocation dimension blocks,
+#: the panel note lines -- `--verify-model` re-confirmed the rule on 2026-08-31 and the
+#: margin in `ADMITTED_COST` is what absorbs drift between re-measurements.
 CEILING_POSITIONS = 3_125
 CEILING_TRANSACTIONS = 4_875
 
