@@ -41,6 +41,15 @@ from app.services.typst_values import escape_typst_string
 
 DETERMINISM_MODE = "bounded_runtime_envelope"
 DOCKER_TYPST_IMAGE = "ghcr.io/typst/typst:0.14.2"
+
+# The selected bank-grade output standard (#246 phase 5): PDF/A-2a -- archival custody
+# is what the evidence chain exists for, and the "a" level carries the tagged-structure
+# requirements phases 2-4 built. Typst 0.14 enforces one substandard at a time, so
+# PDF/UA-1 (which the document also compiles clean under, checked in the phase-1 audit)
+# is deferred to an out-of-band check rather than weakened into a comment. Conformance
+# is an executable property: the compiler refuses a violating document, so every render
+# is the certification gate.
+PDF_STANDARD = "a-2a"
 PDF_MIME_TYPE = "application/pdf"
 # `typst 0.14.2 (b33de9de)` -- the version, without the build hash.
 _VERSION_OUTPUT = re.compile(r"typst\s+(\d+\.\d+\.\d+)")
@@ -537,6 +546,8 @@ class TypstRenderService:
                 "/workspace",
                 DOCKER_TYPST_IMAGE,
                 "compile",
+                "--pdf-standard",
+                PDF_STANDARD,
                 source_argument,
                 output_argument,
             ]
@@ -544,7 +555,14 @@ class TypstRenderService:
         local_typst = shutil.which("typst")
         if local_typst is not None:
             return _bounded_local_command(
-                [local_typst, "compile", str(source_path), str(output_path)]
+                [
+                    local_typst,
+                    "compile",
+                    "--pdf-standard",
+                    PDF_STANDARD,
+                    str(source_path),
+                    str(output_path),
+                ]
             )
 
         raise RuntimeError("Typst runtime is unavailable: neither docker nor typst is installed")
@@ -560,6 +578,11 @@ class TypstRenderService:
             rb"xmp:CreateDate>[^<]+<",
             rb"xmp:ModifyDate>[^<]+<",
             rb"xmpMM:InstanceID>[^<]+<",
+            # PDF/A writes an XMP revision-history event per save; its timestamp and
+            # instance id differ between two renders of the identical package, exactly
+            # like the creation dates above (#246 phase 5).
+            rb"stEvt:when>[^<]+<",
+            rb"stEvt:instanceID>[^<]+<",
             rb"xmpMM:DocumentID>[^<]+<",
         ):
             normalized_bytes = re.sub(pattern, b"", normalized_bytes)
