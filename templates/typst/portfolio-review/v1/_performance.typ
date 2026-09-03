@@ -49,6 +49,9 @@
       #if "${HAS_BENCHMARK_NOTE}" == "yes" [
         #panel-note("${BENCHMARK_NOTE}")
       ]
+      #if "${HAS_FEE_DRAG_NOTE}" == "yes" [
+        ${FEE_DRAG_NOTE}
+      ]
     ] else [
       #block(sticky: true, breakable: false, width: 100%)[
         #section-subtitle("Period returns (TWR)")
@@ -70,6 +73,9 @@
           ).flatten(),
         )
       ])
+      #if "${HAS_FEE_DRAG_NOTE}" == "yes" [
+        ${FEE_DRAG_NOTE}
+      ]
     ]
   ]
 

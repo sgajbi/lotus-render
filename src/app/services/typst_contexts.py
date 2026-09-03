@@ -17,6 +17,7 @@ from app.services.benchmark_presentation import benchmark_note, benchmark_presen
 from app.services.contribution_ranking import render_contribution_ranking_section
 from app.services.date_format import format_date, format_dates_in_text
 from app.services.earnings_statement import render_earnings_statement
+from app.services.fee_drag import render_fee_drag_note
 from app.services.holdings_presentation import render_holdings_scope_notes
 from app.services.number_format import group_digits
 from app.services.render_content import (
@@ -125,6 +126,7 @@ def build_portfolio_review_context(render_package: RenderPackage) -> dict[str, s
     # Emitted once and flagged from the emission: a block that draws nothing must not
     # leave the template a "yes" flag over an empty fragment.
     attribution_bridge = render_attribution_bridge(report_data)
+    fee_drag_note = render_fee_drag_note(report_data)
 
     position_widths, position_header, position_rows = render_position_table(
         report_data.get("positions") or report_data.get("top_holdings")
@@ -248,6 +250,8 @@ def build_portfolio_review_context(render_package: RenderPackage) -> dict[str, s
         "CONTRIBUTION_RANKING_ROWS": render_contribution_ranking_section(report_data),
         "ATTRIBUTION_BRIDGE": attribution_bridge,
         "HAS_ATTRIBUTION_BRIDGE": _presence_flag(attribution_bridge),
+        "FEE_DRAG_NOTE": fee_drag_note,
+        "HAS_FEE_DRAG_NOTE": _presence_flag(fee_drag_note),
         # Drawn only where the package carries a ranking at all. A posture of `empty` or
         # `unavailable` still draws the section, because the reader asked which holdings
         # explained the period and is owed the answer that none can be shown.
