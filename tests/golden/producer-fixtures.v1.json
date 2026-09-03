@@ -15,12 +15,12 @@
         "src/app/contracts/examples/portfolio-review-render-package.v1.json"
       ],
       "provenance": "Portfolio review package is the canonical lotus-report render package example mirrored into the golden fixture tree for registry-to-artifact gating.",
-      "bounded_determinism_fingerprint": "422843f219854a3aef9be1ff41ea6346aae4a1ad7ba0150c79bceda4d3a0ba58",
+      "bounded_determinism_fingerprint": "1b92ab9a47314c927fa5bc26075b99e9623301545ef44943cb76d92a4038a8aa",
       "page_image_hashes": [
         "d35fe01b4d1cd11bf367857c768439b7d61ca70ab15499dacad253f9db7c42a8",
         "04a2f965e4e96102b28c5d6df89b0c7e7f302add36bb9894e2f70c001c2f8014",
         "2c8b4f65b5397daf7050a0a01913a88c6d0da92ddb7b55f8a3f36a33e83f66a3",
-        "a4b2c309d6cad990289bd3b622ee9547571b8edadbea7d94c453491be0449a61",
+        "ed0dd6c13e6ef397cd8446cd765af27982071258a77de590848123c44e799077",
         "53f4c7eb4764fe6f924494582a75ca508144498367ec9f9467fb57bb9ac88d1b",
         "effb44a97a1915c8b0a7ad6e691b2673cb526da1fb0b32eb633ad516d3b7682b",
         "668d6b647d2ad62d834be128318f85c500756f7c71d683b4ee39820fc6df0f8e",

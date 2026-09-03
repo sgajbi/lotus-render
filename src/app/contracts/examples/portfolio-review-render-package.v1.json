@@ -857,6 +857,13 @@
         "residual_treatment": "disclose"
       },
       "period_notes": []
+    },
+    "performance_basis": {
+      "return_basis": "NET",
+      "fee_drag": {
+        "period": "YTD",
+        "gross_minus_net_pp": "0.42"
+      }
     }
   },
   "lineage_refs": [
