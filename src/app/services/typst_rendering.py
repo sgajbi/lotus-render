@@ -29,12 +29,8 @@ from app.services.render_ports import (
     RenderEngineTimeoutError,
     RenderRuntimeMetadata,
 )
-from app.services.template_context import TemplateContextRegistry, TemplateContextRenderer
+from app.services.template_context import default_template_context_registry
 from app.services.typst_contexts import (
-    build_outcome_review_context,
-    build_portfolio_review_context,
-    build_proof_pack_context,
-    build_wave_context,
     count_empty_content_blocks,
 )
 from app.services.typst_values import escape_typst_string
@@ -259,34 +255,7 @@ class TypstRenderService:
     def __init__(self, settings: Settings, intake_service: RenderIntakeService) -> None:
         self._settings = settings
         self._intake_service = intake_service
-        self._template_context_registry = TemplateContextRegistry(
-            (
-                TemplateContextRenderer(
-                    report_type="portfolio_review",
-                    template_id="portfolio-review",
-                    template_version="v1",
-                    build_context=build_portfolio_review_context,
-                ),
-                TemplateContextRenderer(
-                    report_type="proof_pack",
-                    template_id="proof-pack",
-                    template_version="v1",
-                    build_context=build_proof_pack_context,
-                ),
-                TemplateContextRenderer(
-                    report_type="outcome_review",
-                    template_id="outcome-review",
-                    template_version="v1",
-                    build_context=build_outcome_review_context,
-                ),
-                TemplateContextRenderer(
-                    report_type="rebalance_wave",
-                    template_id="rebalance-wave",
-                    template_version="v1",
-                    build_context=build_wave_context,
-                ),
-            )
-        )
+        self._template_context_registry = default_template_context_registry()
 
     @property
     def runtime_engine_version(self) -> str:

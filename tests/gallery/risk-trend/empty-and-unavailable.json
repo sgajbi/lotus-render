@@ -1,0 +1,11 @@
+{
+  "window": {"window_observations": 63, "frequency": "daily",
+             "period": {"name": "YTD", "start_date": "2026-01-02", "end_date": "2026-08-31"}},
+  "metrics": [
+    {"metric": "ROLLING_VOLATILITY", "posture": "empty", "quality_flags": [],
+     "notes": [{"code": "risk_trend_series_not_included", "message": "NO_METRIC_SERIES"}]},
+    {"metric": "ROLLING_BETA", "posture": "unavailable", "quality_flags": ["STALE_INPUT"],
+     "notes": [{"code": "risk_trend_window_missing",
+                "message": "The source emitted no result for the requested window."}]}
+  ]
+}

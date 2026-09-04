@@ -1,0 +1,33 @@
+{
+  "template_id": "portfolio-review",
+  "template_version": "v2",
+  "supported_report_types": [
+    "portfolio_review"
+  ],
+  "supported_report_data_contract_versions": [
+    "portfolio_review.v1"
+  ],
+  "supported_locales": [
+    "en-SG"
+  ],
+  "supported_brand_variants": [
+    "private_banking"
+  ],
+  "supported_output_formats": [
+    "pdf"
+  ],
+  "required_disclosure_fragments": [
+    "portfolio-review.standard-disclosures.v1"
+  ],
+  "owner_team": "lotus-reporting",
+  "approver": "lotus-platform-governance",
+  "approved_at": "2026-09-05",
+  "status": "active",
+  "golden_sample_ids": [
+    "golden-portfolio-review-risk-trend-en-SG-private-banking-v2"
+  ],
+  "runtime_engine": "typst",
+  "runtime_engine_version": "0.14.2",
+  "template_digest": "sha256:0f9e7dd538c7ebae12268b5d8883516a2ba59c1370686d803d44db3116e0b54b",
+  "publication": "development"
+}
