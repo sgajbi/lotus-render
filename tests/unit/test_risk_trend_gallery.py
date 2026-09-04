@@ -1,10 +1,12 @@
 """The risk-trend gallery: the primitive exercised at its edges, without a document.
 
 This is #219's founding entry and the shape later primitives reuse: each case in
-tests/gallery/risk-trend/ is a canonical producer emission (report#255's shipped
-contract), and every assertion here fails on a WRONG result, not merely a changed
-one. One test also compiles the primitive through the real engine inside the v2
-template, so the evidence covers a really-rendered page and not only markup.
+tests/gallery/risk-trend/ is a canonical producer emission with SOURCE-SHAPED
+values (rolling volatility and tracking error arrive as annualized decimal
+ratios; beta is unitless), and every assertion here fails on a WRONG result, not
+merely a changed one. Real-engine tests compile cases through the actual v2
+template page, including the cross-repo regression that 0.1374 -> 0.141 reaches
+the reader as 13.74% -> 14.1%.
 """
 
 from __future__ import annotations
@@ -26,6 +28,7 @@ from app.services.risk_trend import render_risk_trend_panel
 from app.services.typst_rendering import TypstRenderService
 
 GALLERY = Path("tests/gallery/risk-trend")
+SCALE_STATEMENT = "independently scaled"
 
 
 def _case(name: str) -> dict[str, Any]:
@@ -34,6 +37,36 @@ def _case(name: str) -> dict[str, Any]:
 
 def _dots(markup: str) -> int:
     return markup.count("circle(radius: 0.9pt, fill: ink)")
+
+
+def _page_text(package: dict[str, Any]) -> tuple[str, str]:
+    settings = Settings()
+    service = TypstRenderService(
+        settings,
+        RenderIntakeService(
+            TemplateRegistry.load_from_directory(Path(settings.template_registry_path))
+        ),
+    )
+    result = service.render(RenderPackage.model_validate(package))
+    text = re.sub(
+        r"\s+",
+        " ",
+        "\n".join(
+            page.extract_text() for page in pypdf.PdfReader(io.BytesIO(result.artifact_bytes)).pages
+        ),
+    )
+    return text, result.diagnostic.template_publication or ""
+
+
+def _v2_package(case: str) -> dict[str, Any]:
+    package: dict[str, Any] = json.loads(
+        PORTFOLIO_REVIEW_RENDER_PACKAGE_EXAMPLE_PATH.read_text(encoding="utf-8")
+    )
+    package["template_version"] = "v2"
+    package["report_data"]["risk_trend"] = json.loads(
+        (GALLERY / f"{case}.json").read_text(encoding="utf-8")
+    )
+    return package
 
 
 def test_absence_draws_nothing_at_all() -> None:
@@ -45,34 +78,80 @@ def test_absence_draws_nothing_at_all() -> None:
     assert render_risk_trend_panel({"risk_trend": {"window": {}, "metrics": []}}) == ""
 
 
-def test_ready_series_draw_every_point_and_print_the_endpoints_verbatim() -> None:
+def test_endpoints_reach_the_reader_in_their_units() -> None:
+    """The P1: 0.1374 means 13.74%. A decimal_ratio endpoint is shifted exactly
+    (no float, no rounding) and carries its percent sign; a unitless endpoint is
+    the source string verbatim. The raw values stay untouched in the series."""
+
     markup = render_risk_trend_panel(_case("ready-three-metrics"))
 
-    assert "Rolling volatility" in markup
-    assert "Rolling beta" in markup
-    assert "Rolling tracking error" in markup
+    assert "13.74%" in markup and "14.1%" in markup, "volatility must read as percent"
+    assert "1.9%" in markup and "2.06%" in markup, "tracking error must read as percent"
+    assert "0.91" in markup and "1.02" in markup, "beta is unitless and verbatim"
+    assert "0.1374" not in markup, "the raw ratio must not be printed as a reader value"
     assert _dots(markup) == 4 + 3 + 5, "every source point is a dot; nothing invented"
-    for endpoint in ("10.42", "12.63", "0.91", "1.02", "1.4", "1.5"):
-        assert endpoint in markup, f"endpoint {endpoint} must be printed verbatim"
     assert "63-observation rolling window" in markup
-    assert "daily" in markup
     assert "YTD 2026-01-02 to 2026-08-31" in markup
-    assert "line(" not in markup, "nothing connects the dots -- a line would bridge gaps"
+    assert "line(" not in markup, "nothing connects the dots"
 
 
-def test_a_source_gap_is_horizontal_space_in_proportion_to_its_duration() -> None:
-    """Dates place the dots, not indices: a 19-day hole in a 25-day span leaves
-    ~three quarters of the strip empty, which is the gap made visible."""
+def test_a_ready_series_without_unit_semantics_is_not_stated() -> None:
+    """Printing 0.1374 bare where the reader means 13.74% is confidently wrong:
+    without the source's unit, the number is not stated and nothing is drawn."""
 
-    markup = render_risk_trend_panel(_case("gap-in-series"))
+    markup = render_risk_trend_panel(_case("unit-missing"))
 
-    for dx in ("0.00%", "4.00%", "8.00%", "84.00%", "88.00%", "100.00%"):
-        assert f"dx: {dx}" in markup
-    between = re.findall(r"dx: (\d+\.\d+)%", markup)
-    assert not [x for x in between if 8.0 < float(x) < 84.0], (
-        "no dot may be placed inside the source's hole"
+    assert _dots(markup) == 0
+    assert "without unit semantics" in markup
+    assert "0.1374" not in markup
+    assert SCALE_STATEMENT not in markup, "no strip drawn, no convention to state"
+
+
+def test_weekend_cadence_is_market_rhythm_not_missing_evidence() -> None:
+    """Ten business days across two weeks: dots are placed by observation index,
+    evenly spaced -- the weekend between the Friday and the Monday must not
+    appear as a hole, because calendar distance is not data-quality evidence."""
+
+    markup = render_risk_trend_panel(_case("weekend-cadence"))
+
+    positions = [float(x) for x in re.findall(r"dx: (\d+\.\d+)%", markup)]
+    assert len(positions) == 10
+    for index, position in enumerate(positions):
+        assert abs(position - index * 100 / 9) < 0.01, (
+            f"dot {index} must sit at its observation index, not its calendar day"
+        )
+
+
+def test_partial_coverage_is_stated_never_implied_away() -> None:
+    """The source computed from July while the stated period is the full YTD:
+    the caption states the period, the coverage line states what was observed,
+    and the two together make warm-up coverage explicit without spatial guessing."""
+
+    markup = render_risk_trend_panel(_case("warmup-partial-coverage"))
+
+    assert "YTD 2026-01-02 to 2026-08-31" in markup, "the stated period stays stated"
+    assert "4 observations, 2026-07-01 to 2026-08-31" in markup, (
+        "the observed span is the coverage fact"
     )
     assert "Source quality flags: PARTIAL_COVERAGE" in markup
+
+
+def test_independent_scales_are_stated_wherever_a_strip_is_drawn() -> None:
+    """The adversarial case: 10% -> 30% and 2% -> 2.06% normalize to similar
+    shapes. Without the stated convention they would read as comparable moves;
+    with it, the endpoint figures carry the actual levels."""
+
+    markup = render_risk_trend_panel(_case("adversarial-scale"))
+
+    assert markup.count(SCALE_STATEMENT) == 1
+    assert "10%" in markup and "30%" in markup
+    assert "2.00%" in markup and "2.06%" in markup, (
+        "the source stated 0.0200; its precision survives the shift"
+    )
+    heights = {round(float(y), 2) for y in re.findall(r"dy: (\d+\.\d+)pt", markup)}
+    assert 2.00 in heights and 22.00 in heights, (
+        "both strips span the full band -- which is exactly why the statement exists"
+    )
 
 
 def test_a_flat_series_sits_on_the_centre_line_not_on_an_invented_scale() -> None:
@@ -80,8 +159,8 @@ def test_a_flat_series_sits_on_the_centre_line_not_on_an_invented_scale() -> Non
 
     dys = set(re.findall(r"dy: (\d+\.\d+)pt", markup))
     assert dys == {"12.00"}, "equal values must sit at equal height"
-    assert markup.count("1.00") >= 2, "both endpoints print, even when equal"
-    assert "weekly" in markup
+    assert markup.count("1.00") >= 2, "both endpoints print verbatim, even when equal"
+    assert "3 observations, 2026-06-05 to 2026-08-07" in markup
 
 
 def test_benchmark_relative_series_state_the_sources_reason_never_draw() -> None:
@@ -122,48 +201,6 @@ def test_a_ready_claim_this_module_cannot_place_is_said_not_approximated() -> No
     assert unplaceable.count("could not be drawn") == 3
 
 
-def test_the_primitive_survives_the_real_engine_on_the_v2_page() -> None:
-    """Markup assertions cannot prove the template scope resolves or the page
-    carries the words -- one case compiles for real through portfolio-review v2."""
-
-    package = json.loads(PORTFOLIO_REVIEW_RENDER_PACKAGE_EXAMPLE_PATH.read_text(encoding="utf-8"))
-    package["template_version"] = "v2"
-    package["report_data"]["risk_trend"] = json.loads(
-        (GALLERY / "benchmark-not-applied.json").read_text(encoding="utf-8")
-    )
-    settings = Settings()
-    service = TypstRenderService(
-        settings,
-        RenderIntakeService(
-            TemplateRegistry.load_from_directory(Path(settings.template_registry_path))
-        ),
-    )
-
-    result = service.render(RenderPackage.model_validate(package))
-
-    text = re.sub(
-        r"\s+",
-        " ",
-        "\n".join(
-            page.extract_text() for page in pypdf.PdfReader(io.BytesIO(result.artifact_bytes)).pages
-        ),
-    )
-    for needle in (
-        "Risk trend",
-        "Rolling volatility",
-        "10.4",
-        "12.6",
-        "63-observation rolling window",
-        "Rolling tracking error",
-        "Not available",
-        "BENCHMARK_SERIES_UNAVAILABLE",
-    ):
-        assert needle in text, f"the rendered page must state: {needle}"
-    assert result.diagnostic.template_publication == "development", (
-        "v2 is development until its own publication trigger fires"
-    )
-
-
 def test_malformed_shapes_state_rather_than_crash_or_invent() -> None:
     """The producer contract is trusted but not assumed: every malformed shape a
     forwarding bug could produce lands on a stated row or a silent omission --
@@ -178,15 +215,17 @@ def test_malformed_shapes_state_rather_than_crash_or_invent() -> None:
                     {
                         "metric": "ROLLING_VOLATILITY",
                         "posture": "ready",
+                        "unit": "decimal_ratio",
                         "quality_flags": "not-a-list",
                         "series": [
                             "not-a-mapping",
-                            {"date": "2026-08-31", "value": "12.6"},
+                            {"date": "2026-08-31", "value": "0.141"},
                         ],
                     },
                     {
                         "metric": "ROLLING_BETA",
                         "posture": "ready",
+                        "unit": "unitless",
                         "series": [
                             {"date": "31/08/2026", "value": "1.0"},
                             {"date": "2026-08-31", "value": "1.1"},
@@ -248,3 +287,41 @@ def test_partial_window_facts_are_stated_partially_never_invented() -> None:
         "an empty caption emits no caption line between the subtitle and the rows"
     )
     assert "Not included" in bare
+
+
+def test_source_shaped_values_reach_the_reader_as_percentages_on_the_real_page() -> None:
+    """The cross-repo regression the steering requires, with the same
+    source-shaped values lotus-report tests: rolling volatility 0.1374 -> 0.141
+    and tracking error around 0.02 must reach the RENDERED PAGE as percentage
+    meaning, alongside the coverage fact and the scale convention."""
+
+    text, publication = _page_text(_v2_package("ready-three-metrics"))
+
+    for needle in (
+        "Risk trend",
+        "Rolling volatility",
+        "13.74%",
+        "14.1%",
+        "1.9%",
+        "2.06%",
+        "0.91",
+        "1.02",
+        "63-observation rolling window",
+        "4 observations, 2026-06-01 to 2026-08-31",
+        "independently scaled",
+    ):
+        assert needle in text, f"the rendered page must state: {needle}"
+    assert "0.1374" not in text, "the raw ratio must not reach the reader bare"
+    assert publication == "development", "v2 stays development until its own trigger"
+
+
+def test_the_benchmark_refusal_survives_the_real_engine_on_the_v2_page() -> None:
+    text, _ = _page_text(_v2_package("benchmark-not-applied"))
+
+    for needle in (
+        "Rolling tracking error",
+        "Not available",
+        "BENCHMARK_SERIES_UNAVAILABLE",
+        "13.74%",
+    ):
+        assert needle in text, f"the rendered page must state: {needle}"
