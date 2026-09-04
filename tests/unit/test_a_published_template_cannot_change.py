@@ -33,12 +33,18 @@ def test_publication_state_matches_the_recorded_trigger() -> None:
     manifests = sorted(REGISTRY.rglob("*.json"))
     assert manifests, "no manifests were inspected; the rule would pass over anything"
 
+    published = {
+        # v1: the #120 handoff go-live (2026-09-04). v2: the rolling-risk trend,
+        # published 2026-09-04 after the semantic corrections and the
+        # real-document acceptance review passed. Unpublishing either requires
+        # new governance, not a diff.
+        ("portfolio-review", "v1"),
+        ("portfolio-review", "v2"),
+    }
     for path in manifests:
         manifest = TemplateManifest.model_validate_json(path.read_text(encoding="utf-8"))
-        if manifest.template_id == "portfolio-review" and manifest.template_version == "v1":
-            assert manifest.publication is TemplatePublication.PUBLISHED, (
-                "the #120 trigger fired; unpublishing requires new governance, not a diff"
-            )
+        if (manifest.template_id, manifest.template_version) in published:
+            assert manifest.publication is TemplatePublication.PUBLISHED
             assert manifest.published_at and manifest.published_by
         else:
             assert manifest.publication is TemplatePublication.DEVELOPMENT, (

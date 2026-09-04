@@ -29,5 +29,7 @@
   "runtime_engine": "typst",
   "runtime_engine_version": "0.14.2",
   "template_digest": "sha256:a90e4c0b83602647c3cb5369b2eca3a9d8cae35edc9419292e3e46308df208e4",
-  "publication": "development"
+  "publication": "published",
+  "published_at": "2026-09-04",
+  "published_by": "lotus-platform-governance"
 }
