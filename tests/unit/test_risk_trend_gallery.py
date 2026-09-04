@@ -18,6 +18,7 @@ from pathlib import Path
 from typing import Any
 
 import pypdf
+import pytest
 
 from app.contracts.examples import PORTFOLIO_REVIEW_RENDER_PACKAGE_EXAMPLE_PATH
 from app.contracts.render_package import RenderPackage
@@ -91,17 +92,20 @@ def test_a_slot_with_a_malformed_date_or_unknown_posture_refuses_the_series() ->
             ]
         }
 
-    for point in (
+    malformed: tuple[dict[str, object], ...] = (
         {"date": 20260701, "value": "0.1447"},
         {"date": "2026-07-01", "value": 0.1447},
         {"date": "2026-07-01", "value": "0.1447", "point_posture": "interpolated"},
-    ):
+    )
+    for point in malformed:
         markup = render_risk_trend_panel({"risk_trend": series_of(point)})
         assert "could not be drawn" in markup
         assert "circle(" not in markup, "no dot may be placed from a refused series"
 
 
-def test_an_endpoint_the_shared_formatter_refuses_refuses_the_row(monkeypatch) -> None:
+def test_an_endpoint_the_shared_formatter_refuses_refuses_the_row(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """The endpoint formatter delegates to reader_units; today every placed
     endpoint formats, because a string that parsed as a finite float is always
     exact-Decimal-parseable. This pins the wiring if that ever diverges: a

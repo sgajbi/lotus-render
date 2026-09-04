@@ -11,6 +11,7 @@ from __future__ import annotations
 import io
 import json
 import re
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
@@ -179,7 +180,7 @@ def test_ready_set_backstops_refuse_what_the_display_rules_cannot_state() -> Non
 
     base = json.loads((GALLERY / "ready-both-sets.json").read_text(encoding="utf-8"))
 
-    def refused(mutate) -> bool:
+    def refused(mutate: Callable[[dict[str, Any]], object]) -> bool:
         case = json.loads(json.dumps(base))
         mutate(case["sets"][0])
         markup = render_risk_attribution_panel({"risk_attribution": case})
