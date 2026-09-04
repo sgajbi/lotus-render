@@ -104,6 +104,8 @@ whenever a template is added, deprecated, blocked, or moved across ownership bou
 | --- | --- | --- | --- | --- |
 | `portfolio-review` | `v1` (published 2026-09-04) | `portfolio_review.v1` | `lotus-report` | Client/advisor portfolio review presentation only. |
 | `portfolio-review` | `v2` (published 2026-09-04; adds the rolling-risk trend band) | `portfolio_review.v1` (risk-trend block additive) | `lotus-report` | Client/advisor portfolio review presentation only; risk attribution ships in `v3`. |
+| `portfolio-review` | `v3` (development; shared design `v1`) | `portfolio_review.v1` | `lotus-report` | Adds the report#254 risk-attribution decomposition in the slot `v2` reserved. |
+| `portfolio-review` | `v4` (development; shared design `v2` -- vendored document face, #270 page frame) | `portfolio_review.v1` | `lotus-report` | The #270 design overhaul; content is `v3`'s verbatim. |
 | `outcome-review` | `v1` | `dpm_outcome_report_input.v1` | `lotus-report` with outcome evidence from `lotus-manage` | Post-trade outcome-review artifact rendering only. |
 | `proof-pack` | `v1` | `dpm_proof_pack_report_input.v1`; accepts nested `lotus_idea_evidence_pack_report_input.v1` source lineage | `lotus-report` with proof-pack evidence from `lotus-manage` or reviewed Idea evidence from `lotus-idea` | Deterministic proof-pack presentation only; no report-data assembly, archive lifecycle, or client-publication authority. |
 | `rebalance-wave` | `v1` | `dpm_wave_report_input.v1` | `lotus-report` with wave evidence from `lotus-manage` | Rebalance wave evidence artifact rendering only. |

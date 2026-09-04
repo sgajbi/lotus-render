@@ -88,6 +88,33 @@ Lifecycle changes are governed the same way: move a template to `deprecated_rere
 - `brand_variant`: `private_banking`
 - `output_format`: `pdf`
 
+- `template_id`: `portfolio-review`
+- `template_version`: `v3` -- development; shared design `v1`. Fills the insertion point
+  `v2` reserved: the risk-attribution decomposition (report#254 contract -- both sets
+  stacked, source-ordered signed contributor bars normalised within their set, bar-less
+  residual row beside the stated reconciliation facts, whole-set fail-visible refusals in
+  the source's voice). Publication is a separate recorded decision.
+- `report_type`: `portfolio_review`
+- `report_data_contract_version`: `portfolio_review.v1`
+- `locale`: `en-SG`
+- `brand_variant`: `private_banking`
+- `output_format`: `pdf`
+
+- `template_id`: `portfolio-review`
+- `template_version`: `v4` -- development; **shared design `v2`** (the first divergence of
+  the shared design system). The issue #270 design overhaul: the vendored document face
+  (Source Sans 3, SIL OFL 1.1, reached only through the workspace `--font-path` so an
+  unpinned host font can never restyle a document), the page frame (eyebrow section
+  label, display title, stated subtitle, reporting metadata, footer with document
+  identity and a real N / M page count), accent-topped KPI cards, the restyled cover,
+  and group-numbered appendix definitions. Content is `v3`'s, verbatim -- the overhaul
+  changes how the document is set, never what it states.
+- `report_type`: `portfolio_review`
+- `report_data_contract_version`: `portfolio_review.v1`
+- `locale`: `en-SG`
+- `brand_variant`: `private_banking`
+- `output_format`: `pdf`
+
 - `template_id`: `outcome-review`
 - `template_version`: `v1`
 - `report_type`: `outcome_review`
