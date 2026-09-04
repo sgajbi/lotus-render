@@ -508,6 +508,18 @@ class TypstRenderService:
     ) -> list[str]:
         source_argument = source_path.relative_to(workspace).as_posix()
         output_argument = output_path.relative_to(workspace).as_posix()
+        # Vendored fonts arrive as part of the materialised dependency graph: a
+        # shared design version that ships a fonts/ directory lands it beside the
+        # family files, and the compiler is pointed at exactly that directory --
+        # never the host's font store, which would let an unpinned, undigested
+        # font change every document. When the pinned design ships no fonts the
+        # command is unchanged, so every v1-pinned compile stays byte-identical.
+        fonts_directory = source_path.parent / "fonts"
+        font_arguments = (
+            ["--font-path", fonts_directory.relative_to(workspace).as_posix()]
+            if fonts_directory.is_dir()
+            else []
+        )
         docker_binary = shutil.which("docker")
         if docker_binary is not None:
             return [
@@ -524,6 +536,7 @@ class TypstRenderService:
                 "/workspace",
                 DOCKER_TYPST_IMAGE,
                 "compile",
+                *font_arguments,
                 "--pdf-standard",
                 PDF_STANDARD,
                 source_argument,
@@ -532,10 +545,14 @@ class TypstRenderService:
 
         local_typst = shutil.which("typst")
         if local_typst is not None:
+            local_font_arguments = (
+                ["--font-path", str(fonts_directory)] if fonts_directory.is_dir() else []
+            )
             return _bounded_local_command(
                 [
                     local_typst,
                     "compile",
+                    *local_font_arguments,
                     "--pdf-standard",
                     PDF_STANDARD,
                     str(source_path),

@@ -9,6 +9,7 @@ from app.services.typst_contexts import (
     build_portfolio_review_context,
     build_portfolio_review_v2_context,
     build_portfolio_review_v3_context,
+    build_portfolio_review_v4_context,
     build_proof_pack_context,
     build_wave_context,
 )
@@ -79,6 +80,12 @@ def default_template_context_registry() -> TemplateContextRegistry:
                 template_id="portfolio-review",
                 template_version="v3",
                 build_context=build_portfolio_review_v3_context,
+            ),
+            TemplateContextRenderer(
+                report_type="portfolio_review",
+                template_id="portfolio-review",
+                template_version="v4",
+                build_context=build_portfolio_review_v4_context,
             ),
             TemplateContextRenderer(
                 report_type="proof_pack",

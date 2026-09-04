@@ -300,3 +300,24 @@ def test_a_historical_v1_render_still_uses_shared_v1_after_v2_exists(
     materialised = _materialise(source_root, "fam", "v1", "v1", tmp_path / "w3")
     assert "SHARED-DESIGN-V1" in materialised
     assert "V2" not in materialised
+
+
+def test_a_vendored_font_byte_is_part_of_the_dependency_graph(tmp_path: Path) -> None:
+    """The digest absorbs every file in the pinned design, binaries included: a
+    single font byte differing is a different compiled document, and the
+    evidence chain must say so."""
+
+    family = tmp_path / "family"
+    family.mkdir()
+    (family / "main.typ").write_text("#lorem(1)", encoding="utf-8")
+    shared = tmp_path / "shared"
+    fonts = shared / "fonts"
+    fonts.mkdir(parents=True)
+    (shared / "_design.typ").write_text("#let ink = black", encoding="utf-8")
+    (fonts / "Face.ttf").write_bytes(bytes([0, 1, 2]))
+
+    before = template_digest(family, shared_directory=shared)
+    (fonts / "Face.ttf").write_bytes(bytes([0, 1, 3]))
+    after = template_digest(family, shared_directory=shared)
+
+    assert before != after
