@@ -151,6 +151,9 @@ def test_verified_custody_reaches_the_response_and_survives_a_restart(
     status = service.get_status("rdr_golden_portfolio_review_v1")
     assert status.archive_state == "archived_verified"
     assert status.archive_document_id == "doc_ab12"
+    assert response.archive_detail is None and status.archive_detail is None, (
+        "verified custody carries no refusal words to misread"
+    )
 
 
 def test_an_unreachable_archive_never_fails_the_render(tmp_path: Path) -> None:
@@ -163,6 +166,11 @@ def test_an_unreachable_archive_never_fails_the_render(tmp_path: Path) -> None:
     assert response.artifact_base64 is not None
     assert response.archive_state == "archive_failed"
     assert response.archive_document_id is None
+    # Report maps retry posture from Archive's words, so the caller-facing surfaces
+    # must carry them -- an unreachable Archive is retry-eligible, a checksum
+    # refusal is not, and archive_state alone cannot say which.
+    assert response.archive_detail is not None
+    assert "archive_unreachable" in response.archive_detail
     stored = RenderStore(store_path).get("rdr_golden_portfolio_review_v1")
     assert stored.archive_detail is not None
     assert "archive_unreachable" in stored.archive_detail
@@ -179,6 +187,8 @@ def test_a_timeout_leaves_the_reconciliation_key_on_the_job(tmp_path: Path) -> N
 
     assert response.status == "rendered"
     assert response.archive_state == "archive_pending"
+    assert response.archive_detail is not None
+    assert "reconcile" in response.archive_detail
     stored = RenderStore(store_path).get("rdr_golden_portfolio_review_v1")
     assert stored.archive_request_id == derive_archive_request_id(REFERENCE, ARTIFACT_SHA)
 
