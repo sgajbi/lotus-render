@@ -18,20 +18,24 @@ The cutover's decisions, as they land here:
   metadata, and a replay that cannot reproduce its own metadata would convert
   idempotency into a 409.
 
-- **A timeout is ``archive_pending``, never a guess.** The request may have committed
-  after the deadline; claiming failure invites a needless redelivery and claiming
-  success certifies what was not observed. Reconciliation resolves it by request id,
-  outside the render path -- which is also why the timeout is not retried inline:
-  the caller is waiting on a synchronous submit, and the pending state already names
-  the recovery.
+- **An unproven commit is ``archive_pending``, never a guess.** Only two futures may
+  end as ``archive_failed``: a deterministic refusal (4xx -- Archive judged the
+  content and the same request meets the same wall) and a delivery PROVEN never
+  sent (the connect itself failed -- redelivery is safe and reconciliation has
+  nothing to find). Everything else -- a deadline expiry, a connection lost after
+  the first byte, a 5xx answer, a success that names no record, an error the
+  transport cannot classify -- leaves the commit state unproven, and claiming
+  definite absence there could mint a duplicate governed document. The truthful
+  state for an unproven commit is pending: Archive resolves it by request id, and
+  an extra lookup is always cheaper than a duplicate. This is why the transport
+  keeps delivery phases distinct instead of collapsing them into one error.
 
 - **A refusal is ``archive_failed`` with Archive's own words.** ``declared_checksum_
   mismatch`` names both digests; ``artifact_identity_collision`` names the custody
   conflict. Refusals are not retried: the same request would meet the same refusal.
-  A refused connection is also failed -- nothing reached Archive, so redelivery is
-  safe and reconciliation has nothing to find. 5xx and refused connections retry a
-  bounded number of times; if a 5xx did commit before erroring, the idempotent
-  replay converges on the committed record.
+  5xx answers and never-sent deliveries retry a bounded number of times; if a 5xx
+  did commit before erroring, the idempotent replay converges on the committed
+  record.
 
 - **The render is never failed by the handoff.** The artifact is real whatever
   happens here; the job stays ``rendered`` and carries the archive truth alongside.
@@ -41,11 +45,11 @@ from __future__ import annotations
 
 import base64
 import hashlib
+import http.client
 import json
 import logging
 import time
-import urllib.error
-import urllib.request
+import urllib.parse
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from time import perf_counter
@@ -60,10 +64,6 @@ from app.services.render_ports import RenderJobStorePort
 logger = logging.getLogger(__name__)
 
 ArchiveState = Literal["archived_verified", "archive_pending", "archive_failed"]
-
-#: Statuses where the request is worth re-sending: the failure is Archive's moment,
-#: not the request's content. Everything else in 4xx/5xx is terminal for this call.
-_RETRYABLE_STATUSES = frozenset({502, 503, 504})
 
 #: How much of Archive's refusal is kept on the job. Enough to name the code and both
 #: digests of a checksum mismatch; not an unbounded echo of an arbitrary error body.
@@ -150,49 +150,75 @@ def build_archive_metadata(
     return metadata
 
 
+class ArchiveDeliveryNotSentError(Exception):
+    """Proven: the request never left this process (the connect itself failed)."""
+
+
+class ArchiveOutcomeUnknownError(Exception):
+    """The request may have reached Archive; its outcome was not observed."""
+
+
 class ArchiveTransport(Protocol):
     def post_document(
         self, payload: Mapping[str, object], *, headers: Mapping[str, str]
-    ) -> tuple[int, Mapping[str, object]]: ...
+    ) -> tuple[int, Mapping[str, object]]:
+        """Return Archive's answer, or raise a delivery-phase-typed exception.
+
+        HTTP statuses are answers, not exceptions. A transport that cannot prove
+        which phase failed must raise ArchiveOutcomeUnknownError -- never a claim
+        of definite absence.
+        """
+        ...
 
 
 class StdlibArchiveTransport:
-    """One bounded POST via the standard library.
+    """One bounded POST via the standard library, with delivery phases kept distinct.
 
     The handoff is a single request-response with an explicit deadline; adding a
-    runtime HTTP dependency for that would be speculation. HTTP error statuses are
-    responses, not exceptions; a deadline expiry surfaces as TimeoutError and a
-    connection that never carried the request as OSError, because the caller treats
-    those two futures differently (pending versus failed).
+    runtime HTTP dependency for that would be speculation. What the stdlib IS asked
+    for is epistemic precision: an error while CONNECTING proves the request never
+    left this process, while any error after the first byte was written may have
+    left a committed document behind. urllib collapses those phases into one error,
+    so this speaks http.client directly and types the two futures apart.
     """
 
     def __init__(self, base_url: str, *, timeout_seconds: float) -> None:
-        normalized = base_url.rstrip("/")
-        if not normalized.startswith(("http://", "https://")):
+        parsed = urllib.parse.urlsplit(base_url.rstrip("/"))
+        if parsed.scheme not in ("http", "https") or not parsed.hostname:
             raise ValueError(f"archive_base_url_not_http:{base_url}")
-        self._url = f"{normalized}/documents"
+        self._scheme = parsed.scheme
+        self._host = parsed.hostname
+        self._port = parsed.port
+        self._path = f"{parsed.path}/documents"
         self._timeout_seconds = timeout_seconds
 
     def post_document(
         self, payload: Mapping[str, object], *, headers: Mapping[str, str]
     ) -> tuple[int, Mapping[str, object]]:
-        request = urllib.request.Request(
-            self._url,
-            data=json.dumps(payload).encode("utf-8"),
-            headers=dict(headers),
-            method="POST",
+        connection_class = (
+            http.client.HTTPSConnection if self._scheme == "https" else http.client.HTTPConnection
         )
+        connection = connection_class(self._host, self._port, timeout=self._timeout_seconds)
         try:
-            with urllib.request.urlopen(request, timeout=self._timeout_seconds) as response:
+            try:
+                connection.connect()
+            except OSError as error:
+                raise ArchiveDeliveryNotSentError(str(error) or type(error).__name__) from error
+            # From here on, bytes may have left the process: absence of the request
+            # at Archive is no longer provable from this side of the wire.
+            try:
+                connection.request(
+                    "POST",
+                    self._path,
+                    body=json.dumps(payload).encode("utf-8"),
+                    headers=dict(headers),
+                )
+                response = connection.getresponse()
                 return int(response.status), _parse_body(response.read())
-        except urllib.error.HTTPError as error:
-            return int(error.code), _parse_body(error.read())
-        except TimeoutError:
-            raise
-        except urllib.error.URLError as error:
-            if isinstance(error.reason, TimeoutError):
-                raise TimeoutError(str(error.reason)) from error
-            raise OSError(str(error.reason)) from error
+            except (OSError, http.client.HTTPException) as error:
+                raise ArchiveOutcomeUnknownError(str(error) or type(error).__name__) from error
+        finally:
+            connection.close()
 
 
 def _parse_body(raw: bytes) -> Mapping[str, object]:
@@ -279,32 +305,44 @@ class ArchiveHandoff:
         headers: Mapping[str, str],
         archive_request_id: str,
     ) -> ArchiveHandoffOutcome:
-        last_detail = "archive_unreachable"
+        """Post until the outcome is settled, retrying only what is safe to retry.
+
+        A proven-never-sent delivery retries and exhausts to archive_failed --
+        genuinely retry-eligible, nothing to reconcile. A 5xx retries (replay under
+        the derived id is safe) but exhausts to archive_pending, because an answer
+        proves the request REACHED something and the commit state was never
+        disproven. Every sent-but-unobserved future settles as pending immediately:
+        the caller is waiting on a synchronous submit, and the pending state
+        already names the recovery.
+        """
+        not_sent_detail = "archive_unreachable"
+        last_answer_detail: str | None = None
         for attempt in range(1, self._max_attempts + 1):
             try:
                 status, body = self._transport.post_document(payload, headers=headers)
-            except TimeoutError:
-                return ArchiveHandoffOutcome(
-                    archive_state="archive_pending",
-                    archive_request_id=archive_request_id,
-                    archive_detail=(
-                        "archive_timeout: no response within the deadline; "
-                        "reconcile by archive_request_id"
-                    ),
-                )
-            except OSError as error:
-                last_detail = _bounded(f"archive_unreachable: {error}")
+            except ArchiveDeliveryNotSentError as error:
+                not_sent_detail = _bounded(f"archive_unreachable: {error}")
+            except (TimeoutError, ArchiveOutcomeUnknownError, OSError) as error:
+                # Sent-but-unobserved -- or an error the transport could not place
+                # in a phase, which must be treated identically: never a claim of
+                # definite absence.
+                return _pending(archive_request_id, _unobserved_reason(error))
             else:
                 settled = _settled_outcome(status, body, archive_request_id)
                 if settled is not None:
                     return settled
-                last_detail = _refusal_detail(status, body)
+                last_answer_detail = _refusal_detail(status, body)
             if attempt < self._max_attempts:
                 self._sleep(self._retry_backoff_seconds * attempt)
+        if last_answer_detail is not None:
+            # At least one attempt was ANSWERED, so the request reached something
+            # and any of those attempts may have committed: exhaustion proves
+            # unavailability, never absence -- even if later attempts never sent.
+            return _pending(archive_request_id, last_answer_detail)
         return ArchiveHandoffOutcome(
             archive_state="archive_failed",
             archive_request_id=archive_request_id,
-            archive_detail=last_detail,
+            archive_detail=not_sent_detail,
         )
 
 
@@ -367,7 +405,14 @@ def hand_off_and_record(
 def _settled_outcome(
     status: int, body: Mapping[str, object], archive_request_id: str
 ) -> ArchiveHandoffOutcome | None:
-    """The terminal outcome for one answer, or None when the answer is retryable."""
+    """The settled outcome for one answer, or None when another attempt is safe.
+
+    Only a deterministic refusal (4xx) may say archive_failed: the answer proves
+    Archive judged the request's content, and the same request meets the same wall.
+    Any other non-success answer proves only that SOMETHING received the request --
+    the commit state stays unproven, so the caller retries (safe under the derived
+    request id) and exhaustion settles as pending upstream.
+    """
     if status in (200, 201):
         document_id = body.get("document_id")
         if isinstance(document_id, str) and document_id:
@@ -376,19 +421,29 @@ def _settled_outcome(
                 archive_request_id=archive_request_id,
                 archive_document_id=document_id,
             )
-        # A success without a durable id proves nothing; custody is claimed only
-        # on evidence (fail-closed).
+        # A success that names no durable record: the commit is likely but
+        # unproven, and claiming either way would be a guess -- reconcile it.
+        return _pending(archive_request_id, "archive_response_missing_document_id")
+    if 400 <= status < 500:
         return ArchiveHandoffOutcome(
             archive_state="archive_failed",
             archive_request_id=archive_request_id,
-            archive_detail="archive_response_missing_document_id",
+            archive_detail=_refusal_detail(status, body),
         )
-    if status in _RETRYABLE_STATUSES:
-        return None
+    return None
+
+
+def _unobserved_reason(error: BaseException) -> str:
+    if isinstance(error, TimeoutError):
+        return "archive_timeout: no response within the deadline"
+    return f"archive_outcome_unknown: {error}"
+
+
+def _pending(archive_request_id: str, reason: str) -> ArchiveHandoffOutcome:
     return ArchiveHandoffOutcome(
-        archive_state="archive_failed",
+        archive_state="archive_pending",
         archive_request_id=archive_request_id,
-        archive_detail=_refusal_detail(status, body),
+        archive_detail=_bounded(f"{reason}; reconcile by archive_request_id"),
     )
 
 

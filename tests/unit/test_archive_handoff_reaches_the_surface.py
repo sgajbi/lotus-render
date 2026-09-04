@@ -21,7 +21,12 @@ from app.contracts.render_package import RenderPackage
 from app.domain.render_attempts.models import RenderAttempt
 from app.domain.rendering.models import RenderDiagnostic, RenderResult
 from app.infrastructure.render_store import RenderStore, StoredRenderJob
-from app.services.archive_handoff import ArchiveHandoff, derive_archive_request_id
+from app.services.archive_handoff import (
+    ArchiveDeliveryNotSentError,
+    ArchiveHandoff,
+    ArchiveOutcomeUnknownError,
+    derive_archive_request_id,
+)
 from app.services.render_execution import RenderExecutionLimiter
 from app.services.render_ports import RenderRuntimeMetadata
 from app.services.render_submission import RenderSubmissionService
@@ -140,6 +145,9 @@ def test_verified_custody_reaches_the_response_and_survives_a_restart(
     assert response.artifact_base64 is not None, "custody must never withhold the artifact"
     assert response.archive_state == "archived_verified"
     assert response.archive_document_id == "doc_ab12"
+    assert response.archive_request_id == derive_archive_request_id(REFERENCE, ARTIFACT_SHA), (
+        "consumers read the delivery identity from here; nobody re-derives it"
+    )
 
     # A fresh store over the same file is the restart: the truth was persisted, not held.
     reopened = RenderStore(store_path)
@@ -157,7 +165,9 @@ def test_verified_custody_reaches_the_response_and_survives_a_restart(
 
 
 def test_an_unreachable_archive_never_fails_the_render(tmp_path: Path) -> None:
-    transport = _ScriptedTransport(OSError("refused"), OSError("refused"))
+    transport = _ScriptedTransport(
+        ArchiveDeliveryNotSentError("refused"), ArchiveDeliveryNotSentError("refused")
+    )
     service, store_path = _service(tmp_path, transport)
 
     response = service.submit(_package(with_custody=True))
@@ -187,6 +197,9 @@ def test_a_timeout_leaves_the_reconciliation_key_on_the_job(tmp_path: Path) -> N
 
     assert response.status == "rendered"
     assert response.archive_state == "archive_pending"
+    assert response.archive_request_id == derive_archive_request_id(REFERENCE, ARTIFACT_SHA), (
+        "pending is only honest if the caller holds the reconciliation key"
+    )
     assert response.archive_detail is not None
     assert "reconcile" in response.archive_detail
     stored = RenderStore(store_path).get("rdr_golden_portfolio_review_v1")
@@ -280,3 +293,22 @@ def test_the_factory_builds_the_handoff_only_when_configured(tmp_path: Path) -> 
         )
     )
     assert isinstance(configured, ArchiveHandoff)
+
+
+def test_a_connection_lost_after_send_surfaces_as_pending(tmp_path: Path) -> None:
+    """The steering's transport discipline at the caller's surface: a reset after
+    the request was accepted may sit on top of a committed document, so the job
+    says pending with the reconciliation key -- never a definite failure."""
+
+    transport = _ScriptedTransport(ArchiveOutcomeUnknownError("connection reset by peer"))
+    service, store_path = _service(tmp_path, transport)
+
+    response = service.submit(_package(with_custody=True))
+
+    assert response.status == "rendered"
+    assert response.artifact_base64 is not None
+    assert response.archive_state == "archive_pending"
+    assert response.archive_request_id == derive_archive_request_id(REFERENCE, ARTIFACT_SHA)
+    stored = RenderStore(store_path).get("rdr_golden_portfolio_review_v1")
+    assert stored.archive_detail is not None
+    assert "archive_outcome_unknown" in stored.archive_detail

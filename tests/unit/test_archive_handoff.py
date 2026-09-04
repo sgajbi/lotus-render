@@ -17,8 +17,10 @@ from typing import Any
 from app.contracts.examples import PORTFOLIO_REVIEW_RENDER_PACKAGE_EXAMPLE_PATH
 from app.contracts.render_package import RenderPackage
 from app.services.archive_handoff import (
+    ArchiveDeliveryNotSentError,
     ArchiveHandoff,
     ArchiveHandoffOutcome,
+    ArchiveOutcomeUnknownError,
     build_archive_metadata,
     derive_archive_request_id,
 )
@@ -264,13 +266,16 @@ def test_an_identity_collision_is_a_terminal_refusal() -> None:
     assert len(transport.calls) == 1
 
 
-def test_unreachable_archive_retries_then_fails_with_bounded_backoff() -> None:
-    """Nothing reached Archive, so redelivery is safe and reconciliation has nothing
-    to find: failed, not pending -- after the configured attempts, not one."""
+def test_a_delivery_proven_never_sent_retries_then_fails_with_bounded_backoff() -> None:
+    """The one transport failure allowed to say archive_failed: the connect itself
+    failed, so the request provably never left this process -- redelivery is safe
+    and reconciliation has nothing to find. After the configured attempts, not one."""
 
     sleeps: list[float] = []
     transport = _ScriptedTransport(
-        OSError("connection refused"), OSError("connection refused"), OSError("connection refused")
+        ArchiveDeliveryNotSentError("connection refused"),
+        ArchiveDeliveryNotSentError("connection refused"),
+        ArchiveDeliveryNotSentError("connection refused"),
     )
 
     outcome = _deliver(_handoff(transport, sleeps=sleeps), _package(_custody_context()))
@@ -280,6 +285,101 @@ def test_unreachable_archive_retries_then_fails_with_bounded_backoff() -> None:
     assert "archive_unreachable" in (outcome.archive_detail or "")
     assert len(transport.calls) == 3
     assert sleeps == [0.05, 0.10]
+
+
+def test_a_connection_lost_after_the_request_was_accepted_is_pending() -> None:
+    """The first byte left the process, so absence at Archive is no longer provable:
+    a reset here may sit on top of a committed document, and claiming failure would
+    invite a needless (though convergent) redelivery instead of a lookup."""
+
+    transport = _ScriptedTransport(ArchiveOutcomeUnknownError("connection reset by peer"))
+
+    outcome = _deliver(_handoff(transport), _package(_custody_context()))
+
+    assert outcome is not None
+    assert outcome.archive_state == "archive_pending"
+    assert outcome.archive_request_id == derive_archive_request_id(REFERENCE, ARTIFACT_SHA)
+    assert outcome.archive_detail is not None
+    assert "archive_outcome_unknown" in outcome.archive_detail
+    assert "reconcile by archive_request_id" in outcome.archive_detail
+    assert len(transport.calls) == 1
+
+
+def test_a_server_commit_with_response_loss_never_mints_a_fresh_document() -> None:
+    """The steering invariant, end to end: Archive commits, the response is lost,
+    Render records pending -- and the later redelivery of the same bytes converges on
+    the COMMITTED record because the request id is derived, not regenerated."""
+
+    committed_id = "doc_committed_before_loss"
+
+    class _CommitThenLoseTransport:
+        def __init__(self) -> None:
+            self.store: dict[str, str] = {}
+            self.calls = 0
+
+        def post_document(self, payload: Any, *, headers: Any) -> tuple[int, dict[str, Any]]:
+            self.calls += 1
+            request_id = str(payload["metadata"]["archive_request_id"])
+            if request_id not in self.store:
+                self.store[request_id] = committed_id
+                raise ArchiveOutcomeUnknownError("response lost after commit")
+            return (200, {"document_id": self.store[request_id]})
+
+    transport = _CommitThenLoseTransport()
+    handoff = ArchiveHandoff(
+        transport,
+        render_service_version="0.1.0",
+        max_attempts=3,
+        retry_backoff_seconds=0,
+        sleep=lambda _: None,
+    )
+
+    first = _deliver(handoff, _package(_custody_context()))
+    assert first is not None
+    assert first.archive_state == "archive_pending", "a possible commit must never claim failure"
+    assert first.archive_request_id is not None
+
+    replay = _deliver(handoff, _package(_custody_context()))
+    assert replay is not None
+    assert replay.archive_state == "archived_verified"
+    assert replay.archive_document_id == committed_id, "redelivery must find the committed record"
+    assert len(transport.store) == 1, "no second governed document may exist"
+
+
+def test_an_exhausted_5xx_sequence_is_pending_not_failed() -> None:
+    """Every 503 was an ANSWER: something received the request, and any attempt may
+    have committed before erroring. Exhaustion proves unavailability, not absence --
+    the truthful state is pending, resolved by request id, never a fresh delivery."""
+
+    sleeps: list[float] = []
+    transport = _ScriptedTransport(
+        (503, _refusal_envelope("internal_error", "restarting")),
+        (503, _refusal_envelope("internal_error", "restarting")),
+        (503, _refusal_envelope("internal_error", "restarting")),
+    )
+
+    outcome = _deliver(_handoff(transport, sleeps=sleeps), _package(_custody_context()))
+
+    assert outcome is not None
+    assert outcome.archive_state == "archive_pending"
+    assert outcome.archive_detail is not None
+    assert "archive_refused_503" in outcome.archive_detail
+    assert "reconcile by archive_request_id" in outcome.archive_detail
+    assert len(transport.calls) == 3
+
+
+def test_an_unclassifiable_transport_error_chooses_pending() -> None:
+    """A transport that cannot prove which phase failed must not let the mapping
+    claim definite absence: a bare OSError is treated as sent-but-unobserved."""
+
+    transport = _ScriptedTransport(OSError("something happened"))
+
+    outcome = _deliver(_handoff(transport), _package(_custody_context()))
+
+    assert outcome is not None
+    assert outcome.archive_state == "archive_pending"
+    assert "archive_outcome_unknown" in (outcome.archive_detail or "")
+    assert len(transport.calls) == 1
 
 
 def test_a_5xx_retry_converges_on_the_idempotent_replay() -> None:
@@ -301,18 +401,20 @@ def test_a_5xx_retry_converges_on_the_idempotent_replay() -> None:
     assert first_payload == second_payload, "a retry must be byte-for-byte the same request"
 
 
-def test_success_without_a_document_id_is_failed_not_assumed() -> None:
-    """Custody is claimed only on evidence: a 2xx that names no durable record proves
-    nothing, and 'verified' on the strength of a status code would be a certificate
-    for something never observed."""
+def test_a_success_naming_no_record_is_pending_not_assumed() -> None:
+    """A 2xx that names no durable record is a LIKELY commit whose evidence went
+    missing: claiming verified would certify what was not observed, and claiming
+    failed would assert an absence the answer itself contradicts. Reconcile it."""
 
     transport = _ScriptedTransport((201, {}))
 
     outcome = _deliver(_handoff(transport), _package(_custody_context()))
 
     assert outcome is not None
-    assert outcome.archive_state == "archive_failed"
-    assert outcome.archive_detail == "archive_response_missing_document_id"
+    assert outcome.archive_state == "archive_pending"
+    assert outcome.archive_detail == (
+        "archive_response_missing_document_id; reconcile by archive_request_id"
+    )
 
 
 # ---------------------------------------------------------------- the wire

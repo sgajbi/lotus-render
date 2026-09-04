@@ -575,5 +575,6 @@ def _job_response_fields(stored: StoredRenderJob) -> dict[str, Any]:
         completed_at=stored.completed_at,
         archive_state=stored.archive_state,
         archive_document_id=stored.archive_document_id,
+        archive_request_id=stored.archive_request_id,
         archive_detail=stored.archive_detail,
     )

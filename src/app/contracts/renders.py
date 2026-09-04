@@ -357,6 +357,17 @@ class RenderSubmitResponse(BaseModel):
         ),
         examples=["doc_5f0f4a7e1f2b4c8d9e3a6b7c8d9e0f1a"],
     )
+    archive_request_id: str | None = Field(
+        default=None,
+        description=(
+            "The idempotent Archive delivery identity Render used for this artifact, "
+            "derived from (document_reference, artifact_sha256). This is the value to "
+            "reconcile an 'archive_pending' outcome with (lotus-archive GET "
+            "/documents/by-request-id/{id}). Render is the sole authority for it: "
+            "consumers must read it from here, never re-derive it."
+        ),
+        examples=["areq_2a08ce2ad6fc822ffc9f89fef2054417"],
+    )
     archive_detail: str | None = Field(
         default=None,
         description=(
@@ -529,6 +540,17 @@ class RenderJobStatusResponse(BaseModel):
             "Durable lotus-archive document identifier, present once custody is verified."
         ),
         examples=["doc_5f0f4a7e1f2b4c8d9e3a6b7c8d9e0f1a"],
+    )
+    archive_request_id: str | None = Field(
+        default=None,
+        description=(
+            "The idempotent Archive delivery identity Render used for this artifact, "
+            "derived from (document_reference, artifact_sha256). This is the value to "
+            "reconcile an 'archive_pending' outcome with (lotus-archive GET "
+            "/documents/by-request-id/{id}). Render is the sole authority for it: "
+            "consumers must read it from here, never re-derive it."
+        ),
+        examples=["areq_2a08ce2ad6fc822ffc9f89fef2054417"],
     )
     archive_detail: str | None = Field(
         default=None,
