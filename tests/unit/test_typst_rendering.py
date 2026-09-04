@@ -1488,6 +1488,7 @@ def test_typst_render_service_materializes_modular_template_directory(
         render_package=render_package,
         template_context={"CLIENT_NAME": "Alex Tan"},
         determinism_statement="deterministic",
+        shared_design_version="v1",
     )
 
     materialized_partial = source_path.parent / "_partial.typ"

@@ -36,27 +36,53 @@ from app.domain.templates.registry import (  # noqa: E402
 REGISTRY_ROOT = Path("templates/registry")
 
 
-def _rerecord_digests() -> int:
-    changed = 0
-    for manifest_path in sorted(REGISTRY_ROOT.rglob("*.json")):
+def _rerecord_digests(
+    registry_root: Path = REGISTRY_ROOT,
+    source_root: Path = DEFAULT_TEMPLATE_SOURCE_ROOT,
+) -> int:
+    """Re-approve changed development digests -- atomically at the file level.
+
+    Two phases, because one shared-design change can affect several manifests: first
+    every manifest is measured against ITS OWN pinned shared design and every
+    proposed mutation is validated in memory; only if no published version would
+    change does anything reach disk. Walk-and-write ordering used to mean an early
+    development manifest could be rewritten before a later published dependent
+    refused the command, leaving a failed run with partial modifications.
+    """
+    proposed: list[tuple[Path, dict[str, object], str, str]] = []
+    refused: list[str] = []
+    for manifest_path in sorted(registry_root.rglob("*.json")):
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        directory = (
-            DEFAULT_TEMPLATE_SOURCE_ROOT / manifest["template_id"] / manifest["template_version"]
-        )
-        measured = template_digest(directory, shared_directory=shared_design_directory())
+        directory = source_root / manifest["template_id"] / manifest["template_version"]
+        shared = shared_design_directory(manifest["shared_design_version"], source_root)
+        measured = template_digest(directory, shared_directory=shared)
         if manifest.get("template_digest") == measured:
             continue
+        identity = (
+            f"{manifest['template_id']} {manifest['template_version']} "
+            f"(shared design {manifest['shared_design_version']})"
+        )
         if manifest.get("publication") == "published":
-            # A published version's bytes are its identity: an archived artifact names
-            # this version forever, so the affordance that re-records development
-            # digests refuses here. The legitimate path is the next version.
+            refused.append(identity)
+        else:
+            proposed.append((manifest_path, manifest, measured, identity))
+
+    if refused:
+        # A published version's bytes are its identity: an archived artifact names
+        # this dependency graph forever. Nothing was written -- not even the
+        # development manifests measured before the refusal -- because a partial
+        # re-approval is a lie about what was approved.
+        for identity in refused:
             print(
-                f"REFUSED: {manifest['template_id']} {manifest['template_version']} is "
-                "published and its bytes changed. Published bytes never change -- create "
-                "the next template_version and re-point the change at it."
+                f"REFUSED: {identity} is published and its dependency graph changed. "
+                "Published bytes never change -- create the next template_version "
+                "(scripts/create_template_version.py) and re-point the change at it."
             )
-            return 1
-        print(f"re-approved {manifest['template_id']} {manifest['template_version']}")
+        print("Zero files were written.")
+        return 1
+
+    for manifest_path, manifest, measured, identity in proposed:
+        print(f"re-approved {identity}")
         print(f"            {manifest.get('template_digest')} -> {measured}")
         manifest["template_digest"] = measured
         # newline="" keeps LF on every platform. The digest this script records is
@@ -65,8 +91,7 @@ def _rerecord_digests() -> int:
         manifest_path.write_text(
             json.dumps(manifest, indent=2) + "\n", encoding="utf-8", newline=""
         )
-        changed += 1
-    if not changed:
+    if not proposed:
         print("No template digest changed.")
     return 0
 

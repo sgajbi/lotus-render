@@ -10,14 +10,15 @@ import hashlib
 from pathlib import Path
 
 # Where the shared design module lives, relative to the template source root, and the
-# namespace its files occupy inside a digest.
+# namespace its files occupy inside a digest. The namespace is deliberately
+# version-free: the digest attests to BYTES, so two shared versions holding the
+# same bytes truthfully hash alike, and every pre-pinning digest stays valid.
 SHARED_TEMPLATE_ID = "_shared"
-SHARED_TEMPLATE_VERSION = "v1"
 SHARED_DIGEST_PREFIX = "_shared/"
 
 
 def template_digest(template_directory: Path, *, shared_directory: Path | None = None) -> str:
-    """A content hash of everything that produced a document.
+    """A content hash of the complete template dependency graph behind a document.
 
     ``template_version`` names a directory, and that directory is mutable: nothing binds
     v1 to the bytes it held when a job rendered. Recording the digest makes a divergence
@@ -25,11 +26,14 @@ def template_digest(template_directory: Path, *, shared_directory: Path | None =
     it matters more because a rendered artifact is not re-fetchable, so re-obtaining a
     document means re-rendering against whatever the directory contains today (#139).
 
-    The shared design module is hashed alongside the family's own files. It is compiled
-    into every document, so leaving it out would let a palette change alter every
-    document while every digest stayed the same -- the digest would attest to bytes that
-    were no longer the whole story. Its entries are namespaced, so a shared file and a
-    family file of the same name cannot be mistaken for each other.
+    The digest covers more than the family directory: the shared design module the
+    manifest pins (shared_design_version) is hashed alongside the family's own
+    files, because it is compiled into every document -- leaving it out would let
+    a palette change alter every document while every digest stayed the same. What
+    the digest attests to is therefore the COMPILED SOURCE DEPENDENCY GRAPH:
+    family bytes plus pinned shared-design bytes. Shared entries are namespaced,
+    so a shared file and a family file of the same name cannot be mistaken for
+    each other.
 
     Paths are relative and sorted so the digest is stable across machines and checkouts.
     """

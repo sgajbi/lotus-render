@@ -479,7 +479,7 @@ def test_artifact_metadata_names_the_template_bytes_that_produced_it(tmp_path: P
     assert digest.startswith("sha256:"), f"no template digest was recorded: {digest!r}"
     assert digest == template_digest(
         Path("templates/typst/portfolio-review/v1"),
-        shared_directory=shared_design_directory(),
+        shared_directory=shared_design_directory("v1"),
     ), "the recorded digest does not match the template that rendered the document"
 
 

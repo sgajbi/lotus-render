@@ -6,7 +6,6 @@ from pathlib import Path
 from app.contracts.render_package import RenderPackage
 from app.domain.templates.digest import (
     SHARED_TEMPLATE_ID,
-    SHARED_TEMPLATE_VERSION,
     template_digest,
 )
 from app.domain.templates.models import TemplateLifecycleStatus, TemplateManifest
@@ -149,9 +148,17 @@ def _require_renderable_status(manifest: TemplateManifest) -> None:
     )
 
 
-def shared_design_directory(source_root: Path = DEFAULT_TEMPLATE_SOURCE_ROOT) -> Path:
-    """The design module every family compiles against."""
-    return source_root / SHARED_TEMPLATE_ID / SHARED_TEMPLATE_VERSION
+def shared_design_directory(
+    shared_design_version: str, source_root: Path = DEFAULT_TEMPLATE_SOURCE_ROOT
+) -> Path:
+    """The design module a manifest pins.
+
+    The version comes from the manifest, never from a global: digest verification,
+    workspace materialisation, render-time measurement, re-approval, and golden
+    generation all resolve through this one path, so there is no way for
+    validation to hash one shared version while compilation copies another.
+    """
+    return source_root / SHARED_TEMPLATE_ID / shared_design_version
 
 
 def _verify_template_digest(manifest: TemplateManifest, source_root: Path) -> None:
@@ -161,10 +168,11 @@ def _verify_template_digest(manifest: TemplateManifest, source_root: Path) -> No
             f"template source missing for {manifest.template_id} "
             f"{manifest.template_version} at {directory}"
         )
-    shared = shared_design_directory(source_root)
+    shared = shared_design_directory(manifest.shared_design_version, source_root)
     if not shared.is_dir():
         raise TemplateRegistryError(
-            f"shared design module missing at {shared}; every family compiles against it"
+            f"shared design module missing at {shared} (pinned by {manifest.template_id} "
+            f"{manifest.template_version})"
         )
     measured = template_digest(directory, shared_directory=shared)
     if measured != manifest.template_digest:

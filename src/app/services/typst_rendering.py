@@ -20,7 +20,10 @@ from app.domain.render_attempts.models import (
 )
 from app.domain.rendering.models import RenderDiagnostic, RenderResult
 from app.domain.templates.digest import template_digest
-from app.domain.templates.registry import shared_design_directory
+from app.domain.templates.registry import (
+    DEFAULT_TEMPLATE_SOURCE_ROOT,
+    shared_design_directory,
+)
 from app.observability.render_metrics import record_render_empty_content_blocks
 from app.services.compile_failures import classify_compile_failure
 from app.services.render_intake import RenderIntakeService
@@ -305,6 +308,7 @@ class TypstRenderService:
                 render_package=render_package,
                 template_context=template_context,
                 determinism_statement="",
+                shared_design_version=manifest.shared_design_version,
             )
             command = self._build_compile_command(
                 workspace=temp_dir,
@@ -361,7 +365,7 @@ class TypstRenderService:
         # a mutable directory, so the version alone cannot explain an output (#139).
         rendered_template_digest = template_digest(
             Path("templates/typst") / manifest.template_id / manifest.template_version,
-            shared_directory=shared_design_directory(),
+            shared_directory=shared_design_directory(manifest.shared_design_version),
         )
         attempt.mark_rendering()
         started = perf_counter()
@@ -381,6 +385,7 @@ class TypstRenderService:
                 render_package=render_package,
                 template_context=template_context,
                 determinism_statement=deterministic_statement,
+                shared_design_version=manifest.shared_design_version,
             )
             output_path = temp_dir / "rendered.pdf"
             command = self._build_compile_command(
@@ -456,6 +461,8 @@ class TypstRenderService:
         render_package: RenderPackage,
         template_context: dict[str, str],
         determinism_statement: str,
+        shared_design_version: str,
+        template_source_root: Path = DEFAULT_TEMPLATE_SOURCE_ROOT,
     ) -> Path:
         replacements = {
             **template_context,
@@ -473,11 +480,12 @@ class TypstRenderService:
         template_directory = template_root.parent
         workspace_template_directory = workspace / "template"
         shutil.copytree(template_directory, workspace_template_directory, dirs_exist_ok=True)
-        # The shared design module lands beside the family's own files so a template
-        # imports it by name, exactly as it imports a sibling. It is hashed into every
-        # family's digest, so what compiles here is what the manifest attests to.
+        # The shared design module the MANIFEST pins lands beside the family's own
+        # files so a template imports it by name, exactly as it imports a sibling.
+        # The same pin drives digest verification and measurement, so what compiles
+        # here is exactly what the manifest attests to.
         shutil.copytree(
-            shared_design_directory(),
+            shared_design_directory(shared_design_version, template_source_root),
             workspace_template_directory,
             dirs_exist_ok=True,
         )
