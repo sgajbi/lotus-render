@@ -67,6 +67,26 @@
       "status": "active"
     },
     {
+      "template_id": "portfolio-review",
+      "template_version": "v3",
+      "report_types": [
+        "portfolio_review"
+      ],
+      "report_data_contract_versions": [
+        "portfolio_review.v1"
+      ],
+      "locales": [
+        "en-SG"
+      ],
+      "brand_variants": [
+        "private_banking"
+      ],
+      "output_formats": [
+        "pdf"
+      ],
+      "status": "active"
+    },
+    {
       "template_id": "outcome-review",
       "template_version": "v1",
       "report_types": [

@@ -42,8 +42,8 @@ import math
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from datetime import date
-from decimal import Decimal, InvalidOperation
 
+from app.services.reader_units import metric_reader_value, period_caption
 from app.services.typst_values import escape_typst_string
 
 #: Presentation names for the metric ids the producer emits today. An id this map
@@ -106,27 +106,10 @@ def _window_caption(window: object) -> str:
     frequency = window.get("frequency")
     if isinstance(frequency, str) and frequency.strip():
         parts.append(escape_typst_string(frequency.strip()))
-    period_part = _period_caption(window.get("period"))
+    period_part = period_caption(window.get("period"))
     if period_part:
         parts.append(period_part)
     return " · ".join(parts)
-
-
-def _period_caption(period: object) -> str:
-    if not isinstance(period, Mapping):
-        return ""
-    pieces: list[str] = []
-    name = period.get("name")
-    if isinstance(name, str) and name.strip():
-        pieces.append(escape_typst_string(name.strip()))
-    span = " to ".join(
-        escape_typst_string(value.strip())
-        for value in (period.get("start_date"), period.get("end_date"))
-        if isinstance(value, str) and value.strip()
-    )
-    if span:
-        pieces.append(span)
-    return " ".join(pieces)
 
 
 def _metric_row(metric: Mapping[str, object]) -> str:
@@ -186,24 +169,30 @@ def _ready_row(label: str, metric: Mapping[str, object]) -> str:
         f"[{last_value}]]],\n"
         ")"
     )
-    return row + _coverage_note(placed) + _quality_flags_note(metric)
+    # One atomic unit: a strip that breaks across a page boundary re-anchors
+    # its placed dots in the continuation region and they land outside the
+    # band -- found by inspecting a page where the risk section straddled the
+    # break, invisible at any mid-page position.
+    return (
+        "#block(breakable: false)[\n"
+        + row
+        + _coverage_note(placed)
+        + _quality_flags_note(metric)
+        + "\n]"
+    )
 
 
 def _reader_value(stated: str, unit: str) -> str | None:
     """The endpoint as the reader means it, carrying its unit.
 
-    A ``decimal_ratio`` is shifted two decimal places exactly (Decimal.scaleb --
-    digits preserved, nothing rounded, no float) and shown as a percentage; a
-    ``unitless`` value is the source string verbatim. The raw string itself is
-    never replaced anywhere else -- geometry and lineage keep the source value.
+    Formatting itself lives in reader_units (promoted on its second consumer,
+    risk attribution); the raw string is never replaced anywhere else --
+    geometry and lineage keep the source value.
     """
-    if unit == "unitless":
-        return escape_typst_string(stated)
-    try:
-        shifted = Decimal(stated).scaleb(2)
-    except InvalidOperation:
+    formatted = metric_reader_value(stated, unit)
+    if formatted is None:
         return None
-    return escape_typst_string(f"{format(shifted, 'f')}%")
+    return escape_typst_string(formatted)
 
 
 def _coverage_note(placed: "_PlacedSeries") -> str:

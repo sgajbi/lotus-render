@@ -1,0 +1,39 @@
+{
+  "window": {
+    "period": {
+      "name": "YTD",
+      "start_date": "2026-01-02",
+      "end_date": "2026-08-31"
+    }
+  },
+  "sets": [
+    {
+      "attribution_type": "TOTAL_RISK",
+      "metric": "VOLATILITY",
+      "grouping_dimension": "SECTOR",
+      "posture": "unavailable",
+      "notes": [
+        {
+          "code": "attribution_reconciliation_incomplete",
+          "message": "The source did not state the full total / reconciled sum / residual triple; a decomposition without its reconciliation is not drawn."
+        }
+      ],
+      "quality_flags": [
+        "LOW_COVERAGE"
+      ]
+    },
+    {
+      "attribution_type": "ACTIVE_RISK",
+      "metric": "TRACKING_ERROR",
+      "grouping_dimension": "SECTOR",
+      "posture": "empty",
+      "notes": [
+        {
+          "code": "risk_attribution_no_contributors",
+          "message": "position_returns_unavailable"
+        }
+      ],
+      "quality_flags": []
+    }
+  ]
+}

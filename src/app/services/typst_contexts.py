@@ -26,6 +26,7 @@ from app.services.render_content import (
     parse_proof_pack_content,
     parse_rebalance_wave_content,
 )
+from app.services.risk_attribution import render_risk_attribution_panel
 from app.services.risk_supportability import render_risk_supportability_notes
 from app.services.risk_trend import render_risk_trend_panel
 from app.services.section_selection import (
@@ -343,6 +344,14 @@ def build_portfolio_review_v2_context(render_package: RenderPackage) -> dict[str
     report_data = render_package.report_data
     context["RISK_TREND_PANEL"] = render_risk_trend_panel(report_data)
     context["RISK_ATTRIBUTION_PANEL"] = ""
+    return context
+
+
+def build_portfolio_review_v3_context(render_package: RenderPackage) -> dict[str, str]:
+    """v2's context plus exactly what v3's page adds: the risk-attribution
+    panel filling the insertion point v2 reserved (and keeps empty forever)."""
+    context = build_portfolio_review_v2_context(render_package)
+    context["RISK_ATTRIBUTION_PANEL"] = render_risk_attribution_panel(render_package.report_data)
     return context
 
 
