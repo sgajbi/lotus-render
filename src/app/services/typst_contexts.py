@@ -27,6 +27,7 @@ from app.services.render_content import (
     parse_rebalance_wave_content,
 )
 from app.services.risk_supportability import render_risk_supportability_notes
+from app.services.risk_trend import render_risk_trend_panel
 from app.services.section_selection import (
     included_optional_sections,
     resolve_section_keys,
@@ -327,6 +328,21 @@ def build_portfolio_review_context(render_package: RenderPackage) -> dict[str, s
         "REQUESTED_BY": escape_typst_string(str(render_package.requested_by)),
         "TIMEZONE": escape_typst_string(str(render_context.get("timezone", "unknown"))),
     }
+
+
+def build_portfolio_review_v2_context(render_package: RenderPackage) -> dict[str, str]:
+    """v1's context plus exactly what v2's page adds.
+
+    Layered rather than copied so the frozen v1 never gains keys it does not
+    draw, and v2's additions are visible in one place: the risk-trend band and
+    the slot reserved for report#254's attribution half (empty until its
+    producer contract ships).
+    """
+    context = build_portfolio_review_context(render_package)
+    report_data = render_package.report_data
+    context["RISK_TREND_PANEL"] = render_risk_trend_panel(report_data)
+    context["RISK_ATTRIBUTION_PANEL"] = ""
+    return context
 
 
 def build_proof_pack_context(render_package: RenderPackage) -> dict[str, str]:

@@ -17,6 +17,7 @@ because both are thin field lists over `evidence-row`, and that is promotion, no
 
 from __future__ import annotations
 
+import pathlib
 import re
 from difflib import SequenceMatcher
 from itertools import combinations
@@ -117,6 +118,22 @@ def _implementations(files: dict[str, str]) -> list[tuple[str, str, list[str]]]:
     return [entry for entry in skeletons if len(entry[2]) >= _MIN_BODY_TOKENS]
 
 
+def _sibling_versions(path: str, twin_path: str) -> bool:
+    """The same file across two VERSIONS of one template family.
+
+    A published version is frozen (#216), so its successor necessarily begins as
+    a byte copy -- sibling-version duplication is the freeze model working, not a
+    copy to delete. The guard keeps firing within a version and across families,
+    which is where the #213 defect class actually lives.
+    """
+    left, right = pathlib.PurePath(path), pathlib.PurePath(twin_path)
+    return (
+        left.name == right.name
+        and left.parts[:-2] == right.parts[:-2]
+        and left.parts[-2] != right.parts[-2]
+    )
+
+
 def _copies(files: dict[str, str]) -> list[str]:
     """Components in different files whose implementations are near-identical."""
     return [
@@ -125,6 +142,7 @@ def _copies(files: dict[str, str]) -> list[str]:
             _implementations(files), 2
         )
         if path != twin_path
+        and not _sibling_versions(path, twin_path)
         and (ratio := SequenceMatcher(None, skeleton, twin_skeleton).ratio()) >= NEAR_IDENTICAL
     ]
 

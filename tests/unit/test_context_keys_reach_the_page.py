@@ -33,6 +33,7 @@ from app.services.typst_contexts import (
     EMPTY_STATE_MARKER,
     build_outcome_review_context,
     build_portfolio_review_context,
+    build_portfolio_review_v2_context,
     build_proof_pack_context,
     build_wave_context,
 )
@@ -41,10 +42,14 @@ TEMPLATE_ROOT = Path("templates/typst")
 FIXTURES_PATH = Path("tests/golden/producer-fixtures.v1.json")
 
 CONTEXT_BUILDERS = {
-    "portfolio-review": build_portfolio_review_context,
-    "proof-pack": build_proof_pack_context,
-    "outcome-review": build_outcome_review_context,
-    "rebalance-wave": build_wave_context,
+    # Keyed by template AND version: v2 layers the risk-trend keys over v1's
+    # context, and a version-blind map would prove the wrong builder against
+    # the wrong templates (exactly what this gate exists to prevent).
+    ("portfolio-review", "v1"): build_portfolio_review_context,
+    ("portfolio-review", "v2"): build_portfolio_review_v2_context,
+    ("proof-pack", "v1"): build_proof_pack_context,
+    ("outcome-review", "v1"): build_outcome_review_context,
+    ("rebalance-wave", "v1"): build_wave_context,
 }
 
 # Keys the render service adds after the builder runs, in `_materialize_template`.
@@ -121,7 +126,7 @@ def test_no_new_context_key_is_built_and_then_drawn_nowhere(fixture: dict[str, s
         Path(fixture["package_path"]).read_text(encoding="utf-8")
     )
 
-    produced = set(CONTEXT_BUILDERS[template_id](package))
+    produced = set(CONTEXT_BUILDERS[(template_id, fixture["template_version"])](package))
     referenced = _referenced_keys(template_id, fixture["template_version"])
     orphaned = produced - referenced
 
@@ -143,7 +148,8 @@ def test_every_token_a_template_references_is_produced(fixture: dict[str, str]) 
         Path(fixture["package_path"]).read_text(encoding="utf-8")
     )
 
-    produced = set(CONTEXT_BUILDERS[template_id](package)) | SERVICE_KEYS
+    builder = CONTEXT_BUILDERS[(template_id, fixture["template_version"])]
+    produced = set(builder(package)) | SERVICE_KEYS
     missing = _referenced_keys(template_id, fixture["template_version"]) - produced
 
     assert not missing, (
@@ -201,7 +207,7 @@ def test_a_fragment_is_invoked_where_it_lands_rather_than_printed(
     package = RenderPackage.model_validate_json(
         Path(fixture["package_path"]).read_text(encoding="utf-8")
     )
-    context = CONTEXT_BUILDERS[template_id](package)
+    context = CONTEXT_BUILDERS[(template_id, fixture["template_version"])](package)
     contexts = _substitution_contexts(template_id, fixture["template_version"])
 
     printed_as_text: list[str] = []
@@ -324,7 +330,7 @@ def test_no_orphaned_key_can_inflate_the_empty_block_count(fixture: dict[str, st
     package = RenderPackage.model_validate_json(
         Path(fixture["package_path"]).read_text(encoding="utf-8")
     )
-    context = CONTEXT_BUILDERS[template_id](package)
+    context = CONTEXT_BUILDERS[(template_id, fixture["template_version"])](package)
 
     inflating = {
         key: context[key]

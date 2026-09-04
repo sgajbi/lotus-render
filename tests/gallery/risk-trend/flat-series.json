@@ -1,0 +1,12 @@
+{
+  "window": {"window_observations": 63, "frequency": "weekly",
+             "period": {"name": "YTD", "start_date": "2026-01-02", "end_date": "2026-08-31"}},
+  "metrics": [
+    {"metric": "ROLLING_BETA", "posture": "ready", "quality_flags": [],
+     "series": [
+       {"date": "2026-06-05", "value": "1.00"},
+       {"date": "2026-07-03", "value": "1.00"},
+       {"date": "2026-08-07", "value": "1.00"}
+     ]}
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "window": {"window_observations": 63, "frequency": "daily",
+             "period": {"name": "YTD", "start_date": "2026-01-02", "end_date": "2026-08-31"}},
+  "metrics": [
+    {"metric": "ROLLING_VOLATILITY", "posture": "ready", "quality_flags": [],
+     "series": [{"date": "2026-06-01", "value": "10.4"}, {"date": "2026-08-31", "value": "12.6"}]},
+    {"metric": "ROLLING_BETA", "posture": "unavailable", "quality_flags": [],
+     "notes": [{"code": "benchmark_not_applied", "message": "BENCHMARK_SERIES_UNAVAILABLE"}]},
+    {"metric": "ROLLING_TRACKING_ERROR", "posture": "unavailable", "quality_flags": [],
+     "notes": [{"code": "benchmark_not_applied", "message": "BENCHMARK_SERIES_UNAVAILABLE"}]}
+  ]
+}

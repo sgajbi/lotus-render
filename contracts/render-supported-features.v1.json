@@ -28,45 +28,105 @@
     {
       "template_id": "portfolio-review",
       "template_version": "v1",
-      "report_types": ["portfolio_review"],
-      "report_data_contract_versions": ["portfolio_review.v1"],
-      "locales": ["en-SG"],
-      "brand_variants": ["private_banking"],
-      "output_formats": ["pdf"],
+      "report_types": [
+        "portfolio_review"
+      ],
+      "report_data_contract_versions": [
+        "portfolio_review.v1"
+      ],
+      "locales": [
+        "en-SG"
+      ],
+      "brand_variants": [
+        "private_banking"
+      ],
+      "output_formats": [
+        "pdf"
+      ],
+      "status": "active"
+    },
+    {
+      "template_id": "portfolio-review",
+      "template_version": "v2",
+      "report_types": [
+        "portfolio_review"
+      ],
+      "report_data_contract_versions": [
+        "portfolio_review.v1"
+      ],
+      "locales": [
+        "en-SG"
+      ],
+      "brand_variants": [
+        "private_banking"
+      ],
+      "output_formats": [
+        "pdf"
+      ],
       "status": "active"
     },
     {
       "template_id": "outcome-review",
       "template_version": "v1",
-      "report_types": ["outcome_review"],
-      "report_data_contract_versions": ["dpm_outcome_report_input.v1"],
-      "locales": ["en-SG"],
-      "brand_variants": ["private_banking"],
-      "output_formats": ["pdf"],
+      "report_types": [
+        "outcome_review"
+      ],
+      "report_data_contract_versions": [
+        "dpm_outcome_report_input.v1"
+      ],
+      "locales": [
+        "en-SG"
+      ],
+      "brand_variants": [
+        "private_banking"
+      ],
+      "output_formats": [
+        "pdf"
+      ],
       "status": "active"
     },
     {
       "template_id": "proof-pack",
       "template_version": "v1",
-      "report_types": ["proof_pack"],
-      "report_data_contract_versions": ["dpm_proof_pack_report_input.v1"],
+      "report_types": [
+        "proof_pack"
+      ],
+      "report_data_contract_versions": [
+        "dpm_proof_pack_report_input.v1"
+      ],
       "accepted_source_contract_versions": [
         "dpm_proof_pack_report_input.v1",
         "lotus_idea_evidence_pack_report_input.v1"
       ],
-      "locales": ["en-SG"],
-      "brand_variants": ["private_banking"],
-      "output_formats": ["pdf"],
+      "locales": [
+        "en-SG"
+      ],
+      "brand_variants": [
+        "private_banking"
+      ],
+      "output_formats": [
+        "pdf"
+      ],
       "status": "active"
     },
     {
       "template_id": "rebalance-wave",
       "template_version": "v1",
-      "report_types": ["rebalance_wave"],
-      "report_data_contract_versions": ["dpm_wave_report_input.v1"],
-      "locales": ["en-SG"],
-      "brand_variants": ["private_banking"],
-      "output_formats": ["pdf"],
+      "report_types": [
+        "rebalance_wave"
+      ],
+      "report_data_contract_versions": [
+        "dpm_wave_report_input.v1"
+      ],
+      "locales": [
+        "en-SG"
+      ],
+      "brand_variants": [
+        "private_banking"
+      ],
+      "output_formats": [
+        "pdf"
+      ],
       "status": "active"
     }
   ],

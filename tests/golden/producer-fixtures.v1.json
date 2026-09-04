@@ -212,6 +212,35 @@
         "7a46fffd0bfd05285ffa1ce48603719e613a400e403f6fae812ea5c3b79e5b9e",
         "ad8976116810b42911c4d9b35912a42b9421739f6952b5458157c8ab37ac968e"
       ]
+    },
+    {
+      "template_id": "portfolio-review",
+      "template_version": "v2",
+      "golden_sample_id": "golden-portfolio-review-risk-trend-en-SG-private-banking-v2",
+      "report_data_contract_version": "portfolio_review.v1",
+      "package_path": "tests/golden/portfolio-review/v2/render-package.json",
+      "expected_pdf_path": "tests/golden/portfolio-review/v2/expected.pdf",
+      "producer_repository": "sgajbi/lotus-report",
+      "producer_source_paths": [
+        "src/app/reporting_render/package_builder.py",
+        "src/app/contracts/examples/portfolio-review-render-package.v1.json"
+      ],
+      "provenance": "Portfolio review package is the canonical lotus-report render package example mirrored into the golden fixture tree for registry-to-artifact gating.",
+      "bounded_determinism_fingerprint": "9bbcbea25dd5c10c86447810effaab2cc299b1f4c43727a4fc0c7e6ead3ecd7f",
+      "page_image_hashes": [
+        "d35fe01b4d1cd11bf367857c768439b7d61ca70ab15499dacad253f9db7c42a8",
+        "c2d2f7bcafb05c65c918234b603230c15778924ab7385dafef3ae792610213e1",
+        "2c8b4f65b5397daf7050a0a01913a88c6d0da92ddb7b55f8a3f36a33e83f66a3",
+        "ed0dd6c13e6ef397cd8446cd765af27982071258a77de590848123c44e799077",
+        "53f4c7eb4764fe6f924494582a75ca508144498367ec9f9467fb57bb9ac88d1b",
+        "effb44a97a1915c8b0a7ad6e691b2673cb526da1fb0b32eb633ad516d3b7682b",
+        "cce532a33aa06a74bd69c1eb4b1caac7d4414177048cdf599f3bd97747adf265",
+        "f7c08785a7f85f340ddfff9999400dad9bc4be3ac8d172a28659dbcf483b1748",
+        "84ff0a9be11c0cd896e87bc648b002db4df916e5793af5751cf353255ed9a23e",
+        "9fcbd0493710c361db8e7c77f67e9ecaf7e6c066dfb0a22312111a9f1bd0959c",
+        "7cdbcc9e713dbf4246797aad796fdedc3979843c03e8bc2eb41c8bb82ffbec5b",
+        "3a7706febf1933be1a8f14129a83787d1157f3a2b55c51cce88fd84ff8f2d772"
+      ]
     }
   ]
 }
