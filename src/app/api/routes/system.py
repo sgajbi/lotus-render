@@ -7,6 +7,8 @@ from app.contracts.system import (
     MetadataResponse,
     RenderInFlightJobSummary,
     RenderSupportabilitySummary,
+    TemplateProjectionEntry,
+    TemplatesProjectionResponse,
 )
 from app.dependencies.container import ContainerDependency
 from app.observability.render_posture import refresh_render_posture_metrics
@@ -111,3 +113,37 @@ async def metadata(container: ContainerDependency) -> MetadataResponse:
         supportability=RenderSupportabilitySummary(**supportability),
         renderStoreInFlight=render_store_in_flight,
     )
+
+
+@router.get(
+    "/system/templates",
+    response_model=TemplatesProjectionResponse,
+    summary="List registered template versions",
+    description=(
+        "The registry projection a producer needs for version-aware family "
+        "supportability: which (template_id, template_version) pairs exist, whether "
+        "each is renderable (status), and whether its bytes are frozen under recorded "
+        "approval (template_publication -- a separate stated fact from rendering "
+        "support; custody and distribution authority live elsewhere). Deliberately "
+        "narrow: no digests (consumers must never bind to template bytes), no "
+        "locales or brand variants (a mismatch is a render-time refusal), no output "
+        "formats and no runtime posture (the /metadata surface states those)."
+    ),
+)
+async def system_templates(container: ContainerDependency) -> TemplatesProjectionResponse:
+    entries = [
+        TemplateProjectionEntry(
+            template_id=manifest.template_id,
+            template_version=manifest.template_version,
+            status=manifest.status.value,
+            template_publication=manifest.publication.value,
+            published_at=manifest.published_at,
+            published_by=manifest.published_by,
+            supported_report_types=list(manifest.supported_report_types),
+            supported_report_data_contract_versions=list(
+                manifest.supported_report_data_contract_versions
+            ),
+        )
+        for manifest in container.template_registry.registered_manifests()
+    ]
+    return TemplatesProjectionResponse(templates=entries)

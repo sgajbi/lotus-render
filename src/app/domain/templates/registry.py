@@ -62,6 +62,12 @@ class TemplateRegistry:
 
         return cls(manifests)
 
+    def registered_manifests(self) -> tuple[TemplateManifest, ...]:
+        """Every registered manifest, ordered by (template_id, template_version)."""
+        return tuple(
+            manifest for _, manifest in sorted(self._manifests.items(), key=lambda item: item[0])
+        )
+
     def export_manifests(self) -> list[dict[str, object]]:
         return [json.loads(manifest.model_dump_json()) for manifest in self._manifests.values()]
 

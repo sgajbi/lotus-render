@@ -19,7 +19,8 @@
     "/renders",
     "/renders/{render_job_id}",
     "/renders/{render_job_id}/diagnostics",
-    "/renders/{render_job_id}/artifact-metadata"
+    "/renders/{render_job_id}/artifact-metadata",
+    "/system/templates"
   ],
   "supportability_feature_keys": [
     "render.observability.render_supportability"
