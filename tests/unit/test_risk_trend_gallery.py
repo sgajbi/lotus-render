@@ -312,7 +312,10 @@ def test_source_shaped_values_reach_the_reader_as_percentages_on_the_real_page()
     ):
         assert needle in text, f"the rendered page must state: {needle}"
     assert "0.1374" not in text, "the raw ratio must not reach the reader bare"
-    assert publication == "development", "v2 stays development until its own trigger"
+    assert publication == "published", (
+        "v2's publication trigger fired 2026-09-04 -- semantic corrections, the "
+        "acceptance review, and the dependency-graph pin are what published it"
+    )
 
 
 def test_the_benchmark_refusal_survives_the_real_engine_on_the_v2_page() -> None:
