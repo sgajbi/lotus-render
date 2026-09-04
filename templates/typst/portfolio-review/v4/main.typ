@@ -1,4 +1,4 @@
-#import "_theme.typ": document-face, empty-state, ink, page-margin-x, page-margin-y, rule, slate, text-body, text-caption, text-micro
+#import "_theme.typ": document-face, empty-state, ink, page-margin-top, page-margin-x, page-margin-y, rule, slate, text-body, text-caption, text-micro
 #import "_components.typ": running-header
 #import "_design.typ": document-reference-mark
 
@@ -8,7 +8,7 @@
 #set page(
   paper: "a4",
   flipped: true,
-  margin: (x: page-margin-x, y: page-margin-y),
+  margin: (x: page-margin-x, top: page-margin-top, bottom: page-margin-y),
   header: running-header(),
   // The header sits in the top margin rather than above it, so the body starts where
   // the old in-flow header used to leave it. Content that opens a page keeps clear of
@@ -20,8 +20,8 @@
     #v(5pt)
     #grid(
       columns: (1fr, auto),
-      [#text(size: text-micro, fill: slate)[#"${PORTFOLIO_NAME}"]#document-reference-mark("${DOCUMENT_REFERENCE}")],
-      [#text(size: text-caption, fill: ink)[#counter(page).display("1 / 1")]],
+      [#text(size: text-micro, fill: slate)[Portfolio review  |  #"${CLIENT_NAME}", #"${PORTFOLIO_NAME}"]#document-reference-mark("${DOCUMENT_REFERENCE}")],
+      [#text(size: text-caption, fill: ink)[#counter(page).display("1") / #counter(page).final().first()]],
     )
   ],
   footer-descent: 38%,
