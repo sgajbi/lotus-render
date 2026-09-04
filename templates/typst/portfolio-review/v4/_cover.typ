@@ -1,15 +1,21 @@
-#import "_theme.typ": accent, body-muted, cover-title, empty-state, grid-gap, ink, mist, section-title, small-caps, soft-rule, text-body-strong, text-head, text-lead
+#import "_theme.typ": accent, accent-soft, body-muted, cover-title, empty-state, grid-gap, ink, mist, section-title, slate, small-caps, soft-rule, text-body-strong, text-caption, text-head, text-lead
 #import "_components.typ": content-row, metric-card, report-panel, section-lead
 
 #let cover-page() = [
   #align(left)[#pdf.artifact(rect(width: 58pt, height: 1.4pt, fill: accent))]
-  #v(16pt)
+  #v(10pt)
+  // The brand variant this document was rendered for, stated as the cover's
+  // wordmark -- a supported_brand_variants fact, not decoration.
+  #text(size: text-caption, weight: 600, tracking: 1.6pt, fill: slate)[PRIVATE BANKING]
+  #v(14pt)
   #grid(
     columns: (1.22fr, 0.98fr),
     column-gutter: 30pt,
     [
       #cover-title("Portfolio Review")
-      #v(18pt)
+      #v(6pt)
+      #body-muted("${REVIEW_PERIOD_RANGE} · Reporting currency ${CURRENCY}")
+      #v(16pt)
       #report-panel([
         #grid(
           columns: (0.9fr, 1.4fr),
@@ -40,6 +46,14 @@
   )
 
   #v(1fr)
+  // A quiet closing motif in the document's own palette; marked as an artifact
+  // so assistive technology skips what a reader's eye merely rests on.
+  #align(right)[#pdf.artifact(box[
+    #place(right + bottom, dx: -60pt, circle(radius: 26pt, fill: mist))
+    #place(right + bottom, dx: -22pt, dy: -10pt, circle(radius: 17pt, stroke: (paint: accent-soft, thickness: 1.1pt)))
+    #place(right + bottom, circle(radius: 8pt, fill: accent))
+    #box(width: 130pt, height: 54pt)
+  ])]
   #soft-rule()
   #v(8pt)
   #grid(
