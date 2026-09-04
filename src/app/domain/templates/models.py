@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from enum import StrEnum
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
 class TemplateLifecycleStatus(StrEnum):
@@ -62,6 +62,19 @@ class TemplateManifest(BaseModel):
         ),
         examples=[TemplatePublication.DEVELOPMENT.value],
     )
+    published_at: str | None = Field(
+        default=None,
+        description=(
+            "Date this version's bytes were frozen for external client delivery. "
+            "Recorded exactly when publication happens; absent on development versions."
+        ),
+        examples=["2026-09-04"],
+    )
+    published_by: str | None = Field(
+        default=None,
+        description="Governance identity that approved freezing this version.",
+        examples=["lotus-platform-governance"],
+    )
     golden_sample_ids: list[str] = Field(
         default_factory=list,
         examples=[["golden-portfolio-review-en-SG-private-banking-v1"]],
@@ -76,3 +89,17 @@ class TemplateManifest(BaseModel):
     )
     runtime_engine: str = Field(..., examples=["typst"])
     runtime_engine_version: str = Field(..., examples=["foundation"])
+
+    @model_validator(mode="after")
+    def _publication_facts_match_the_posture(self) -> "TemplateManifest":
+        published = self.publication is TemplatePublication.PUBLISHED
+        if published and not (self.published_at and self.published_by):
+            raise ValueError(
+                "a published version must record published_at and published_by -- "
+                "publication is a governance act, not a flag"
+            )
+        if not published and (self.published_at or self.published_by):
+            raise ValueError(
+                "publication facts on a development version claim an approval that never happened"
+            )
+        return self

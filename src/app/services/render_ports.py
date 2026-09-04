@@ -9,7 +9,8 @@ from app.domain.render_attempts.models import (
     RenderFailureCategory as RuntimeFailureCategory,
 )
 from app.domain.rendering.models import RenderResult
-from app.infrastructure.render_store import CreateOrGetRenderJobResult, StoredRenderJob
+from app.infrastructure.render_store import CreateOrGetRenderJobResult
+from app.infrastructure.render_store_rows import StoredRenderJob
 
 
 @dataclass(frozen=True, slots=True)

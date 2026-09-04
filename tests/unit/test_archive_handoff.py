@@ -70,6 +70,7 @@ def _metadata(package: RenderPackage, **overrides: Any) -> dict[str, object] | N
         "runtime_engine": "typst",
         "runtime_engine_version": "0.14.2",
         "template_digest": "sha256:feedbeef",
+        "template_publication": "published",
     }
     arguments.update(overrides)
     return build_archive_metadata(package, **arguments)
@@ -122,6 +123,7 @@ def _deliver(handoff: ArchiveHandoff, package: RenderPackage) -> ArchiveHandoffO
         runtime_engine="typst",
         runtime_engine_version="0.14.2",
         template_digest="sha256:feedbeef",
+        template_publication="published",
     )
 
 
@@ -176,6 +178,21 @@ def test_an_unknown_template_digest_is_omitted_never_invented() -> None:
     metadata = _metadata(package, template_digest=None)
     assert metadata is not None
     assert "template_digest" not in metadata
+
+
+def test_the_publication_posture_rides_the_overlay_or_is_honestly_absent() -> None:
+    """archived_verified and published-for-client-use are distinct facts: custody
+    carries the render-time posture so the archive record can answer which one it
+    is -- and a job recorded before the posture existed claims nothing."""
+
+    package = _package(_custody_context())
+    metadata = _metadata(package)
+    assert metadata is not None
+    assert metadata["template_publication"] == "published"
+
+    unknown = _metadata(package, template_publication=None)
+    assert unknown is not None
+    assert "template_publication" not in unknown
 
 
 def test_no_custody_block_or_no_reference_means_no_handoff() -> None:

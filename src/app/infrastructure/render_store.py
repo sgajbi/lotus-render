@@ -16,6 +16,14 @@ from app.infrastructure.migrations.render_store import (
     apply_render_store_migrations,
     render_store_columns,
 )
+from app.infrastructure.render_store_rows import (
+    REQUIRED_RENDER_JOB_COLUMNS,
+    StoredRenderJob,
+    dt_from_text,
+    dt_to_text,
+    row_to_job,
+    utc_now,
+)
 
 
 class RenderJobNotFoundError(ValueError):
@@ -30,49 +38,7 @@ class RenderJobTransitionError(RuntimeError):
     pass
 
 
-def utc_now() -> datetime:
-    return datetime.now(UTC)
-
-
 InFlightRenderJobStatus = Literal["accepted", "rendering"]
-
-
-@dataclass(slots=True)
-class StoredRenderJob:
-    render_job_id: str
-    report_job_id: str
-    render_package_version: str
-    package_hash: str
-    snapshot_id: str
-    lineage_refs: tuple[str, ...]
-    disclosure_refs: tuple[str, ...]
-    requested_by: str
-    package_correlation_id: str
-    package_trace_id: str
-    report_type: str
-    template_id: str
-    template_version: str
-    output_format: str
-    status: RenderJobStatus
-    failure_category: RenderFailureCategory | None
-    failure_message: str | None
-    runtime_engine: str
-    runtime_engine_version: str
-    determinism_mode: str | None
-    determinism_statement: str | None
-    bounded_determinism_fingerprint: str | None
-    template_digest: str | None
-    artifact_sha256: str | None
-    mime_type: str | None
-    output_size_bytes: int | None
-    render_duration_ms: int | None
-    created_at: datetime
-    updated_at: datetime
-    completed_at: datetime | None
-    archive_state: str | None = None
-    archive_document_id: str | None = None
-    archive_request_id: str | None = None
-    archive_detail: str | None = None
 
 
 @dataclass(slots=True)
@@ -129,7 +95,7 @@ class RenderStore:
             raise RuntimeError("render_store_schema_missing:render_job")
         if schema_version < CURRENT_RENDER_STORE_SCHEMA_VERSION:
             raise RuntimeError("render_store_schema_version_outdated")
-        missing_columns = _REQUIRED_RENDER_JOB_COLUMNS - columns
+        missing_columns = REQUIRED_RENDER_JOB_COLUMNS - columns
         if missing_columns:
             raise RuntimeError(f"render_store_schema_missing:{sorted(missing_columns)[0]}")
 
@@ -141,7 +107,7 @@ class RenderStore:
             ).fetchone()
         if row is None:
             raise RenderJobNotFoundError("render_job_not_found")
-        return _row_to_job(row)
+        return row_to_job(row)
 
     def in_flight_summaries(
         self,
@@ -168,7 +134,7 @@ class RenderStore:
             ).fetchall()
         for row in rows:
             status = cast(InFlightRenderJobStatus, row["status"])
-            updated_at = _dt_from_text(row["updated_at"]) or observed_at
+            updated_at = dt_from_text(row["updated_at"]) or observed_at
             age_seconds = _age_seconds(updated_at, observed_at)
             counts[status] += 1
             if age_seconds >= thresholds[status]:
@@ -219,7 +185,7 @@ class RenderStore:
         with self._lock:
             with self._connect() as connection:
                 now = utc_now()
-                now_text = _dt_to_text(now)
+                now_text = dt_to_text(now)
                 cursor = connection.execute(
                     """
                     INSERT OR IGNORE INTO render_job (
@@ -275,7 +241,7 @@ class RenderStore:
                     (render_job_id,),
                 ).fetchone()
                 assert row is not None
-                job = _row_to_job(row)
+                job = row_to_job(row)
                 if job.package_hash != package_hash:
                     raise RenderJobConflictError("render_job_conflict")
                 return CreateOrGetRenderJobResult(job=job, created=created)
@@ -299,7 +265,7 @@ class RenderStore:
         The claim is a single conditional UPDATE, so exactly one caller can win it.
         """
         observed_at = now or utc_now()
-        stale_cutoff = _dt_to_text(observed_at - timedelta(seconds=rendering_stale_seconds))
+        stale_cutoff = dt_to_text(observed_at - timedelta(seconds=rendering_stale_seconds))
         with self._lock:
             with self._connect() as connection:
                 existing = connection.execute(
@@ -318,7 +284,7 @@ class RenderStore:
                         OR (status = 'rendering' AND updated_at <= ?)
                       )
                     """,
-                    (_dt_to_text(observed_at), render_job_id, stale_cutoff),
+                    (dt_to_text(observed_at), render_job_id, stale_cutoff),
                 )
                 if cursor.rowcount != 1:
                     return None
@@ -326,7 +292,7 @@ class RenderStore:
                     "SELECT * FROM render_job WHERE render_job_id = ?",
                     (render_job_id,),
                 ).fetchone()
-        return _row_to_job(row)
+        return row_to_job(row)
 
     def mark_rendering(self, render_job_id: str) -> StoredRenderJob:
         return self._update(
@@ -343,6 +309,7 @@ class RenderStore:
             output_size_bytes=None,
             render_duration_ms=None,
             completed_at=None,
+            template_publication=None,
             expected_statuses=("accepted",),
         )
 
@@ -356,6 +323,7 @@ class RenderStore:
             determinism_statement=result.diagnostic.determinism_statement,
             bounded_determinism_fingerprint=result.diagnostic.bounded_determinism_fingerprint,
             template_digest=result.diagnostic.template_digest,
+            template_publication=result.diagnostic.template_publication,
             artifact_sha256=f"sha256:{result.diagnostic.artifact_sha256}",
             mime_type=result.diagnostic.mime_type,
             output_size_bytes=result.diagnostic.output_size_bytes,
@@ -385,6 +353,7 @@ class RenderStore:
             output_size_bytes=None,
             render_duration_ms=None,
             completed_at=utc_now(),
+            template_publication=None,
             expected_statuses=("accepted", "rendering"),
         )
 
@@ -420,7 +389,7 @@ class RenderStore:
                         archive_document_id,
                         archive_request_id,
                         archive_detail,
-                        _dt_to_text(utc_now()),
+                        dt_to_text(utc_now()),
                         render_job_id,
                     ),
                 )
@@ -430,7 +399,7 @@ class RenderStore:
                     "SELECT * FROM render_job WHERE render_job_id = ?",
                     (render_job_id,),
                 ).fetchone()
-                return _row_to_job(row)
+                return row_to_job(row)
 
     def _update(
         self,
@@ -443,6 +412,7 @@ class RenderStore:
         determinism_statement: str | None,
         bounded_determinism_fingerprint: str | None,
         template_digest: str | None,
+        template_publication: str | None,
         artifact_sha256: str | None,
         mime_type: str | None,
         output_size_bytes: int | None,
@@ -458,8 +428,8 @@ class RenderStore:
                 ).fetchone()
                 if existing is None:
                     raise RenderJobNotFoundError("render_job_not_found")
-                now_text = _dt_to_text(utc_now())
-                completed_at_text = _dt_to_text(completed_at) if completed_at else None
+                now_text = dt_to_text(utc_now())
+                completed_at_text = dt_to_text(completed_at) if completed_at else None
                 placeholders = ",".join("?" for _ in expected_statuses)
                 cursor = connection.execute(
                     """
@@ -467,6 +437,7 @@ class RenderStore:
                     SET status = ?, failure_category = ?, failure_message = ?,
                         determinism_mode = ?, determinism_statement = ?,
                         bounded_determinism_fingerprint = ?, template_digest = ?,
+                        template_publication = ?,
                         artifact_sha256 = ?, mime_type = ?,
                         output_size_bytes = ?, render_duration_ms = ?, updated_at = ?,
                         completed_at = ?
@@ -484,6 +455,7 @@ class RenderStore:
                         determinism_statement,
                         bounded_determinism_fingerprint,
                         template_digest or "",
+                        template_publication,
                         artifact_sha256,
                         mime_type,
                         output_size_bytes,
@@ -504,90 +476,9 @@ class RenderStore:
                     (render_job_id,),
                 ).fetchone()
                 assert row is not None
-                return _row_to_job(row)
-
-
-def _dt_to_text(value: datetime) -> str:
-    return value.astimezone(UTC).isoformat().replace("+00:00", "Z")
-
-
-def _dt_from_text(value: str | None) -> datetime | None:
-    if not value:
-        return None
-    return datetime.fromisoformat(value.replace("Z", "+00:00"))
+                return row_to_job(row)
 
 
 def _age_seconds(updated_at: datetime, observed_at: datetime) -> int:
     elapsed = observed_at.astimezone(UTC) - updated_at.astimezone(UTC)
     return max(0, int(elapsed.total_seconds()))
-
-
-_REQUIRED_RENDER_JOB_COLUMNS = {
-    "render_job_id",
-    "report_job_id",
-    "render_package_version",
-    "package_hash",
-    "snapshot_id",
-    "lineage_refs_json",
-    "disclosure_refs_json",
-    "requested_by",
-    "package_correlation_id",
-    "package_trace_id",
-    "report_type",
-    "template_id",
-    "template_version",
-    "output_format",
-    "status",
-    "runtime_engine",
-    "runtime_engine_version",
-    "created_at",
-    "updated_at",
-}
-
-
-def _json_tuple(value: str | None) -> tuple[str, ...]:
-    if not value:
-        return ()
-    payload = json.loads(value)
-    if not isinstance(payload, list):
-        return ()
-    return tuple(str(item) for item in payload)
-
-
-def _row_to_job(row: sqlite3.Row) -> StoredRenderJob:
-    return StoredRenderJob(
-        render_job_id=str(row["render_job_id"]),
-        report_job_id=str(row["report_job_id"]),
-        render_package_version=str(row["render_package_version"]),
-        package_hash=str(row["package_hash"]),
-        snapshot_id=str(row["snapshot_id"]),
-        lineage_refs=_json_tuple(row["lineage_refs_json"]),
-        disclosure_refs=_json_tuple(row["disclosure_refs_json"]),
-        requested_by=str(row["requested_by"]),
-        package_correlation_id=str(row["package_correlation_id"]),
-        package_trace_id=str(row["package_trace_id"]),
-        report_type=str(row["report_type"]),
-        template_id=str(row["template_id"]),
-        template_version=str(row["template_version"]),
-        output_format=str(row["output_format"]),
-        status=cast(RenderJobStatus, row["status"]),
-        failure_category=cast(RenderFailureCategory | None, row["failure_category"]),
-        failure_message=row["failure_message"],
-        runtime_engine=str(row["runtime_engine"]),
-        runtime_engine_version=str(row["runtime_engine_version"]),
-        determinism_mode=row["determinism_mode"],
-        determinism_statement=row["determinism_statement"],
-        bounded_determinism_fingerprint=row["bounded_determinism_fingerprint"],
-        template_digest=row["template_digest"] or None,
-        artifact_sha256=row["artifact_sha256"],
-        mime_type=row["mime_type"],
-        output_size_bytes=int(row["output_size_bytes"]) if row["output_size_bytes"] else None,
-        render_duration_ms=int(row["render_duration_ms"]) if row["render_duration_ms"] else None,
-        created_at=_dt_from_text(row["created_at"]) or utc_now(),
-        updated_at=_dt_from_text(row["updated_at"]) or utc_now(),
-        completed_at=_dt_from_text(row["completed_at"]),
-        archive_state=row["archive_state"],
-        archive_document_id=row["archive_document_id"],
-        archive_request_id=row["archive_request_id"],
-        archive_detail=row["archive_detail"],
-    )

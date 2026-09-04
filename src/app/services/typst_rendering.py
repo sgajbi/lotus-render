@@ -467,6 +467,7 @@ class TypstRenderService:
             determinism_statement=deterministic_statement,
             bounded_determinism_fingerprint=bounded_determinism_fingerprint,
             template_digest=rendered_template_digest,
+            template_publication=manifest.publication.value,
             artifact_sha256=artifact_sha256,
             render_duration_ms=duration_ms,
             mime_type=PDF_MIME_TYPE,

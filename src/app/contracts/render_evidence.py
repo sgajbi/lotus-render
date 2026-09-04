@@ -59,6 +59,19 @@ class RenderArtifactMetadataResponse(BaseModel):
         ),
         examples=["sha256:ab7835d9dee0715480a2f458af7c0f1e"],
     )
+    template_publication: str | None = Field(
+        default=None,
+        description=(
+            "Governance posture of the template version AT RENDER TIME: 'published' "
+            "means the version's bytes were frozen under recorded approval, making "
+            "(template_id, template_version) a valid semantic identity for external "
+            "client delivery; 'development' artifacts may be archived for internal "
+            "proof but must not pass an external-publication gate. Null on jobs "
+            "recorded before the posture existed. archived_verified and published "
+            "are distinct facts -- an external gate needs both."
+        ),
+        examples=["published"],
+    )
     mime_type: str = Field(
         ...,
         description="Artifact MIME type.",
@@ -86,6 +99,19 @@ class RenderJobDiagnosticsResponse(BaseModel):
         ...,
         description="Opaque render job identifier being diagnosed.",
         examples=["rdr_golden_portfolio_review_v1"],
+    )
+    template_publication: str | None = Field(
+        default=None,
+        description=(
+            "Governance posture of the template version AT RENDER TIME: 'published' "
+            "means the version's bytes were frozen under recorded approval, making "
+            "(template_id, template_version) a valid semantic identity for external "
+            "client delivery; 'development' artifacts may be archived for internal "
+            "proof but must not pass an external-publication gate. Null on jobs "
+            "recorded before the posture existed. archived_verified and published "
+            "are distinct facts -- an external gate needs both."
+        ),
+        examples=["published"],
     )
     status: RenderJobStatus = Field(
         ...,

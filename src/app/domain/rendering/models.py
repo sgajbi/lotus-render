@@ -19,6 +19,7 @@ class RenderDiagnostic:
     determinism_statement: str
     bounded_determinism_fingerprint: str | None = None
     template_digest: str | None = None
+    template_publication: str | None = None
     artifact_sha256: str | None = None
     render_duration_ms: int | None = None
     failure_category: str | None = None

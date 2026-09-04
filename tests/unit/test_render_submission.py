@@ -22,8 +22,8 @@ from app.infrastructure.render_store import (
     RenderJobNotFoundError,
     RenderJobTransitionError,
     RenderStore,
-    StoredRenderJob,
 )
+from app.infrastructure.render_store_rows import StoredRenderJob
 from app.services.render_execution import RenderExecutionLimiter
 from app.services.render_ports import RenderEngineTimeoutError, RenderRuntimeMetadata
 from app.services.render_submission import (

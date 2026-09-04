@@ -339,6 +339,19 @@ class RenderSubmitResponse(BaseModel):
         description="UTC timestamp when the render job reached a terminal state.",
         examples=["2026-04-23T13:33:33Z"],
     )
+    template_publication: str | None = Field(
+        default=None,
+        description=(
+            "Governance posture of the template version AT RENDER TIME: 'published' "
+            "means the version's bytes were frozen under recorded approval, making "
+            "(template_id, template_version) a valid semantic identity for external "
+            "client delivery; 'development' artifacts may be archived for internal "
+            "proof but must not pass an external-publication gate. Null on jobs "
+            "recorded before the posture existed. archived_verified and published "
+            "are distinct facts -- an external gate needs both."
+        ),
+        examples=["published"],
+    )
     archive_state: str | None = Field(
         default=None,
         description=(
@@ -522,6 +535,19 @@ class RenderJobStatusResponse(BaseModel):
         default=None,
         description="UTC timestamp when the render job reached a terminal state.",
         examples=["2026-04-23T13:33:33Z"],
+    )
+    template_publication: str | None = Field(
+        default=None,
+        description=(
+            "Governance posture of the template version AT RENDER TIME: 'published' "
+            "means the version's bytes were frozen under recorded approval, making "
+            "(template_id, template_version) a valid semantic identity for external "
+            "client delivery; 'development' artifacts may be archived for internal "
+            "proof but must not pass an external-publication gate. Null on jobs "
+            "recorded before the posture existed. archived_verified and published "
+            "are distinct facts -- an external gate needs both."
+        ),
+        examples=["published"],
     )
     archive_state: str | None = Field(
         default=None,

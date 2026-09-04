@@ -23,19 +23,28 @@ from app.domain.templates.models import TemplateManifest, TemplatePublication
 REGISTRY = Path("templates/registry")
 
 
-def test_every_manifest_states_its_publication_and_none_is_silently_published() -> None:
+def test_publication_state_matches_the_recorded_trigger() -> None:
     """Explicit rather than defaulted: a manifest cannot be treated as development by
-    omission, and nothing is published until the recorded trigger fires."""
+    omission. The recorded trigger (first external delivery, at latest the #120
+    Archive handoff) FIRED on 2026-09-04 with the handoff live-proven, so the
+    delivering template is published with its facts recorded -- and nothing else is
+    published until its own trigger fires."""
 
     manifests = sorted(REGISTRY.rglob("*.json"))
     assert manifests, "no manifests were inspected; the rule would pass over anything"
 
     for path in manifests:
         manifest = TemplateManifest.model_validate_json(path.read_text(encoding="utf-8"))
-        assert manifest.publication is TemplatePublication.DEVELOPMENT, (
-            f"{path.as_posix()} is published; if that is deliberate, this test's "
-            "expectation moves in the same change that publishes it"
-        )
+        if manifest.template_id == "portfolio-review" and manifest.template_version == "v1":
+            assert manifest.publication is TemplatePublication.PUBLISHED, (
+                "the #120 trigger fired; unpublishing requires new governance, not a diff"
+            )
+            assert manifest.published_at and manifest.published_by
+        else:
+            assert manifest.publication is TemplatePublication.DEVELOPMENT, (
+                f"{path.as_posix()} is published; if that is deliberate, this test's "
+                "expectation moves in the same change that publishes it"
+            )
 
 
 def test_the_write_affordance_refuses_a_published_version(tmp_path: Path) -> None:
