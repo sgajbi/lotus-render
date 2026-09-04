@@ -57,11 +57,15 @@ IMPLEMENTED_RENDER_OPERATIONS = frozenset(
         "render_status_lookup",
         "render_diagnostics_lookup",
         "render_submission",
+        "archive_handoff",
     }
 )
 RENDER_OPERATION_STATUSES = frozenset(
     {
         "accepted",
+        "archive_failed",
+        "archive_pending",
+        "archived_verified",
         "failed",
         "not_found",
         "not_ready",

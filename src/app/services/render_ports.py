@@ -51,6 +51,16 @@ class RenderJobStorePort(Protocol):
 
     def mark_rendered(self, render_job_id: str, result: RenderResult) -> StoredRenderJob: ...
 
+    def record_archive_outcome(
+        self,
+        render_job_id: str,
+        *,
+        archive_state: str,
+        archive_document_id: str | None,
+        archive_request_id: str | None,
+        archive_detail: str | None,
+    ) -> StoredRenderJob: ...
+
     def mark_failed(
         self,
         *,

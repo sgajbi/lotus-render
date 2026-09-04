@@ -69,6 +69,10 @@ class StoredRenderJob:
     created_at: datetime
     updated_at: datetime
     completed_at: datetime | None
+    archive_state: str | None = None
+    archive_document_id: str | None = None
+    archive_request_id: str | None = None
+    archive_detail: str | None = None
 
 
 @dataclass(slots=True)
@@ -384,6 +388,50 @@ class RenderStore:
             expected_statuses=("accepted", "rendering"),
         )
 
+    def record_archive_outcome(
+        self,
+        render_job_id: str,
+        *,
+        archive_state: str,
+        archive_document_id: str | None,
+        archive_request_id: str | None,
+        archive_detail: str | None,
+    ) -> StoredRenderJob:
+        """Record the custody truth for a rendered artifact without touching status.
+
+        The render outcome and the archive outcome are different facts with different
+        authorities: the job stays 'rendered' whatever Archive said (issue #120), so
+        this write deliberately bypasses the status-transition machinery.
+        """
+        with self._lock:
+            with self._connect() as connection:
+                cursor = connection.execute(
+                    """
+                    UPDATE render_job
+                    SET archive_state = ?,
+                        archive_document_id = ?,
+                        archive_request_id = ?,
+                        archive_detail = ?,
+                        updated_at = ?
+                    WHERE render_job_id = ?
+                    """,
+                    (
+                        archive_state,
+                        archive_document_id,
+                        archive_request_id,
+                        archive_detail,
+                        _dt_to_text(utc_now()),
+                        render_job_id,
+                    ),
+                )
+                if cursor.rowcount == 0:
+                    raise RenderJobNotFoundError("render_job_not_found")
+                row = connection.execute(
+                    "SELECT * FROM render_job WHERE render_job_id = ?",
+                    (render_job_id,),
+                ).fetchone()
+                return _row_to_job(row)
+
     def _update(
         self,
         *,
@@ -538,4 +586,8 @@ def _row_to_job(row: sqlite3.Row) -> StoredRenderJob:
         created_at=_dt_from_text(row["created_at"]) or utc_now(),
         updated_at=_dt_from_text(row["updated_at"]) or utc_now(),
         completed_at=_dt_from_text(row["completed_at"]),
+        archive_state=row["archive_state"],
+        archive_document_id=row["archive_document_id"],
+        archive_request_id=row["archive_request_id"],
+        archive_detail=row["archive_detail"],
     )

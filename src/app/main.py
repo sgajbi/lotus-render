@@ -26,6 +26,7 @@ from app.middleware.http_boundary import RequestBodySizeLimitMiddleware
 from app.middleware.metrics_posture import MetricsPostureMiddleware
 from app.middleware.request_logging import RequestLoggingMiddleware
 from app.observability.render_metrics import validate_render_metric_contracts
+from app.services.archive_handoff import ArchiveHandoff, StdlibArchiveTransport
 from app.services.render_execution import RenderExecutionLimiter
 from app.services.render_foundation import RenderFoundationService
 from app.services.render_intake import RenderIntakeService
@@ -34,6 +35,21 @@ from app.services.render_submission import RenderSubmissionService
 from app.services.typst_rendering import TypstRenderService
 
 SERVICE_NAME = "lotus-render"
+
+
+def _archive_handoff(settings: Settings) -> ArchiveHandoff | None:
+    """The issue-#120 custody handoff, or None when this deployment has no Archive."""
+    if not settings.archive_base_url:
+        return None
+    return ArchiveHandoff(
+        StdlibArchiveTransport(
+            settings.archive_base_url,
+            timeout_seconds=settings.archive_timeout_seconds,
+        ),
+        render_service_version=settings.service_version,
+        max_attempts=settings.archive_max_attempts,
+        retry_backoff_seconds=settings.archive_retry_backoff_seconds,
+    )
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
@@ -59,6 +75,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 render_store=render_store,
                 rendering_stale_seconds=configured_settings.stale_rendering_seconds,
                 execution_limiter=execution_limiter,
+                archive_handoff=_archive_handoff(configured_settings),
                 render_engine=TypstRenderService(
                     configured_settings,
                     RenderIntakeService(template_registry),

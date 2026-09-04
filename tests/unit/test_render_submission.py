@@ -235,6 +235,17 @@ class _RacingRenderStore:
     ) -> StoredRenderJob | None:
         return self.mark_rendering(render_job_id)
 
+    def record_archive_outcome(
+        self,
+        render_job_id: str,
+        *,
+        archive_state: str,
+        archive_document_id: str | None,
+        archive_request_id: str | None,
+        archive_detail: str | None,
+    ) -> StoredRenderJob:
+        raise AssertionError("no archive handoff is configured in these tests")
+
     def mark_rendered(self, render_job_id: str, _result: RenderResult) -> StoredRenderJob:
         if self._fail_mark_rendered:
             raise RenderJobTransitionError("rendering->rendered raced")

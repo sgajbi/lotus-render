@@ -3,7 +3,7 @@ from __future__ import annotations
 import sqlite3
 from collections.abc import Callable
 
-CURRENT_RENDER_STORE_SCHEMA_VERSION = 3
+CURRENT_RENDER_STORE_SCHEMA_VERSION = 4
 
 Migration = Callable[[sqlite3.Connection], None]
 
@@ -102,6 +102,21 @@ def _add_template_digest_column(connection: sqlite3.Connection) -> None:
     _add_column_if_missing(connection, columns, "template_digest", "TEXT NOT NULL DEFAULT ''")
 
 
+def _add_archive_handoff_columns(connection: sqlite3.Connection) -> None:
+    """Carry the artifact's custody truth with Archive on the job itself (issue #120).
+
+    A null archive_state means no handoff applies to the job -- the package carried
+    no custody block, or the handoff is not configured -- which is a different fact
+    from a failed handoff and must stay distinguishable after the fact. Pre-cutover
+    rows are exactly that case, so there is no backfill.
+    """
+    columns = render_store_columns(connection)
+    _add_column_if_missing(connection, columns, "archive_state", "TEXT")
+    _add_column_if_missing(connection, columns, "archive_document_id", "TEXT")
+    _add_column_if_missing(connection, columns, "archive_request_id", "TEXT")
+    _add_column_if_missing(connection, columns, "archive_detail", "TEXT")
+
+
 def _add_column_if_missing(
     connection: sqlite3.Connection,
     columns: set[str],
@@ -118,4 +133,5 @@ _MIGRATIONS: tuple[tuple[int, Migration], ...] = (
     (1, _create_base_schema),
     (2, _add_lineage_columns),
     (3, _add_template_digest_column),
+    (4, _add_archive_handoff_columns),
 )

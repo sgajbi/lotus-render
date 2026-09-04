@@ -375,3 +375,57 @@ def test_render_store_reports_source_backed_in_flight_summaries(tmp_path: Path) 
     assert summaries[1].count == 1
     assert summaries[1].stale_count == 0
     assert summaries[1].oldest_age_seconds == 120
+
+
+def test_record_archive_outcome_unknown_job_raises_not_found(tmp_path: Path) -> None:
+    store = _build_store(tmp_path)
+    with pytest.raises(RenderJobNotFoundError):
+        store.record_archive_outcome(
+            "rdr_never_created",
+            archive_state="archived_verified",
+            archive_document_id="doc_x",
+            archive_request_id="areq_x",
+            archive_detail=None,
+        )
+
+
+def test_record_archive_outcome_never_touches_the_render_status(tmp_path: Path) -> None:
+    """The render outcome and the archive outcome are different facts with different
+    authorities (issue #120): recording custody must leave the job's status alone."""
+
+    store = _build_store(tmp_path)
+    render_job_id = _create_job(store)
+    store.mark_rendering(render_job_id)
+    store.mark_rendered(render_job_id, _render_result(render_job_id))
+
+    updated = store.record_archive_outcome(
+        render_job_id,
+        archive_state="archive_pending",
+        archive_document_id=None,
+        archive_request_id="areq_reconcile_me",
+        archive_detail="archive_timeout: reconcile by archive_request_id",
+    )
+
+    assert updated.status == "rendered"
+    assert updated.archive_state == "archive_pending"
+    assert updated.archive_request_id == "areq_reconcile_me"
+    assert store.get(render_job_id).archive_state == "archive_pending"
+
+
+def test_archive_columns_survive_a_replayed_migration(tmp_path: Path) -> None:
+    """Version 4 re-applied over a store that already has the columns must be a
+    no-op, not a crash -- the exact situation of a rolled-back version marker."""
+
+    path = tmp_path / "render-store.sqlite3"
+    _build_store(tmp_path)
+    with closing(sqlite3.connect(path)) as connection:
+        connection.execute("PRAGMA user_version = 3")
+        connection.commit()
+
+    replayed = _build_store(tmp_path)
+    render_job_id = _create_job(replayed, "rdr_after_replay")
+    assert replayed.get(render_job_id).archive_state is None
+    with closing(sqlite3.connect(path)) as connection:
+        assert connection.execute("PRAGMA user_version").fetchone()[0] == (
+            CURRENT_RENDER_STORE_SCHEMA_VERSION
+        )

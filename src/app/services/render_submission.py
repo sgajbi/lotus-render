@@ -6,11 +6,13 @@ import json
 from datetime import UTC, datetime
 from time import perf_counter
 
+from app.contracts.render_evidence import (
+    RenderArtifactMetadataResponse,
+    RenderJobDiagnosticsResponse,
+)
 from app.contracts.render_package import RenderPackage
 from app.contracts.renders import (
-    RenderArtifactMetadataResponse,
     RenderFailureCategory,
-    RenderJobDiagnosticsResponse,
     RenderJobStatusResponse,
     RenderStaleState,
     RenderSubmitResponse,
@@ -25,6 +27,7 @@ from app.infrastructure.render_store import (
 )
 from app.observability.render_log import log_render_accepted, log_render_failed
 from app.observability.render_metrics import record_render_artifact_size, record_render_operation
+from app.services.archive_handoff import ArchiveHandoff, hand_off_and_record
 from app.services.render_envelope import envelope_refusal
 from app.services.render_execution import RenderExecutionLimiter
 from app.services.render_ports import (
@@ -57,6 +60,7 @@ class RenderSubmissionService:
         render_engine: RenderEnginePort,
         rendering_stale_seconds: int,
         execution_limiter: RenderExecutionLimiter,
+        archive_handoff: ArchiveHandoff | None = None,
     ) -> None:
         self._render_store = render_store
         self._render_engine = render_engine
@@ -69,6 +73,9 @@ class RenderSubmissionService:
         # submit meant an idempotent replay - which does no rendering at all - could
         # exhaust capacity and 429 a genuine render (issue #115).
         self._execution_limiter = execution_limiter
+        # None when this deployment has no Archive; jobs then carry a null archive
+        # state, which the contract defines as "no handoff applies" (issue #120).
+        self._archive_handoff = archive_handoff
 
     def submit(self, render_package: RenderPackage) -> RenderSubmitResponse:
         started_at = perf_counter()
@@ -258,6 +265,9 @@ class RenderSubmissionService:
         self._record_submit_metric(stored, started_at=started_at)
         if stored.status != "rendered":
             return self._to_submit_response(stored, artifact_base64=None)
+        stored = hand_off_and_record(
+            self._archive_handoff, self._render_store, render_package, result, stored
+        )
         return self._to_submit_response(
             stored,
             artifact_base64=base64.b64encode(result.artifact_bytes).decode("ascii"),
@@ -424,6 +434,8 @@ class RenderSubmissionService:
             created_at=stored.created_at,
             updated_at=stored.updated_at,
             completed_at=stored.completed_at,
+            archive_state=stored.archive_state,
+            archive_document_id=stored.archive_document_id,
             artifact_base64=artifact_base64,
         )
 
@@ -456,6 +468,8 @@ class RenderSubmissionService:
             created_at=stored.created_at,
             updated_at=stored.updated_at,
             completed_at=stored.completed_at,
+            archive_state=stored.archive_state,
+            archive_document_id=stored.archive_document_id,
         )
 
     @staticmethod
