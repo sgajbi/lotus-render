@@ -175,7 +175,10 @@ def _ready_row(label: str, metric: Mapping[str, object]) -> str:
         f"  [#text(size: text-body, fill: ink)[{label}]],\n"
         "  [#pdf.artifact(block(\n"
         f"    width: 100%, height: {_BAND_HEIGHT + 2 * _BAND_INSET:.0f}pt,\n"
-        "    fill: mist, radius: 3pt,\n"
+        # The hairline makes the band's boundary visible: page inspection showed
+        # that against the near-white fill alone, a dot sitting on the bottom
+        # edge reads as having escaped the strip.
+        "    fill: mist, stroke: 0.5pt + rule, radius: 3pt,\n"
         f"  )[{dots}])],\n"
         "  [#align(right)[#text(size: text-micro, fill: slate)"
         f"[{first_value} #sym.arrow.r ]#text(size: text-micro, weight: 500, fill: ink)"
