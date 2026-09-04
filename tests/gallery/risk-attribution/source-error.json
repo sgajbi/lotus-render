@@ -1,0 +1,37 @@
+{
+  "window": {
+    "period": {
+      "name": "YTD",
+      "start_date": "2026-01-02",
+      "end_date": "2026-08-31"
+    }
+  },
+  "sets": [
+    {
+      "attribution_type": "TOTAL_RISK",
+      "metric": "VOLATILITY",
+      "grouping_dimension": "SECTOR",
+      "posture": "unavailable",
+      "notes": [
+        {
+          "code": "risk_attribution_source_error",
+          "message": "Insufficient data"
+        }
+      ],
+      "quality_flags": []
+    },
+    {
+      "attribution_type": "ACTIVE_RISK",
+      "metric": "TRACKING_ERROR",
+      "grouping_dimension": "SECTOR",
+      "posture": "unavailable",
+      "notes": [
+        {
+          "code": "attribution_set_missing",
+          "message": "The source emitted no result for the requested set."
+        }
+      ],
+      "quality_flags": []
+    }
+  ]
+}

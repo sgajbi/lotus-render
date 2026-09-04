@@ -69,6 +69,53 @@ def _v2_package(case: str) -> dict[str, Any]:
     return package
 
 
+def test_a_misdeclared_metrics_container_draws_nothing() -> None:
+    assert render_risk_trend_panel({"risk_trend": {"metrics": "misdeclared"}}) == ""
+
+
+def test_a_slot_with_a_malformed_date_or_unknown_posture_refuses_the_series() -> None:
+    """Per-point backstops behind the producer's own validation: a date that is
+    not a string, and a point posture this document does not recognise, each
+    refuse the whole series with a statement -- dots are never part-placed."""
+
+    def series_of(point: dict[str, object]) -> dict[str, object]:
+        return {
+            "metrics": [
+                {
+                    "metric": "ROLLING_VOLATILITY",
+                    "posture": "ready",
+                    "unit": "decimal_ratio",
+                    "quality_flags": [],
+                    "series": [{"date": "2026-06-01", "value": "0.1374"}, point],
+                }
+            ]
+        }
+
+    for point in (
+        {"date": 20260701, "value": "0.1447"},
+        {"date": "2026-07-01", "value": 0.1447},
+        {"date": "2026-07-01", "value": "0.1447", "point_posture": "interpolated"},
+    ):
+        markup = render_risk_trend_panel({"risk_trend": series_of(point)})
+        assert "could not be drawn" in markup
+        assert "circle(" not in markup, "no dot may be placed from a refused series"
+
+
+def test_an_endpoint_the_shared_formatter_refuses_refuses_the_row(monkeypatch) -> None:
+    """The endpoint formatter delegates to reader_units; today every placed
+    endpoint formats, because a string that parsed as a finite float is always
+    exact-Decimal-parseable. This pins the wiring if that ever diverges: a
+    refused endpoint refuses the row visibly, never prints None or a bare
+    ratio."""
+
+    import app.services.risk_trend as risk_trend
+
+    monkeypatch.setattr(risk_trend, "metric_reader_value", lambda stated, unit: None)
+    markup = render_risk_trend_panel(_case("ready-three-metrics"))
+    assert markup.count("could not be drawn") == 3
+    assert "None" not in markup
+
+
 def test_absence_draws_nothing_at_all() -> None:
     """No block means the report did not order the section: no panel, no heading,
     not an empty frame -- absence must be indistinguishable from pre-#255 output."""

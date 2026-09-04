@@ -34,6 +34,7 @@ from app.services.typst_contexts import (
     build_outcome_review_context,
     build_portfolio_review_context,
     build_portfolio_review_v2_context,
+    build_portfolio_review_v3_context,
     build_proof_pack_context,
     build_wave_context,
 )
@@ -47,6 +48,7 @@ CONTEXT_BUILDERS = {
     # the wrong templates (exactly what this gate exists to prevent).
     ("portfolio-review", "v1"): build_portfolio_review_context,
     ("portfolio-review", "v2"): build_portfolio_review_v2_context,
+    ("portfolio-review", "v3"): build_portfolio_review_v3_context,
     ("proof-pack", "v1"): build_proof_pack_context,
     ("outcome-review", "v1"): build_outcome_review_context,
     ("rebalance-wave", "v1"): build_wave_context,

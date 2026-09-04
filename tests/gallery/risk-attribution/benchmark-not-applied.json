@@ -1,0 +1,51 @@
+{
+  "window": {
+    "period": {
+      "name": "YTD",
+      "start_date": "2026-01-02",
+      "end_date": "2026-08-31"
+    }
+  },
+  "sets": [
+    {
+      "attribution_type": "TOTAL_RISK",
+      "metric": "VOLATILITY",
+      "grouping_dimension": "SECTOR",
+      "posture": "ready",
+      "unit": "decimal_ratio",
+      "total_value": "0.1253",
+      "reconciled_sum": "0.1249",
+      "residual": "0.0004",
+      "quality_flags": [],
+      "contributors": [
+        {
+          "group_key": "SECTOR_TECH",
+          "group_label": "SECTOR_TECH",
+          "component_contribution": "0.0784",
+          "percent_contribution": "0.6258",
+          "weight_average": "0.245"
+        },
+        {
+          "group_key": "SECTOR_FIN",
+          "group_label": "SECTOR_FIN",
+          "component_contribution": "-0.0112",
+          "percent_contribution": "-0.0894",
+          "marginal_contribution": "-0.031"
+        }
+      ]
+    },
+    {
+      "attribution_type": "ACTIVE_RISK",
+      "metric": "TRACKING_ERROR",
+      "grouping_dimension": "SECTOR",
+      "posture": "unavailable",
+      "notes": [
+        {
+          "code": "benchmark_not_applied",
+          "message": "BENCHMARK_UNAVAILABLE"
+        }
+      ],
+      "quality_flags": []
+    }
+  ]
+}
