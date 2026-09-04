@@ -79,11 +79,25 @@ class TemplateManifest(BaseModel):
         default_factory=list,
         examples=[["golden-portfolio-review-en-SG-private-banking-v1"]],
     )
+    shared_design_version: str = Field(
+        ...,
+        min_length=1,
+        description=(
+            "The shared design module version (templates/typst/_shared/<version>) this "
+            "template version compiles against. Together with template_id and "
+            "template_version it names the complete source dependency graph the digest "
+            "attests to. Render-internal provenance: producers never see or choose it, "
+            "and it is deliberately absent from /system/templates."
+        ),
+        examples=["v1"],
+    )
     template_digest: str = Field(
         ...,
         description=(
-            "Content hash of the template directory this manifest describes. Without it "
-            "template_version names a mutable directory and cannot explain an output."
+            "Content hash of the compiled template dependency graph: this version's own "
+            "directory plus the shared design module pinned by shared_design_version. "
+            "Without it template_version names a mutable graph and cannot explain an "
+            "output."
         ),
         examples=["sha256:2a59e62b6a9476a20ec63102a0615dd3911e26520a4b094fd73c0875d70d002a"],
     )

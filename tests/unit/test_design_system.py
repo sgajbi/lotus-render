@@ -20,7 +20,7 @@ from app.domain.templates.digest import template_digest
 from app.domain.templates.registry import shared_design_directory
 
 TEMPLATE_ROOT = Path("templates/typst")
-DESIGN_MODULE = shared_design_directory() / "_design.typ"
+DESIGN_MODULE = shared_design_directory("v1") / "_design.typ"
 FAMILIES = ("portfolio-review", "proof-pack", "outcome-review", "rebalance-wave")
 
 COLOUR_DECLARATION = re.compile(r"#let\s+([a-z-]+)\s*=\s*rgb\(\"(#[0-9A-Fa-f]+)\"\)")
@@ -161,7 +161,9 @@ def test_a_shared_file_cannot_overwrite_a_family_file() -> None:
     compiled against only one of them.
     """
 
-    shared_names = {path.name for path in shared_design_directory().rglob("*") if path.is_file()}
+    shared_names = {
+        path.name for path in shared_design_directory("v1").rglob("*") if path.is_file()
+    }
     for family in FAMILIES:
         clashes = shared_names & {path.name for path in _family_files(family)}
         assert not clashes, (

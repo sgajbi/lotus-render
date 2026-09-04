@@ -57,9 +57,10 @@ def _build_manifest(
     return TemplateManifest(
         template_id="portfolio-review",
         template_version="v1",
+        shared_design_version="v1",
         template_digest=template_digest(
             Path("templates/typst/portfolio-review/v1"),
-            shared_directory=shared_design_directory(),
+            shared_directory=shared_design_directory("v1"),
         ),
         supported_report_types=["portfolio_review"],
         supported_report_data_contract_versions=["portfolio_review.v1"],
@@ -345,11 +346,12 @@ def test_template_registry_exports_manifest_dicts() -> None:
             "published_at": None,
             "published_by": None,
             "golden_sample_ids": ["golden-portfolio-review-en-SG-private-banking-v1"],
-            # The manifest names the bytes it describes; the registry refuses to load one
-            # that no longer matches its template directory (issue #139).
+            "shared_design_version": "v1",
+            # The manifest names the dependency graph it describes; the registry
+            # refuses to load one that no longer matches its bytes (issue #139).
             "template_digest": template_digest(
                 Path("templates/typst/portfolio-review/v1"),
-                shared_directory=shared_design_directory(),
+                shared_directory=shared_design_directory("v1"),
             ),
             "runtime_engine": "typst",
             "runtime_engine_version": "0.14.2",

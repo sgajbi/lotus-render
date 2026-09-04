@@ -28,6 +28,7 @@
   ],
   "runtime_engine": "typst",
   "runtime_engine_version": "0.14.2",
+  "shared_design_version": "v1",
   "template_digest": "sha256:4dd4c311e12ff7c3a9f5c5f8fea93d116a95aab93e39ac0aa45e902d40b1ec96",
   "publication": "development"
 }
