@@ -5,6 +5,7 @@ import hashlib
 import json
 from datetime import UTC, datetime
 from time import perf_counter
+from typing import Any
 
 from app.contracts.render_evidence import (
     RenderArtifactMetadataResponse,
@@ -407,70 +408,11 @@ class RenderSubmissionService:
         *,
         artifact_base64: str | None,
     ) -> RenderSubmitResponse:
-        return RenderSubmitResponse(
-            render_job_id=stored.render_job_id,
-            report_job_id=stored.report_job_id,
-            snapshot_id=stored.snapshot_id,
-            lineage_refs=list(stored.lineage_refs),
-            disclosure_refs=list(stored.disclosure_refs),
-            requested_by=stored.requested_by,
-            package_correlation_id=stored.package_correlation_id,
-            package_trace_id=stored.package_trace_id,
-            status=stored.status,
-            failure_category=stored.failure_category,
-            failure_message=stored.failure_message,
-            template_id=stored.template_id,
-            template_version=stored.template_version,
-            output_format=stored.output_format,
-            artifact_sha256=stored.artifact_sha256,
-            bounded_determinism_fingerprint=stored.bounded_determinism_fingerprint,
-            runtime_engine=stored.runtime_engine,
-            runtime_engine_version=stored.runtime_engine_version,
-            determinism_mode=stored.determinism_mode,
-            determinism_statement=stored.determinism_statement,
-            mime_type=stored.mime_type,
-            output_size_bytes=stored.output_size_bytes,
-            render_duration_ms=stored.render_duration_ms,
-            created_at=stored.created_at,
-            updated_at=stored.updated_at,
-            completed_at=stored.completed_at,
-            archive_state=stored.archive_state,
-            archive_document_id=stored.archive_document_id,
-            artifact_base64=artifact_base64,
-        )
+        return RenderSubmitResponse(**_job_response_fields(stored), artifact_base64=artifact_base64)
 
     @staticmethod
     def _to_status_response(stored: StoredRenderJob) -> RenderJobStatusResponse:
-        return RenderJobStatusResponse(
-            render_job_id=stored.render_job_id,
-            report_job_id=stored.report_job_id,
-            snapshot_id=stored.snapshot_id,
-            lineage_refs=list(stored.lineage_refs),
-            disclosure_refs=list(stored.disclosure_refs),
-            requested_by=stored.requested_by,
-            package_correlation_id=stored.package_correlation_id,
-            package_trace_id=stored.package_trace_id,
-            status=stored.status,
-            failure_category=stored.failure_category,
-            failure_message=stored.failure_message,
-            template_id=stored.template_id,
-            template_version=stored.template_version,
-            output_format=stored.output_format,
-            artifact_sha256=stored.artifact_sha256,
-            bounded_determinism_fingerprint=stored.bounded_determinism_fingerprint,
-            runtime_engine=stored.runtime_engine,
-            runtime_engine_version=stored.runtime_engine_version,
-            determinism_mode=stored.determinism_mode,
-            determinism_statement=stored.determinism_statement,
-            mime_type=stored.mime_type,
-            output_size_bytes=stored.output_size_bytes,
-            render_duration_ms=stored.render_duration_ms,
-            created_at=stored.created_at,
-            updated_at=stored.updated_at,
-            completed_at=stored.completed_at,
-            archive_state=stored.archive_state,
-            archive_document_id=stored.archive_document_id,
-        )
+        return RenderJobStatusResponse(**_job_response_fields(stored))
 
     @staticmethod
     def _to_diagnostics_response(
@@ -596,3 +538,42 @@ def _stale_threshold_seconds(
     if status == "rendering":
         return rendering_stale_seconds
     return None
+
+
+def _job_response_fields(stored: StoredRenderJob) -> dict[str, Any]:
+    """The job facts every job-shaped response surface states verbatim.
+
+    The submit and status responses must never disagree about the same job; stating
+    the shared facts once is what makes that impossible rather than merely tested.
+    """
+    return dict(
+        render_job_id=stored.render_job_id,
+        report_job_id=stored.report_job_id,
+        snapshot_id=stored.snapshot_id,
+        lineage_refs=list(stored.lineage_refs),
+        disclosure_refs=list(stored.disclosure_refs),
+        requested_by=stored.requested_by,
+        package_correlation_id=stored.package_correlation_id,
+        package_trace_id=stored.package_trace_id,
+        status=stored.status,
+        failure_category=stored.failure_category,
+        failure_message=stored.failure_message,
+        template_id=stored.template_id,
+        template_version=stored.template_version,
+        output_format=stored.output_format,
+        artifact_sha256=stored.artifact_sha256,
+        bounded_determinism_fingerprint=stored.bounded_determinism_fingerprint,
+        runtime_engine=stored.runtime_engine,
+        runtime_engine_version=stored.runtime_engine_version,
+        determinism_mode=stored.determinism_mode,
+        determinism_statement=stored.determinism_statement,
+        mime_type=stored.mime_type,
+        output_size_bytes=stored.output_size_bytes,
+        render_duration_ms=stored.render_duration_ms,
+        created_at=stored.created_at,
+        updated_at=stored.updated_at,
+        completed_at=stored.completed_at,
+        archive_state=stored.archive_state,
+        archive_document_id=stored.archive_document_id,
+        archive_detail=stored.archive_detail,
+    )

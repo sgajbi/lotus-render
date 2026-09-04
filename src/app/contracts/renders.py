@@ -357,6 +357,18 @@ class RenderSubmitResponse(BaseModel):
         ),
         examples=["doc_5f0f4a7e1f2b4c8d9e3a6b7c8d9e0f1a"],
     )
+    archive_detail: str | None = Field(
+        default=None,
+        description=(
+            "Archive's own words for a non-verified custody state, bounded: the refusal "
+            "code and message on 'archive_failed' (e.g. declared_checksum_mismatch and "
+            "artifact_identity_collision are terminal -- a re-render redeclares the same "
+            "digest -- while archive_unreachable is retry-eligible), or the reconciliation "
+            "instruction on 'archive_pending'. Null when custody is verified or no handoff "
+            "applies."
+        ),
+        examples=["archive_refused_422: declared_checksum_mismatch: declared sha256 ..."],
+    )
     artifact_base64: str | None = Field(
         default=None,
         description=(
@@ -517,6 +529,18 @@ class RenderJobStatusResponse(BaseModel):
             "Durable lotus-archive document identifier, present once custody is verified."
         ),
         examples=["doc_5f0f4a7e1f2b4c8d9e3a6b7c8d9e0f1a"],
+    )
+    archive_detail: str | None = Field(
+        default=None,
+        description=(
+            "Archive's own words for a non-verified custody state, bounded: the refusal "
+            "code and message on 'archive_failed' (e.g. declared_checksum_mismatch and "
+            "artifact_identity_collision are terminal -- a re-render redeclares the same "
+            "digest -- while archive_unreachable is retry-eligible), or the reconciliation "
+            "instruction on 'archive_pending'. Null when custody is verified or no handoff "
+            "applies."
+        ),
+        examples=["archive_refused_422: declared_checksum_mismatch: declared sha256 ..."],
     )
 
 
