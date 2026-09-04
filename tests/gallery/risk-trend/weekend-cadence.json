@@ -1,0 +1,61 @@
+{
+  "window": {
+    "window_observations": 21,
+    "frequency": "daily",
+    "period": {
+      "name": "YTD",
+      "start_date": "2026-08-17",
+      "end_date": "2026-08-28"
+    }
+  },
+  "metrics": [
+    {
+      "metric": "ROLLING_VOLATILITY",
+      "posture": "ready",
+      "unit": "decimal_ratio",
+      "quality_flags": [],
+      "series": [
+        {
+          "date": "2026-08-17",
+          "value": "0.1374"
+        },
+        {
+          "date": "2026-08-18",
+          "value": "0.1376"
+        },
+        {
+          "date": "2026-08-19",
+          "value": "0.1371"
+        },
+        {
+          "date": "2026-08-20",
+          "value": "0.1379"
+        },
+        {
+          "date": "2026-08-21",
+          "value": "0.1381"
+        },
+        {
+          "date": "2026-08-24",
+          "value": "0.1385"
+        },
+        {
+          "date": "2026-08-25",
+          "value": "0.1390"
+        },
+        {
+          "date": "2026-08-26",
+          "value": "0.1402"
+        },
+        {
+          "date": "2026-08-27",
+          "value": "0.1407"
+        },
+        {
+          "date": "2026-08-28",
+          "value": "0.141"
+        }
+      ]
+    }
+  ]
+}

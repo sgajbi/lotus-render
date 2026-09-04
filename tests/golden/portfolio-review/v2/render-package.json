@@ -879,29 +879,31 @@
         {
           "metric": "ROLLING_VOLATILITY",
           "posture": "ready",
+          "unit": "decimal_ratio",
           "quality_flags": [],
           "series": [
             {
               "date": "2026-06-01",
-              "value": "10.42"
+              "value": "0.1374"
             },
             {
               "date": "2026-07-01",
-              "value": "11.97"
+              "value": "0.1447"
             },
             {
               "date": "2026-08-03",
-              "value": "11.08"
+              "value": "0.1382"
             },
             {
               "date": "2026-08-31",
-              "value": "12.63"
+              "value": "0.141"
             }
           ]
         },
         {
           "metric": "ROLLING_BETA",
           "posture": "ready",
+          "unit": "unitless",
           "quality_flags": [],
           "series": [
             {
@@ -921,27 +923,28 @@
         {
           "metric": "ROLLING_TRACKING_ERROR",
           "posture": "ready",
+          "unit": "decimal_ratio",
           "quality_flags": [],
           "series": [
             {
               "date": "2026-06-01",
-              "value": "1.4"
+              "value": "0.019"
             },
             {
               "date": "2026-06-22",
-              "value": "1.55"
+              "value": "0.0197"
             },
             {
               "date": "2026-07-13",
-              "value": "1.31"
+              "value": "0.0184"
             },
             {
               "date": "2026-08-10",
-              "value": "1.62"
+              "value": "0.0202"
             },
             {
               "date": "2026-08-31",
-              "value": "1.5"
+              "value": "0.0206"
             }
           ]
         }
