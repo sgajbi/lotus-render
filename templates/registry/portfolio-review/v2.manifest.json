@@ -21,13 +21,13 @@
   ],
   "owner_team": "lotus-reporting",
   "approver": "lotus-platform-governance",
-  "approved_at": "2026-09-05",
+  "approved_at": "2026-09-04",
   "status": "active",
   "golden_sample_ids": [
     "golden-portfolio-review-risk-trend-en-SG-private-banking-v2"
   ],
   "runtime_engine": "typst",
   "runtime_engine_version": "0.14.2",
-  "template_digest": "sha256:0f9e7dd538c7ebae12268b5d8883516a2ba59c1370686d803d44db3116e0b54b",
+  "template_digest": "sha256:a90e4c0b83602647c3cb5369b2eca3a9d8cae35edc9419292e3e46308df208e4",
   "publication": "development"
 }

@@ -335,8 +335,9 @@ def build_portfolio_review_v2_context(render_package: RenderPackage) -> dict[str
 
     Layered rather than copied so the frozen v1 never gains keys it does not
     draw, and v2's additions are visible in one place: the risk-trend band and
-    the slot reserved for report#254's attribution half (empty until its
-    producer contract ships).
+    the source insertion point for report#254's attribution half (empty until its
+    producer contract ships -- filling it will change pagination, acceptable only
+    while v2 is development; after v2 publishes, attribution is a v3 change).
     """
     context = build_portfolio_review_context(render_package)
     report_data = render_package.report_data
