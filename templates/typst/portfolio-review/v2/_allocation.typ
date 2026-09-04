@@ -55,10 +55,11 @@
     // different facts, two of which point a reader in opposite directions (#227).
     ${RISK_SUPPORTABILITY_NOTES}
     ${RISK_TREND_PANEL}
-    // Reserved by the joint risk-page design (render#160 / report#254): risk
-    // attribution renders here when its producer half ships. The slot exists so
-    // landing it adds content without reflowing a page whose geometry was
-    // settled when v2 was cut; it collapses to nothing until then.
+    // Insertion point for risk attribution (render#160 / report#254). This is a
+    // SOURCE slot, not reserved page area: it collapses to nothing today, so
+    // filling it will change pagination and geometry. That is fine while v2 is
+    // development; once v2 publishes, attribution is a v3 change unless product
+    // explicitly bundles it before publication.
     ${RISK_ATTRIBUTION_PANEL}
   ]
 ]
