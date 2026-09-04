@@ -325,3 +325,96 @@ def test_the_benchmark_refusal_survives_the_real_engine_on_the_v2_page() -> None
         "13.74%",
     ):
         assert needle in text, f"the rendered page must state: {needle}"
+
+
+def test_an_explicit_gap_occupies_its_slot_as_empty_space() -> None:
+    """The locked gap contract, drawn: two source-stated not_computed slots leave
+    a two-slot hole in an otherwise regular rhythm -- no ink at the slots, no
+    interpolation across them -- and the coverage line says it in words."""
+
+    markup = render_risk_trend_panel(_case("explicit-gaps"))
+
+    assert _dots(markup) == 8, "computed points draw; gap slots draw nothing"
+    positions = sorted(float(x) for x in re.findall(r"dx: (\d+\.\d+)%", markup))
+    expected = sorted(i * 100 / 9 for i in (0, 1, 2, 3, 6, 7, 8, 9))
+    for got, want in zip(positions, expected):
+        assert abs(got - want) < 0.01, f"dot at {got}% must sit at slot position {want}%"
+    assert "10 observations, 2 not computed, 2026-08-03 to 2026-08-14" in markup
+    assert "13.74%" in markup and "14.1%" in markup, "endpoints are the computed levels"
+
+
+def test_leading_and_trailing_gaps_keep_the_slot_span() -> None:
+    """Gap slots at the edges still hold their positions: the date span covers all
+    stated slots, the endpoint VALUES are the first and last computed points, and
+    no dot sits at either extreme of the strip."""
+
+    markup = render_risk_trend_panel(_case("leading-trailing-gaps"))
+
+    assert _dots(markup) == 4
+    positions = sorted(float(x) for x in re.findall(r"dx: (\d+\.\d+)%", markup))
+    assert positions[0] > 15.0 and positions[-1] < 85.0, (
+        "edge gap slots must stay empty, pushing the computed dots inward"
+    )
+    assert "6 observations, 2 not computed, 2026-08-03 to 2026-08-10" in markup
+    assert "1.9%" in markup and "2.06%" in markup
+
+
+def test_gap_contradictions_are_fail_visible_never_part_drawn() -> None:
+    """A posture beside a value, a null without its posture (the shape the
+    producer used to drop), an unknown posture word, and a series left with fewer
+    than two computed points are each contradictions of the locked contract."""
+
+    def series_of(points: list[dict[str, Any]]) -> str:
+        return render_risk_trend_panel(
+            {
+                "risk_trend": {
+                    "window": {"window_observations": 21, "frequency": "daily"},
+                    "metrics": [
+                        {
+                            "metric": "ROLLING_VOLATILITY",
+                            "posture": "ready",
+                            "unit": "decimal_ratio",
+                            "series": points,
+                        }
+                    ],
+                }
+            }
+        )
+
+    posture_with_value = series_of(
+        [
+            {"date": "2026-08-03", "value": "0.1374", "point_posture": "not_computed"},
+            {"date": "2026-08-04", "value": "0.1379"},
+        ]
+    )
+    null_without_posture = series_of(
+        [{"date": "2026-08-03", "value": None}, {"date": "2026-08-04", "value": "0.1379"}]
+    )
+    unknown_posture = series_of(
+        [
+            {"date": "2026-08-03", "value": None, "point_posture": "skipped"},
+            {"date": "2026-08-04", "value": "0.1379"},
+        ]
+    )
+    one_computed = series_of(
+        [
+            {"date": "2026-08-03", "value": None, "point_posture": "not_computed"},
+            {"date": "2026-08-04", "value": "0.1379"},
+        ]
+    )
+    for markup in (posture_with_value, null_without_posture, unknown_posture, one_computed):
+        assert _dots(markup) == 0
+        assert "could not be drawn" in markup
+
+
+def test_explicit_gaps_survive_the_real_engine_on_the_v2_page() -> None:
+    text, _ = _page_text(_v2_package("explicit-gaps"))
+
+    for needle in (
+        "Rolling volatility",
+        "13.74%",
+        "14.1%",
+        "10 observations, 2 not computed, 2026-08-03 to 2026-08-14",
+        "independently scaled",
+    ):
+        assert needle in text, f"the rendered page must state: {needle}"

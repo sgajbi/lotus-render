@@ -25,6 +25,13 @@ the actual v2 template page.
 - Coverage is stated as facts: each drawn strip prints its observation count and
   observed first/last dates beside the window caption, so warm-up or partial
   coverage is explicit without spatial guessing.
+- An **explicit gap** — the source stating "an observation slot exists here,
+  this metric was not computed", carried as
+  `{date, value: null, point_posture: "not_computed"}` with both facts required
+  together — occupies its sequence slot as visible empty space: a hole in an
+  otherwise regular dot rhythm, no ink at the slot, and the coverage line
+  counts it ("10 observations, 2 not computed, ..."). Endpoint values are the
+  first and last **computed** points; the date span covers all stated slots.
 - Endpoints are formatted from the source's stated unit — an exact decimal
   shift for `decimal_ratio` (never a float, never rounding), verbatim for
   `unitless` — so `0.1374 → 0.141` reaches the reader as `13.74% → 14.1%`. The
@@ -38,9 +45,11 @@ the actual v2 template page.
 
 - **Never connect the dots, smooth the strip, or invent missing dates.**
   Interpolation is derivation.
-- **Never infer missingness from calendar time.** If genuine gap evidence
-  matters, the source states it (notes, quality flags, or explicit gap facts) —
-  weekends and warm-up are not evidence of absence.
+- **Never infer missingness from calendar time.** Gap evidence is source-stated
+  (`point_posture: "not_computed"`) or it does not exist — weekends and warm-up
+  are not evidence of absence. A posture beside a value, a null value without
+  its posture, or an unknown posture word is a contradiction: the whole series
+  is fail-visible, never part-drawn.
 - **Never print a financial number without its unit semantics.** A ready series
   arriving without `unit` is stated as unstatable, not printed bare — `0.1374`
   where the reader means 13.74% is confidently wrong.

@@ -1,0 +1,47 @@
+{
+  "window": {
+    "window_observations": 63,
+    "frequency": "daily",
+    "period": {
+      "name": "YTD",
+      "start_date": "2026-01-02",
+      "end_date": "2026-08-31"
+    }
+  },
+  "metrics": [
+    {
+      "metric": "ROLLING_TRACKING_ERROR",
+      "posture": "ready",
+      "unit": "decimal_ratio",
+      "quality_flags": [],
+      "series": [
+        {
+          "date": "2026-08-03",
+          "value": null,
+          "point_posture": "not_computed"
+        },
+        {
+          "date": "2026-08-04",
+          "value": "0.019"
+        },
+        {
+          "date": "2026-08-05",
+          "value": "0.0197"
+        },
+        {
+          "date": "2026-08-06",
+          "value": "0.0202"
+        },
+        {
+          "date": "2026-08-07",
+          "value": "0.0206"
+        },
+        {
+          "date": "2026-08-10",
+          "value": null,
+          "point_posture": "not_computed"
+        }
+      ]
+    }
+  ]
+}
