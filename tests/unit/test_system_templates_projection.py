@@ -40,8 +40,8 @@ def test_every_registered_version_appears_ordered_and_versioned() -> None:
 
 
 def test_publication_facts_travel_exactly_with_the_published_version() -> None:
-    """v1 is published with its governance facts recorded; v2 is development with
-    none -- the projection must state the difference, never imply it."""
+    """Both portfolio-review versions are published with their governance facts
+    recorded; the projection states the facts, never implies them."""
 
     by_key = {(entry["template_id"], entry["template_version"]): entry for entry in _templates()}
     v1 = by_key[("portfolio-review", "v1")]
@@ -53,8 +53,9 @@ def test_publication_facts_travel_exactly_with_the_published_version() -> None:
     assert v1["supported_report_data_contract_versions"] == ["portfolio_review.v1"]
 
     v2 = by_key[("portfolio-review", "v2")]
-    assert v2["template_publication"] == "development"
-    assert v2["published_at"] is None and v2["published_by"] is None
+    assert v2["template_publication"] == "published"
+    assert v2["published_at"] == "2026-09-04"
+    assert v2["published_by"] == "lotus-platform-governance"
 
 
 def test_the_excluded_facts_stay_excluded() -> None:
