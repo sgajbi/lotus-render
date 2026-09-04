@@ -1421,6 +1421,70 @@ def test_typst_render_service_prefers_docker_governed_runtime_when_available(
     assert DOCKER_TYPST_IMAGE in command
 
 
+def test_a_pinned_design_that_ships_fonts_points_the_compiler_at_exactly_them(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """Vendored fonts are reached through the workspace --font-path and nothing
+    else: the materialised fonts directory, never the host's font store, which
+    would let an unpinned, undigested font restyle every document."""
+
+    service = _build_service()
+    source_path = tmp_path / "template" / "main.typ"
+    fonts_directory = source_path.parent / "fonts"
+    fonts_directory.mkdir(parents=True)
+    (fonts_directory / "Face.ttf").write_bytes(bytes([0, 1]))
+    source_path.write_text("test", encoding="utf-8")
+    output_path = tmp_path / "rendered.pdf"
+
+    def _docker_only(binary: str) -> str | None:
+        return "/usr/bin/docker" if binary == "docker" else None
+
+    monkeypatch.setattr("app.services.typst_rendering.shutil.which", _docker_only)
+    command = service._build_compile_command(
+        workspace=tmp_path, source_path=source_path, output_path=output_path
+    )
+    font_flag = command.index("--font-path")
+    assert command[font_flag + 1] == "template/fonts", (
+        "the container path is workspace-relative, inside the bind mount"
+    )
+    assert command.index("compile") < font_flag < command.index("template/main.typ")
+
+    def _typst_only(binary: str) -> str | None:
+        return "/usr/local/bin/typst" if binary == "typst" else None
+
+    monkeypatch.setattr("app.services.typst_rendering.shutil.which", _typst_only)
+    command = service._build_compile_command(
+        workspace=tmp_path, source_path=source_path, output_path=output_path
+    )
+    font_flag = command.index("--font-path")
+    assert command[font_flag + 1] == str(fonts_directory)
+
+
+def test_a_pinned_design_without_fonts_leaves_the_compile_command_unchanged(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """Every v1-pinned family materialises no fonts directory, and its compile
+    command must stay byte-identical to what it was before fonts existed."""
+
+    service = _build_service()
+    source_path = tmp_path / "template" / "main.typ"
+    source_path.parent.mkdir(parents=True)
+    source_path.write_text("test", encoding="utf-8")
+    output_path = tmp_path / "rendered.pdf"
+
+    for which in (
+        lambda binary: "/usr/bin/docker" if binary == "docker" else None,
+        lambda binary: "/usr/local/bin/typst" if binary == "typst" else None,
+    ):
+        monkeypatch.setattr("app.services.typst_rendering.shutil.which", which)
+        command = service._build_compile_command(
+            workspace=tmp_path, source_path=source_path, output_path=output_path
+        )
+        assert "--font-path" not in command
+
+
 def test_typst_render_service_uses_local_typst_when_docker_is_unavailable(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,

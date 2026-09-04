@@ -270,6 +270,35 @@
         "7cdbcc9e713dbf4246797aad796fdedc3979843c03e8bc2eb41c8bb82ffbec5b",
         "3a7706febf1933be1a8f14129a83787d1157f3a2b55c51cce88fd84ff8f2d772"
       ]
+    },
+    {
+      "template_id": "portfolio-review",
+      "template_version": "v4",
+      "golden_sample_id": "golden-portfolio-review-risk-attribution-en-SG-private-banking-v4",
+      "report_data_contract_version": "portfolio_review.v1",
+      "package_path": "tests/golden/portfolio-review/v4/render-package.json",
+      "expected_pdf_path": "tests/golden/portfolio-review/v4/expected.pdf",
+      "producer_repository": "sgajbi/lotus-report",
+      "producer_source_paths": [
+        "src/app/reporting_render/package_builder.py",
+        "src/app/contracts/examples/portfolio-review-render-package.v1.json"
+      ],
+      "provenance": "Portfolio review package is the canonical lotus-report render package example mirrored into the golden fixture tree for registry-to-artifact gating.",
+      "bounded_determinism_fingerprint": "23e912feb49b778479a37f112673fbc501445d03d1049c7115f4d16ebe61151e",
+      "page_image_hashes": [
+        "de71bfb7d09ffa7c3932d9cc397aa0506f87977d448a813524e5b53127e528a1",
+        "df7244581a84cd48956f1e3340df0ffa771119598130855f4b1c9b2353b7e65a",
+        "ae330d31f644836ae1d331c528a0f4a63cc4157e79543bf18d182e6220f421bd",
+        "796016ea4d8cc9de8e2e3dbdae7e710fa2e79cfcd4e5836b1a34767c11271517",
+        "e311099c0ec8095f2fa1c2308e9af1985506ce211078d3a132d98de8f5ae49fa",
+        "2e9547a9e51c54a5721c967ac4686456ff0c5eeb0057dfec801a63332e800b76",
+        "12b93e33935172c9c01120be9feaaece47c07ed323efb7857737d2211fc76e7a",
+        "d1580ce074d5e4ba33879932cfd8d6025c1f371d7c518cf8d85141cfa71c0570",
+        "024288c78f40a38fd5a0792afcd91558646aca328673a626c32563c2b1f0318a",
+        "78385d3302863e2146989dd6e240bcbf27673168d9b01a628187d9d3dda6f8b8",
+        "cf91debf85aac4514241ed742fa21484a7b7c0db9ad0c03a4af79163ad1581b6",
+        "08b9fbbf8cea4af7c7aa0af6c9a0ec12719cab897f85b2ed542f3b4f159f410e"
+      ]
     }
   ]
 }

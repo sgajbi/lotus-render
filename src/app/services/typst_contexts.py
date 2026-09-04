@@ -355,6 +355,12 @@ def build_portfolio_review_v3_context(render_package: RenderPackage) -> dict[str
     return context
 
 
+def build_portfolio_review_v4_context(render_package: RenderPackage) -> dict[str, str]:
+    """v3's context, verbatim: v4 is the #270 design overhaul, and what changes
+    is how the document is set, never what it states."""
+    return build_portfolio_review_v3_context(render_package)
+
+
 def build_proof_pack_context(render_package: RenderPackage) -> dict[str, str]:
     report_data = parse_proof_pack_content(render_package).as_report_data()
     render_context = render_package.render_context
