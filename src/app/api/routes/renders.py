@@ -5,12 +5,14 @@ from typing import Any
 from fastapi import APIRouter, HTTPException, Response, status
 from starlette.concurrency import run_in_threadpool
 
+from app.contracts.render_evidence import (
+    RenderArtifactMetadataResponse,
+    RenderJobDiagnosticsResponse,
+)
 from app.contracts.renders import (
     API_ERROR_RESPONSE_EXAMPLES,
     RENDER_SUBMIT_REQUEST_EXAMPLE,
     ApiErrorResponse,
-    RenderArtifactMetadataResponse,
-    RenderJobDiagnosticsResponse,
     RenderJobStatusResponse,
     RenderSubmitRequest,
     RenderSubmitResponse,

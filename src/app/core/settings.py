@@ -34,6 +34,14 @@ class Settings(BaseSettings):
     stale_accepted_seconds: int = Field(default=300, ge=1)
     stale_rendering_seconds: int = Field(default=900, ge=1)
     require_persistent_render_store: bool = Field(default=False)
+    # lotus-render#120: the evidence-chain handoff to Archive's ONE custody
+    # authority. An unset base URL turns the handoff off entirely: jobs carry a
+    # null archive state, which means "no handoff applies" -- deliberately
+    # distinct from a failed one.
+    archive_base_url: str | None = Field(default=None)
+    archive_timeout_seconds: float = Field(default=10.0, gt=0)
+    archive_max_attempts: int = Field(default=3, ge=1)
+    archive_retry_backoff_seconds: float = Field(default=0.5, ge=0)
 
     model_config = SettingsConfigDict(
         env_prefix="LOTUS_RENDER_",
