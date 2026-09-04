@@ -19,11 +19,27 @@
   - `deprecated_rerenderable`
   - `blocked_for_new_renders`
   - `blocked`
+- publication posture is explicit and governed: `development` versions may change under
+  re-approval; a `published` version's bytes never change (`published_at` and `published_by`
+  are recorded in the manifest, and any further change creates the next version)
+- every manifest pins its complete source dependency graph: `shared_design_version` names
+  the shared design module (`templates/typst/_shared/<version>`) the version compiles
+  against, and `template_digest` is a content hash of family bytes plus that pinned shared
+  design -- the digest attests to the compiled dependency graph, not just one directory.
+  The pin is Render-internal provenance: producers never see or choose it
 
 ## Operator guidance
 
 - use `make template-registry-gate` after any manifest edit
 - use `make check` before pushing branch updates
+- re-approve changed development digests with
+  `python scripts/validate_template_registry.py --write`; the command is atomic at the
+  file level and refuses with zero writes if any published version's dependency graph
+  would change
+- create the next version of a family with `python scripts/create_template_version.py`
+  (carries compatibility and the shared-design pin, resets publication to development,
+  requires fresh approval facts; publishing, Report's version selection and golden
+  re-pointing stay explicit decisions)
 - do not treat `deprecated_rerenderable` as acceptable for new production renders
 - do not bypass blocked posture with local edits outside governed PR review
 
@@ -51,9 +67,23 @@ Lifecycle changes are governed the same way: move a template to `deprecated_rere
 ## Current active templates
 
 - `template_id`: `portfolio-review`
-- `template_version`: `v1`
+- `template_version`: `v1` -- **published 2026-09-04** (the #120 Archive-handoff go-live);
+  bytes frozen with shared design `v1`
 - `report_type`: `portfolio_review`
 - `report_data_contract_version`: `portfolio_review.v1`
+- `locale`: `en-SG`
+- `brand_variant`: `private_banking`
+- `output_format`: `pdf`
+
+- `template_id`: `portfolio-review`
+- `template_version`: `v2` -- **published 2026-09-04** (the rolling-risk trend release);
+  bytes frozen with shared design `v1`. Adds the risk-trend band (source-owned unit
+  semantics, observation-sequence strip, explicit source-stated gaps, stated coverage and
+  scale conventions) and reserves the risk-attribution insertion point, which ships only
+  in `v3`
+- `report_type`: `portfolio_review`
+- `report_data_contract_version`: `portfolio_review.v1` (the risk-trend block is additive;
+  template version and data-contract version are independent axes)
 - `locale`: `en-SG`
 - `brand_variant`: `private_banking`
 - `output_format`: `pdf`
