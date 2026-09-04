@@ -80,8 +80,16 @@
   width: 100%,
   inset: 10pt,
   fill: tone,
-  stroke: (paint: rule, thickness: hairline),
-  radius: panel-radius,
+  // The accent top edge marks a stated headline figure; the other three sides
+  // stay hairlines so a row of cards reads as one family of KPIs, not four
+  // competing frames.
+  stroke: (
+    top: (paint: accent, thickness: 2.2pt),
+    bottom: (paint: rule, thickness: hairline),
+    left: (paint: rule, thickness: hairline),
+    right: (paint: rule, thickness: hairline),
+  ),
+  radius: (bottom: panel-radius),
 )[
   #small-caps(label)
   #v(4pt)
@@ -281,8 +289,14 @@
 #let performance-summary-cell(label, value, annualized) = block(
   inset: 9pt,
   fill: white,
-  stroke: (paint: rule, thickness: hairline),
-  radius: panel-radius,
+  // The same accent top edge metric-card carries: a stated headline figure.
+  stroke: (
+    top: (paint: accent, thickness: 2.2pt),
+    bottom: (paint: rule, thickness: hairline),
+    left: (paint: rule, thickness: hairline),
+    right: (paint: rule, thickness: hairline),
+  ),
+  radius: (bottom: panel-radius),
 )[
   #text(size: text-fine, fill: slate)[#label]
   #linebreak()
