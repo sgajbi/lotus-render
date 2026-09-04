@@ -147,6 +147,10 @@
 #let text-section = 17pt
 #let text-document = 18pt
 #let text-cover = 28pt
+// The per-page display title of the #270 page architecture: the first thing a
+// reader sees on every content page, sized for the A4-landscape frame the
+// portfolio review carries. Off the body ladder like its display siblings.
+#let text-page-title = 26pt
 
 #let TYPE_SCALE = (
   text-micro, text-caption, text-fine, text-small, text-body,

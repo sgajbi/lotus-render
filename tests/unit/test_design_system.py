@@ -280,6 +280,14 @@ def test_no_emitter_decides_what_a_colour_is() -> None:
 
 
 SIZE_LITERAL = re.compile(r"size:\s*([\d.]+)pt")
+
+
+def _is_design_module(path: Path) -> bool:
+    """Every version of the shared design file declares the scale; the guard is
+    about templates REFERENCING sizes, whichever design version they pin."""
+    return path.name == "_design.typ" and path.parent.parent.name == "_shared"
+
+
 # The declarations in the design module are where the numbers are allowed to be.
 SIZE_DECLARATION = re.compile(r"#let\s+(text-[a-z-]+)\s*=\s*([\d.]+)pt")
 
@@ -303,7 +311,7 @@ def test_no_template_spells_a_text_size() -> None:
             path.read_text(encoding="utf-8")
         )
         for path in sorted(TEMPLATE_ROOT.rglob("*.typ"))
-        if path != DESIGN_MODULE and SIZE_LITERAL.search(path.read_text(encoding="utf-8"))
+        if not _is_design_module(path) and SIZE_LITERAL.search(path.read_text(encoding="utf-8"))
     }
 
     assert not offenders, (

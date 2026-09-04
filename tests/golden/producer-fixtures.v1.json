@@ -284,20 +284,20 @@
         "src/app/contracts/examples/portfolio-review-render-package.v1.json"
       ],
       "provenance": "Portfolio review package is the canonical lotus-report render package example mirrored into the golden fixture tree for registry-to-artifact gating.",
-      "bounded_determinism_fingerprint": "23e912feb49b778479a37f112673fbc501445d03d1049c7115f4d16ebe61151e",
+      "bounded_determinism_fingerprint": "d67283b62ba958592c25e18378c8938144f1e44a2b22f09091b450f8a511753a",
       "page_image_hashes": [
-        "de71bfb7d09ffa7c3932d9cc397aa0506f87977d448a813524e5b53127e528a1",
-        "df7244581a84cd48956f1e3340df0ffa771119598130855f4b1c9b2353b7e65a",
-        "ae330d31f644836ae1d331c528a0f4a63cc4157e79543bf18d182e6220f421bd",
-        "796016ea4d8cc9de8e2e3dbdae7e710fa2e79cfcd4e5836b1a34767c11271517",
-        "e311099c0ec8095f2fa1c2308e9af1985506ce211078d3a132d98de8f5ae49fa",
-        "2e9547a9e51c54a5721c967ac4686456ff0c5eeb0057dfec801a63332e800b76",
-        "12b93e33935172c9c01120be9feaaece47c07ed323efb7857737d2211fc76e7a",
-        "d1580ce074d5e4ba33879932cfd8d6025c1f371d7c518cf8d85141cfa71c0570",
-        "024288c78f40a38fd5a0792afcd91558646aca328673a626c32563c2b1f0318a",
-        "78385d3302863e2146989dd6e240bcbf27673168d9b01a628187d9d3dda6f8b8",
-        "cf91debf85aac4514241ed742fa21484a7b7c0db9ad0c03a4af79163ad1581b6",
-        "08b9fbbf8cea4af7c7aa0af6c9a0ec12719cab897f85b2ed542f3b4f159f410e"
+        "45470963cc2c70acfad43cf94e1fa3dca7a5a9fe52c96e55570e1cd53eda9721",
+        "cfdbef69568fee2ac8e254c49b63b1b76674eba62ca0f20104add6e7ebb0fbcd",
+        "2eee0d8415ceb81f495aebd3356083f0bd3b233dece4077e70ca40010be9775c",
+        "fa5e59f10223012fcc16954ff51c9df493c7fe95d2920a3975c5f5d2620beeee",
+        "ead6f962bbe798d2a36278e4f6382d8de1698cca63960bdee1f426215ed7f4ee",
+        "a446dbc9a39d3eef0761a4265c187d5a943d0cdefd6ccb4b9a1e240e16d78215",
+        "531db8d3d561649606489e25b2d136c1181b7bc8a36e4dcf11f39c47fd01f318",
+        "bd0e8c032b48f5479dfb0b438ac6263e03b47cf0d131131336e8a4d4593abccb",
+        "76e8d01cd6d7cfeb4567effac451f727b37f23dd6b7c0239bc49f3d6140fb541",
+        "e7dbc7e082c27732a7f53aeee9fe5a8b2486e5679b22079f981b043325589baf",
+        "3c9fde5e9f915d903c62a970db599d62e48255d1a0341f24b14a0b2fa1c02eb7",
+        "e8e6e38fb002ee4e445adbd9083905dba023a1aa2216c4c91bd00736c9ce9a03"
       ]
     }
   ]

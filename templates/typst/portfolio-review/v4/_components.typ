@@ -12,11 +12,19 @@
 // section that spills onto another page is still headed there. While this was an
 // in-flow element the only way to head a page was to force one, which is how a
 // six-value section came to own a full landscape page (#184).
-#let page-header(title) = [
+#let page-header(entry) = [
   #grid(
     columns: (1fr, auto),
     column-gutter: grid-gap,
-    [#section-title(title)],
+    [
+      // The eyebrow: a short accent tick and the section's own name, so a reader
+      // dropped on any page knows which part of the document they are in before
+      // reading a word of it. The name is the marker's -- the same value the
+      // contents page lists, so the two cannot disagree.
+      #box(baseline: -3pt)[#line(length: 16pt, stroke: (paint: accent, thickness: 2.2pt))]
+      #h(7pt)
+      #text(size: text-caption, weight: 600, tracking: 1.1pt, fill: accent)[#upper(entry.title)]
+    ],
     [
       #align(right)[
         #set par(leading: 0.86em)
@@ -26,8 +34,16 @@
       ]
     ],
   )
+  #v(4pt)
+  #section-title(entry.header)
+  #v(3pt)
+  #body-muted(entry.detail)
   #v(7pt)
   #soft-rule()
+  // Clearance between the frame's rule and whatever opens the body below it --
+  // continuation pages start content immediately, and a heading touching the
+  // rule reads as underlined rather than as ruled-off.
+  #v(5pt)
 ]
 
 // The header for whichever section the current page belongs to, or nothing on the
@@ -39,7 +55,7 @@
     counter(page).at(marker.location()).first() <= current
   ))
   if started.len() > 0 {
-    page-header(started.last().value.header)
+    page-header(started.last().value)
   }
 }
 
