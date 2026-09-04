@@ -40,6 +40,7 @@ from __future__ import annotations
 
 import math
 from collections.abc import Mapping, Sequence
+from dataclasses import dataclass
 from datetime import date
 from decimal import Decimal, InvalidOperation
 
@@ -153,20 +154,20 @@ def _ready_row(label: str, metric: Mapping[str, object]) -> str:
             label,
             "The series arrived without unit semantics and is not stated.",
         )
-    points = _placeable_points(metric.get("series"))
-    if points is None:
+    placed = _placed_series(metric.get("series"))
+    if placed is None:
         return _stated_row(
             label,
             "The series could not be drawn from what the source supplied.",
         )
-    first_value = _reader_value(points[0][2], unit)
-    last_value = _reader_value(points[-1][2], unit)
+    first_value = _reader_value(placed.first_value, unit)
+    last_value = _reader_value(placed.last_value, unit)
     if first_value is None or last_value is None:
         return _stated_row(
             label,
             "The series could not be drawn from what the source supplied.",
         )
-    dots = _dot_markup(points)
+    dots = _dot_markup(placed.dots)
     row = (
         "#grid(\n"
         "  columns: (110pt, 1fr, 100pt),\n"
@@ -185,7 +186,7 @@ def _ready_row(label: str, metric: Mapping[str, object]) -> str:
         f"[{last_value}]]],\n"
         ")"
     )
-    return row + _coverage_note(points) + _quality_flags_note(metric)
+    return row + _coverage_note(placed) + _quality_flags_note(metric)
 
 
 def _reader_value(stated: str, unit: str) -> str | None:
@@ -205,19 +206,23 @@ def _reader_value(stated: str, unit: str) -> str | None:
     return escape_typst_string(f"{format(shifted, 'f')}%")
 
 
-def _coverage_note(points: Sequence[tuple[float, float, str, str]]) -> str:
+def _coverage_note(placed: "_PlacedSeries") -> str:
     """What the strip actually covers, from source facts alone.
 
     The x-axis is the observation sequence, so the strip's width says nothing
-    about the calendar. This line does: observation count and observed first/last
-    dates, which makes a warm-up or partial series visibly narrower than the
-    stated period without inferring anything from calendar distance.
+    about the calendar. This line does: the slot count, how many of those slots
+    the source stated it did not compute, and the observed first/last dates --
+    which makes warm-up, partial coverage, and explicit gaps all legible without
+    inferring anything from calendar distance.
     """
-    first_date = escape_typst_string(points[0][3])
-    last_date = escape_typst_string(points[-1][3])
+    counted = f"{placed.slot_count} observations"
+    if placed.not_computed_count:
+        counted += f", {placed.not_computed_count} not computed"
+    first_date = escape_typst_string(placed.first_date)
+    last_date = escape_typst_string(placed.last_date)
     return (
         "\n#grid(\n  columns: (110pt, 1fr),\n  column-gutter: 10pt,\n  [],\n"
-        f"  [#text(size: text-micro, fill: slate)[{len(points)} observations, "
+        f"  [#text(size: text-micro, fill: slate)[{counted}, "
         f"{first_date} to {last_date}]],\n)"
     )
 
@@ -274,34 +279,78 @@ def _quality_flags_note(metric: Mapping[str, object]) -> str:
     )
 
 
-def _placeable_points(series: object) -> list[tuple[float, float, str, str]] | None:
-    """(x fraction, y fraction from top, verbatim value, date) per point, or None.
+@dataclass(frozen=True, slots=True)
+class _PlacedSeries:
+    """A drawable series: dot geometry plus the coverage facts the row states."""
 
-    None means the series cannot be honestly placed: fewer than two points, a
-    date or value the source's own format does not parse, a non-finite value,
-    or dates out of order (a trend whose axis runs backwards is not a trend).
-    Values are parsed ONLY to position dots; nothing derived is ever printed.
+    dots: list[tuple[float, float]]
+    first_value: str
+    last_value: str
+    first_date: str
+    last_date: str
+    slot_count: int
+    not_computed_count: int
+
+
+def _placed_series(series: object) -> _PlacedSeries | None:
+    """The series placed on the observation-sequence axis, or None.
+
+    Every source-stated slot -- computed or explicitly ``not_computed`` --
+    occupies a position on the x-axis, so an explicit gap appears as a hole in
+    an otherwise regular dot rhythm: spatial missingness from source-stated
+    slots only, never from calendar classification. None means the series
+    cannot be honestly placed: fewer than two slots, fewer than two COMPUTED
+    points (one level cannot state a trend), a slot that parses as neither a
+    computed point nor a well-formed gap, or dates out of order. Values are
+    parsed ONLY to position dots; nothing derived is ever printed.
     """
     if not isinstance(series, Sequence) or isinstance(series, str) or len(series) < 2:
         return None
-    parsed: list[tuple[date, float, str]] = []
+    slots: list[tuple[date, float | None, str | None]] = []
     for point in series:
-        entry = _parsed_point(point)
+        entry = _parsed_slot(point)
         if entry is None:
             return None
-        parsed.append(entry)
-    return _normalized(parsed)
+        slots.append(entry)
+    dates = [when for when, _, _ in slots]
+    if dates != sorted(dates):
+        return None
+    return _normalized(slots)
 
 
-def _parsed_point(point: object) -> tuple[date, float, str] | None:
+def _parsed_slot(point: object) -> tuple[date, float | None, str | None] | None:
+    """One slot: (date, magnitude, stated) computed, (date, None, None) gap.
+
+    The locked gap contract (report#255 addendum): an explicit gap carries BOTH
+    facts -- ``value: null`` and ``point_posture: "not_computed"``. A posture
+    beside a value, a null without a posture (the shape the producer used to
+    drop), and an unknown posture word are each contradictions, and a series
+    containing one is fail-visible rather than part-drawn.
+    """
     if not isinstance(point, Mapping):
         return None
     raw_date = point.get("date")
-    stated = point.get("value")
-    if not isinstance(raw_date, str) or not isinstance(stated, str):
+    if not isinstance(raw_date, str):
         return None
     try:
         when = date.fromisoformat(raw_date)
+    except ValueError:
+        return None
+    if "point_posture" in point or point.get("value") is None:
+        return _gap_slot(when, point)
+    return _computed_slot(when, point.get("value"))
+
+
+def _gap_slot(when: date, point: Mapping[str, object]) -> tuple[date, None, None] | None:
+    if point.get("point_posture") != "not_computed" or point.get("value") is not None:
+        return None
+    return (when, None, None)
+
+
+def _computed_slot(when: date, stated: object) -> tuple[date, float, str] | None:
+    if not isinstance(stated, str):
+        return None
+    try:
         # A risk ratio, parsed only to place a dot -- never monetary, never
         # re-printed: what the page quotes is the verbatim source string.
         magnitude = float(stated)
@@ -312,33 +361,49 @@ def _parsed_point(point: object) -> tuple[date, float, str] | None:
     return (when, magnitude, stated)
 
 
-def _normalized(
-    parsed: list[tuple[date, float, str]],
-) -> list[tuple[float, float, str, str]] | None:
-    dates = [when for when, _, _ in parsed]
-    if dates != sorted(dates):
+def _computed_only(
+    slots: list[tuple[date, float | None, str | None]],
+) -> list[tuple[int, float, str]]:
+    computed = []
+    for index, (_, magnitude, stated) in enumerate(slots):
+        if magnitude is not None and stated is not None:
+            computed.append((index, magnitude, stated))
+    return computed
+
+
+def _normalized(slots: list[tuple[date, float | None, str | None]]) -> _PlacedSeries | None:
+    computed = _computed_only(slots)
+    if len(computed) < 2:
         return None
-    low = min(magnitude for _, magnitude, _ in parsed)
-    high = max(magnitude for _, magnitude, _ in parsed)
+    low = min(magnitude for _, magnitude, _ in computed)
+    high = max(magnitude for _, magnitude, _ in computed)
     magnitude_span = high - low
-    last_index = len(parsed) - 1
-    points: list[tuple[float, float, str, str]] = []
-    for index, (when, magnitude, raw) in enumerate(parsed):
-        # The ordered observation sequence: index places the dot. Calendar
-        # distance is NOT data-quality evidence (a weekend is not a gap), so it
-        # does not shape the strip; coverage is stated as facts beside it.
+    last_index = len(slots) - 1
+    dots: list[tuple[float, float]] = []
+    for index, magnitude, _ in computed:
+        # The ordered observation sequence: the SLOT index places the dot, and a
+        # not_computed slot keeps its position empty -- the hole is the source's
+        # own statement, occupying exactly one slot of space.
         x = index / last_index
         # A flat series sits on the centre line: equal magnitudes, equal heights.
         y = 0.5 if magnitude_span == 0 else (high - magnitude) / magnitude_span
-        points.append((x, y, raw, when.isoformat()))
-    return points
+        dots.append((x, y))
+    return _PlacedSeries(
+        dots=dots,
+        first_value=computed[0][2],
+        last_value=computed[-1][2],
+        first_date=slots[0][0].isoformat(),
+        last_date=slots[-1][0].isoformat(),
+        slot_count=len(slots),
+        not_computed_count=len(slots) - len(computed),
+    )
 
 
-def _dot_markup(points: Sequence[tuple[float, float, str, str]]) -> str:
-    dots = []
-    for x, y, _, _ in points:
+def _dot_markup(dots: Sequence[tuple[float, float]]) -> str:
+    markup = []
+    for x, y in dots:
         dy = _BAND_INSET + y * _BAND_HEIGHT
-        dots.append(
+        markup.append(
             f"#place(dx: {x * 100:.2f}% - 0.9pt, dy: {dy:.2f}pt, circle(radius: 0.9pt, fill: ink))"
         )
-    return "".join(dots)
+    return "".join(markup)
