@@ -583,7 +583,7 @@ def test_render_submission_diagnostics_maps_failed_runtime_without_raw_message(
 
 @pytest.mark.parametrize(
     (
-        "job",
+        "job_spec",
         "expected_stale_state",
         "expected_retryable",
         "expected_recovery_action",
@@ -591,58 +591,58 @@ def test_render_submission_diagnostics_maps_failed_runtime_without_raw_message(
     ),
     [
         (
-            _stored_job(status="accepted"),
+            {"status": "accepted"},
             "fresh",
             False,
             "wait_for_completion",
             "lotus-render",
         ),
         (
-            _stored_job(
-                status="failed",
-                failure_category="package_validation_failed",
-                failure_message="package invalid",
-            ),
+            {
+                "status": "failed",
+                "failure_category": "package_validation_failed",
+                "failure_message": "package invalid",
+            },
             "not_applicable",
             False,
             "fix_upstream_render_package",
             "lotus-report",
         ),
         (
-            _stored_job(
-                status="failed",
-                failure_category="template_not_supported",
-                failure_message="template mismatch",
-            ),
+            {
+                "status": "failed",
+                "failure_category": "template_not_supported",
+                "failure_message": "template mismatch",
+            },
             "not_applicable",
             False,
             "fix_template_registry_or_package",
             "template-owner",
         ),
         (
-            _stored_job(
-                status="failed",
-                failure_category="template_render_failed",
-                failure_message="template failed",
-            ),
+            {
+                "status": "failed",
+                "failure_category": "template_render_failed",
+                "failure_message": "template failed",
+            },
             "not_applicable",
             True,
             "escalate_template_support",
             "reporting-platform-on-call",
         ),
         (
-            _stored_job(
-                status="failed",
-                failure_category="artifact_validation_failed",
-                failure_message="artifact failed",
-            ),
+            {
+                "status": "failed",
+                "failure_category": "artifact_validation_failed",
+                "failure_message": "artifact failed",
+            },
             "not_applicable",
             True,
             "escalate_template_support",
             "reporting-platform-on-call",
         ),
         (
-            _stored_job(status="failed", failure_message="unknown failed"),
+            {"status": "failed", "failure_message": "unknown failed"},
             "not_applicable",
             True,
             "escalate_reporting_platform",
@@ -651,12 +651,18 @@ def test_render_submission_diagnostics_maps_failed_runtime_without_raw_message(
     ],
 )
 def test_render_submission_diagnostics_maps_recovery_actions(
-    job: StoredRenderJob,
+    job_spec: dict[str, Any],
     expected_stale_state: str,
     expected_retryable: bool,
     expected_recovery_action: str,
     expected_handoff_owner: str,
 ) -> None:
+    # Built at test time, not collection time: a parametrize-time job stamps
+    # updated_at when the module is imported, and once the suite takes longer
+    # than accepted_stale_seconds to reach this test, the "fresh" case ages
+    # into stale and fails by wall clock -- which is exactly what happened
+    # when the suite crossed five minutes.
+    job = _stored_job(**job_spec)
     service = RenderSubmissionService(
         rendering_stale_seconds=_settings().stale_rendering_seconds,
         execution_limiter=RenderExecutionLimiter(_settings().render_execution_concurrency_limit),

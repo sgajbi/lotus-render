@@ -1,5 +1,5 @@
 #import "_appendix_text.typ": GLOSSARY
-#import "_theme.typ": body-muted, empty-state, ink, section-subtitle, slate, soft-rule, text-fine, text-small
+#import "_theme.typ": accent, body-muted, empty-state, ink, section-subtitle, slate, soft-rule, text-fine, text-small
 #import "_components.typ": section-marker
 
 // The appendix was a six-page statement spread: its own title block, its own navigation
@@ -13,19 +13,33 @@
 // What is left is the part that was worth keeping: the terms this document uses, in
 // this document's own typography, chosen by what it contains.
 
-#let glossary-entry(entry) = block(breakable: false, width: 100%)[
-  #text(size: text-small, weight: 600, fill: ink)[#entry.term]
-  #v(2.5pt)
-  #text(size: text-fine, fill: slate)[#entry.body]
+#let glossary-entry(number, entry) = block(breakable: false, width: 100%)[
+  #grid(
+    columns: (13pt, 1fr),
+    column-gutter: 5pt,
+    // Numbered within its group, the way a reader cites a definition back to
+    // an advisor -- "under Positions, point 03".
+    [#text(size: text-fine, weight: 600, fill: accent)[#number]],
+    [
+      #text(size: text-small, weight: 600, fill: ink)[#entry.term]
+      #v(2.5pt)
+      #text(size: text-fine, fill: slate)[#entry.body]
+    ],
+  )
 ]
 
 // `sticky` keeps the heading with the entries beneath it. Without it the heading is a
 // block like any other and lands alone at the foot of a page -- which is what happened
 // the first time this rendered, and is the same widow `labelled-table` exists to stop.
-#let glossary-column(keys) = [
+#let entry-number(index) = {
+  let n = index + 1
+  if n < 10 { "0" + str(n) } else { str(n) }
+}
+
+#let glossary-column(keys, start) = [
   #set par(leading: 0.62em, spacing: 0.62em)
-  #for key in keys [
-    #glossary-entry(GLOSSARY.at(key))
+  #for (offset, key) in keys.enumerate() [
+    #glossary-entry(entry-number(start + offset), GLOSSARY.at(key))
     #v(9pt)
   ]
 ]
@@ -49,8 +63,8 @@
   #grid(
     columns: (1fr, 1fr),
     column-gutter: 26pt,
-    glossary-column(group.keys.slice(0, half)),
-    glossary-column(group.keys.slice(half)),
+    glossary-column(group.keys.slice(0, half), 0),
+    glossary-column(group.keys.slice(half), half),
   )
 ]
 
