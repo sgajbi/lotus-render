@@ -21,6 +21,7 @@ EXPECTED_RESPONSE_CODES: dict[OperationKey, set[str]] = {
     ("GET", "/health/live"): {"200"},
     ("GET", "/health/ready"): {"200", "503"},
     ("GET", "/metadata"): {"200"},
+    ("GET", "/system/templates"): {"200"},
     ("GET", "/metrics"): {"200"},
     ("POST", "/renders"): {"200", "201", "400", "409", "413", "422", "429", "502"},
     ("GET", "/renders/{render_job_id}"): {"200", "404", "422"},

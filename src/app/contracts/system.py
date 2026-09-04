@@ -152,3 +152,64 @@ class MetadataResponse(BaseModel):
             "identifiers."
         ),
     )
+
+
+class TemplateProjectionEntry(BaseModel):
+    template_id: str = Field(
+        ...,
+        description="Template family identifier.",
+        examples=["portfolio-review"],
+    )
+    template_version: str = Field(
+        ...,
+        description="Registered version of the template family.",
+        examples=["v1"],
+    )
+    status: str = Field(
+        ...,
+        description=(
+            "Lifecycle status of this version -- the renderable posture the registry "
+            "gates new renders on."
+        ),
+        examples=["active"],
+    )
+    template_publication: str = Field(
+        ...,
+        description=(
+            "'published' means this version's bytes are frozen under recorded approval "
+            "and (template_id, template_version) is a stable semantic identity; "
+            "'development' versions may still change under re-approval. Publication is "
+            "a separate stated fact from rendering support, and neither implies "
+            "distribution authority."
+        ),
+        examples=["published"],
+    )
+    published_at: str | None = Field(
+        default=None,
+        description="Date the version's bytes were frozen; absent on development versions.",
+        examples=["2026-09-04"],
+    )
+    published_by: str | None = Field(
+        default=None,
+        description="Governance identity that approved the freeze; absent on development versions.",
+        examples=["lotus-platform-governance"],
+    )
+    supported_report_types: list[str] = Field(
+        ...,
+        description="Report types this version renders.",
+        examples=[["portfolio_review"]],
+    )
+    supported_report_data_contract_versions: list[str] = Field(
+        ...,
+        description="Report data contract versions this version accepts.",
+        examples=[["portfolio_review.v1"]],
+    )
+
+
+class TemplatesProjectionResponse(BaseModel):
+    templates: list[TemplateProjectionEntry] = Field(
+        ...,
+        description=(
+            "One entry per registered template version, ordered by (template_id, template_version)."
+        ),
+    )
