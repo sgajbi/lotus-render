@@ -342,6 +342,8 @@ def test_template_registry_exports_manifest_dicts() -> None:
             "approved_at": "2026-04-23",
             "status": "active",
             "publication": "development",
+            "published_at": None,
+            "published_by": None,
             "golden_sample_ids": ["golden-portfolio-review-en-SG-private-banking-v1"],
             # The manifest names the bytes it describes; the registry refuses to load one
             # that no longer matches its template directory (issue #139).

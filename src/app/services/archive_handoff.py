@@ -57,7 +57,7 @@ from typing import Literal, Protocol
 
 from app.contracts.render_package import RenderPackage
 from app.domain.rendering.models import RenderResult
-from app.infrastructure.render_store import StoredRenderJob
+from app.infrastructure.render_store_rows import StoredRenderJob
 from app.observability.render_metrics import record_render_operation
 from app.services.render_ports import RenderJobStorePort
 
@@ -104,6 +104,7 @@ def build_archive_metadata(
     runtime_engine: str,
     runtime_engine_version: str,
     template_digest: str | None,
+    template_publication: str | None,
 ) -> dict[str, object] | None:
     """Custody metadata for the exact bytes, or None when no handoff applies.
 
@@ -147,6 +148,8 @@ def build_archive_metadata(
     )
     if template_digest:
         metadata["template_digest"] = template_digest
+    if template_publication:
+        metadata["template_publication"] = template_publication
     return metadata
 
 
@@ -257,6 +260,7 @@ class ArchiveHandoff:
         runtime_engine: str,
         runtime_engine_version: str,
         template_digest: str | None,
+        template_publication: str | None,
     ) -> ArchiveHandoffOutcome | None:
         """The custody outcome for these exact bytes, or None when no handoff applies."""
         metadata = build_archive_metadata(
@@ -267,6 +271,7 @@ class ArchiveHandoff:
             runtime_engine=runtime_engine,
             runtime_engine_version=runtime_engine_version,
             template_digest=template_digest,
+            template_publication=template_publication,
         )
         if metadata is None:
             return None
@@ -374,6 +379,7 @@ def hand_off_and_record(
             runtime_engine=diagnostic.runtime_engine,
             runtime_engine_version=diagnostic.runtime_engine_version,
             template_digest=diagnostic.template_digest,
+            template_publication=diagnostic.template_publication,
         )
     except Exception:
         logger.exception("archive_handoff_unexpected_error")

@@ -24,8 +24,8 @@ from app.infrastructure.render_store import (
     RenderJobConflictError,
     RenderJobNotFoundError,
     RenderJobTransitionError,
-    StoredRenderJob,
 )
+from app.infrastructure.render_store_rows import StoredRenderJob
 from app.observability.render_log import log_render_accepted, log_render_failed
 from app.observability.render_metrics import record_render_artifact_size, record_render_operation
 from app.services.archive_handoff import ArchiveHandoff, hand_off_and_record
@@ -440,6 +440,7 @@ class RenderSubmissionService:
             status=stored.status,
             failure_category=stored.failure_category,
             artifact_ready=stored.status == "rendered",
+            template_publication=stored.template_publication,
             stale_state=stale_state,
             age_seconds=age_seconds,
             stale_threshold_seconds=stale_threshold_seconds,
@@ -484,6 +485,7 @@ def _to_artifact_metadata_response(stored: StoredRenderJob) -> RenderArtifactMet
         artifact_sha256=stored.artifact_sha256,
         bounded_determinism_fingerprint=stored.bounded_determinism_fingerprint,
         template_digest=stored.template_digest or "",
+        template_publication=stored.template_publication,
         mime_type=stored.mime_type,
         output_size_bytes=stored.output_size_bytes,
         render_duration_ms=stored.render_duration_ms,
@@ -577,4 +579,5 @@ def _job_response_fields(stored: StoredRenderJob) -> dict[str, Any]:
         archive_document_id=stored.archive_document_id,
         archive_request_id=stored.archive_request_id,
         archive_detail=stored.archive_detail,
+        template_publication=stored.template_publication,
     )

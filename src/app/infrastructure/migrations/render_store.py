@@ -3,7 +3,7 @@ from __future__ import annotations
 import sqlite3
 from collections.abc import Callable
 
-CURRENT_RENDER_STORE_SCHEMA_VERSION = 4
+CURRENT_RENDER_STORE_SCHEMA_VERSION = 5
 
 Migration = Callable[[sqlite3.Connection], None]
 
@@ -117,6 +117,19 @@ def _add_archive_handoff_columns(connection: sqlite3.Connection) -> None:
     _add_column_if_missing(connection, columns, "archive_detail", "TEXT")
 
 
+def _add_template_publication_column(connection: sqlite3.Connection) -> None:
+    """Record the template's governance posture AT RENDER TIME (#216 / #120).
+
+    An artifact rendered while its version was development stays development-
+    rendered even if the version publishes later -- publication is a fact about
+    the render, not about the current registry. Pre-existing rows carry NULL:
+    the posture at their render time was never recorded, and claiming one now
+    would be invention.
+    """
+    columns = render_store_columns(connection)
+    _add_column_if_missing(connection, columns, "template_publication", "TEXT")
+
+
 def _add_column_if_missing(
     connection: sqlite3.Connection,
     columns: set[str],
@@ -134,4 +147,5 @@ _MIGRATIONS: tuple[tuple[int, Migration], ...] = (
     (2, _add_lineage_columns),
     (3, _add_template_digest_column),
     (4, _add_archive_handoff_columns),
+    (5, _add_template_publication_column),
 )

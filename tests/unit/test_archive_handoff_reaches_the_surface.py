@@ -20,7 +20,8 @@ from app.contracts.examples import PORTFOLIO_REVIEW_RENDER_PACKAGE_EXAMPLE_PATH
 from app.contracts.render_package import RenderPackage
 from app.domain.render_attempts.models import RenderAttempt
 from app.domain.rendering.models import RenderDiagnostic, RenderResult
-from app.infrastructure.render_store import RenderStore, StoredRenderJob
+from app.infrastructure.render_store import RenderStore
+from app.infrastructure.render_store_rows import StoredRenderJob
 from app.services.archive_handoff import (
     ArchiveDeliveryNotSentError,
     ArchiveHandoff,
@@ -88,6 +89,7 @@ class _RenderingEngine:
                 determinism_statement="bounded determinism",
                 bounded_determinism_fingerprint="typst-0.14.2:test",
                 template_digest="sha256:feedbeef",
+                template_publication="published",
                 artifact_sha256=ARTIFACT_SHA,
                 mime_type="application/pdf",
                 output_size_bytes=len(ARTIFACT),
@@ -147,6 +149,19 @@ def test_verified_custody_reaches_the_response_and_survives_a_restart(
     assert response.archive_document_id == "doc_ab12"
     assert response.archive_request_id == derive_archive_request_id(REFERENCE, ARTIFACT_SHA), (
         "consumers read the delivery identity from here; nobody re-derives it"
+    )
+    assert response.template_publication == "published", (
+        "the bounded posture the external-publication gate reads, no digests involved"
+    )
+    diagnostics = service.get_diagnostics(
+        "rdr_golden_portfolio_review_v1",
+        accepted_stale_seconds=300,
+        rendering_stale_seconds=900,
+    )
+    assert diagnostics.template_publication == "published"
+    assert (
+        service.get_artifact_metadata("rdr_golden_portfolio_review_v1").template_publication
+        == "published"
     )
 
     # A fresh store over the same file is the restart: the truth was persisted, not held.
