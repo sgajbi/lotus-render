@@ -16,6 +16,7 @@ from app.services.attribution_bridge import render_attribution_bridge
 from app.services.benchmark_presentation import benchmark_note, benchmark_presentation
 from app.services.contribution_ranking import render_contribution_ranking_section
 from app.services.date_format import format_date, format_dates_in_text
+from app.services.drawdown_panel import render_drawdown_panel
 from app.services.earnings_statement import render_earnings_statement
 from app.services.fee_drag import render_fee_drag_note
 from app.services.holdings_presentation import render_holdings_scope_notes
@@ -367,6 +368,9 @@ def build_portfolio_review_v4_context(render_package: RenderPackage) -> dict[str
     """
     context = build_portfolio_review_v3_context(render_package)
     report_data = render_package.report_data
+    # The drawdown panel is a v4 page addition (report#289): earlier
+    # versions' templates draw no ${DRAWDOWN_PANEL}, so only v4 builds it.
+    context["DRAWDOWN_PANEL"] = render_drawdown_panel(report_data)
     context["HAS_ALLOCATION_LARGEST"] = _all_supplied_flag(
         report_data.get("allocation_summary"),
         (

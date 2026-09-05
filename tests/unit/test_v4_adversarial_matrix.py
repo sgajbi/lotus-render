@@ -89,6 +89,32 @@ def _benchmarked() -> dict[str, Any]:
             for row in history[-12:]
         ],
     }
+    package["report_data"]["drawdown"] = {
+        "posture": "ready",
+        "value_unit": "decimal_fraction",
+        "duration_unit": "BUSINESS_DAYS",
+        "methodology_version": "drawdown.v1",
+        "underwater": [
+            {"date": "2026-01-13", "drawdown": "-0.0121"},
+            {"date": "2026-02-03", "drawdown": "-0.124533"},
+        ],
+        "episodes": [
+            {
+                "episode_id": "dd_0002",
+                "peak_date": "2026-01-12",
+                "trough_date": "2026-02-03",
+                "recovery_date": None,
+                "depth": "-0.124533",
+                "days_to_trough": 16,
+            }
+        ],
+        "summary": {
+            "max_drawdown": "-0.124533",
+            "max_drawdown_peak_date": "2026-01-12",
+            "max_drawdown_trough_date": "2026-02-03",
+            "max_drawdown_recovery_date": None,
+        },
+    }
     return package
 
 
@@ -105,6 +131,10 @@ def _refusal_composite() -> dict[str, Any]:
         "benchmark_id": "BMK_PB_GLOBAL_BALANCED_60_40",
         "points": [],
         "source_statement": "Benchmark return series was not sourced for this report.",
+    }
+    package["report_data"]["drawdown"] = {
+        "posture": "unavailable",
+        "source_statement": "Drawdown analytics were not sourced for this report.",
     }
     package["report_data"]["risk_trend"] = json.loads(
         (TREND_GALLERY / "warmup-partial-coverage.json").read_text(encoding="utf-8")
@@ -164,6 +194,10 @@ CASES: dict[str, tuple[list[str], list[str]]] = {
     "benchmarked": (
         [
             "Benchmark: BMK_PB_GLOBAL_BALANCED_60_40 (EUR)",
+            # Typst sets the ASCII hyphen as a typographic minus in text.
+            "Maximum drawdown −12.45%",
+            "not yet recovered",
+            "16 business days to trough",
         ],
         [],
     ),
@@ -171,6 +205,7 @@ CASES: dict[str, tuple[list[str], list[str]]] = {
         [
             "Source quality flags: PARTIAL_COVERAGE",
             "Benchmark return series was not sourced for this report.",
+            "Drawdown analytics were not sourced for this report.",
             "The source did not state the full total",
             "Not included",
             "position_returns_unavailable",
