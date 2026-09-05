@@ -1,4 +1,4 @@
-#import "_theme.typ": accent, body-muted, cover-title, empty-state, ink, mist, section-title, slate, small-caps, soft-rule, text-body-strong, text-caption, text-head, text-lead
+#import "_theme.typ": accent, body-muted, cover-title, empty-state, hairline, ink, mist, panel-radius, rule, section-title, slate, small-caps, soft-rule, text-body-strong, text-caption, text-head, text-lead, text-page-title
 #import "_components.typ": brand-block, content-row, metric-card, section-lead
 
 #let cover-fact(label, value) = [
@@ -43,7 +43,30 @@
       #block(fill: mist, inset: 16pt, radius: 3pt, width: 100%)[
         #brand-block()
         #v(14pt)
-        #metric-card("Total portfolio value", "${CURRENCY} ${TOTAL_VALUE}", detail: "Market value as of ${AS_OF_DATE}", tone: white)
+        #if "${HAS_TOTAL_VALUE}" == "yes" [
+          // The document's one headline figure at display size -- the third
+          // benchmark's hero number, kept inside the governed card frame.
+          #block(
+            width: 100%,
+            fill: white,
+            inset: 12pt,
+            radius: (bottom: panel-radius),
+            stroke: (
+              top: (paint: accent, thickness: 2.2pt),
+              bottom: (paint: rule, thickness: hairline),
+              left: (paint: rule, thickness: hairline),
+              right: (paint: rule, thickness: hairline),
+            ),
+          )[
+            #small-caps("Total portfolio value")
+            #v(5pt)
+            #text(size: text-page-title, weight: 300, fill: ink)[#"${CURRENCY} ${TOTAL_VALUE}"]
+            #v(4pt)
+            #body-muted("Market value as of ${AS_OF_DATE}")
+          ]
+        ] else [
+          #metric-card("Total portfolio value", "${CURRENCY} ${TOTAL_VALUE}", detail: "Market value as of ${AS_OF_DATE}", tone: white)
+        ]
         #v(9pt)
         #metric-card("Invested value", "${CURRENCY} ${INVESTED_VALUE}", tone: white)
         #v(9pt)
@@ -107,6 +130,15 @@
   // 17-page render still claimed the appendix began on p. 11.
   #context {
     let entries = query(<lotus-section>)
+    let starts = entries.map(entry => counter(page).at(entry.location()).first())
+    let final = counter(page).final().first()
+    // A section's range runs to the page before the next section starts -- the
+    // same marker arithmetic that places the start, so the range cannot lie.
+    let page-ref(index) = {
+      let start = starts.at(index)
+      let end = if index + 1 < starts.len() { starts.at(index + 1) - 1 } else { final }
+      if end <= start { "p. " + str(start) } else { "pp. " + str(start) + "-" + str(end) }
+    }
     let half = int(calc.ceil(entries.len() / 2))
     let column(slice) = {
       for (offset, entry) in slice {
@@ -114,7 +146,7 @@
           str(offset + 1),
           entry.value.title,
           entry.value.detail,
-          "p. " + str(counter(page).at(entry.location()).first()),
+          page-ref(offset),
         )
         v(9pt)
       }
@@ -128,8 +160,57 @@
   }
 
   #v(22pt)
-  #section-lead(
-    "Review summary",
-    "This report brings together current portfolio positioning, performance, allocation, positions, and transaction activity as of the stated review date.",
-  )
+  #if "${HAS_AT_A_GLANCE}" == "yes" [
+    #grid(
+      columns: (1.4fr, 0.6fr),
+      column-gutter: 18pt,
+      [
+        #section-lead(
+          "Review summary",
+          "This report brings together current portfolio positioning, performance, allocation, positions, and transaction activity as of the stated review date.",
+        )
+      ],
+      [
+        // The reader's landing figures, stated only where supplied -- the
+        // third benchmark's "at a glance" rail, built from governed scalars.
+        #block(
+          width: 100%,
+          fill: mist,
+          inset: 12pt,
+          radius: (bottom: panel-radius),
+          stroke: (
+            top: (paint: accent, thickness: 2.2pt),
+            bottom: (paint: rule, thickness: hairline),
+            left: (paint: rule, thickness: hairline),
+            right: (paint: rule, thickness: hairline),
+          ),
+        )[
+          #small-caps("At a glance")
+          #if "${HAS_TOTAL_VALUE}" == "yes" [
+            #v(7pt)
+            #body-muted("Total portfolio value")
+            #linebreak()
+            #text(size: text-lead, weight: 600, fill: ink)[#"${CURRENCY} ${TOTAL_VALUE}"]
+          ]
+          #if "${HAS_GLANCE_VOLATILITY}" == "yes" [
+            #v(7pt)
+            #body-muted("Expected volatility")
+            #linebreak()
+            #text(size: text-lead, weight: 600, fill: ink)[#"${RISK_VOLATILITY}"]
+          ]
+          #if "${HAS_GLANCE_RISK_POSTURE}" == "yes" [
+            #v(7pt)
+            #body-muted("Risk posture")
+            #linebreak()
+            #text(size: text-lead, weight: 600, fill: ink)[#"${RISK_EXPOSURE}"]
+          ]
+        ]
+      ],
+    )
+  ] else [
+    #section-lead(
+      "Review summary",
+      "This report brings together current portfolio positioning, performance, allocation, positions, and transaction activity as of the stated review date.",
+    )
+  ]
 ]

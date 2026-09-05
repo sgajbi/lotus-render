@@ -382,6 +382,20 @@ def build_portfolio_review_v4_context(render_package: RenderPackage) -> dict[str
     context["HAS_RELATIONSHIP_CONTEXT"] = _all_supplied_flag(
         report_data.get("mandate"), ("booking_center_code", "advisor_id")
     )
+    context["HAS_TOTAL_VALUE"] = _presence_flag(is_supplied(report_data.get("total_value")) or None)
+    context["HAS_GLANCE_VOLATILITY"] = _all_supplied_flag(
+        report_data.get("risk_summary"), ("volatility_pct",)
+    )
+    context["HAS_GLANCE_RISK_POSTURE"] = _all_supplied_flag(
+        report_data.get("mandate"), ("risk_exposure",)
+    )
+    context["HAS_AT_A_GLANCE"] = _presence_flag(
+        any(
+            context[flag] == "yes"
+            for flag in ("HAS_TOTAL_VALUE", "HAS_GLANCE_VOLATILITY", "HAS_GLANCE_RISK_POSTURE")
+        )
+        or None
+    )
     return context
 
 
