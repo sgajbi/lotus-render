@@ -1,17 +1,23 @@
-"""The v4 acceptance matrix: every adversarial package variant through the frame.
+"""The v4 acceptance matrix: every adversarial package variant, page by page.
 
 The #270 design overhaul was accepted page by page against a single golden
 package -- exactly the arrangement that let single-instance goldens hide nine
 defects once. This matrix renders every variant the golden tree carries
-through v4 and reads the documents back: the advisory pages nobody looks at,
-the fully degraded snapshot, and a composite where both risk families refuse.
-It is the acceptance harness for any future v4 publication decision, kept in
-the suite so it cannot go stale in a scratchpad.
+through v4: the advisory pages nobody looks at, the fully degraded snapshot,
+and a composite where both risk families refuse.
 
-Each case asserts two kinds of truth: the variant's own load-bearing
-statements survive the frame, and the frame itself (brand block, classified
-footer) is present on every variant -- a chrome regression on a page nobody
-inspects fails here, not in production.
+The frame guarantee is proven PER PAGE, not per document: an earlier version
+of this suite joined all pages before asserting the chrome, which proved only
+that branding appeared somewhere -- a later page losing its footer passed.
+Now every applicable content page independently shows the brand block, the
+client and report identity, the reporting metadata, the classified footer and
+its own correct N / M pagination; the cover is the one deliberate exception
+(it sets its own stage). A negative control doctors a later page and proves
+the checker fails it.
+
+Variant content is verified by its own substance -- the approved commentary's
+grounded figures, the narrative and memo disclosures -- never by the generic
+document title alone.
 """
 
 from __future__ import annotations
@@ -28,6 +34,7 @@ import pytest
 from app.contracts.render_package import RenderPackage
 from app.core.settings import Settings
 from app.domain.templates.registry import TemplateRegistry
+from app.services.date_format import format_date
 from app.services.render_intake import RenderIntakeService
 from app.services.typst_rendering import TypstRenderService
 
@@ -35,13 +42,11 @@ GOLDEN_ROOT = Path("tests/golden/portfolio-review")
 TREND_GALLERY = Path("tests/gallery/risk-trend")
 ATTRIBUTION_GALLERY = Path("tests/gallery/risk-attribution")
 
-#: The frame every variant must carry: a page separated from the document
-#: still says whose review it is and how it must be handled. Tracked
-#: uppercase extracts letter-spaced, so chrome is matched space-blind.
-CHROME = (
-    "LOTUSPRIVATEBANKING",
-    "Private&confidential|Portfolioreview",
-)
+#: Pages that deliberately do not carry the running frame: the cover sets its
+#: own stage (classification eyebrow, side panel, registration line). Every
+#: other page must be self-identifying -- a page separated from the document
+#: still says whose review it is and how it must be handled.
+FRAME_EXEMPT_PAGES = frozenset({1})
 
 
 def _variant(name: str) -> dict[str, Any]:
@@ -67,19 +72,37 @@ def _refusal_composite() -> dict[str, Any]:
     return package
 
 
-CASES: list[tuple[str, list[str], list[str]]] = [
-    (
-        "advisory-narrative",
-        ["Reviewed advisory narrative", "APPROVED_FOR_ADVISOR_USE"],
+PACKAGE_BUILDERS: dict[str, Any] = {
+    "advisory-narrative": lambda: _variant("advisory-narrative"),
+    "advisor-memo": lambda: _variant("advisor-memo"),
+    "degraded": lambda: _variant("degraded"),
+    "advisor-commentary": lambda: _variant("advisor-commentary"),
+    "refusal-postures": _refusal_composite,
+}
+
+#: Each variant's own substance: the statements that make it THIS document --
+#: the approved commentary's grounded figures, the advisory disclosures, the
+#: degraded absences -- never the generic document title alone.
+CASES: dict[str, tuple[list[str], list[str]]] = {
+    "advisory-narrative": (
+        [
+            "Reviewed advisory narrative",
+            "APPROVED_FOR_ADVISOR_USE",
+            "proposal_narrative.advisor_use_only.v1",
+            "Advisor use only. Client distribution requires separate approval.",
+        ],
         [],
     ),
-    (
-        "advisor-memo",
-        ["Advisor proposal memo", "BLOCKED"],
+    "advisor-memo": (
+        [
+            "Advisor proposal memo",
+            "The advisor proposal memo is ready for advisor use.",
+            "Client-ready memo publication remains blocked.",
+            "BLOCKED",
+        ],
         [],
     ),
-    (
-        "degraded",
+    "degraded": (
         ["Not stated in the governed snapshot."],
         [
             "represents Not available",
@@ -87,12 +110,23 @@ CASES: list[tuple[str, list[str], list[str]]] = [
             "Booking center Not available",
         ],
     ),
-    (
-        "advisor-commentary",
-        ["Portfolio review"],
+    "advisor-commentary": (
+        [
+            "The portfolio returned 7.93% year to date against a benchmark of 6.85%",
+            "abr_run_0091",
+        ],
         [],
     ),
-]
+    "refusal-postures": (
+        [
+            "Source quality flags: PARTIAL_COVERAGE",
+            "The source did not state the full total",
+            "Not included",
+            "position_returns_unavailable",
+        ],
+        ["Bars are scaled"],
+    ),
+}
 
 
 @pytest.fixture(scope="module")
@@ -102,51 +136,113 @@ def render_service() -> TypstRenderService:
     return TypstRenderService(settings, RenderIntakeService(registry))
 
 
-def _document(render_service: TypstRenderService, package: dict[str, Any]) -> str:
-    result = render_service.render(RenderPackage.model_validate(package))
-    return re.sub(
-        r"\s+",
-        " ",
-        "\n".join(
-            page.extract_text() for page in pypdf.PdfReader(io.BytesIO(result.artifact_bytes)).pages
-        ),
-    )
+@pytest.fixture(scope="module")
+def rendered_variants(render_service: TypstRenderService) -> dict[str, dict[str, Any]]:
+    """Each variant rendered once: per-page text plus the identity facts the
+    frame must state, taken from the package itself so every variant is held
+    to ITS OWN identity."""
+
+    rendered: dict[str, dict[str, Any]] = {}
+    for name, build in PACKAGE_BUILDERS.items():
+        package = build()
+        report_data = package["report_data"]
+        result = render_service.render(RenderPackage.model_validate(package))
+        reader = pypdf.PdfReader(io.BytesIO(result.artifact_bytes))
+        pages = [re.sub(r"\s+", " ", page.extract_text() or "") for page in reader.pages]
+        rendered[name] = {
+            "pages": pages,
+            "client": str(report_data["client_name"]),
+            "portfolio": str(report_data["portfolio_name"]),
+            "as_of": format_date(report_data["as_of_date"]),
+        }
+    return rendered
 
 
-@pytest.mark.parametrize(("name", "needles", "forbidden"), CASES, ids=lambda case: str(case))
-def test_every_package_variant_survives_the_v4_frame(
-    name: str,
-    needles: list[str],
-    forbidden: list[str],
-    render_service: TypstRenderService,
+def _spaceless(text: str) -> str:
+    return text.replace(" ", "")
+
+
+def frame_defects(pages: list[str], *, client: str, portfolio: str, as_of: str) -> list[str]:
+    """Every missing frame element, named per page; empty means fully framed.
+
+    Tracked uppercase extracts letter-spaced, so matching is space-blind.
+    The pagination needle is a substring check by design: its job is to fail
+    when a page stops stating its own position, not to parse the footer.
+    """
+
+    total = len(pages)
+    identity = _spaceless(f"{client}, {portfolio}")
+    defects: list[str] = []
+    for number, page in enumerate(pages, start=1):
+        if number in FRAME_EXEMPT_PAGES:
+            continue
+        spaceless = _spaceless(page)
+        for label, needle in (
+            ("brand block", "LOTUSPRIVATEBANKING"),
+            ("classified footer", "Private&confidential|Portfolioreview|"),
+            ("client/report identity", identity),
+            ("as-of statement", _spaceless(f"As of {as_of}")),
+            ("reporting currency", "Reportingcurrency"),
+            ("pagination", f"{number}/{total}"),
+        ):
+            if needle not in spaceless:
+                defects.append(f"page {number} of {total}: missing {label}")
+    return defects
+
+
+@pytest.mark.parametrize("name", sorted(PACKAGE_BUILDERS))
+def test_every_content_page_of_every_variant_carries_the_frame(
+    name: str, rendered_variants: dict[str, dict[str, Any]]
 ) -> None:
-    document = _document(render_service, _variant(name))
-    spaceless = document.replace(" ", "")
-    for needle in CHROME:
-        assert needle in spaceless, f"{name}: the frame must carry {needle!r}"
+    variant = rendered_variants[name]
+    defects = frame_defects(
+        variant["pages"],
+        client=variant["client"],
+        portfolio=variant["portfolio"],
+        as_of=variant["as_of"],
+    )
+    assert not defects, f"{name}: {defects}"
+
+
+@pytest.mark.parametrize("name", sorted(CASES))
+def test_every_variant_states_its_own_substance(
+    name: str, rendered_variants: dict[str, dict[str, Any]]
+) -> None:
+    needles, forbidden = CASES[name]
+    document = " ".join(rendered_variants[name]["pages"])
     for needle in needles:
         assert needle in document, f"{name}: the rendered document must state {needle!r}"
     for needle in forbidden:
         assert needle not in document, f"{name}: {needle!r} must not reach a reader"
 
 
-def test_both_risk_families_refuse_inside_an_intact_frame(
-    render_service: TypstRenderService,
+def test_a_later_page_losing_its_frame_fails_the_checker(
+    rendered_variants: dict[str, dict[str, Any]],
 ) -> None:
-    """A partial-coverage trend and a producer-refused attribution in one
-    document: the strips that can draw draw with their stated flags, the sets
-    that cannot state themselves in the source's voice, and no scale
-    convention is claimed for bars that were never drawn."""
+    """The negative control: the checker must catch a SINGLE later page losing
+    a single frame element -- the exact defect the old joined-document
+    assertion could never see."""
 
-    document = _document(render_service, _refusal_composite())
-    spaceless = document.replace(" ", "")
-    for needle in CHROME:
-        assert needle in spaceless, f"the frame must carry {needle!r}"
-    for needle in (
-        "Source quality flags: PARTIAL_COVERAGE",
-        "The source did not state the full total",
-        "Not included",
-        "position_returns_unavailable",
-    ):
-        assert needle in document, f"the composite must state {needle!r}"
-    assert "Bars are scaled" not in document, "no attribution set drew, no convention to state"
+    variant = rendered_variants["advisor-commentary"]
+    pages = list(variant["pages"])
+    target = len(pages) - 2  # a later content page; 1-based number is target + 1
+    identity = dict(
+        client=variant["client"], portfolio=variant["portfolio"], as_of=variant["as_of"]
+    )
+
+    assert not frame_defects(pages, **identity), "control precondition: fully framed"
+
+    footerless = list(pages)
+    footerless[target] = footerless[target].replace("Private & confidential", "")
+    defects = frame_defects(footerless, **identity)
+    assert defects == [f"page {target + 1} of {len(pages)}: missing classified footer"], defects
+
+    anonymous = list(pages)
+    anonymous[target] = anonymous[target].replace(variant["client"], "")
+    defects = frame_defects(anonymous, **identity)
+    assert any("client/report identity" in defect for defect in defects), defects
+
+    unnumbered = list(pages)
+    unnumbered[target] = unnumbered[target].replace(f"{target + 1} / {len(pages)}", "")
+    defects = frame_defects(unnumbered, **identity)
+    assert any("pagination" in defect for defect in defects), defects

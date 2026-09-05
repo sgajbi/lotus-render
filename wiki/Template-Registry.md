@@ -118,7 +118,13 @@ Lifecycle changes are governed the same way: move a template to `deprecated_rere
   `v3`'s, verbatim -- the overhaul changes how the document is set, never what it
   states. The adversarial acceptance matrix lives in the suite
   (`tests/unit/test_v4_adversarial_matrix.py`): every golden package variant rendered
-  through the v4 frame and read back.
+  through the v4 frame and validated PAGE BY PAGE -- each applicable content page must
+  independently show the brand block, the client/report identity, the reporting
+  metadata, the classified footer and its own correct N / M pagination (the cover is
+  the one stated exception), a negative control proves the checker fails a single
+  later page losing a single frame element, and each variant is verified by its own
+  substance (approved commentary figures, advisory disclosures, degraded absences) --
+  never the generic document title alone.
 - `report_type`: `portfolio_review`
 - `report_data_contract_version`: `portfolio_review.v1`
 - `locale`: `en-SG`
