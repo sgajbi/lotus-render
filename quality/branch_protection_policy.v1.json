@@ -1,0 +1,53 @@
+{
+  "contract_id": "lotus-branch-protection-policy",
+  "contract_version": "1.0.0",
+  "repository": "sgajbi/lotus-render",
+  "protected_branch": "main",
+  "review_authority": {
+    "review_lead": "the lotus-render owning session (platform ecosystem reviewer), working with the chatgpt-codex-connector inline review bot",
+    "mergeable_meaning": "an exact-head VERDICT of mergeable means every required context is green on the current head and every review thread on that head is resolved",
+    "escalation": "unresolved disagreements escalate to the repository owner (sgajbi), who is the sole accepted collaborator"
+  },
+  "expected": {
+    "enforce_admins": true,
+    "required_linear_history": true,
+    "allow_force_pushes": false,
+    "allow_deletions": false,
+    "required_conversation_resolution": true,
+    "required_status_checks": {
+      "strict": true,
+      "contexts": [
+        "PR Merge Gate / Workflow Lint",
+        "PR Merge Gate / Lint Typecheck Security",
+        "PR Merge Gate / Tests (unit)",
+        "PR Merge Gate / Tests (integration)",
+        "PR Merge Gate / Tests (e2e)",
+        "PR Merge Gate / Coverage Gate (Combined)",
+        "PR Merge Gate / Validate Docker Build"
+      ]
+    },
+    "required_pull_request_reviews": {
+      "present": true,
+      "required_approving_review_count": 0,
+      "dismiss_stale_reviews": true,
+      "require_code_owner_reviews": false,
+      "require_last_push_approval": false,
+      "bypass_pull_request_allowances": {
+        "users": [],
+        "teams": [],
+        "apps": []
+      }
+    },
+    "restrictions_present": false,
+    "codeowners_present": false
+  },
+  "documented_exceptions": [
+    {
+      "field": "required_pull_request_reviews.required_approving_review_count",
+      "value": 0,
+      "reason": "the repository has a single accepted collaborator; requiring a non-author approval would hard-lock main rather than strengthen it, and naming that collaborator in CODEOWNERS would record an independent-review control that does not exist",
+      "compensating_controls": "seven required green contexts, enforce_admins, strict up-to-date branches, required conversation resolution, and linear history apply to every merge including the administrator's",
+      "retires_when": "a second accepted reviewer identity exists; then raise required_approving_review_count to 1, add CODEOWNERS, and update this policy in the same change"
+    }
+  ]
+}

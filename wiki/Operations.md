@@ -104,6 +104,17 @@ grace period must therefore exceed `RENDER_COMPILE_TIMEOUT_SECONDS`**, or the pl
 render the service was deliberately waiting for. If the drain times out, it is logged, and those
 jobs are recovered by resubmission once they go stale.
 
+## Branch-protection policy gate
+
+`quality/branch_protection_policy.v1.json` documents the governed protection posture of `main`
+field by field, including the deliberate zero-approval exception and what retires it. The daily
+Main Gate Coverage Audit workflow compares LIVE protection against this table and fails on
+divergence in either direction — a weakened setting and a silently deleted exception are both
+drift. Absent settings are compared as absent, never coerced to false. Any deliberate protection
+change must update the policy document in the same change. The checker
+(`scripts/check_branch_protection_policy.py`) is the shared platform pattern (first shipped in
+lotus-gateway); only the policy table is repository-specific.
+
 ## Incident first checks
 
 The ordered checklist — logs, readiness, supportability, the affected job's posture, then the
