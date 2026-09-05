@@ -8,7 +8,7 @@
 // Content pages carry the #270 frame in the top margin: eyebrow, display title,
 // subtitle, hairline. The margin holds the whole frame so the body always starts
 // below the rule, on first pages and continuations alike.
-#let page-margin-top = 34mm
+#let page-margin-top = 42mm
 #let grid-gap = 16pt
 #let hairline = 0.45pt
 #let panel-radius = 3pt

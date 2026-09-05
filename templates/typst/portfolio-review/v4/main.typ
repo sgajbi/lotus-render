@@ -19,9 +19,10 @@
     #line(length: 100%, stroke: (paint: rule, thickness: 0.35pt))
     #v(5pt)
     #grid(
-      columns: (1fr, auto),
-      [#text(size: text-micro, fill: slate)[Portfolio review  |  #"${CLIENT_NAME}", #"${PORTFOLIO_NAME}"]#document-reference-mark("${DOCUMENT_REFERENCE}")],
-      [#text(size: text-caption, fill: ink)[#counter(page).display("1") / #counter(page).final().first()]],
+      columns: (1fr, auto, 1fr),
+      [#text(size: text-micro, fill: slate)[Private & confidential  |  Portfolio review  |  #"${CLIENT_NAME}", #"${PORTFOLIO_NAME}"]#document-reference-mark("${DOCUMENT_REFERENCE}")],
+      [#text(size: text-micro, fill: slate)[As of ${AS_OF_DATE}]],
+      [#align(right)[#text(size: text-caption, fill: ink)[#counter(page).display("1") / #counter(page).final().first()]]],
     )
   ],
   footer-descent: 38%,

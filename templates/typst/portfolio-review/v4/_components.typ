@@ -12,28 +12,47 @@
 // section that spills onto another page is still headed there. While this was an
 // in-flow element the only way to head a page was to force one, which is how a
 // six-value section came to own a full landscape page (#184).
-#let page-header(entry) = [
+#let brand-block() = [
+  #box(baseline: -3pt)[#line(length: 16pt, stroke: (paint: accent, thickness: 2.6pt))]
+  #h(7pt)
+  #box(baseline: 22%)[
+    #set par(leading: 0.5em)
+    #text(size: text-caption, weight: 700, tracking: 0.9pt, fill: ink)[LOTUS PRIVATE BANKING]
+    #linebreak()
+    #text(size: text-micro, fill: slate)[Portfolio reporting]
+  ]
+]
+
+#let chapter-chip(number) = box(
+  fill: accent,
+  inset: (x: 4.5pt, y: 2.5pt),
+  radius: 1pt,
+  baseline: 22%,
+)[#text(size: text-micro, weight: 700, tracking: 0.6pt, fill: white)[#number]]
+
+#let page-header(entry, number) = [
+  // Row 1 -- who and when, on every page: the brand block left, the client's
+  // identity and the full reporting metadata right. A page separated from the
+  // document still says whose review it is and as of when.
   #grid(
     columns: (1fr, auto),
     column-gutter: grid-gap,
-    [
-      // The eyebrow: a short accent tick and the section's own name, so a reader
-      // dropped on any page knows which part of the document they are in before
-      // reading a word of it. The name is the marker's -- the same value the
-      // contents page lists, so the two cannot disagree.
-      #box(baseline: -3pt)[#line(length: 16pt, stroke: (paint: accent, thickness: 2.2pt))]
-      #h(7pt)
-      #text(size: text-caption, weight: 600, tracking: 1.1pt, fill: accent)[#upper(entry.title)]
-    ],
+    [#brand-block()],
     [
       #align(right)[
-        #set par(leading: 0.86em)
-        #page-kicker("${REPORTING_PERIOD_LABEL}")
+        #set par(leading: 0.72em)
+        #text(size: text-caption, weight: 600, fill: ink)[#"${CLIENT_NAME}", #"${PORTFOLIO_NAME}"]
         #linebreak()
-        #page-kicker("Reporting currency ${CURRENCY}")
+        #page-kicker("${REVIEW_PERIOD_LABEL}  |  As of ${AS_OF_DATE}  |  Reporting currency ${CURRENCY}")
       ]
     ],
   )
+  #v(6pt)
+  // Row 2 -- the numbered chapter eyebrow: the chip carries the same ordinal
+  // the contents page derives from marker order, so the two cannot disagree.
+  #chapter-chip(number)
+  #h(7pt)
+  #text(size: text-caption, weight: 600, tracking: 1.1pt, fill: accent)[#upper(entry.title)]
   #v(4pt)
   #section-title(entry.header)
   #v(3pt)
@@ -55,7 +74,34 @@
     counter(page).at(marker.location()).first() <= current
   ))
   if started.len() > 0 {
-    page-header(started.last().value)
+    let number = if started.len() < 10 { "0" + str(started.len()) } else { str(started.len()) }
+    page-header(started.last().value, number)
+  } else if current > 1 {
+    // Pages before the first section (the contents page) still carry the
+    // brand, the client's reporting identity, and the 00 ordinal; only the
+    // cover, which sets its own stage, goes unframed. The trailing space is
+    // part of the header block, so its bottom-anchored layout cannot sink
+    // the brand row into the body's own title.
+    block[
+      #grid(
+        columns: (1fr, auto),
+        column-gutter: grid-gap,
+        [#brand-block()],
+        [
+          #align(right)[
+            #set par(leading: 0.72em)
+            #text(size: text-caption, weight: 600, fill: ink)[#"${CLIENT_NAME}", #"${PORTFOLIO_NAME}"]
+            #linebreak()
+            #page-kicker("${REVIEW_PERIOD_LABEL}  |  As of ${AS_OF_DATE}  |  Reporting currency ${CURRENCY}")
+          ]
+        ],
+      )
+      #v(6pt)
+      #chapter-chip("00")
+      #h(7pt)
+      #text(size: text-caption, weight: 600, tracking: 1.1pt, fill: accent)[CONTENTS]
+      #v(12pt)
+    ]
   }
 }
 
