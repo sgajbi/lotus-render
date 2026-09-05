@@ -29,7 +29,9 @@
 // "not available" line was an off-palette grey no template could restyle.
 #let empty-state(message, size: text-body) = text(size: size, fill: slate)[#message]
 #let body-strong(value) = text(size: text-body-strong, weight: 500, fill: ink)[#value]
-#let small-caps(value) = text(size: text-caption, weight: 600, tracking: 0.22pt, fill: slate)[#value]
+// Uppercase tracked labels, the gold-standard register: every card label and
+// table header speaks in the same quiet capitals.
+#let small-caps(value) = text(size: text-caption, weight: 600, tracking: 0.55pt, fill: slate)[#upper(value)]
 
 // Decorative: a rule says nothing a heading or table does not already say.
 #let soft-rule() = pdf.artifact(line(length: 100%, stroke: (paint: rule, thickness: hairline)))
