@@ -68,6 +68,11 @@ def _benchmarked() -> dict[str, Any]:
     )
     package["render_job_id"] = "rdr_v4_matrix_benchmarked"
     history = package["report_data"]["performance_monthly_history"]
+
+    def _trailing(row: dict[str, Any]) -> str:
+        portfolio = float(str(row["cumulative_twr_pct"]).rstrip("%"))
+        return f"{portfolio - 1.1:.2f}%"
+
     package["report_data"]["benchmark_series"] = {
         "posture": "ready",
         "benchmark_id": "BMK_PB_GLOBAL_BALANCED_60_40",
@@ -79,7 +84,7 @@ def _benchmarked() -> dict[str, Any]:
                 "period_start": row["period_start"],
                 "period_end": row["period_end"],
                 "twr_pct": "0.40%",
-                "cumulative_twr_pct": f"{float(str(row['cumulative_twr_pct']).rstrip('%')) - 1.1:.2f}%",
+                "cumulative_twr_pct": _trailing(row),
             }
             for row in history[-12:]
         ],
