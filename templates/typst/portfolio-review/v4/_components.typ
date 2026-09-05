@@ -208,7 +208,7 @@
 
 #let content-row(index, title, detail, ref) = [
   #grid(
-    columns: (28pt, 1fr, 28pt),
+    columns: (28pt, 1fr, 52pt),
     column-gutter: 10pt,
     [#text(size: text-head, weight: 300, fill: accent)[#index]],
     [
