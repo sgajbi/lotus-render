@@ -1847,3 +1847,107 @@ def test_a_failed_page_export_reports_why_rather_than_returning_no_pages(
 
     with pytest.raises(RuntimeError, match="page image export failed"):
         service.render_page_images(render_package)
+
+
+# --- report#288: benchmark series drives the chart's line, subtitle, and caption ----
+
+
+def _benchmark_history() -> list[dict[str, object]]:
+    return [
+        {"period": "2026-01", "cumulative_twr_pct": "1.00%"},
+        {"period": "2026-02", "cumulative_twr_pct": "2.00%"},
+    ]
+
+
+def _ready_benchmark_block(**overrides: object) -> dict[str, object]:
+    block: dict[str, object] = {
+        "posture": "ready",
+        "benchmark_id": "BMK_PB_GLOBAL_BALANCED_60_40",
+        "benchmark_currency": "USD",
+        "return_source": "calculated",
+        "points": [
+            {"period": "2026-01", "cumulative_twr_pct": "-1.21%"},
+            {"period": "2026-02", "cumulative_twr_pct": "-0.20%"},
+        ],
+    }
+    block.update(overrides)
+    return block
+
+
+def test_a_ready_benchmark_draws_the_line_and_names_the_benchmark() -> None:
+    section = render_performance_chart_section(
+        {
+            "performance_monthly_history": _benchmark_history(),
+            "benchmark_series": _ready_benchmark_block(),
+            "reporting_currency": "USD",
+        }
+    )
+
+    assert "Benchmark: BMK_PB_GLOBAL_BALANCED_60_40" in section
+    # Same reporting currency: no parenthesised currency qualifier.
+    assert "(USD)" not in section
+    assert 'benchmark-label: "Benchmark"' in section
+    assert "benchmark: ()," not in section
+
+
+def test_a_differing_benchmark_currency_is_qualified_in_the_subtitle() -> None:
+    section = render_performance_chart_section(
+        {
+            "performance_monthly_history": _benchmark_history(),
+            "benchmark_series": _ready_benchmark_block(benchmark_currency="EUR"),
+            "reporting_currency": "USD",
+        }
+    )
+
+    assert "Benchmark: BMK_PB_GLOBAL_BALANCED_60_40 (EUR)" in section
+
+
+def test_an_unavailable_benchmark_states_the_sources_sentence_under_the_chart() -> None:
+    """An expected-but-refused series is a fact the reader must see -- never a
+    silently thinner chart (report#288 lock)."""
+
+    section = render_performance_chart_section(
+        {
+            "performance_monthly_history": _benchmark_history(),
+            "benchmark_series": {
+                "posture": "unavailable",
+                "benchmark_id": None,
+                "points": [],
+                "source_statement": "Benchmark return series was not sourced for this report.",
+            },
+        }
+    )
+
+    assert "benchmark: ()," in section
+    assert "benchmark-label: none" in section
+    assert '#panel-note("Benchmark return series was not sourced for this report.")' in section
+    # The caption survives even when the portfolio series itself is absent.
+    placeholder = render_performance_chart_section(
+        {
+            "benchmark_series": {
+                "posture": "unavailable",
+                "points": [],
+                "source_statement": "Benchmark return series was not sourced for this report.",
+            }
+        }
+    )
+    assert "No 12-month performance series is available" in placeholder
+    assert "#panel-note(" in placeholder
+
+
+def test_an_unbenchmarked_portfolio_renders_exactly_as_before() -> None:
+    """An unassigned benchmark is normal state, not degradation: no caption,
+    no legend, subtitle unchanged (report#288 lock)."""
+
+    section = render_performance_chart_section(
+        {
+            "performance_monthly_history": _benchmark_history(),
+            "benchmark_series": {"posture": "unbenchmarked", "points": []},
+        }
+    )
+
+    assert section == render_performance_chart_section(
+        {"performance_monthly_history": _benchmark_history()}
+    )
+    assert "#panel-note(" not in section
+    assert "benchmark: ()," in section

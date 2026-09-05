@@ -69,6 +69,43 @@ class AllocationSlice:
             )
 
 
+def benchmark_series_block(report_data: Mapping[str, object]) -> Mapping[str, object] | None:
+    """Report's stated benchmark series (report#288), or None when the package
+    predates the block. When present it is AUTHORITATIVE for the benchmark
+    line: its posture is a statement, and drawing from the legacy inline
+    columns against a stated `unavailable` or `unbenchmarked` posture would
+    contradict the source on the page."""
+
+    block = report_data.get("benchmark_series")
+    if isinstance(block, Mapping) and str(block.get("posture") or "").strip():
+        return block
+    return None
+
+
+def _overlay_entry(item: object) -> tuple[str, float] | None:
+    if not isinstance(item, Mapping):
+        return None
+    period = str(item.get("period") or "").strip()
+    value = _parse_percent_or_number(item.get("cumulative_twr_pct"))
+    if not period or value is None:
+        return None
+    return period, value
+
+
+def _benchmark_overlay_by_period(block: Mapping[str, object] | None) -> dict[str, float] | None:
+    """period -> cumulative value from a READY stated series; None when the
+    package carries no block (legacy inline columns then stand); an empty map
+    for any non-ready posture, which CLEARS inline values rather than letting
+    them contradict the stated posture."""
+
+    if block is None:
+        return None
+    if str(block.get("posture")) != "ready":
+        return {}
+    entries = (_overlay_entry(item) for item in row_sequence(block.get("points")) or [])
+    return dict(entry for entry in entries if entry is not None)
+
+
 def performance_series_from_report_data(
     report_data: Mapping[str, object],
 ) -> list[PerformancePoint]:
@@ -82,6 +119,19 @@ def performance_series_from_report_data(
         point = _performance_point(item)
         if point is not None:
             points.append(point)
+    overlay = _benchmark_overlay_by_period(benchmark_series_block(report_data))
+    if overlay is not None:
+        # Paired by period keys, never by row position: the two series' bucket
+        # dates may legitimately diverge, and an unpairable benchmark point is
+        # simply not drawn.
+        points = [
+            PerformancePoint(
+                month=point.month,
+                cumulative_twr=point.cumulative_twr,
+                benchmark_cumulative_twr=overlay.get(point.month),
+            )
+            for point in points
+        ]
     return points
 
 

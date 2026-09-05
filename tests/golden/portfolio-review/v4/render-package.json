@@ -1014,6 +1014,11 @@
           ]
         }
       ]
+    },
+    "reporting_currency": "USD",
+    "benchmark_series": {
+      "posture": "unbenchmarked",
+      "points": []
     }
   },
   "lineage_refs": [

@@ -34,14 +34,21 @@
 #let _plot-x(fraction, width) = fraction * width
 #let _plot-y(fraction, height) = fraction * height
 
-// One series drawn as a line with a marker at each observation.
+// One series drawn as a line with a marker at each observation. The path is
+// PLACED at the plot origin, not left in flow: two flow curves stack, so the
+// second series would draw below the plot box instead of inside it. This was
+// latent while the benchmark argument was never fed (report#288 first
+// activates it) -- a single flow curve happened to sit at the origin anyway.
 #let _series-path(points, width, height, paint, dash: none) = {
   if points.len() == 0 { return }
-  curve(
-    stroke: (paint: paint, thickness: 1.6pt, cap: "round", join: "round", dash: dash),
-    curve.move((_plot-x(points.at(0).at, width), _plot-y(points.at(0).value, height))),
-    ..points.slice(1).map(point =>
-      curve.line((_plot-x(point.at, width), _plot-y(point.value, height)))
+  place(
+    top + left,
+    curve(
+      stroke: (paint: paint, thickness: 1.6pt, cap: "round", join: "round", dash: dash),
+      curve.move((_plot-x(points.at(0).at, width), _plot-y(points.at(0).value, height))),
+      ..points.slice(1).map(point =>
+        curve.line((_plot-x(point.at, width), _plot-y(point.value, height)))
+      ),
     ),
   )
 }
