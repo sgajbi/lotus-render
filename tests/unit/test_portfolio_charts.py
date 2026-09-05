@@ -266,3 +266,78 @@ def test_month_labels_accept_both_date_shapes_and_pass_anything_else_through() -
     assert _month_label("2026-01-15") == "Jan 26"
     assert _month_label("Q1") == "Q1"
     assert _month_label("a<b") == "a&lt;b"
+
+
+# --- report#288: the stated benchmark series is authoritative for the line ---------
+
+
+def _block(posture: str, **extra: object) -> dict[str, object]:
+    return {"posture": posture, **extra}
+
+
+def _ready_block() -> dict[str, object]:
+    return _block(
+        "ready",
+        benchmark_id="BMK_PB_GLOBAL_BALANCED_60_40",
+        benchmark_currency="USD",
+        return_source="calculated",
+        points=[
+            {
+                "period": "2026-01",
+                "period_start": "2026-01-01",
+                "period_end": "2026-01-31",
+                "twr_pct": "-1.21%",
+                "cumulative_twr_pct": "-1.21%",
+            },
+            {
+                "period": "2026-02",
+                "period_start": "2026-02-01",
+                "period_end": "2026-02-24",
+                "twr_pct": "1.02%",
+                "cumulative_twr_pct": "-0.20%",
+            },
+        ],
+    )
+
+
+def _history(months: list[str]) -> list[dict[str, object]]:
+    return [
+        {"period": month, "cumulative_twr_pct": f"{index + 1}.00%"}
+        for index, month in enumerate(months)
+    ]
+
+
+def test_a_ready_stated_series_pairs_by_period_keys_never_row_position() -> None:
+    """The two series' bucket dates may legitimately diverge; a benchmark
+    point with no matching portfolio month is simply not drawn."""
+
+    points = performance_series_from_report_data(
+        {
+            "performance_monthly_history": _history(["2025-12", "2026-01", "2026-02"]),
+            "benchmark_series": _ready_block(),
+        }
+    )
+
+    assert [point.benchmark_cumulative_twr for point in points] == [None, -1.21, -0.2]
+
+
+def test_the_stated_block_is_authoritative_over_legacy_inline_columns() -> None:
+    """A stated non-ready posture CLEARS inline values: drawing a line the
+    block says is unavailable would contradict the source on the page."""
+
+    inline_history = [
+        {"period": "2026-01", "cumulative_twr_pct": "1.00%", "benchmark_cumulative_twr": "0.5"},
+        {"period": "2026-02", "cumulative_twr_pct": "2.00%", "benchmark_cumulative_twr": "0.9"},
+    ]
+
+    for posture in ("unavailable", "unbenchmarked"):
+        points = performance_series_from_report_data(
+            {
+                "performance_monthly_history": inline_history,
+                "benchmark_series": _block(posture, points=[]),
+            }
+        )
+        assert [point.benchmark_cumulative_twr for point in points] == [None, None], posture
+
+    legacy = performance_series_from_report_data({"performance_monthly_history": inline_history})
+    assert [point.benchmark_cumulative_twr for point in legacy] == [0.5, 0.9]

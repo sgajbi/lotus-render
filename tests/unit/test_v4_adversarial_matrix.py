@@ -58,11 +58,49 @@ def _variant(name: str) -> dict[str, Any]:
     return package
 
 
+def _benchmarked() -> dict[str, Any]:
+    """The v4 golden with a READY stated benchmark series (report#288): the
+    chart gains the dashed line, and the card names the benchmark with its
+    differing currency."""
+
+    package: dict[str, Any] = json.loads(
+        (GOLDEN_ROOT / "v4" / "render-package.json").read_text(encoding="utf-8")
+    )
+    package["render_job_id"] = "rdr_v4_matrix_benchmarked"
+    history = package["report_data"]["performance_monthly_history"]
+    package["report_data"]["benchmark_series"] = {
+        "posture": "ready",
+        "benchmark_id": "BMK_PB_GLOBAL_BALANCED_60_40",
+        "benchmark_currency": "EUR",
+        "return_source": "calculated",
+        "points": [
+            {
+                "period": row["period"],
+                "period_start": row["period_start"],
+                "period_end": row["period_end"],
+                "twr_pct": "0.40%",
+                "cumulative_twr_pct": f"{float(str(row['cumulative_twr_pct']).rstrip('%')) - 1.1:.2f}%",
+            }
+            for row in history[-12:]
+        ],
+    }
+    return package
+
+
 def _refusal_composite() -> dict[str, Any]:
     package: dict[str, Any] = json.loads(
         (GOLDEN_ROOT / "v4" / "render-package.json").read_text(encoding="utf-8")
     )
     package["render_job_id"] = "rdr_v4_matrix_refusals"
+    # The benchmark refusal joins the composite (report#288): an expected
+    # series the source refused must surface as a stated caption, never a
+    # silently thinner chart.
+    package["report_data"]["benchmark_series"] = {
+        "posture": "unavailable",
+        "benchmark_id": "BMK_PB_GLOBAL_BALANCED_60_40",
+        "points": [],
+        "source_statement": "Benchmark return series was not sourced for this report.",
+    }
     package["report_data"]["risk_trend"] = json.loads(
         (TREND_GALLERY / "warmup-partial-coverage.json").read_text(encoding="utf-8")
     )
@@ -77,6 +115,7 @@ PACKAGE_BUILDERS: dict[str, Any] = {
     "advisor-memo": lambda: _variant("advisor-memo"),
     "degraded": lambda: _variant("degraded"),
     "advisor-commentary": lambda: _variant("advisor-commentary"),
+    "benchmarked": _benchmarked,
     "refusal-postures": _refusal_composite,
 }
 
@@ -117,9 +156,16 @@ CASES: dict[str, tuple[list[str], list[str]]] = {
         ],
         [],
     ),
+    "benchmarked": (
+        [
+            "Benchmark: BMK_PB_GLOBAL_BALANCED_60_40 (EUR)",
+        ],
+        [],
+    ),
     "refusal-postures": (
         [
             "Source quality flags: PARTIAL_COVERAGE",
+            "Benchmark return series was not sourced for this report.",
             "The source did not state the full total",
             "Not included",
             "position_returns_unavailable",

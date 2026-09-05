@@ -19,6 +19,7 @@ from app.services.allocation_presentation import (
     presented_rows,
 )
 from app.services.appendix_glossary import applicable_glossary
+from app.services.benchmark_chart import benchmark_chart_dressing
 from app.services.chart_geometry import (
     ChartGeometry,
     DonutSegment,
@@ -110,11 +111,12 @@ def render_performance_chart_section(report_data: Mapping[str, object]) -> str:
     The geometry is computed in `chart_geometry`, where it is unit-tested; this only
     turns it into the arguments of a Typst call.
     """
+    subtitle, benchmark_caption = benchmark_chart_dressing(report_data)
     geometry = performance_chart_geometry(performance_series_from_report_data(report_data))
     if geometry is None:
         return (
             '#chart-placeholder("12-Month Cumulative Performance", '
-            '"No 12-month performance series is available for this report.")'
+            '"No 12-month performance series is available for this report.")' + benchmark_caption
         )
 
     gridlines = _typst_array(
@@ -135,7 +137,7 @@ def render_performance_chart_section(report_data: Mapping[str, object]) -> str:
 
     return (
         '#chart-card("12-Month Cumulative Performance", '
-        'subtitle: "Net performance, valued in reporting currency")[\n'
+        f'subtitle: "{escape_typst_string(subtitle)}")[\n'
         f'  #figure(alt: "{alt}", line-chart(\n'
         f"    gridlines: {gridlines},\n"
         f"    points: {points},\n"
@@ -143,7 +145,7 @@ def render_performance_chart_section(report_data: Mapping[str, object]) -> str:
         f"    benchmark: {benchmark},\n"
         f"    benchmark-label: {benchmark_label},\n"
         f"  ))\n"
-        "]"
+        "]" + benchmark_caption
     )
 
 
