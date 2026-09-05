@@ -1,4 +1,4 @@
-#import "_charts.typ": donut-chart
+#import "_charts.typ": donut-chart, line-chart
 #import "_theme.typ": empty-state, ink, mist, rule, section-subtitle, slate, text-body, text-micro
 #import "_components.typ": allocation-dimension-block, allocation-dimension-note, chart-card, chart-placeholder, compact-allocation-row, diverging-track, key-stat, note-panel, panel-note, report-panel, section-marker
 
@@ -58,5 +58,8 @@
     // Historical risk attribution (render#160 / report#254): the v3 capability
     // that fills the slot v2 reserved and keeps empty forever.
     ${RISK_ATTRIBUTION_PANEL}
+    // Drawdown depth and recovery (render#160 / report#289): the stated
+    // underwater series, episodes and recovery posture from lotus-risk.
+    ${DRAWDOWN_PANEL}
   ]
 ]

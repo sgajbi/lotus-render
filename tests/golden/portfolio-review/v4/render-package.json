@@ -1019,7 +1019,8 @@
     "benchmark_series": {
       "posture": "unbenchmarked",
       "points": []
-    }
+    },
+    "drawdown": {}
   },
   "lineage_refs": [
     "rlineage_golden_portfolio_review_v1"
