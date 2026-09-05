@@ -60,3 +60,11 @@ jobs:
           python scripts/audit_main_gate_coverage.py \
             --since "${{ inputs.since || '3 days ago' }}" \
             --fail-on-gap
+      - name: Enforce Branch Protection Policy
+        if: ${{ !cancelled() }}
+        env:
+          # github.token cannot carry administration:read, which the branch
+          # protection endpoint requires; the automerge PAT can. A missing or
+          # unauthorized token fails the gate rather than passing it silently.
+          GH_TOKEN: ${{ secrets.LOTUS_AUTOMERGE_TOKEN }}
+        run: python scripts/check_branch_protection_policy.py
