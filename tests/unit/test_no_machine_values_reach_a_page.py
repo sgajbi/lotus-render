@@ -182,3 +182,48 @@ def test_no_emitter_sizes_a_bar_for_itself() -> None:
         f"these sites floor a bar width themselves: {offenders}. The floor is what made "
         "a negligible weight look like a real one; weight_width_token has none."
     )
+
+
+def test_v4_states_a_notes_absence_once_never_worn_as_prose(
+    render_service: TypstRenderService,
+) -> None:
+    """The degraded snapshot through v4: a note sentence draws only when every
+    figure it quotes was supplied. v1 published the interpolated form
+    ("Not available represents Not available of portfolio market value, equal
+    to USD Not available.") and keeps it -- published bytes do not move -- so
+    the fix is v4's, gated on presence flags computed from the same source
+    fields the sentences quote."""
+
+    import json
+
+    package = json.loads(
+        (GOLDEN_ROOT / "portfolio-review/v1/degraded/render-package.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    package["template_version"] = "v4"
+    package["render_job_id"] = "rdr_unit_absence_prose_degraded"
+    reader = pypdf.PdfReader(
+        io.BytesIO(render_service.render(RenderPackage.model_validate(package)).artifact_bytes)
+    )
+    document = re.sub(r"\s+", " ", "\n".join(page.extract_text() for page in reader.pages))
+
+    for interpolated in (
+        "represents Not available",
+        "contributed Not available",
+        "Booking center Not available",
+    ):
+        assert interpolated not in document, f"absence worn as prose: {interpolated!r}"
+    assert document.count("Not stated in the governed snapshot.") == 3
+
+    healthy = json.loads(
+        (GOLDEN_ROOT / "portfolio-review/v4/render-package.json").read_text(encoding="utf-8")
+    )
+    healthy["render_job_id"] = "rdr_unit_absence_prose_healthy"
+    reader = pypdf.PdfReader(
+        io.BytesIO(render_service.render(RenderPackage.model_validate(healthy)).artifact_bytes)
+    )
+    document = re.sub(r"\s+", " ", "\n".join(page.extract_text() for page in reader.pages))
+    assert "Equity represents 60.00% of portfolio market value" in document
+    assert "Booking center Singapore under advisor RM_SG_001." in document
+    assert "Not stated in the governed snapshot." not in document
