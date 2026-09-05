@@ -43,7 +43,7 @@
         #set par(leading: 0.72em)
         #text(size: text-caption, weight: 600, fill: ink)[#"${CLIENT_NAME}", #"${PORTFOLIO_NAME}"]
         #linebreak()
-        #page-kicker("${REVIEW_PERIOD_LABEL}  |  As of ${AS_OF_DATE}  |  Reporting currency ${CURRENCY}")
+        #page-kicker("${REPORTING_PERIOD_LABEL}  |  As of ${AS_OF_DATE}  |  Reporting currency ${CURRENCY}")
       ]
     ],
   )
@@ -92,7 +92,7 @@
             #set par(leading: 0.72em)
             #text(size: text-caption, weight: 600, fill: ink)[#"${CLIENT_NAME}", #"${PORTFOLIO_NAME}"]
             #linebreak()
-            #page-kicker("${REVIEW_PERIOD_LABEL}  |  As of ${AS_OF_DATE}  |  Reporting currency ${CURRENCY}")
+            #page-kicker("${REPORTING_PERIOD_LABEL}  |  As of ${AS_OF_DATE}  |  Reporting currency ${CURRENCY}")
           ]
         ],
       )
@@ -344,7 +344,7 @@
   ),
   radius: (bottom: panel-radius),
 )[
-  #text(size: text-fine, fill: slate)[#label]
+  #small-caps(label)
   #linebreak()
   #text(size: text-body-strong, weight: 600, fill: ink)[#value]
   #linebreak()
@@ -529,10 +529,16 @@
 // there is something true to say, because a note that is always there is furniture.
 // Started life as `benchmark-note`; renamed when the risk panel became its second
 // consumer -- the promote-on-second-consumer rule (#150) applied at the first chance.
-#let panel-note(message) = [
-  #v(4pt)
-  #text(size: text-micro, fill: slate)[#message]
-]
+// Report-owned interpretation prose, set as a band: a quiet ground and an
+// accent-soft tick, so the source's own reading of its figures is furniture a
+// reader notices, not a caption they skim past.
+#let panel-note(message) = block(
+  width: 100%,
+  fill: mist,
+  inset: (x: 10pt, y: 7pt),
+  stroke: (left: (paint: accent-soft, thickness: 2.2pt)),
+  radius: (right: 2pt),
+)[#text(size: text-micro, fill: slate)[#message]]
 
 // One row of the earnings statement: a label and a money amount, compact enough that the
 // whole statement fits the transaction page's measured empty half (#233).

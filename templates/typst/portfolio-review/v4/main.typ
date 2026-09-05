@@ -21,7 +21,7 @@
     #grid(
       columns: (1fr, auto, 1fr),
       [#text(size: text-micro, fill: slate)[Private & confidential  |  Portfolio review  |  #"${CLIENT_NAME}", #"${PORTFOLIO_NAME}"]#document-reference-mark("${DOCUMENT_REFERENCE}")],
-      [#text(size: text-micro, fill: slate)[As of ${AS_OF_DATE}]],
+      [#text(size: text-micro, fill: slate)[#"As of ${AS_OF_DATE}"]],
       [#align(right)[#text(size: text-caption, fill: ink)[#counter(page).display("1") / #counter(page).final().first()]]],
     )
   ],
