@@ -102,13 +102,23 @@ Lifecycle changes are governed the same way: move a template to `deprecated_rere
 
 - `template_id`: `portfolio-review`
 - `template_version`: `v4` -- development; **shared design `v2`** (the first divergence of
-  the shared design system). The issue #270 design overhaul: the vendored document face
-  (Source Sans 3, SIL OFL 1.1, reached only through the workspace `--font-path` so an
-  unpinned host font can never restyle a document), the page frame (eyebrow section
-  label, display title, stated subtitle, reporting metadata, footer with document
-  identity and a real N / M page count), accent-topped KPI cards, the restyled cover,
-  and group-numbered appendix definitions. Content is `v3`'s, verbatim -- the overhaul
-  changes how the document is set, never what it states.
+  the shared design system). The issue #270 design overhaul, built against three
+  client-supplied benchmarks: the vendored document face (Source Sans 3, SIL OFL 1.1,
+  reached only through the workspace `--font-path` so an unpinned host font can never
+  restyle a document); the bank-grade page chrome (brand block, client identity and full
+  reporting metadata on every page, numbered chapter chips derived from marker order,
+  classified three-part footer with the as-of date and a real N / M count); the
+  recomposed cover (classification eyebrow, vertical accent bar, side panel with the
+  hero total-value figure and KPI stack, registration line); the contents page with
+  marker-derived section page ranges and a presence-gated at-a-glance card; uppercase
+  tracked labels and interpretation bands throughout; group-numbered appendix
+  definitions. v4 additionally gates the overview note sentences on presence flags so a
+  degraded snapshot states each absence once instead of interpolating "Not available"
+  into prose (published v1/v2 keep their original wording and bytes). Content facts are
+  `v3`'s, verbatim -- the overhaul changes how the document is set, never what it
+  states. The adversarial acceptance matrix lives in the suite
+  (`tests/unit/test_v4_adversarial_matrix.py`): every golden package variant rendered
+  through the v4 frame and read back.
 - `report_type`: `portfolio_review`
 - `report_data_contract_version`: `portfolio_review.v1`
 - `locale`: `en-SG`
