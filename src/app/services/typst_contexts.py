@@ -10,7 +10,7 @@ from __future__ import annotations
 from collections.abc import Collection, Mapping, Sequence
 
 from app.contracts.render_package import RenderPackage
-from app.services.absence import supplied_text
+from app.services.absence import is_supplied, supplied_text
 from app.services.appendix_glossary import applicable_glossary
 from app.services.attribution_bridge import render_attribution_bridge
 from app.services.benchmark_presentation import benchmark_note, benchmark_presentation
@@ -356,9 +356,38 @@ def build_portfolio_review_v3_context(render_package: RenderPackage) -> dict[str
 
 
 def build_portfolio_review_v4_context(render_package: RenderPackage) -> dict[str, str]:
-    """v3's context, verbatim: v4 is the #270 design overhaul, and what changes
-    is how the document is set, never what it states."""
-    return build_portfolio_review_v3_context(render_package)
+    """v3's context plus presence flags for the overview note sentences.
+
+    v1's notes interpolate scalars into prose, so a fully degraded snapshot
+    reads "Not available represents Not available of portfolio market value,
+    equal to USD Not available." -- truthful, but three absences worn as a
+    sentence. v4 states each note's absence once instead; the flags are
+    computed from the same source fields the sentences quote, so a sentence
+    draws only when every figure in it was actually supplied.
+    """
+    context = build_portfolio_review_v3_context(render_package)
+    report_data = render_package.report_data
+    context["HAS_ALLOCATION_LARGEST"] = _all_supplied_flag(
+        report_data.get("allocation_summary"),
+        (
+            "largest_asset_class_name",
+            "largest_asset_class_weight_pct",
+            "largest_asset_class_market_value",
+        ),
+    )
+    context["HAS_TOP_CONTRIBUTOR"] = _all_supplied_flag(
+        report_data.get("performance_highlight"),
+        ("largest_positive_contributor_name", "largest_positive_contribution_pct"),
+    )
+    context["HAS_RELATIONSHIP_CONTEXT"] = _all_supplied_flag(
+        report_data.get("mandate"), ("booking_center_code", "advisor_id")
+    )
+    return context
+
+
+def _all_supplied_flag(source: object, fields: tuple[str, ...]) -> str:
+    stated = mapping(source)
+    return _presence_flag(all(is_supplied(stated.get(field)) for field in fields) or None)
 
 
 def build_proof_pack_context(render_package: RenderPackage) -> dict[str, str]:

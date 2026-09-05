@@ -41,11 +41,26 @@
     [
       #note-panel("Scope of analysis", "This review assesses portfolio positioning, liquidity, relative performance, and risk posture against the current mandate.")
       #v(10pt)
-      #note-panel("Largest allocation", "${ALLOCATION_LARGEST_NAME} represents ${ALLOCATION_LARGEST_WEIGHT} of portfolio market value, equal to ${CURRENCY} ${ALLOCATION_LARGEST_VALUE}.")
+      // Each sentence draws only when every figure it quotes was supplied;
+      // a degraded snapshot states the absence once instead of wearing three
+      // "Not available"s as prose.
+      #if "${HAS_ALLOCATION_LARGEST}" == "yes" [
+        #note-panel("Largest allocation", "${ALLOCATION_LARGEST_NAME} represents ${ALLOCATION_LARGEST_WEIGHT} of portfolio market value, equal to ${CURRENCY} ${ALLOCATION_LARGEST_VALUE}.")
+      ] else [
+        #note-panel("Largest allocation", "Not stated in the governed snapshot.")
+      ]
       #v(10pt)
-      #note-panel("Top contributor", "${TOP_CONTRIBUTOR_NAME} contributed ${TOP_CONTRIBUTOR_VALUE} through the current reporting period.")
+      #if "${HAS_TOP_CONTRIBUTOR}" == "yes" [
+        #note-panel("Top contributor", "${TOP_CONTRIBUTOR_NAME} contributed ${TOP_CONTRIBUTOR_VALUE} through the current reporting period.")
+      ] else [
+        #note-panel("Top contributor", "Not stated in the governed snapshot.")
+      ]
       #v(10pt)
-      #note-panel("Relationship context", "Booking center ${BOOKING_CENTER} under advisor ${ADVISOR_ID}.")
+      #if "${HAS_RELATIONSHIP_CONTEXT}" == "yes" [
+        #note-panel("Relationship context", "Booking center ${BOOKING_CENTER} under advisor ${ADVISOR_ID}.")
+      ] else [
+        #note-panel("Relationship context", "Not stated in the governed snapshot.")
+      ]
     ],
   )
 
