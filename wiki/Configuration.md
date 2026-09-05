@@ -25,6 +25,10 @@ rather than of one setting:
    the store until a worker picks it up, so an in-memory store loses jobs on restart. Development
    may use `:memory:`, and may opt into the same enforcement with
    `require_persistent_render_store=true`. See [#83](https://github.com/sgajbi/lotus-render/issues/83).
+5. **Archive custody is explicit.** A custody-bearing render package is handed to Archive only when
+   `archive_base_url` is configured. The local Compose runtime supplies the canonical local Archive
+   endpoint; a bare process leaves it unset and reports no Archive handoff rather than inventing
+   custody.
 
 ## Service identity
 
@@ -60,6 +64,21 @@ start rather than starting degraded.
 
 The store schema is versioned through SQLite migrations and validated during readiness, so a store
 whose schema is behind the code reports not-ready rather than serving against it.
+
+## Archive custody handoff
+
+| variable | default | notes |
+|---|---|---|
+| `LOTUS_RENDER_ARCHIVE_BASE_URL` | unset | Archive service base URL; local Compose defaults it to `http://host.docker.internal:8150` |
+| `LOTUS_RENDER_ARCHIVE_TIMEOUT_SECONDS` | `10.0` | deadline for one Archive request |
+| `LOTUS_RENDER_ARCHIVE_MAX_ATTEMPTS` | `3` | bounded attempts for safe-to-retry outcomes |
+| `LOTUS_RENDER_ARCHIVE_RETRY_BACKOFF_SECONDS` | `0.5` | base delay between safe retries |
+
+Only a package with a valid `render_context.archive` custody block and
+`render_context.document_reference` is handed off. Archive independently verifies the declared
+SHA-256 and remains authoritative for the document record, retention, legal hold, retrieval, and
+publication. Render persists `archived_verified`, `archive_pending`, or `archive_failed` exactly as
+the handoff establishes; an unset endpoint or a package without custody metadata remains `null`.
 
 ## Execution limits
 
@@ -100,12 +119,13 @@ return `400 invalid_content_length`; neither response echoes package content.
 ## Deployment
 
 `docker compose up --build` is the supported local deployment and the reference for a real one. It
-differs from the bare defaults in exactly two ways, both about durability:
+differs from the bare defaults in three explicit ways:
 
 | setting | compose value | why |
 |---|---|---|
 | `LOTUS_RENDER_RENDER_STORE_PATH` | `/var/lib/lotus-render/render-store.sqlite3` | on the named `lotus-render-data` volume, so job state survives container replacement |
 | `LOTUS_RENDER_REQUIRE_PERSISTENT_RENDER_STORE` | `true` | makes an in-memory store a startup error rather than a silent risk |
+| `LOTUS_RENDER_ARCHIVE_BASE_URL` | `http://host.docker.internal:8150` | routes custody-bearing renders to the canonical local Archive service; Compose maps this name through `host-gateway` for Linux portability; override explicitly for another environment |
 
 The container healthcheck polls `/health/ready`, so a container whose render store or Typst runtime
 is unavailable is reported unhealthy rather than being sent traffic.

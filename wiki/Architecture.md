@@ -29,8 +29,9 @@ A document is produced by three services in sequence, each with a different auth
 flowchart LR
   SRC["domain services<br/>core · performance · risk<br/>manage · advise · idea"] --> RPT["lotus-report<br/>assembles immutable report data"]
   RPT -- "render package" --> RND["lotus-render<br/>validates · compiles · hashes"]
-  RND -- "artifact + evidence" --> RPT
-  RPT --> ARC["lotus-archive<br/>retention · retrieval · legal hold"]
+  RND -- "exact bytes + declared digest" --> ARC["lotus-archive<br/>verifies · retains · governs"]
+  ARC -- "custody identity + state" --> RND
+  RND -- "artifact + render/custody evidence" --> RPT
 ```
 
 The sequencing rule is the important part: **`lotus-report` calls `POST /renders` only once the
@@ -39,8 +40,10 @@ already made, never a step in making it. That is what allows the render service 
 data and still produce an accountable document — everything worth disputing was settled before the
 package was built.
 
-The artifact returns to the caller inline; the durable home is `lotus-archive`. `lotus-render` keeps
-job evidence, not documents.
+The artifact returns to the caller inline, while `lotus-render` also delivers the exact produced
+bytes directly to the configured `lotus-archive` authority. Archive independently verifies the
+declared digest and returns the custody identity and state that Render persists and relays. The
+durable home remains `lotus-archive`; `lotus-render` keeps job and handoff evidence, not documents.
 
 ## Runtime shape
 
@@ -53,6 +56,7 @@ flowchart LR
   SUB --> POOL["bounded threadpool<br/>concurrency limit 2"]
   POOL --> ENGINE["Typst 0.14.2<br/>via docker or typst on PATH"]
   SUB --> REG["template registry<br/>templates/registry"]
+  SUB -- "custody-bearing output" --> ARC["lotus-archive<br/>one custody authority"]
 ```
 
 Compilation is **blocking work**. It runs on a bounded threadpool rather than the event loop, which

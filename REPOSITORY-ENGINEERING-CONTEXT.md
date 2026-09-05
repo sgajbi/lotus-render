@@ -124,7 +124,9 @@ whenever a template is added, deprecated, blocked, or moved across ownership bou
    - `lotus-render` consumes complete render packages only.
    - advisor-use narrative rendering is presentation-only and must be backed by the
      `reviewed_advisory_narrative` package in `report_data`.
-   - `lotus-render` returns render artifacts and support-safe diagnostics, not archive truth.
+   - `lotus-render` delivers the exact rendered bytes to the configured `lotus-archive` authority
+     and persists Archive's returned custody identifiers and state. It does not infer or own
+     archive lifecycle, retention, legal-hold, retrieval, or publication truth.
    - `lotus-render` owns render-engine/runtime posture, template compatibility, and artifact hash
      generation.
    - developer and CI proof should prefer the governed Typst container runtime when Docker is

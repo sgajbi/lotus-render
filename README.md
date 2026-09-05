@@ -67,7 +67,8 @@ Deep reference material that belongs next to the code rather than in the wiki:
 
 ## Scope
 
-`lotus-render` owns render execution, render status, artifact identity and support-safe diagnostics.
-It does not own archive retrieval, retention, legal hold, replay, rerender, regenerate or document
-distribution — those belong to `lotus-archive` — and it does not own the decision to produce a
-document, which belongs to the calling workflow.
+`lotus-render` owns render execution, render status, artifact identity, support-safe diagnostics,
+and delivery of the exact bytes it produced to the configured Archive authority. It persists
+Archive's returned custody identifiers and state but does not own archive retrieval, retention,
+legal hold, replay, rerender, regenerate, or document distribution — those belong to
+`lotus-archive`. The decision to produce a document remains with the calling workflow.
