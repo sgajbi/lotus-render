@@ -16,6 +16,25 @@ def test_local_compose_does_not_require_untracked_env_file() -> None:
     assert env_file == [{"path": ".env", "required": False}]
 
 
+def test_local_compose_routes_custody_bearing_renders_to_archive() -> None:
+    """The canonical local stack must not silently disable artifact custody.
+
+    Render owns delivery of the bytes it produced, while Archive remains the source
+    authority for the resulting document and lifecycle.  Leaving the endpoint unset
+    makes a successful PDF return ``archive_state=null`` and breaks that evidence chain.
+    """
+
+    compose = yaml.safe_load((ROOT / "docker-compose.yml").read_text(encoding="utf-8"))
+    environment = compose["services"]["lotus-render"]["environment"]
+
+    assert environment["LOTUS_RENDER_ARCHIVE_BASE_URL"] == (
+        "${LOTUS_RENDER_ARCHIVE_BASE_URL:-http://host.docker.internal:8150}"
+    )
+    assert compose["services"]["lotus-render"]["extra_hosts"] == [
+        "host.docker.internal:host-gateway"
+    ]
+
+
 def test_service_image_does_not_run_as_root() -> None:
     """The compile child inherits the API process identity in the shipped image.
 

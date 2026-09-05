@@ -9,6 +9,12 @@ services:
     environment:
       LOTUS_RENDER_RENDER_STORE_PATH: /var/lib/lotus-render/render-store.sqlite3
       LOTUS_RENDER_REQUIRE_PERSISTENT_RENDER_STORE: "true"
+      # Local Compose starts Archive as a separate project on the canonical host port.
+      # A custody-bearing package must reach that owner instead of returning a null
+      # archive posture from an otherwise healthy Render container (#282).
+      LOTUS_RENDER_ARCHIVE_BASE_URL: "${LOTUS_RENDER_ARCHIVE_BASE_URL:-http://host.docker.internal:8150}"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     volumes:
       - lotus-render-data:/var/lib/lotus-render
     # Shutdown drains in-flight renders for up to LOTUS_RENDER_RENDER_COMPILE_TIMEOUT_SECONDS
