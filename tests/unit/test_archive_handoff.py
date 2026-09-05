@@ -173,6 +173,24 @@ def test_render_owned_truths_overlay_the_custody_block() -> None:
     assert metadata == _metadata(package), "metadata must be a pure function of its inputs"
 
 
+def test_custody_keys_render_has_never_heard_of_pass_through_verbatim() -> None:
+    """The custody block is Report's channel to Archive; Render is a conduit, not a
+    schema authority. Archive accepts new custody facts (report_revision_id landed as
+    one in lotus-archive#124) without Render shipping anything -- which holds only
+    while unknown keys survive the builder untouched. This pin is what fails if the
+    block is ever typed strictly or filtered to known keys."""
+
+    custody = dict(
+        CUSTODY,
+        report_revision_id="rrv3:9f2c1b7e40aa58d3",
+        custody_fact_from_the_future="stated-by-report",
+    )
+    metadata = _metadata(_package(_custody_context(archive=custody)))
+    assert metadata is not None
+    assert metadata["report_revision_id"] == "rrv3:9f2c1b7e40aa58d3"
+    assert metadata["custody_fact_from_the_future"] == "stated-by-report"
+
+
 def test_an_unknown_template_digest_is_omitted_never_invented() -> None:
     package = _package(_custody_context())
     metadata = _metadata(package, template_digest=None)
