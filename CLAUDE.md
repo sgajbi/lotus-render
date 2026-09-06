@@ -9,31 +9,29 @@ could catch that, because a copy has no source to disagree with.
 is the Claude-side entry point to the same guidance, not a second set of rules. Where
 the two ever disagree, `AGENTS.md` wins and this file is the bug.
 
-## Read first (small, mandatory)
+## Reading order
 
-1. `AGENTS.md` — operating contract and instruction precedence. Synchronized across the
-   estate from `lotus-platform`; do not hand-edit it here. Run the platform sync in this
-   repository only, never with `-AllRepoRoots`, which writes into twelve working trees.
-2. `REPOSITORY-ENGINEERING-CONTEXT.md` — THIS repository's truth: role, ownership
-   boundaries, architecture, repo-native commands, CI expectations, known constraints,
-   and the working practices that cost us something to learn. Repo-scoped practice
-   belongs there, in the section that names itself as practice.
-3. `README.md` — product front door: what the service is and where to go next.
+**`AGENTS.md` defines it. Read it there.** This file deliberately does not restate the
+order, because a second copy is how a mandatory item quietly becomes an optional one — an
+earlier version of this file listed three documents as "the starting set" and pushed the
+platform quickstart, engineering context and reference map into an optional section, when
+the contract makes them mandatory.
 
-That is the starting set. Everything below is read only when the task calls for it.
+Everything `AGENTS.md` lists is mandatory as written, including the platform context set.
+If that set should be smaller, propose the reduction centrally in `lotus-platform` rather
+than shrinking it here — a repository cannot opt itself out of a synchronized contract.
 
-## Read when the task calls for it
+## What this repository adds
 
-- Shared Lotus standards and engineering conventions: the `lotus-platform` context set
-  (quickstart, engineering context, reference map). Load the reference map when you need
-  to find which document owns a subject.
-- How work should be executed rather than what is true here: the platform procedural
-  memory index and skill routing map.
-- Template, contract or rendering detail: `wiki/` for the published surfaces, `docs/` for
-  standards and runbooks, and the template manifests for publication state — the
-  manifests are the source, never a sentence about them.
-- Deployment, alerting or incident response: the service operations runbook under
-  `docs/runbooks/`.
+Read these when the task reaches them; they are additional to the contract's order, never
+a substitute for it:
+
+- **Template, contract or rendering detail** — `wiki/` for the published surfaces, `docs/`
+  for standards and runbooks. Template publication state comes from the manifests
+  themselves, never from a sentence about them.
+- **Deployment, alerting or incident response** — `docs/runbooks/service-operations.md`.
+- **Why a thing is shown** — that decision belongs to `lotus-report`. This repository reads
+  postures and never infers them.
 
 ## Locating shared context without a sibling checkout
 

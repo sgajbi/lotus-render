@@ -270,9 +270,13 @@ Each of these was a live defect in this repository, not a precaution.
     narrowings across the estate, each added for a measured reason and correct about its own case,
     left holes of identical shape. Also assert what the classifier must ACCEPT: a check widened
     until it rejects everything still passes its rejection tests.
-4. **Workflow-touching PRs can silently lose per-commit gating.** The merged-PR dispatcher creates
-    one tag per revision, and a tag write is refused when the tagged commit's workflow tree differs
-    from `main`'s tip. So a multi-commit PR that edits `.github/workflows` loses gating for its
+4. **Workflow-touching PRs have been observed to lose per-commit gating.** The merged-PR
+    dispatcher creates one tag per revision, and per-revision tag writes have been refused on
+    workflow-touching multi-commit PRs. The leading hypothesis is that a tag write is refused when
+    the tagged commit's workflow tree differs from `main`'s tip — but this is an OBSERVED PATTERN,
+    not an established root cause: four earlier explanations of the same refusal were falsified,
+    and the failing shape has never been reproduced under instrumentation. Treat the mitigation
+    below as prudent rather than proven, and do not cite the mechanism as settled. So a multi-commit PR that edits `.github/workflows` loses gating for its
     ancestors unless the workflow files are touched in the FIRST commit and never again, or the PR
     is single-commit. Prefer single-commit for workflow changes; recover with a pinned tag-anchored
     backfill, sequentially, never a shortcut.

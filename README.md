@@ -48,8 +48,16 @@ Or run it directly. Rendering needs `docker` or `typst` on `PATH`, and Docker is
 path because golden proof is minted from the same controlled Typst envelope, so a local `typst`
 of a different version will not reproduce committed goldens:
 
+`make install` puts `uvicorn` inside `.venv`, not on `PATH`, so activate the environment
+first or call the interpreter it created:
+
 ```shell
+# activated
 uvicorn app.main:app --reload --port 8310
+
+# or without activating
+.venv/bin/python -m uvicorn app.main:app --reload --port 8310        # Linux, macOS
+.venv/Scripts/python.exe -m uvicorn app.main:app --reload --port 8310  # Windows
 ```
 
 Agents should start from [`AGENTS.md`](AGENTS.md), which defines the reading order and
