@@ -30,7 +30,7 @@ drive or workspace layout:
 | tool | version | why |
 |---|---|---|
 | Python | 3.12 or newer (`requires-python = ">=3.12"`; CI pins 3.12) | the service and its gates |
-| `make` | any | every gate and lane is a make target. Absent on Windows by default; this workstation uses GNU Make 4.4.1 from the winget package `ezwinports.make` (Chocolatey, Scoop and MSYS2 also provide it, untested here) |
+| `make` | GNU Make, any recent | every gate and lane is a make target; not installed by default on Windows |
 | Docker | any recent | the preferred render path, and how golden proof is minted |
 | `typst` | 0.14.2 | only if running without Docker — the governed engine version, pinned in the `Dockerfile` |
 | `git` | any recent | version control |
