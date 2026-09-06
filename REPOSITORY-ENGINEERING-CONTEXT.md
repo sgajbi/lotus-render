@@ -275,7 +275,10 @@ Each of these was a live defect in this repository, not a precaution.
     workflow-touching multi-commit PRs. The leading hypothesis is that a tag write is refused when
     the tagged commit's workflow tree differs from `main`'s tip — but this is an OBSERVED PATTERN,
     not an established root cause: four earlier explanations of the same refusal were falsified,
-    and the failing shape has never been reproduced under instrumentation. Treat the mitigation
+    and the failing shape has never been reproduced under instrumentation. One further fact
+    narrows it: a locally-scoped token created the same per-revision tags with no refusal, so the
+    refusal has only ever been observed for the workflow's `GITHUB_TOKEN` and not for tag creation
+    as such. Treat the mitigation
     below as prudent rather than proven, and do not cite the mechanism as settled. So a multi-commit PR that edits `.github/workflows` loses gating for its
     ancestors unless the workflow files are touched in the FIRST commit and never again, or the PR
     is single-commit. Prefer single-commit for workflow changes; recover with a pinned tag-anchored
