@@ -62,8 +62,12 @@ Deep reference material that belongs next to the code rather than in the wiki:
 - [`docs/portfolio-review-attribute-inventory.md`](docs/portfolio-review-attribute-inventory.md) —
   every client-facing report attribute, its source application, and known source gaps
 - [`docs/standards/`](docs/standards/) — platform standards this service is held to
-- [`AGENTS.md`](AGENTS.md) and [`REPOSITORY-ENGINEERING-CONTEXT.md`](REPOSITORY-ENGINEERING-CONTEXT.md)
-  — delivery posture and repository engineering context
+- [`AGENTS.md`](AGENTS.md) — the operating contract and instruction precedence for every agent,
+  and the authority on what to read first
+- [`CLAUDE.md`](CLAUDE.md) — the Claude-side entry point to that same guidance; a router, not a
+  second set of rules
+- [`REPOSITORY-ENGINEERING-CONTEXT.md`](REPOSITORY-ENGINEERING-CONTEXT.md) — this repository's
+  role, ownership boundaries, architecture, commands, CI expectations and known constraints
 
 ## Scope
 

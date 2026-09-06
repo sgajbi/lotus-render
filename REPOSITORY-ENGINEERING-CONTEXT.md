@@ -142,8 +142,16 @@ whenever a template is added, deprecated, blocked, or moved across ownership bou
 4. Template registry validation: `make template-registry-gate`
 5. Unit tests: `make test-unit`
 6. Integration tests: `make test-integration`
-7. CI parity: `make check` and `make ci`
-8. Local runtime: `uvicorn app.main:app --reload --port 8310`
+7. Code health gates: `make code-health-gates` (complexity, source size, dead code,
+   dependency hygiene)
+8. OpenAPI quality gate: `make openapi-gate`
+9. Coverage gate: `make test-coverage`
+10. Envelope capacity probe: `make capacity-probe`
+11. CI parity: `make check` and `make ci`
+12. Local runtime: `uvicorn app.main:app --reload --port 8310`
+
+`make lint` also runs `monetary-float-guard`, so the float guard is reachable from
+`make check` and `make ci` through lint rather than as a separate entry.
 
 ## Validation And CI Expectations
 
@@ -229,6 +237,19 @@ Primary governing artifacts:
 14. Template context routing belongs in `src/app/services/template_context.py`. Register each
     active report/template/version tuple explicitly and fail unknown combinations rather than
     falling back to another template's context builder.
+15. Presentation postures are READ, never inferred. `allocation_presentation`,
+    `benchmark_presentation`, `risk_posture`, `holdings_presentation`, `contribution_ranking`
+    and `earnings_statement` are decided by `lotus-report`; `lotus-render` must not derive a
+    posture from value presence, list length, or any other shape of the data. Report owns why a
+    thing is shown, render owns how it is communicated.
+16. The envelope cost model is measured, not assumed. Any PR that adds a template section or
+    materially changes a row emitter runs `python scripts/capacity_probe.py --verify-model`, and
+    if the additive cost rule no longer holds it re-measures and re-banks `CEILING_POSITIONS` and
+    `CEILING_TRANSACTIONS` in `src/app/services/render_envelope.py` in the same change. The
+    ceilings carry their provenance beside their values so a later reader can tell a measurement
+    from a guess.
+17. Promote a template component to a shared module on the SECOND consumer, not on the appearance
+    of generality (#150). A component used once stays where it is used, however general it looks.
 
 ## Working Practices That Cost Us Something To Learn
 

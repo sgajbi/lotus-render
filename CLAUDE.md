@@ -1,39 +1,67 @@
-# lotus-render — working norms
+# lotus-render — where this repository's truth lives
 
-- **Envelope model**: any PR that adds a template section or materially changes a row
-  emitter runs `python scripts/capacity_probe.py --verify-model` and, if the additive
-  cost rule no longer holds, re-measures and re-banks `CEILING_POSITIONS` /
-  `CEILING_TRANSACTIONS` (src/app/services/render_envelope.py) in the same change.
-  The ceilings carry their provenance beside their values.
-- **Report owns why, Render owns how it is communicated.** Postures
-  (`allocation_presentation`, `benchmark_presentation`, `risk_posture`,
-  `holdings_presentation`, `contribution_ranking`, `earnings_statement`) are read,
-  never inferred from value presence or list length.
-- **Promote on second consumer**: a template component moves to a shared module when a
-  second family (or page) needs it — never on appearance of generality (#150).
-- **Template versions**: measured, not remembered — `v1` and `v2` are `published`
-  (2026-09-04), `v3` and `v4` are `development`. A published version's bytes never
-  change; `validate_template_registry.py --write` re-approves development digests only
-  and refuses with zero writes if a published version's dependency graph would move.
-  Read the manifests before relying on this line: publication is a user decision and
-  this file is a copy of it, not the source.
-- Gates before push: `make lint typecheck code-health-gates openapi-gate
-  template-registry-gate monetary-float-guard` and `make test-coverage`.
-- **Never write file content through a shell heredoc.** The shell eats backslash
-  escapes before the file exists, so `\b` in a regex becomes a literal `0x08`. It is
-  invisible to terminals, diffs and re-reading. `CALL_SYNTAX` shipped that way and its
-  guard could never fire. Write the script to a file and run it by path;
-  `make test-unit` now byte-scans the tree for the class.
-- **Prove a guard can fail** — on the instance that motivated it, after every edit
-  including cosmetic ones — and test it against two different shapes of the class it
-  names, asserting what it must ACCEPT as well as reject.
-- **Workflow PRs land single-commit.** The merged-PR dispatcher tags each revision, and
-  a tag write is refused when the tagged commit's workflow tree differs from `main`'s
-  tip, so a multi-commit PR touching `.github/workflows` silently loses per-commit
-  gating for its ancestors.
-- **Lifted files stay byte-identical**: `scripts/check_branch_protection_policy.py` and
-  its test are the canonical from `lotus-gateway`; verify with
-  `git rev-parse <ref>:<path>` against gateway's merged main, never a working-tree hash.
-  `quality/branch_protection_policy.v1.json` is this repo's own and must not be copied.
-- Post issue evidence with `gh issue comment`; `gh issue close --comment` on an issue a
-  PR already closed discards the comment silently.
+This file holds no repository facts on purpose. It routes to the documents that own
+them. The last time it carried its own copies it went stale invisibly: it stated that
+template `v1` was `development` long after `v1` and `v2` were published, and nothing
+could catch that, because a copy has no source to disagree with.
+
+`AGENTS.md` is the authority on the reading order and applies to every agent. This file
+is the Claude-side entry point to the same guidance, not a second set of rules. Where
+the two ever disagree, `AGENTS.md` wins and this file is the bug.
+
+## Read first (small, mandatory)
+
+1. `AGENTS.md` — operating contract and instruction precedence. Synchronized across the
+   estate from `lotus-platform`; do not hand-edit it here. Run the platform sync in this
+   repository only, never with `-AllRepoRoots`, which writes into twelve working trees.
+2. `REPOSITORY-ENGINEERING-CONTEXT.md` — THIS repository's truth: role, ownership
+   boundaries, architecture, repo-native commands, CI expectations, known constraints,
+   and the working practices that cost us something to learn. Repo-scoped practice
+   belongs there, in the section that names itself as practice.
+3. `README.md` — product front door: what the service is and where to go next.
+
+That is the starting set. Everything below is read only when the task calls for it.
+
+## Read when the task calls for it
+
+- Shared Lotus standards and engineering conventions: the `lotus-platform` context set
+  (quickstart, engineering context, reference map). Load the reference map when you need
+  to find which document owns a subject.
+- How work should be executed rather than what is true here: the platform procedural
+  memory index and skill routing map.
+- Template, contract or rendering detail: `wiki/` for the published surfaces, `docs/` for
+  standards and runbooks, and the template manifests for publication state — the
+  manifests are the source, never a sentence about them.
+- Deployment, alerting or incident response: the service operations runbook under
+  `docs/runbooks/`.
+
+## Locating shared context without a sibling checkout
+
+The reading order names shared documents by paths such as
+`lotus-platform/context/LOTUS-QUICKSTART-CONTEXT.md`. That form assumes `lotus-platform`
+is checked out beside this repository, which is the local workspace convention and not a
+guarantee.
+
+Without that checkout, read the same files at their canonical location:
+`https://github.com/sgajbi/lotus-platform/blob/main/context/<FILENAME>`.
+
+Verified on `lotus-platform` `origin/main`: `LOTUS-QUICKSTART-CONTEXT.md`,
+`LOTUS-ENGINEERING-CONTEXT.md`, `CONTEXT-REFERENCE-MAP.md`,
+`PROCEDURAL-MEMORY-INDEX.md`, `LOTUS-SKILL-ROUTING-MAP.md` and
+`Repository-Engineering-Context-Contract.md` all exist under `context/`. Skills are
+routed by the skill routing map rather than by a path in this file, so consult that map
+rather than assuming a skills directory location.
+
+## Tool differences
+
+`AGENTS.md` and `CLAUDE.md` point at the same authoritative guidance and neither
+overrides the other. The only genuine difference is discovery: the Claude runtime loads
+`CLAUDE.md` automatically, while `AGENTS.md` is loaded because the reading order names
+it. Read `AGENTS.md` explicitly; do not rely on this file having summarized it.
+
+## The rule for this file
+
+If you are about to state a fact here — a version, a gate, a ceiling, a posture, a
+command — put it in `REPOSITORY-ENGINEERING-CONTEXT.md` and link to it instead. A router
+that starts holding facts becomes a second source of truth, and the second source is the
+one that goes stale without anyone noticing.
