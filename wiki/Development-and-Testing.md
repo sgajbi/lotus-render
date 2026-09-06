@@ -6,7 +6,7 @@ Setting the service up locally, the commands that matter, and what CI actually e
 
 ```powershell
 make install                                   # venv + editable install with dev extras
-uvicorn app.main:app --reload --port 8310      # run it
+.venv/Scripts/python.exe -m uvicorn app.main:app --reload --port 8310  # run it (Windows; use .venv/bin/python elsewhere, or activate first)
 docker compose up --build                      # run it the way it is deployed
 ```
 
