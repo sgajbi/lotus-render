@@ -7,16 +7,16 @@ while the configuration stays weak.
 """
 
 import copy
-from typing import Any
 
 from scripts.check_branch_protection_policy import (
     compare_live_to_policy,
     load_policy,
+    resolve_effective_codeowners,
     validate_policy_document,
 )
 
 
-def _live_matching_policy(policy: dict[str, Any]) -> dict[str, Any]:
+def _live_matching_policy(policy: dict) -> dict:
     expected = policy["expected"]
     return {
         "enforce_admins": {"enabled": expected["enforce_admins"]},
@@ -88,3 +88,136 @@ def test_absent_reviews_block_is_distinguished_from_zero_count() -> None:
     issues = compare_live_to_policy(policy, live)
 
     assert any("ABSENT" in issue for issue in issues)
+
+
+def test_codeowners_resolution_follows_github_precedence(tmp_path):
+    """A .github/ file wins over root and docs/, as GitHub resolves it."""
+    for location in (".github", "docs"):
+        (tmp_path / location).mkdir()
+    (tmp_path / "CODEOWNERS").write_text("* @root\n", encoding="utf-8")
+    (tmp_path / "docs" / "CODEOWNERS").write_text("* @docs\n", encoding="utf-8")
+
+    assert resolve_effective_codeowners(tmp_path) == tmp_path / "CODEOWNERS"
+
+    (tmp_path / ".github" / "CODEOWNERS").write_text("", encoding="utf-8")
+    effective = resolve_effective_codeowners(tmp_path)
+    assert effective == tmp_path / ".github" / "CODEOWNERS"
+    assert effective.read_text(encoding="utf-8") == "", (
+        "an empty higher-precedence file must shadow the valid lower ones, "
+        "because that is the posture GitHub applies"
+    )
+
+
+def test_codeowners_resolution_reports_absence(tmp_path):
+    assert resolve_effective_codeowners(tmp_path) is None
+
+
+def test_offline_validation_rejects_a_policy_missing_expected_fields():
+    """--offline is the only PR-time gate; it must not accept a gutted policy."""
+    policy = load_policy()
+    for field in ("enforce_admins", "required_status_checks", "required_pull_request_reviews"):
+        incomplete = copy.deepcopy(policy)
+        del incomplete["expected"][field]
+        issues = validate_policy_document(incomplete)
+        assert any(f"expected.{field} must be declared" in issue for issue in issues), (
+            f"removing expected.{field} passed the offline gate"
+        )
+
+
+def test_offline_validation_rejects_an_empty_required_context_list():
+    policy = copy.deepcopy(load_policy())
+    policy["expected"]["required_status_checks"]["contexts"] = []
+    issues = validate_policy_document(policy)
+    assert any("contexts is empty" in issue for issue in issues)
+
+
+def test_offline_validation_rejects_missing_nested_fields():
+    """Deleting a nested field must not pass offline and crash the live run."""
+    policy = load_policy()
+    cases = [
+        (("required_status_checks", "strict"), "expected.required_status_checks.strict"),
+        (("required_status_checks", "contexts"), "expected.required_status_checks.contexts"),
+        (
+            ("required_pull_request_reviews", "present"),
+            "expected.required_pull_request_reviews.present",
+        ),
+        (
+            ("required_pull_request_reviews", "dismiss_stale_reviews"),
+            "expected.required_pull_request_reviews.dismiss_stale_reviews",
+        ),
+        (
+            ("required_pull_request_reviews", "bypass_pull_request_allowances"),
+            "expected.required_pull_request_reviews.bypass_pull_request_allowances",
+        ),
+    ]
+    for (parent, field), expected_message in cases:
+        incomplete = copy.deepcopy(policy)
+        del incomplete["expected"][parent][field]
+        issues = validate_policy_document(incomplete)
+        assert any(expected_message in issue for issue in issues), (
+            f"removing expected.{parent}.{field} passed the offline gate"
+        )
+
+
+def test_offline_validation_requires_each_bypass_category():
+    """The live comparison builds all three categories; offline must demand them."""
+    policy = load_policy()
+    for category in ("users", "teams", "apps"):
+        incomplete = copy.deepcopy(policy)
+        del incomplete["expected"]["required_pull_request_reviews"][
+            "bypass_pull_request_allowances"
+        ][category]
+        issues = validate_policy_document(incomplete)
+        assert any(
+            f"bypass_pull_request_allowances.{category} must be declared" in issue
+            for issue in issues
+        ), f"removing bypass_pull_request_allowances.{category} passed the offline gate"
+
+
+def test_offline_validation_rejects_wrong_value_types():
+    """A bare string would be compared character by character after merge."""
+    policy = copy.deepcopy(load_policy())
+    policy["expected"]["required_status_checks"]["contexts"] = "PR Merge Gate / Coverage"
+    assert any("must be a list of strings" in issue for issue in validate_policy_document(policy))
+
+    policy = copy.deepcopy(load_policy())
+    policy["expected"]["required_status_checks"]["strict"] = "true"
+    assert any(
+        "required_status_checks.strict must be a boolean" in issue
+        for issue in validate_policy_document(policy)
+    )
+
+    policy = copy.deepcopy(load_policy())
+    policy["expected"]["enforce_admins"] = "true"
+    assert any(
+        "expected.enforce_admins must be a boolean" in issue
+        for issue in validate_policy_document(policy)
+    )
+
+
+def test_offline_validation_rejects_wrong_review_value_types():
+    """A string "true" or "0" would merge and mismatch only in the live run."""
+    base = load_policy()
+
+    policy = copy.deepcopy(base)
+    policy["expected"]["required_pull_request_reviews"]["dismiss_stale_reviews"] = "true"
+    assert any(
+        "dismiss_stale_reviews must be a boolean" in issue
+        for issue in validate_policy_document(policy)
+    )
+
+    policy = copy.deepcopy(base)
+    policy["expected"]["required_pull_request_reviews"]["required_approving_review_count"] = "0"
+    assert any(
+        "required_approving_review_count must be an integer" in issue
+        for issue in validate_policy_document(policy)
+    )
+
+    policy = copy.deepcopy(base)
+    policy["expected"]["required_pull_request_reviews"]["bypass_pull_request_allowances"][
+        "users"
+    ] = "nobody"
+    assert any(
+        "bypass_pull_request_allowances.users must be a list" in issue
+        for issue in validate_policy_document(policy)
+    )
