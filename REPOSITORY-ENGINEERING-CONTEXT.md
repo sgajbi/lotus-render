@@ -162,6 +162,15 @@ Key expectations:
 6. `main` branch protection requires strict PR Merge Gate status checks, conversation resolution,
    linear history, and admin enforcement. Human approval is optional in the solo-developer baseline;
    required GitHub checks and truthful PR evidence are the merge control.
+7. Protection is asserted against a declared table, not assumed:
+   `quality/branch_protection_policy.v1.json` states the governed posture field by field, the
+   offline shape check is blocking in every lane, and the daily audit compares it to LIVE
+   protection. Two measured gaps are open and neither can be closed from a session: `main` carries
+   no `required_pull_request_reviews` block at all, so `dismiss_stale_reviews` is absent rather
+   than false (issue #66), and no repository in the estate holds a secret with
+   `administration: read`, so the live comparison fails closed on authentication until an operator
+   provisions one. Read the daily job's result rather than this paragraph — the table is the claim,
+   the job is the evidence.
 
 ## Standards And RFCs That Govern This Repository
 
@@ -220,6 +229,42 @@ Primary governing artifacts:
 14. Template context routing belongs in `src/app/services/template_context.py`. Register each
     active report/template/version tuple explicitly and fail unknown combinations rather than
     falling back to another template's context builder.
+
+## Working Practices That Cost Us Something To Learn
+
+Each of these was a live defect in this repository, not a precaution.
+
+1. **Never write file content through a shell heredoc.** The shell interprets backslash escapes
+    before the file exists, so `\b` in a regex becomes a literal `0x08`, `\t` a tab, `\n` a
+    newline. It is invisible: terminals do not render `0x08`, diffs show nothing unusual, and
+    re-reading the source cannot see it. `CALL_SYNTAX` in
+    `tests/unit/test_no_machine_values_reach_a_page.py` shipped this way and could match only text
+    containing a backspace, so the guard against Typst call syntax reaching a client page was inert
+    and passed for that reason. Write the script to a file with an editor and run it by path.
+    `tests/unit/test_sources_carry_no_corrupted_escapes.py` now scans the tree for the class.
+2. **A guard must be proven able to fail, on the instance that motivated it, after every edit —
+    including refactors that look cosmetic.** Falsifying once when written is not enough; the
+    corruption above entered a file that had been correct.
+3. **Test a guard against at least two different shapes of the class it names.** Three separate
+    narrowings across the estate, each added for a measured reason and correct about its own case,
+    left holes of identical shape. Also assert what the classifier must ACCEPT: a check widened
+    until it rejects everything still passes its rejection tests.
+4. **Workflow-touching PRs can silently lose per-commit gating.** The merged-PR dispatcher creates
+    one tag per revision, and a tag write is refused when the tagged commit's workflow tree differs
+    from `main`'s tip. So a multi-commit PR that edits `.github/workflows` loses gating for its
+    ancestors unless the workflow files are touched in the FIRST commit and never again, or the PR
+    is single-commit. Prefer single-commit for workflow changes; recover with a pinned tag-anchored
+    backfill, sequentially, never a shortcut.
+5. **The branch-protection checker and its tests are lifted verbatim and must stay byte-identical**
+    to the canonical in `lotus-gateway`; `quality/branch_protection_policy.v1.json` is the file that
+    must NOT be, because it carries this repository's own posture. Verify parity by comparing git
+    blob SHAs of committed refs (`git rev-parse <ref>:<path>`), never working-tree hashes, and lift
+    only from the canonical's MERGED state. A local edit — even two type annotations — forks the
+    copy on arrival and silently stops later canonical fixes reaching it; this repository's copy
+    once sat 102 lines behind for exactly that reason.
+6. **Post issue evidence with `gh issue comment`, not `gh issue close --comment`.** On an issue a
+    PR's `Closes` keyword already closed, the close command aborts and the comment is silently
+    discarded.
 
 ## Context Maintenance Rule
 
