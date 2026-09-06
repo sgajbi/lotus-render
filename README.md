@@ -24,17 +24,36 @@ whole input.
 
 ## Quick start
 
-```powershell
+Prerequisites, all resolved from `PATH`. Nothing here assumes a particular operating system,
+drive or workspace layout:
+
+| tool | version | why |
+|---|---|---|
+| Python | 3.12 or newer (`requires-python = ">=3.12"`; CI pins 3.12) | the service and its gates |
+| `make` | any | every gate and lane is a make target |
+| Docker | any recent | the preferred render path, and how golden proof is minted |
+| `typst` | 0.14.2 | only if running without Docker — the governed engine version, pinned in the `Dockerfile` |
+| `git` | any recent | version control |
+| `gh` | any recent | only for the issue and PR evidence workflow described in [`REPOSITORY-ENGINEERING-CONTEXT.md`](REPOSITORY-ENGINEERING-CONTEXT.md) |
+
+`make install` creates `.venv` and installs the package with its dev extras. The Makefile
+resolves the interpreter path for Windows and POSIX itself, so the same commands work on either:
+
+```shell
 make install
 docker compose up --build
 ```
 
-Or run it directly — rendering needs `docker` or `typst` on `PATH`, and Docker is the preferred
-path because golden proof is minted from the same controlled Typst envelope:
+Or run it directly. Rendering needs `docker` or `typst` on `PATH`, and Docker is the preferred
+path because golden proof is minted from the same controlled Typst envelope, so a local `typst`
+of a different version will not reproduce committed goldens:
 
-```powershell
+```shell
 uvicorn app.main:app --reload --port 8310
 ```
+
+Agents should start from [`AGENTS.md`](AGENTS.md), which defines the reading order and
+instruction precedence; [`CLAUDE.md`](CLAUDE.md) is the Claude-side entry to the same guidance.
 
 ## Validate a change
 
