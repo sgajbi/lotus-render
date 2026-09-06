@@ -75,6 +75,17 @@ def test_no_source_file_holds_a_stray_control_byte() -> None:
     assert not offenders, "\n".join(offenders)
 
 
+@pytest.mark.parametrize("byte", [0x09, 0x0A, 0x0D, 0x20, 0x41])
+def test_ordinary_bytes_are_not_flagged(byte: int) -> None:
+    """The other half of the classifier. Without this, widening _forbidden
+    until it rejects everything would still pass the corruption cases below
+    while failing every clean file - a guard made useless in the direction
+    nobody tests. Tab, newline, carriage return, space and a letter must all
+    be accepted."""
+
+    assert not _forbidden(byte)
+
+
 @pytest.mark.parametrize("byte", [0x08, 0x00, 0x1B])
 def test_the_scan_would_catch_a_corrupted_file(tmp_path: Path, byte: int) -> None:
     """Prove the check can fail. A guard whose failure path has never run is
