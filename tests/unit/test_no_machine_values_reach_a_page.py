@@ -50,7 +50,7 @@ MACHINE_VALUES = (
 # under the heading "Disclosures" -- the compliance line rendered as its own source.
 #
 # The values above are all words. This is a shape, so it needs a pattern.
-CALL_SYNTAX = re.compile(r"[a-z][a-z0-9]*(?:-[a-z0-9]+)+\(\[")
+CALL_SYNTAX = re.compile(r"\b[a-z][a-z0-9]*(?:-[a-z0-9]+)+\(\[")
 
 
 def _packages() -> list[Path]:
