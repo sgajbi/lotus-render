@@ -73,7 +73,8 @@ _REQUIRED_EXPECTED_KEYS = (
 
 
 def load_policy(path: Path = POLICY_PATH) -> dict[str, Any]:
-    return json.loads(path.read_text(encoding="utf-8"))
+    policy: dict[str, Any] = json.loads(path.read_text(encoding="utf-8"))
+    return policy
 
 
 def validate_policy_document(policy: dict[str, Any]) -> list[str]:
@@ -160,7 +161,8 @@ def fetch_live_protection(repository: str, branch: str) -> dict[str, Any]:
         text=True,
         check=True,
     )
-    return json.loads(result.stdout)
+    payload: dict[str, Any] = json.loads(result.stdout)
+    return payload
 
 
 def resolve_effective_codeowners(repo_root: Path) -> Path | None:
