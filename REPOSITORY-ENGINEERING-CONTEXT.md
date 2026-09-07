@@ -270,19 +270,27 @@ Each of these was a live defect in this repository, not a precaution.
     narrowings across the estate, each added for a measured reason and correct about its own case,
     left holes of identical shape. Also assert what the classifier must ACCEPT: a check widened
     until it rejects everything still passes its rejection tests.
-4. **Workflow-touching PRs have been observed to lose per-commit gating.** The merged-PR
-    dispatcher creates one tag per revision, and per-revision tag writes have been refused on
-    workflow-touching multi-commit PRs. The leading hypothesis is that a tag write is refused when
-    the tagged commit's workflow tree differs from `main`'s tip — but this is an OBSERVED PATTERN,
-    not an established root cause: four earlier explanations of the same refusal were falsified,
-    and the failing shape has never been reproduced under instrumentation. One further fact
-    narrows it: a locally-scoped token created the same per-revision tags with no refusal, so the
-    refusal has only ever been observed for the workflow's `GITHUB_TOKEN` and not for tag creation
-    as such. Treat the mitigation
-    below as prudent rather than proven, and do not cite the mechanism as settled. So a multi-commit PR that edits `.github/workflows` loses gating for its
-    ancestors unless the workflow files are touched in the FIRST commit and never again, or the PR
-    is single-commit. Prefer single-commit for workflow changes; recover with a pinned tag-anchored
-    backfill, sequentially, never a shortcut.
+4. **A workflow-touching merge loses per-commit gating, and shows no run rather than a red one.**
+    Settled, not hypothesised: `GITHUB_TOKEN` cannot create a ref pointing at a commit whose tree
+    contains workflow changes. The merged-PR dispatcher creates one tag per revision, so the tag
+    write is refused with `POST .../git/refs` → `403 Resource not accessible by integration`
+    while enumeration itself succeeds. It is the same protection that stops a workflow granting
+    itself new workflow code. Reproduced in lotus-gateway (run `34040043355`), with the control
+    that settles it: run `34025292627` dispatched a revision touching a context doc and a test
+    file and no workflow, and succeeded. A locally-scoped token creates the same tags with no
+    refusal, so the boundary is the workflow's own token rather than tag creation.
+
+    **The predicate is workflow-touching alone.** An earlier version of this entry said
+    workflow-touching AND multi-commit. Multi-commit is a correlate, not a cause — a merge with
+    more revisions is likelier to contain a workflow-touching one, which is why that rule kept
+    almost fitting. A single-commit workflow PR fails identically, so "prefer single-commit for
+    workflow changes" bought nothing and has been removed.
+
+    The consequence to plan for is the shape of the failure, not its cause: the dispatch never
+    happens, so `main` shows **no run at all** rather than a failing one, and an absent run reads
+    as success in every interface. After merging anything that touches `.github/workflows`,
+    resolve `main`'s SHA and look the run up by it; treat absence as the finding. Recover with a
+    pinned tag-anchored backfill, sequentially, never a shortcut.
 5. **The branch-protection checker and its tests are lifted verbatim and must stay byte-identical**
     to the canonical in `lotus-gateway`; `quality/branch_protection_policy.v1.json` is the file that
     must NOT be, because it carries this repository's own posture. Verify parity by comparing git
