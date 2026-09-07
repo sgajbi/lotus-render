@@ -209,12 +209,17 @@ def test_rebalance_wave_content_adapter_validates_items_and_contract_version() -
 
 
 def _idea_evidence_report_data(**overrides: Any) -> dict[str, Any]:
-    """The producer's declared shape, taken from its own golden sample.
+    """A payload that satisfies render's floor -- not a sample of producer output.
 
-    `tests/golden/proof-pack/v1/idea-evidence-pack` is what lotus-idea actually
-    emits, so it is the reference for what "valid" means here rather than a shape
-    invented in this test. A check the producer's real output fails would be worse
-    than the presence check it replaces.
+    The golden fixture this was modelled on carries `sha256:idea-evidence-content`,
+    which turns out to be a lotus-idea OpenAPI placeholder rather than emitted data.
+    lotus-idea enforces only non-empty-after-strip on this field today, so real
+    output may be weaker than what is built here.
+
+    That does not make these cases wrong -- render is deliberately stricter than its
+    producer, agreed with that repository's owner -- but the fixture is evidence
+    about *render's* contract, and calling it producer output would be the same
+    provenance error the module comment now records.
     """
 
     report_data: dict[str, Any] = {
@@ -375,3 +380,40 @@ def test_non_idea_contracts_are_untouched_by_the_evidence_boundary(
     content = parse_proof_pack_content(package)
 
     assert content.source_contract_version == source_contract_version
+
+
+@pytest.mark.parametrize(
+    ("value", "producer_permits", "render_accepts"),
+    [
+        ("sha256:" + "a" * 64, True, True),
+        ("sha256:idea-evidence-content", True, True),
+        ("x", True, False),
+        ("abc123", True, False),
+        ("", False, False),
+        ("   ", False, False),
+    ],
+)
+def test_the_gap_between_what_the_producer_permits_and_render_accepts_is_stated(
+    value: str, producer_permits: bool, render_accepts: bool
+) -> None:
+    """Render is deliberately stricter than lotus-idea, and by exactly this much.
+
+    lotus-idea validates this field with `_require_text` -- non-empty after strip --
+    while four sibling evidence families in that same repository enforce
+    `^sha256:[0-9a-f]{64}$`. Render sits between the two: `<algorithm>:<value>`.
+
+    So there are values lotus-idea permits itself to emit that render refuses, and
+    that is an accepted position rather than an oversight, agreed with that
+    repository's owner. It is pinned here because an accepted gap that lives only in
+    a comment becomes an accident the first time someone widens the guard to make a
+    refusal go away -- and because when lotus-idea tightens to match its siblings,
+    this table is what says which rows should change.
+    """
+
+    from app.services.render_content import _digest_reason
+
+    assert bool(value.strip()) is producer_permits, (
+        "this row's claim about what lotus-idea permits no longer matches "
+        "`_require_text` semantics; re-read the producer before editing the table"
+    )
+    assert (_digest_reason(value, field="idea_evidence_packet") is None) is render_accepts
