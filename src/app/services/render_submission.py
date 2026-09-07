@@ -27,7 +27,11 @@ from app.infrastructure.render_store import (
 )
 from app.infrastructure.render_store_rows import StoredRenderJob
 from app.observability.render_log import log_render_accepted, log_render_failed
-from app.observability.render_metrics import record_render_artifact_size, record_render_operation
+from app.observability.render_metrics import (
+    record_envelope_limit_refusal,
+    record_render_artifact_size,
+    record_render_operation,
+)
 from app.services.archive_handoff import ArchiveHandoff, hand_off_and_record
 from app.services.render_envelope import envelope_refusal
 from app.services.render_execution import RenderExecutionLimiter
@@ -153,6 +157,11 @@ class RenderSubmissionService:
         # admission (#168).
         refusal = envelope_refusal(render_package.report_data)
         if refusal is not None:
+            # Counted apart from the runtime kill below. Both reach the caller as
+            # resource_limit_exceeded, correctly -- the action is identical -- so this
+            # is the only place the two become distinguishable to an operator. This one
+            # is the model working (#168).
+            record_envelope_limit_refusal(stage="admission")
             return self._fail_submit(
                 render_package.render_job_id,
                 failure_category="resource_limit_exceeded",

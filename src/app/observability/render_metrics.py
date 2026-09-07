@@ -13,6 +13,11 @@ METRIC_REASON_LABEL = "reason"
 METRIC_FRESHNESS_BUCKET_LABEL = "freshness_bucket"
 METRIC_STALE_STATE_LABEL = "stale_state"
 METRIC_TEMPLATE_LABEL = "template_id"
+#: Which side of the envelope model a refusal came from. Deliberately bounded to two
+#: values: an admission refusal is the model working, a runtime kill on an admitted
+#: document is the model being wrong. Any third value would make the ratio between
+#: them unreadable, which is the only reason this label exists.
+METRIC_ENVELOPE_STAGE_LABEL = "stage"
 
 RENDER_METRIC_LABELS = frozenset(
     {
@@ -24,6 +29,7 @@ RENDER_METRIC_LABELS = frozenset(
         METRIC_STATUS_LABEL,
         METRIC_FAILURE_CATEGORY_LABEL,
         METRIC_TEMPLATE_LABEL,
+        METRIC_ENVELOPE_STAGE_LABEL,
     }
 )
 FORBIDDEN_METRIC_LABELS = frozenset(
@@ -167,8 +173,31 @@ RENDER_METRIC_CONTRACTS: tuple[RenderMetricContract, ...] = (
             "indistinguishable from a complete one."
         ),
     ),
+    RenderMetricContract(
+        name="lotus_render_envelope_limit_refusals_total",
+        metric_type="counter",
+        labels=(METRIC_ENVELOPE_STAGE_LABEL,),
+        implemented=True,
+        description=(
+            "Counts envelope-limit refusals by the stage that produced them, so a correct "
+            "admission refusal is distinguishable from a runtime kill on a document the "
+            "model admitted. The caller-facing failure category is identical for both, so "
+            "without this the two are indistinguishable outside the logs, and only the "
+            "second is evidence the ceilings need re-measuring."
+        ),
+    ),
 )
 
+#: Exactly two series. `admission` counts refusals the envelope model made before a
+#: render slot was taken; `runtime` counts documents it admitted and could not render.
+#: A non-zero `runtime` is the trigger to re-measure the ceilings, and the ratio of the
+#: two is the mispredict rate -- runtime kills over *admitted* renders, not over all
+#: refusals, which would be a refusal composition and not a rate at all.
+_RENDER_ENVELOPE_LIMIT_REFUSALS = Counter(
+    "lotus_render_envelope_limit_refusals_total",
+    RENDER_METRIC_CONTRACTS[7].description,
+    [METRIC_ENVELOPE_STAGE_LABEL],
+)
 _RENDER_OPERATIONS_TOTAL = Counter(
     "lotus_render_operations_total",
     RENDER_METRIC_CONTRACTS[0].description,
@@ -217,6 +246,33 @@ def validate_render_metric_contracts() -> None:
         raise ValueError("duplicate_render_metric_name")
     for contract in RENDER_METRIC_CONTRACTS:
         _validate_labels(contract.labels)
+
+
+#: The only two stages that exist. A refusal is either the model working or the model
+#: being wrong; there is no third thing to count, and admitting one would make the ratio
+#: between these two unreadable.
+ENVELOPE_REFUSAL_STAGES = frozenset({"admission", "runtime"})
+
+
+def record_envelope_limit_refusal(*, stage: str) -> None:
+    """Count an envelope-limit refusal against the stage that produced it.
+
+    `admission` means the model refused a document before it took a render slot.
+    `runtime` means the model admitted a document that then could not be rendered
+    inside the bound -- a mispredict, and the trigger to re-measure the ceilings.
+
+    An unknown stage raises rather than being recorded under a fallback label.
+    Silently bucketing it would corrupt exactly the comparison this counter exists
+    to support, and unlike a caller-supplied value this one is written here, so a
+    bad value is a bug rather than untrusted input.
+    """
+
+    if stage not in ENVELOPE_REFUSAL_STAGES:
+        raise ValueError(
+            f"unsupported envelope refusal stage {stage!r}; expected one of "
+            f"{sorted(ENVELOPE_REFUSAL_STAGES)}"
+        )
+    _RENDER_ENVELOPE_LIMIT_REFUSALS.labels(stage=stage).inc()
 
 
 def record_render_operation(

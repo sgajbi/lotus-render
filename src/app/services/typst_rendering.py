@@ -24,7 +24,10 @@ from app.domain.templates.registry import (
     DEFAULT_TEMPLATE_SOURCE_ROOT,
     shared_design_directory,
 )
-from app.observability.render_metrics import record_render_empty_content_blocks
+from app.observability.render_metrics import (
+    record_envelope_limit_refusal,
+    record_render_empty_content_blocks,
+)
 from app.services.compile_failures import classify_compile_failure
 from app.services.render_intake import RenderIntakeService
 from app.services.render_ports import (
@@ -413,6 +416,14 @@ class TypstRenderService:
                 raise RenderEngineTimeoutError("render_timeout") from exc
             if process.returncode != 0:
                 category, diagnostic_summary = classify_compile_failure(process)
+                if category is RenderFailureCategory.RESOURCE_LIMIT_EXCEEDED:
+                    # This document was ADMITTED -- the envelope model predicted it would
+                    # fit and it did not. Counted apart from the admission refusal, which
+                    # is the model working. Same caller-facing category for both, which is
+                    # correct and is exactly why the operator needs these separated: a
+                    # non-zero runtime count is the trigger to re-measure the ceilings
+                    # (#168).
+                    record_envelope_limit_refusal(stage="runtime")
                 attempt.mark_failed(category, diagnostic_summary)
                 # The category rides on the exception. Raised bare, it was re-derived
                 # downstream by matching the message, and a killed compile came back as
