@@ -145,10 +145,29 @@ def _validation_message(exc: ValidationError) -> str:
     return f"invalid report_data field: {loc}"
 
 
-#: A source digest as the producer declares it: `<algorithm>:<value>`, both halves
-#: non-blank. Read from the producer's own golden sample rather than assumed -- it
-#: emits `sha256:idea-evidence-content`, so a fixed 64-hex assertion would refuse
-#: real output, and a check the producer fails is worse than the one it replaces.
+#: A source digest: `<algorithm>:<value>`, both halves non-blank.
+#:
+#: This is **render's floor, not the producer's guarantee**, and the distinction was
+#: got wrong once already. An earlier version of this comment said the shape was read
+#: from the producer's golden sample. It was not: `sha256:idea-evidence-content` lives
+#: in a lotus-idea OpenAPI example and two fixture generators -- a documentation
+#: placeholder that lotus-idea's own strict evidence families would themselves reject.
+#:
+#: What lotus-idea actually enforces on this field is `_require_text`: non-empty after
+#: strip. `"x"` passes. Four sibling runtime-evidence families in that same repository
+#: enforce `^sha256:[0-9a-f]{64}$`, and this field does not -- an unjustified difference
+#: that happens to sit on a cross-repo boundary.
+#:
+#: So render is deliberately **stricter than its producer**, and knowingly: a colonless
+#: digest that lotus-idea permits itself to emit is refused here. That is the accepted
+#: position, agreed with the lotus-idea owner, because it rejects the null, blank and
+#: empty-mapping cases that reached this boundary without asserting a guarantee nobody
+#: makes. Tightening to 64-hex would be right about the intent and wrong about today's
+#: producer, and the failure would land on this repository rather than the one that
+#: caused it.
+#:
+#: Tighten only when lotus-idea's AI-governance evidence lineage enforces what its four
+#: siblings already do, and its owner supplies the revision.
 _EVIDENCE_PACKET_KEY = "idea_evidence_packet"
 _REQUIRED_LINEAGE_TEXT_FIELDS = ("source_id", "source_system", "source_type")
 
