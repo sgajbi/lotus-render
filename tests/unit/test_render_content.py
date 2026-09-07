@@ -206,3 +206,172 @@ def test_rebalance_wave_content_adapter_validates_items_and_contract_version() -
     )
     with pytest.raises(RenderContentValidationError, match="unsupported"):
         parse_rebalance_wave_content(wrong_contract)
+
+
+def _idea_evidence_report_data(**overrides: Any) -> dict[str, Any]:
+    """The producer's declared shape, taken from its own golden sample.
+
+    `tests/golden/proof-pack/v1/idea-evidence-pack` is what lotus-idea actually
+    emits, so it is the reference for what "valid" means here rather than a shape
+    invented in this test. A check the producer's real output fails would be worse
+    than the presence check it replaces.
+    """
+
+    report_data: dict[str, Any] = {
+        "title": "Idea Evidence Pack - irep_001",
+        "portfolio_id": "PB_SG_GLOBAL_BAL_001",
+        "proof_pack_id": "irep_001",
+        "state": "READY_FOR_REPORT_MATERIALIZATION",
+        "decision_summary": {"recommended_action": "review_opportunity_evidence"},
+        "supportability": {"status": "READY"},
+        "sections": [{"title": "Source summary", "state": "READY"}],
+        "source_contract_version": "lotus_idea_evidence_pack_report_input.v1",
+        "source_hashes": {"idea_evidence_packet": "sha256:idea-evidence-content"},
+        "source_lineage": [
+            {
+                "source_system": "lotus-idea",
+                "source_type": "IdeaEvidencePacket",
+                "source_id": "ievp_001",
+                "content_hash": "sha256:idea-evidence-content",
+            }
+        ],
+        "content_hash": "sha256:idea-evidence-content",
+        "proof_pack_content_hash": "sha256:idea-evidence-content",
+        "client_publication_authority_granted": False,
+    }
+    report_data.update(overrides)
+    return report_data
+
+
+def _idea_evidence_package(**overrides: Any) -> Any:
+    return _package(
+        report_type="proof_pack",
+        contract_version="dpm_proof_pack_report_input.v1",
+        template_id="proof-pack",
+        report_data=_idea_evidence_report_data(**overrides),
+    )
+
+
+@pytest.mark.parametrize(
+    ("label", "source_hashes"),
+    [
+        ("null digest", {"idea_evidence_packet": None}),
+        ("blank digest", {"idea_evidence_packet": ""}),
+        ("whitespace digest", {"idea_evidence_packet": "   "}),
+        ("algorithm with no value", {"idea_evidence_packet": "sha256:"}),
+        ("value with no algorithm", {"idea_evidence_packet": ":abc"}),
+        ("not a digest reference", {"idea_evidence_packet": "idea-evidence-content"}),
+        ("digest is not a string", {"idea_evidence_packet": 12345}),
+    ],
+)
+def test_a_declared_evidence_digest_that_states_nothing_is_refused(
+    label: str, source_hashes: dict[str, Any]
+) -> None:
+    """The guard named the content and tested the container.
+
+    Every case here was **accepted** before: the check was `"idea_evidence_packet"
+    not in source_hashes`, so a pack claiming idea-evidence provenance with a null
+    or blank digest rendered, and the reader learned the hash was missing by seeing
+    `None` in a provenance table rather than by being refused.
+    """
+
+    with pytest.raises(RenderContentValidationError, match="idea_evidence_packet"):
+        parse_proof_pack_content(_idea_evidence_package(source_hashes=source_hashes))
+
+
+@pytest.mark.parametrize(
+    ("label", "source_lineage"),
+    [
+        ("null entry", [None]),
+        ("blank string entry", [""]),
+        ("empty mapping", [{}]),
+        (
+            "missing source_id",
+            [{"source_system": "lotus-idea", "source_type": "T", "content_hash": "sha256:x"}],
+        ),
+        (
+            "blank source_system",
+            [
+                {
+                    "source_system": "  ",
+                    "source_type": "T",
+                    "source_id": "i",
+                    "content_hash": "sha256:x",
+                }
+            ],
+        ),
+        (
+            "content hash is not a digest",
+            [
+                {
+                    "source_system": "lotus-idea",
+                    "source_type": "T",
+                    "source_id": "i",
+                    "content_hash": "",
+                }
+            ],
+        ),
+    ],
+)
+def test_a_lineage_entry_that_names_no_source_is_refused(
+    label: str, source_lineage: list[Any]
+) -> None:
+    """A proof pack asserts what it was derived from.
+
+    `[None]`, `[""]` and `[{}]` all satisfied the previous non-empty check while
+    stating nothing about origin -- an entry that names no source cannot support
+    the assertion the document makes.
+    """
+
+    with pytest.raises(RenderContentValidationError, match="source_lineage"):
+        parse_proof_pack_content(_idea_evidence_package(source_lineage=source_lineage))
+
+
+def test_the_producers_declared_shape_still_renders() -> None:
+    """The discriminating half: this must accept, or the refusals prove nothing.
+
+    A guard that refuses everything passes every refusal test above.
+    """
+
+    content = parse_proof_pack_content(_idea_evidence_package())
+
+    assert content.source_hashes["idea_evidence_packet"] == "sha256:idea-evidence-content"
+    assert content.source_lineage[0]["source_id"] == "ievp_001"
+
+
+def test_the_earlier_container_refusals_are_not_weakened() -> None:
+    """The previous behaviour must survive the stronger checks.
+
+    Tightening a guard is where its existing cases quietly get lost.
+    """
+
+    with pytest.raises(RenderContentValidationError, match="source_lineage"):
+        parse_proof_pack_content(_idea_evidence_package(source_lineage=[]))
+    with pytest.raises(RenderContentValidationError, match="idea_evidence_packet"):
+        parse_proof_pack_content(_idea_evidence_package(source_hashes={}))
+    with pytest.raises(RenderContentValidationError, match="client publication"):
+        parse_proof_pack_content(_idea_evidence_package(client_publication_authority_granted=True))
+
+
+@pytest.mark.parametrize(
+    "source_contract_version", [None, "dpm_proof_pack_report_input.v1", "some_other_contract.v2"]
+)
+def test_non_idea_contracts_are_untouched_by_the_evidence_boundary(
+    source_contract_version: str | None,
+) -> None:
+    """The assignment requires legitimate non-Idea render contracts to be preserved.
+
+    A pack on any other contract must not acquire idea-evidence requirements: it
+    carries no `idea_evidence_packet` and may carry no lineage at all, and that is
+    correct rather than a gap.
+    """
+
+    package = _idea_evidence_package(
+        source_contract_version=source_contract_version,
+        source_hashes={"mandate": "sha256:mandate"},
+        source_lineage=[],
+    )
+
+    content = parse_proof_pack_content(package)
+
+    assert content.source_contract_version == source_contract_version
