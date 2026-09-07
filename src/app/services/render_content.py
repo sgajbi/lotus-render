@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Mapping, Sequence
 from typing import Any, TypeVar
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
@@ -49,12 +50,8 @@ class ProofPackRenderContent(_RenderContentModel):
             return self
         if self.client_publication_authority_granted:
             raise ValueError("idea evidence proof-pack rendering cannot grant client publication")
-        if not self.source_lineage:
-            raise ValueError("idea evidence proof-pack rendering requires source_lineage")
-        if "idea_evidence_packet" not in self.source_hashes:
-            raise ValueError(
-                "idea evidence proof-pack rendering requires idea_evidence_packet hash"
-            )
+        _require_evidence_lineage(self.source_lineage)
+        _require_evidence_digest(self.source_hashes)
         return self
 
 
@@ -146,3 +143,76 @@ def _validation_message(exc: ValidationError) -> str:
     if error_type == "value_error" and message:
         return message.removeprefix("Value error, ")
     return f"invalid report_data field: {loc}"
+
+
+#: A source digest as the producer declares it: `<algorithm>:<value>`, both halves
+#: non-blank. Read from the producer's own golden sample rather than assumed -- it
+#: emits `sha256:idea-evidence-content`, so a fixed 64-hex assertion would refuse
+#: real output, and a check the producer fails is worse than the one it replaces.
+_EVIDENCE_PACKET_KEY = "idea_evidence_packet"
+_REQUIRED_LINEAGE_TEXT_FIELDS = ("source_id", "source_system", "source_type")
+
+
+def _digest_reason(value: object, *, field: str) -> str | None:
+    """Why this value is not a usable digest, or None when it is."""
+
+    if not isinstance(value, str):
+        return f"{field} must be a string digest reference, got {type(value).__name__}"
+    algorithm, separator, digest = value.partition(":")
+    if not separator:
+        return f"{field} must be an <algorithm>:<value> digest reference, got {value!r}"
+    if not algorithm.strip() or not digest.strip():
+        return f"{field} digest reference has a blank algorithm or value: {value!r}"
+    return None
+
+
+def _require_evidence_digest(source_hashes: Mapping[str, object]) -> None:
+    """The evidence digest must be present *and* be a digest.
+
+    Presence was the whole check before. A pack carrying
+    `{"idea_evidence_packet": None}` was admitted, and the caller learned the hash
+    was missing by reading `None` in a rendered provenance table rather than by
+    being refused -- after a render slot had been spent.
+    """
+
+    if _EVIDENCE_PACKET_KEY not in source_hashes:
+        raise ValueError("idea evidence proof-pack rendering requires an idea_evidence_packet hash")
+    reason = _digest_reason(source_hashes[_EVIDENCE_PACKET_KEY], field=_EVIDENCE_PACKET_KEY)
+    if reason is not None:
+        raise ValueError(f"idea evidence proof-pack rendering rejected: {reason}")
+
+
+def _require_evidence_lineage(source_lineage: Sequence[object]) -> None:
+    """Every lineage entry must identify a source, not merely occupy a slot.
+
+    `[None]`, `[""]` and `[{}]` all satisfied a non-empty check while stating
+    nothing about where the evidence came from. A proof pack asserts what it was
+    derived from; an entry that names no source cannot support that assertion.
+    """
+
+    if not source_lineage:
+        raise ValueError("idea evidence proof-pack rendering requires source_lineage")
+    for index, entry in enumerate(source_lineage):
+        reason = _lineage_entry_reason(entry, index=index)
+        if reason is not None:
+            raise ValueError(f"idea evidence proof-pack rendering rejected: {reason}")
+
+
+def _lineage_entry_reason(entry: object, *, index: int) -> str | None:
+    """Why one lineage entry does not identify a source, or None when it does."""
+
+    if not isinstance(entry, Mapping):
+        return (
+            f"source_lineage[{index}] must be a mapping describing one source, "
+            f"got {type(entry).__name__}"
+        )
+    digest_reason = _digest_reason(
+        entry.get("content_hash"), field=f"source_lineage[{index}].content_hash"
+    )
+    if digest_reason is not None:
+        return digest_reason
+    for field in _REQUIRED_LINEAGE_TEXT_FIELDS:
+        value = entry.get(field)
+        if not isinstance(value, str) or not value.strip():
+            return f"source_lineage[{index}].{field} must be a non-blank string"
+    return None
