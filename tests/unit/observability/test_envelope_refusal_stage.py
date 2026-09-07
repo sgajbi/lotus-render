@@ -267,3 +267,42 @@ def test_a_compile_failure_that_is_not_a_bound_counts_nothing(
     assert _unexpected_failure_category(raised.value) == "template_render_failed"
     assert _count("runtime") == before_runtime
     assert _count("admission") == before_admission
+
+
+def test_every_registered_metric_carries_its_own_contract_description() -> None:
+    """The contracts are indexed by position and consumed by position.
+
+    Each counter takes its help text as `RENDER_METRIC_CONTRACTS[n].description`,
+    so the list order is load-bearing for eight metrics and is asserted nowhere.
+    Inserting a contract anywhere but the end silently shifts every later metric
+    onto the wrong description, and `validate_render_metric_contracts()` cannot
+    see it -- it checks that names are unique and labels are allowed, both of
+    which stay true after the shift.
+
+    This change added the eighth such coupling, which is why the pin belongs with
+    it. Matching by **name** is the point: the contract and the registered metric
+    are two statements about one metric, and comparing them by the index that
+    joined them would only restate the assumption.
+    """
+
+    registered = {
+        metric.name: metric.documentation
+        for metric in REGISTRY.collect()
+        if metric.name.startswith("lotus_render")
+    }
+
+    for contract in RENDER_METRIC_CONTRACTS:
+        if not contract.implemented:
+            continue
+        # prometheus_client strips the `_total` suffix when exposing a Counter.
+        exposed = contract.name.removesuffix("_total")
+        assert exposed in registered, (
+            f"{contract.name} is declared implemented but no metric of that name is registered"
+        )
+        assert registered[exposed] == contract.description, (
+            f"{contract.name} is registered with a description belonging to another contract. "
+            f"The counters take their help text by list index, so an insertion into "
+            f"RENDER_METRIC_CONTRACTS shifts every later metric onto the wrong text.\n"
+            f"  registered: {registered[exposed]!r}\n"
+            f"  contract:   {contract.description!r}"
+        )
