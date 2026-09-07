@@ -208,9 +208,14 @@ Primary governing artifacts:
    `render-package.json`, `expected.pdf`, and `tests/golden/producer-fixtures.v1.json` provenance.
 6. `/health/ready` should remain truthful for both runtime posture and render-store availability,
    because the first-wave render APIs depend on persisted render-job state.
-7. Render metrics must remain bounded to operation, status, failure category, artifact-size, and
-   supportability/stale in-flight posture. Do not add render job, report job, portfolio, tenant,
-   trace, correlation, raw package, or storage labels.
+7. Render metrics must remain bounded to operation, status, failure category, artifact-size,
+   supportability/stale in-flight posture, and envelope-refusal stage. Do not add render job,
+   report job, portfolio, tenant, trace, correlation, raw package, or storage labels. The
+   `stage` label admits exactly `admission` and `runtime`, and belongs only to
+   `lotus_render_envelope_limit_refusals_total`: it separates a refusal the envelope model made
+   correctly from a document it admitted and could not render, so a non-zero `runtime` count is
+   the signal to re-measure the ceilings. Putting it on `lotus_render_operations_total` would
+   multiply every series that counter carries for a signal specific to one failure category.
 8. HTTP routes should consume typed dependencies from `src/app/dependencies/` rather than reading
    concrete adapters from raw `app.state`; route tests should use app-factory instances and
    dependency overrides instead of the module-level singleton app.
