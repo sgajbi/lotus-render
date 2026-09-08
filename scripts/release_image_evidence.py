@@ -70,7 +70,8 @@ def _wait_for_version(url: str, attempts: int = 60) -> dict[str, Any]:
         try:
             with urllib.request.urlopen(url, timeout=2) as response:
                 if response.status == 200:
-                    return json.loads(response.read().decode("utf-8"))
+                    payload: dict[str, Any] = json.loads(response.read().decode("utf-8"))
+                    return payload
                 last_error = f"HTTP {response.status}"
         except (urllib.error.URLError, OSError, TimeoutError) as error:
             last_error = str(error)
@@ -161,6 +162,37 @@ def _declared_dependencies() -> tuple[set[str], set[str]]:
     return runtime, dev
 
 
+def evaluate_inventory(
+    present: set[str], runtime_dependencies: set[str], dev_only: set[str]
+) -> tuple[list[str], list[str]]:
+    """Decide whether a component list came from the shipped runtime.
+
+    Kept separate from the container plumbing so the decision can be driven directly.
+    The interesting input -- an inventory taken from the runner instead of the image --
+    is otherwise only reachable by reintroducing the defect.
+    """
+
+    failures: list[str] = []
+    missing = sorted(runtime_dependencies - present)
+    if missing:
+        failures.append(
+            f"declared runtime dependencies absent from the image inventory: {', '.join(missing)}"
+        )
+    # The discriminating half. The runner's environment holds the dev extras, so an
+    # inventory taken there contains pytest and ruff; the image installs `.` only and
+    # cannot. Without this, an SBOM regenerated on the runner would still satisfy the
+    # check above and the original defect would return unnoticed.
+    leaked = sorted(dev_only & present)
+    if leaked:
+        failures.append(
+            "dev-only distributions present, so this inventory did not come from the "
+            f"shipped runtime: {', '.join(leaked)}"
+        )
+    if not present:
+        failures.append("the inventory lists no components at all")
+    return failures, leaked
+
+
 def runtime_sbom(args: argparse.Namespace) -> int:
     image_id = _image_id(args.image_ref)
 
@@ -198,24 +230,7 @@ def runtime_sbom(args: argparse.Namespace) -> int:
     }
     runtime_dependencies, dev_only = _declared_dependencies()
 
-    failures: list[str] = []
-    missing = sorted(runtime_dependencies - present)
-    if missing:
-        failures.append(
-            f"declared runtime dependencies absent from the image inventory: {', '.join(missing)}"
-        )
-    # The discriminating half. The runner's environment holds the dev extras, so an
-    # inventory taken there contains pytest and ruff; the image installs `.` only and
-    # cannot. Without this, an SBOM regenerated on the runner would still satisfy the
-    # check above and the original defect would return unnoticed.
-    leaked = sorted(dev_only & present)
-    if leaked:
-        failures.append(
-            "dev-only distributions present, so this inventory did not come from the "
-            f"shipped runtime: {', '.join(leaked)}"
-        )
-    if not present:
-        failures.append("the inventory lists no components at all")
+    failures, leaked = evaluate_inventory(present, runtime_dependencies, dev_only)
 
     # Bind the document to the artifact it describes. Without this the file is an
     # inventory of nothing in particular, and a stale copy cannot be told apart from a

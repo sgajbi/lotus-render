@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any
 
 import yaml
 
@@ -342,7 +343,7 @@ def test_the_two_concurrency_policies_stay_distinguishable() -> None:
         )
 
 
-def _image_building_jobs() -> list[tuple[str, str, dict]]:
+def _image_building_jobs() -> list[tuple[str, str, dict[str, Any]]]:
     """Every job in every workflow that builds the release image.
 
     Discovered rather than listed: a third workflow that builds the image would
@@ -406,6 +407,6 @@ def test_every_image_build_verifies_what_it_built() -> None:
 
     for workflow_name, job_name, job in _image_building_jobs():
         runs = " ".join(str(step.get("run", "")) for step in job["steps"])
-        assert "verify-runtime-provenance" in runs, (
+        assert "image-provenance-check" in runs, (
             f"{workflow_name}:{job_name} builds an image and never asks it what it is"
         )
