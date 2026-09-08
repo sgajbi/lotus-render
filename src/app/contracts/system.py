@@ -14,6 +14,39 @@ class HealthResponse(BaseModel):
     )
 
 
+class VersionResponse(BaseModel):
+    """Build provenance for the running service.
+
+    Every field is a plain string including when it is unknown, so an operator reading
+    this never has to distinguish a missing key from an unidentifiable build: the
+    answer is always present and always says which of the two it is.
+    """
+
+    service_name: str = Field(description="Owning service name.", examples=["lotus-render"])
+    service_version: str = Field(description="Declared service version.", examples=["0.1.0"])
+    git_commit_sha: str = Field(
+        description=(
+            "Commit the image was built from, suffixed `-dirty` when the source tree "
+            "carried uncommitted changes, or `unknown` when the build supplied none."
+        ),
+        examples=["927aec7de39b3d05db6d895d9db023bbefced37c"],
+    )
+    git_branch: str = Field(description="Branch the build was taken from.", examples=["main"])
+    repository_url: str = Field(
+        description="Repository the build came from.",
+        examples=["https://github.com/sgajbi/lotus-render"],
+    )
+    build_timestamp_utc: str = Field(
+        description="UTC instant the image was built.", examples=["2026-09-08T00:00:00Z"]
+    )
+    ci_pipeline_run_id: str = Field(
+        description="Pipeline run that produced the image, or `local`.", examples=["local"]
+    )
+    image_digest: str = Field(
+        description="Image digest when the build path can supply one.", examples=["unknown"]
+    )
+
+
 class RenderSupportabilitySummary(BaseModel):
     featureKey: Literal["render.observability.render_supportability"] = Field(
         description="RFC-0108 feature key for render supportability posture.",

@@ -57,15 +57,21 @@ class RenderFoundationService:
         render_store_ready: bool,
         render_runtime_available: bool,
     ) -> tuple[int, dict[str, str]]:
+        # `service` is populated on every branch, including the unhealthy ones. It was
+        # absent here while `HealthResponse` declared the field, so readiness answered
+        # `{"status": "ready", "service": null}` and a reader could not tell which service
+        # had replied -- least of all when several are unhealthy at once, which is
+        # exactly when the answer gets read.
+        service = self._settings.service_name
         if is_draining:
-            return 503, {"status": "draining"}
+            return 503, {"status": "draining", "service": service}
         if not self._settings.supported_output_formats:
-            return 503, {"status": "not_ready"}
+            return 503, {"status": "not_ready", "service": service}
         if not render_store_ready:
-            return 503, {"status": "not_ready"}
+            return 503, {"status": "not_ready", "service": service}
         if not render_runtime_available:
-            return 503, {"status": "not_ready"}
-        return 200, {"status": "ready"}
+            return 503, {"status": "not_ready", "service": service}
+        return 200, {"status": "ready", "service": service}
 
     def supportability_status(
         self,

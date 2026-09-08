@@ -1,4 +1,4 @@
-.PHONY: install lint monetary-float-guard typecheck openapi-gate template-registry-gate test test-unit test-integration test-e2e test-coverage security-audit check ci docker-build clean complexity-gate source-size-gate dead-code-gate dependency-hygiene-gate code-health-gates render-runtime-gate golden-fixtures main-gate-coverage capacity-probe
+.PHONY: install lint monetary-float-guard typecheck openapi-gate template-registry-gate test test-unit test-integration test-e2e test-coverage security-audit check ci docker-build docker-up docker-down clean complexity-gate source-size-gate dead-code-gate dependency-hygiene-gate code-health-gates render-runtime-gate golden-fixtures main-gate-coverage capacity-probe
 
 # Code-health baselines, banked at the measured tree with no headroom. An allowance above the
 # measurement is slack the next change spends, so each of these equals what the tree measures today
@@ -7,6 +7,24 @@
 SOURCE_FILE_MAX_LINES ?= 621
 MAX_CYCLOMATIC_COMPLEXITY ?= 8
 MAX_HIGH_COMPLEXITY_FUNCTIONS ?= 0
+
+# Build provenance, derived once and shared by both build paths.
+SERVICE_VERSION ?= 0.1.0
+REPO_URL ?= https://github.com/sgajbi/lotus-render
+GIT_SHA ?= $(shell git rev-parse --verify HEAD 2>/dev/null || echo local)
+GIT_BRANCH ?= $(shell git rev-parse --abbrev-ref HEAD 2>/dev/null || echo local)
+GIT_TREE_STATE := $(shell git status --porcelain 2>/dev/null | grep -q . && echo dirty || echo clean)
+# A build from a modified tree is not the commit it names. Saying so is the whole
+# point of the field: an unmarked sha would attribute rendered output to source that
+# never produced it.
+BUILD_COMMIT_SHA := $(GIT_SHA)$(if $(filter dirty,$(GIT_TREE_STATE)),-dirty,)
+BUILD_TIMESTAMP ?= $(shell python -c "from datetime import datetime, timezone; print(datetime.now(timezone.utc).isoformat(timespec='seconds').replace('+00:00','Z'))")
+CI_PIPELINE_ID ?= local
+IMAGE_DIGEST ?= unknown
+# Quote a value for safe interpolation into a recipe. The value becomes data, never
+# syntax: git accepts branch names containing `;`, `$`, backticks and quotes, and an
+# unquoted expansion would let any of them change the command being run.
+shellquote = '$(subst ','"'"',$(1))'
 
 VENV_DIR ?= .venv
 
@@ -98,7 +116,28 @@ check: lint typecheck code-health-gates openapi-gate template-registry-gate test
 ci: lint typecheck code-health-gates openapi-gate template-registry-gate test-integration test-e2e test-coverage security-audit
 
 docker-build:
-	docker build -t backend-service:ci-test .
+	docker build -t backend-service:ci-test \
+		--build-arg LOTUS_BUILD_COMMIT_SHA=$(call shellquote,$(BUILD_COMMIT_SHA)) \
+		--build-arg LOTUS_BUILD_GIT_BRANCH=$(call shellquote,$(GIT_BRANCH)) \
+		--build-arg LOTUS_BUILD_REPO_URL=$(call shellquote,$(REPO_URL)) \
+		--build-arg LOTUS_BUILD_VERSION=$(call shellquote,$(SERVICE_VERSION)) \
+		--build-arg LOTUS_BUILD_TIMESTAMP=$(call shellquote,$(BUILD_TIMESTAMP)) \
+		--build-arg LOTUS_CI_PIPELINE_ID=$(call shellquote,$(CI_PIPELINE_ID)) \
+		--build-arg LOTUS_IMAGE_DIGEST=$(call shellquote,$(IMAGE_DIGEST)) \
+		.
+
+docker-up:
+	LOTUS_BUILD_COMMIT_SHA=$(call shellquote,$(BUILD_COMMIT_SHA)) \
+	  LOTUS_BUILD_GIT_BRANCH=$(call shellquote,$(GIT_BRANCH)) \
+	  LOTUS_BUILD_REPO_URL=$(call shellquote,$(REPO_URL)) \
+	  LOTUS_BUILD_VERSION=$(call shellquote,$(SERVICE_VERSION)) \
+	  LOTUS_BUILD_TIMESTAMP=$(call shellquote,$(BUILD_TIMESTAMP)) \
+	  LOTUS_CI_PIPELINE_ID=$(call shellquote,$(CI_PIPELINE_ID)) \
+	  LOTUS_IMAGE_DIGEST=$(call shellquote,$(IMAGE_DIGEST)) \
+	  docker compose up -d --build
+
+docker-down:
+	docker compose down
 
 clean:
 	python -c "import shutil, pathlib; [shutil.rmtree(p, ignore_errors=True) for p in ['.pytest_cache', '.ruff_cache', '.mypy_cache']]; [pathlib.Path(p).unlink(missing_ok=True) for p in ['.coverage', '.coverage.unit', '.coverage.integration', '.coverage.e2e']]"
