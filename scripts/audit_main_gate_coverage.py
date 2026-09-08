@@ -24,9 +24,10 @@ proves it kept doing so, and runs daily from `main-gate-coverage-audit.yml`. It 
 `make check`, which must run offline: it asks the API which runs exist.
 
 It also answers for itself. `--assert-recent-audit HOURS` asks when this workflow last
-succeeded and fails when the answer is "not lately" or "never" -- run from the
-merge-triggered dispatcher, which is the only trigger driven by the activity the audit
-exists to check.
+ran and fails when the answer is "not lately" or "never" -- run from the merge-triggered
+dispatcher, which is the only trigger driven by the activity the audit exists to check.
+The audit's own outcome remains visible separately; a recent failed run proves the
+schedule is alive, not that commit coverage or branch protection passed.
 
 Usage::
 
@@ -122,7 +123,7 @@ def main() -> int:
         "--assert-recent-audit",
         type=int,
         metavar="HOURS",
-        help="check only that this audit itself succeeded within HOURS, and exit",
+        help="check only that this audit itself ran within HOURS, and exit",
     )
     arguments = parser.parse_args()
 
@@ -208,7 +209,7 @@ def main() -> int:
 
 
 def _assert_recent_audit(max_age_hours: int) -> int:
-    """Fail when this audit has not succeeded lately, or has never succeeded.
+    """Fail when this audit has not run lately, or has never run.
 
     A schedule is not a guarantee that anything runs. GitHub disables scheduled workflows
     after sixty days of repository inactivity, and an edit that breaks the cron expression
@@ -225,17 +226,16 @@ def _assert_recent_audit(max_age_hours: int) -> int:
             "run",
             "list",
             f"--workflow={AUDIT_WORKFLOW}",
-            "--status=success",
             "--limit=1",
             "--json",
-            "createdAt",
+            "createdAt,conclusion,databaseId,status,url",
         ],
         capture_output=True,
         text=True,
         check=False,
     )
     if completed.returncode != 0:
-        print(f"Cannot ask when {AUDIT_WORKFLOW} last succeeded: {completed.stderr.strip()}")
+        print(f"Cannot ask when {AUDIT_WORKFLOW} last ran: {completed.stderr.strip()}")
         print("Refusing to report success: an unanswerable liveness check is not a pass.")
         return 1
     try:
@@ -245,24 +245,78 @@ def _assert_recent_audit(max_age_hours: int) -> int:
         return 1
 
     if not runs:
-        print(
-            f"{AUDIT_WORKFLOW} has never completed successfully, so no commit on main has "
-            "been audited for gate coverage at all."
-        )
+        print(f"{AUDIT_WORKFLOW} has never run, so its schedule has no execution evidence.")
         return 1
 
-    last = datetime.fromisoformat(runs[0]["createdAt"].replace("Z", "+00:00"))
+    run = runs[0]
+    try:
+        last = datetime.fromisoformat(str(run["createdAt"]).replace("Z", "+00:00"))
+    except (KeyError, TypeError, ValueError):
+        print(f"{AUDIT_WORKFLOW} returned no usable creation time; liveness is unknown.")
+        return 1
     age_hours = (datetime.now(UTC) - last).total_seconds() / 3600
     if age_hours > max_age_hours:
         print(
-            f"{AUDIT_WORKFLOW} last succeeded {age_hours:.1f}h ago, over the {max_age_hours}h "
+            f"{AUDIT_WORKFLOW} last ran {age_hours:.1f}h ago, over the {max_age_hours}h "
             "bound. It runs daily, so it has stopped running -- and while it is stopped, an "
             "ungated commit on main reports nothing anywhere."
         )
         return 1
 
-    print(f"{AUDIT_WORKFLOW} last succeeded {age_hours:.1f}h ago, within {max_age_hours}h.")
+    status = str(run.get("status") or "unknown")
+    conclusion = str(run.get("conclusion") or "pending")
+    print(
+        f"Execution freshness: {AUDIT_WORKFLOW} last ran {age_hours:.1f}h ago, within "
+        f"the {max_age_hours}h bound."
+    )
+    print(f"Audit outcome: status={status}, conclusion={conclusion}.")
+    if status == "completed":
+        _print_audit_step_outcomes(run.get("databaseId"))
     return 0
+
+
+def _print_audit_step_outcomes(run_id: object) -> None:
+    """Name the two independent audit outcomes without changing liveness semantics."""
+    if not isinstance(run_id, int):
+        print("Audit step outcomes unavailable: the latest run carried no numeric run id.")
+        return
+    completed = subprocess.run(
+        ["gh", "run", "view", str(run_id), "--json", "jobs"],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if completed.returncode != 0:
+        print(f"Audit step outcomes unavailable: {completed.stderr.strip()}")
+        return
+    try:
+        jobs = json.loads(completed.stdout).get("jobs", [])
+    except (AttributeError, json.JSONDecodeError):
+        print("Audit step outcomes unavailable: the run detail was not valid JSON.")
+        return
+    if not isinstance(jobs, list):
+        print("Audit step outcomes unavailable: the run detail carried no job list.")
+        return
+
+    named_steps = {
+        "Audit which commits on main were gated": "Commit coverage",
+        "Enforce Branch Protection Policy": "Branch protection",
+    }
+    outcomes: dict[str, str] = {}
+    for job in jobs:
+        if not isinstance(job, dict):
+            continue
+        for step in job.get("steps", []):
+            if not isinstance(step, dict):
+                continue
+            step_name = step.get("name")
+            if not isinstance(step_name, str) or step_name not in named_steps:
+                continue
+            outcomes[named_steps[step_name]] = str(
+                step.get("conclusion") or step.get("status") or "unknown"
+            )
+    for label in ("Commit coverage", "Branch protection"):
+        print(f"{label}: {outcomes.get(label, 'not reported')}.")
 
 
 if __name__ == "__main__":
