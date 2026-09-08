@@ -120,5 +120,26 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: docker/setup-buildx-action@v4
+      # The verification step below runs a repo script, so this job needs the
+      # interpreter the rest of the lane pins rather than whatever the runner ships.
+      - uses: actions/setup-python@v6
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
       - name: Build Docker image
         run: make docker-build
+        env:
+          # Without these the Makefile defaults reach the image, and it reports
+          # `local` for a CI build and `HEAD` for its branch, because
+          # actions/checkout leaves a detached HEAD.
+          CI_PIPELINE_ID: ${{ github.run_id }}
+          GIT_BRANCH: ${{ github.head_ref || github.ref_name }}
+      - name: Verify the built image reports this build
+        run: |
+          python scripts/release_image_evidence.py verify-runtime-provenance \
+            --image-ref backend-service:ci-test \
+            --expected-commit "${GITHUB_SHA}" \
+            --expected-branch "${PROVENANCE_BRANCH}" \
+            --expected-ci-run-id "${GITHUB_RUN_ID}" \
+            --output output/image-provenance.json
+        env:
+          PROVENANCE_BRANCH: ${{ github.head_ref || github.ref_name }}

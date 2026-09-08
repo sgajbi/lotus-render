@@ -340,3 +340,72 @@ def test_the_two_concurrency_policies_stay_distinguishable() -> None:
         assert "github.ref" in str(concurrency.get("group", "")), (
             f"{workflow} is not keyed on the ref it supersedes."
         )
+
+
+def _image_building_jobs() -> list[tuple[str, str, dict]]:
+    """Every job in every workflow that builds the release image.
+
+    Discovered rather than listed: a third workflow that builds the image would
+    otherwise inherit the defect this test exists to catch, and nothing would say so.
+    """
+
+    found = []
+    for workflow in ROOT.glob(".github/workflows/*.yml"):
+        document = yaml.safe_load(workflow.read_text(encoding="utf-8"))
+        for job_name, job in (document.get("jobs") or {}).items():
+            steps = job.get("steps") or []
+            if any("make docker-build" in str(step.get("run", "")) for step in steps):
+                found.append((workflow.name, job_name, job))
+    return found
+
+
+def test_every_image_build_states_the_pipeline_that_produced_it() -> None:
+    """A CI build must not inherit the Makefile's workstation defaults.
+
+    `CI_PIPELINE_ID ?= local` and a branch derived from `git rev-parse --abbrev-ref
+    HEAD` are correct for a developer and wrong for CI, where `actions/checkout`
+    leaves a detached HEAD. Nothing overrode them, so every image built by this
+    repository reported `ci_pipeline_run_id=local` and `git_branch=HEAD` -- the
+    running service asserted it was not a CI build, and the field an operator would
+    use to find the pipeline named no pipeline.
+
+    Asserted on the values rather than on presence: an override that is itself
+    `local` would satisfy a presence check and reintroduce the defect.
+    """
+
+    jobs = _image_building_jobs()
+
+    assert jobs, "no job builds the image; this test is no longer measuring anything"
+    for workflow_name, job_name, job in jobs:
+        build = next(
+            step for step in job["steps"] if "make docker-build" in str(step.get("run", ""))
+        )
+        environment = build.get("env") or {}
+        where = f"{workflow_name}:{job_name}"
+
+        assert "CI_PIPELINE_ID" in environment, f"{where} builds the image without a pipeline id"
+        assert "github.run_id" in environment["CI_PIPELINE_ID"], (
+            f"{where} supplies a pipeline id that does not come from the run"
+        )
+        assert environment["CI_PIPELINE_ID"] != "local", f"{where} names the workstation default"
+
+        assert "GIT_BRANCH" in environment, f"{where} lets the detached HEAD name the branch"
+        assert "head_ref" in environment["GIT_BRANCH"], (
+            f"{where} supplies a branch that is not the ref being built"
+        )
+
+
+def test_every_image_build_verifies_what_it_built() -> None:
+    """Supplying provenance and checking it arrived are different claims.
+
+    The build arguments were correct in the sense that they were passed; what was
+    never checked is that the running image reports them. A build argument silently
+    dropped by a Dockerfile edit, or an ENV overwritten later in the image, looks
+    identical to a correct build from the workflow's side.
+    """
+
+    for workflow_name, job_name, job in _image_building_jobs():
+        runs = " ".join(str(step.get("run", "")) for step in job["steps"])
+        assert "verify-runtime-provenance" in runs, (
+            f"{workflow_name}:{job_name} builds an image and never asks it what it is"
+        )
