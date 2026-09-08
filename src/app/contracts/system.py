@@ -43,7 +43,13 @@ class VersionResponse(BaseModel):
         description="Pipeline run that produced the image, or `local`.", examples=["local"]
     )
     image_digest: str = Field(
-        description="Image digest when the build path can supply one.", examples=["unknown"]
+        description=(
+            "Image digest once the image has been pushed. Reports "
+            "`unavailable-before-push` otherwise, because an image cannot contain its own "
+            "digest -- the digest exists only once the image does, so no build argument "
+            "can supply it and a value must arrive from the deployment surface."
+        ),
+        examples=["unavailable-before-push"],
     )
 
 

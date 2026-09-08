@@ -214,17 +214,25 @@ def test_a_branch_name_is_recorded_as_data_and_never_executed(tmp_path: Path) ->
     hostile = "feature/foo;echo-PWN$(id)`whoami`"
     worktree = tmp_path / "hostile-branch"
 
+    # `--no-checkout` because the only file this needs is the Makefile it writes below,
+    # and a materialised worktree puts a second copy of every module under a temporary
+    # path. Coverage traces those copies and the combined report then fails with
+    # `No source for code: /tmp/.../hostile-branch/...` once the worktree is removed --
+    # a test breaking a gate that has nothing to do with it, and only where the lanes
+    # are combined. Found in the sibling repository (lotus-performance#511), where the
+    # same test shape failed the combined coverage gate in CI while passing locally.
+    # The branch still resolves: HEAD is set even with no working files.
     subprocess.run(
-        ["git", "worktree", "add", "-b", hostile, str(worktree), "HEAD"],
+        ["git", "worktree", "add", "--no-checkout", "-b", hostile, str(worktree), "HEAD"],
         cwd=REPO_ROOT,
         capture_output=True,
         text=True,
         check=True,
     )
     try:
-        # The worktree checks out HEAD, so it carries the committed Makefile. Copy the
-        # one under test in, or this passes only once the change is already committed
-        # and silently measures the previous revision until then.
+        # The Makefile under test, not the committed one: a checked-out worktree carries
+        # HEAD's copy, so without this the test would pass only once the change is
+        # already committed and silently measure the previous revision until then.
         (worktree / "Makefile").write_text(_read("Makefile"), encoding="utf-8", newline="")
         expansion = _make_expansion("docker-build", cwd=worktree)
     finally:
@@ -255,3 +263,34 @@ def test_a_branch_name_is_recorded_as_data_and_never_executed(tmp_path: Path) ->
         check=True,
     ).stdout
     assert delivered == hostile
+
+
+def test_the_image_digest_says_why_it_is_absent_rather_than_calling_it_unknown() -> None:
+    """A digest is not unknown before push -- it does not exist.
+
+    Every other provenance field defaults to `unknown`, which is correct for them: a
+    build that supplied no commit genuinely has one and did not say so. A digest is
+    different in kind, because an image cannot contain its own digest -- it exists only
+    once the image does. Reporting `unknown` puts a structural impossibility and a
+    genuine gap behind the same word, which invites someone to supply a value through a
+    build argument that cannot carry it, and lets an acceptance check flag a field that
+    is behaving correctly.
+
+    Raised by the lotus-gateway owner (#304), who hit the harder version: their digest
+    reads `unknown` for CI-built images too, from a second independent cause.
+    """
+
+    from app.core.release_metadata import build_release_metadata
+
+    assert build_release_metadata().image_digest == "unavailable-before-push"
+
+    dockerfile = _read("Dockerfile")
+    assert "ARG LOTUS_IMAGE_DIGEST=unavailable-before-push" in dockerfile
+    assert "ARG LOTUS_IMAGE_DIGEST=unknown" not in dockerfile
+
+    # Both build paths must agree, or a Compose build and a Make build would disagree
+    # about a field whose whole purpose is to be unambiguous.
+    assert "LOTUS_IMAGE_DIGEST: ${LOTUS_IMAGE_DIGEST:-unavailable-before-push}" in _read(
+        "docker-compose.yml"
+    )
+    assert "IMAGE_DIGEST ?= unavailable-before-push" in _read("Makefile")
