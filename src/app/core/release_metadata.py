@@ -49,7 +49,10 @@ def build_release_metadata() -> ReleaseMetadata:
         repository_url=_env("LOTUS_BUILD_REPO_URL", REPOSITORY_URL),
         build_timestamp_utc=_env("LOTUS_BUILD_TIMESTAMP"),
         ci_pipeline_run_id=_env("LOTUS_CI_PIPELINE_ID"),
-        image_digest=_env("LOTUS_IMAGE_DIGEST"),
+        # Deliberately not the `unknown` default the other fields use. A digest is
+        # not merely unknown before push -- it does not exist, and saying so stops a
+        # reader trying to supply one through a build argument that cannot carry it.
+        image_digest=_env("LOTUS_IMAGE_DIGEST", "unavailable-before-push"),
     )
 
 

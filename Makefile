@@ -20,7 +20,8 @@ GIT_TREE_STATE := $(shell git status --porcelain 2>/dev/null | grep -q . && echo
 BUILD_COMMIT_SHA := $(GIT_SHA)$(if $(filter dirty,$(GIT_TREE_STATE)),-dirty,)
 BUILD_TIMESTAMP ?= $(shell python -c "from datetime import datetime, timezone; print(datetime.now(timezone.utc).isoformat(timespec='seconds').replace('+00:00','Z'))")
 CI_PIPELINE_ID ?= local
-IMAGE_DIGEST ?= unknown
+# A digest exists only after push, so there is nothing truthful to derive here.
+IMAGE_DIGEST ?= unavailable-before-push
 # Quote a value for safe interpolation into a recipe. The value becomes data, never
 # syntax: git accepts branch names containing `;`, `$`, backticks and quotes, and an
 # unquoted expansion would let any of them change the command being run.

@@ -12,7 +12,11 @@ ARG LOTUS_BUILD_REPO_URL=https://github.com/sgajbi/lotus-render
 ARG LOTUS_BUILD_VERSION=0.1.0
 ARG LOTUS_BUILD_TIMESTAMP=unknown
 ARG LOTUS_CI_PIPELINE_ID=local
-ARG LOTUS_IMAGE_DIGEST=unknown
+# Not `unknown`: an image cannot contain its own digest, because the digest exists
+# only once the image does. `unknown` would report a structural impossibility using
+# the same word as a genuine gap, inviting someone to supply a value that no build
+# argument can carry. Matches lotus-performance, which already names the reason.
+ARG LOTUS_IMAGE_DIGEST=unavailable-before-push
 
 LABEL org.opencontainers.image.title="lotus-render" \
     org.opencontainers.image.source="${LOTUS_BUILD_REPO_URL}" \
