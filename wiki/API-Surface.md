@@ -19,9 +19,20 @@ operational.
 |---|---|
 | `GET /health` | service health with identity |
 | `GET /health/live` | process liveness only — no dependency checks |
-| `GET /health/ready` | drain posture **and** render-store readiness **and** Typst/Docker availability |
+| `GET /health/ready` | drain posture **and** render-store readiness **and** Typst/Docker availability, and the service that answered |
+| `GET /version` | which build is serving: commit, branch, repository, build timestamp, pipeline and image digest |
+
+Every rendered document asserts bounded determinism "within the governed lotus-render
+runtime envelope". `GET /version` is where that runtime is identified, so an artifact can
+be attributed to the code that produced it rather than to the Typst version alone.
+
+Absent values are reported rather than omitted. `unknown` means the build supplied
+nothing; `image_digest` reports `unavailable-before-push`, because an image cannot
+contain its own digest — it exists only once the image does, so no build argument can
+carry it.
 | `GET /metadata` | service identity, runtime posture, supportability state, aggregate stale posture |
 | `GET /metrics` | Prometheus exposition |
+| `GET /system/templates` | which template versions this runtime can render, and their posture |
 
 `/health/live` and `/health/ready` answer genuinely different questions: a process that is alive but
 whose render store or compile runtime is unavailable is **live and not ready**, and must not be sent
