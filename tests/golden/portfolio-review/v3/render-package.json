@@ -972,17 +972,24 @@
           "contributors": [
             {
               "group_key": "SECTOR_TECH",
-              "group_label": "SECTOR_TECH",
+              "group_label": "Information Technology",
               "component_contribution": "0.0784",
-              "percent_contribution": "0.6258",
-              "weight_average": "0.245"
+              "percent_contribution": "0.6257",
+              "weight_average": "0.245",
+              "marginal_contribution": "0.0521"
             },
             {
               "group_key": "SECTOR_FIN",
-              "group_label": "SECTOR_FIN",
+              "group_label": "Financials",
               "component_contribution": "-0.0112",
               "percent_contribution": "-0.0894",
               "marginal_contribution": "-0.031"
+            },
+            {
+              "group_key": "SECTOR_HLTH",
+              "group_label": "Health Care",
+              "component_contribution": "0.0577",
+              "percent_contribution": "0.4605"
             }
           ]
         },
@@ -1001,13 +1008,13 @@
           "contributors": [
             {
               "group_key": "SECTOR_TECH",
-              "group_label": "SECTOR_TECH",
+              "group_label": "Information Technology",
               "component_contribution": "0.0141",
               "percent_contribution": "0.6714"
             },
             {
               "group_key": "SECTOR_FIN",
-              "group_label": "SECTOR_FIN",
+              "group_label": "Financials",
               "component_contribution": "0.0067",
               "percent_contribution": "0.3190"
             }
