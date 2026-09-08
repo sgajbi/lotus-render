@@ -13,8 +13,10 @@ jobs:
   # anything runs: GitHub disables scheduled workflows after sixty days of repository
   # inactivity, and an edit that breaks the cron stops it with no failure anywhere. That
   # is the same shape the audit itself exists to catch, one level up, so something has to
-  # check it -- and a merge is the event that creates the commits the audit checks. On a
-  # repository quiet enough for its schedule to be disabled there is nothing to gate.
+  # check it -- and a merge is the event that creates the commits the audit checks. This
+  # job tests execution freshness only; the audit's commit-coverage and protection results
+  # remain separate, named outcomes. A repository quiet enough for its schedule to be
+  # disabled has nothing new to gate.
   #
   # A separate job, so a stale audit reports without blocking the dispatch below: a check
   # that cannot fail the run is not a check, and one that blocks the gate it is watching

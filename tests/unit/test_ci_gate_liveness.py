@@ -2,11 +2,16 @@
 
 from __future__ import annotations
 
+import json
+import subprocess
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
+import pytest
 import yaml
 
+from scripts import audit_main_gate_coverage
 from scripts.ci_gate_inventory import (
     gate_targets_reachable_from_lanes,
     gate_targets_reachable_from_workflows,
@@ -244,7 +249,8 @@ def test_the_scheduled_audit_is_watched_by_something_that_is_not_a_schedule() ->
     GitHub disables scheduled workflows after sixty days of repository inactivity, and an
     edit that breaks the cron expression stops it silently. So the merge dispatcher --
     the one trigger driven by the activity that creates the commits the audit checks --
-    asks when the audit last succeeded.
+    asks when the audit last ran. Success is a different question: a failed protection
+    step still proves the schedule executed, and must remain visible under its own name.
 
     It is a separate job, because a check that cannot fail the run is not a check, and
     one that blocks the dispatch it is watching would be worse than the gap.
@@ -256,11 +262,108 @@ def test_the_scheduled_audit_is_watched_by_something_that_is_not_a_schedule() ->
     )
 
     assert "--assert-recent-audit" in source
-    assert "has never completed successfully" in source, "never-run is not distinguished"
+    assert "has never run" in source, "never-run is not distinguished"
     assert "Refusing to report success" in source, "an unanswerable check is not a pass"
     assert "audit-liveness:" in dispatcher, "nothing checks that the audit still runs"
     assert "--assert-recent-audit 40" in dispatcher
     assert "continue-on-error" not in dispatcher, "a check that cannot fail is not a check"
+
+
+def test_a_recent_failed_audit_is_live_and_names_the_independent_outcomes(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """A protection failure is not evidence that the daily schedule stopped running."""
+
+    created_at = (datetime.now(UTC) - timedelta(hours=2)).isoformat().replace("+00:00", "Z")
+    answers = iter(
+        [
+            subprocess.CompletedProcess(
+                [],
+                0,
+                stdout=json.dumps(
+                    [
+                        {
+                            "createdAt": created_at,
+                            "conclusion": "failure",
+                            "databaseId": 123,
+                            "status": "completed",
+                            "url": "https://example.invalid/run/123",
+                        }
+                    ]
+                ),
+                stderr="",
+            ),
+            subprocess.CompletedProcess(
+                [],
+                0,
+                stdout=json.dumps(
+                    {
+                        "jobs": [
+                            {
+                                "steps": [
+                                    {
+                                        "name": "Audit which commits on main were gated",
+                                        "conclusion": "success",
+                                    },
+                                    {
+                                        "name": "Enforce Branch Protection Policy",
+                                        "conclusion": "failure",
+                                    },
+                                ]
+                            }
+                        ]
+                    }
+                ),
+                stderr="",
+            ),
+        ]
+    )
+    commands: list[list[str]] = []
+
+    def _run(command: list[str], **_: object) -> subprocess.CompletedProcess[str]:
+        commands.append(command)
+        return next(answers)
+
+    monkeypatch.setattr("scripts.audit_main_gate_coverage.subprocess.run", _run)
+
+    assert audit_main_gate_coverage._assert_recent_audit(40) == 0
+    output = capsys.readouterr().out
+    assert "Execution freshness:" in output
+    assert "Commit coverage: success." in output
+    assert "Branch protection: failure." in output
+    assert "stopped running" not in output
+    assert "--status=success" not in commands[0]
+    assert commands[1][:4] == ["gh", "run", "view", "123"]
+
+
+def test_an_audit_that_really_has_not_run_lately_fails_liveness(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    created_at = (datetime.now(UTC) - timedelta(hours=41)).isoformat().replace("+00:00", "Z")
+    answer = subprocess.CompletedProcess(
+        [],
+        0,
+        stdout=json.dumps(
+            [
+                {
+                    "createdAt": created_at,
+                    "conclusion": "failure",
+                    "databaseId": 456,
+                    "status": "completed",
+                    "url": "https://example.invalid/run/456",
+                }
+            ]
+        ),
+        stderr="",
+    )
+    monkeypatch.setattr(
+        "scripts.audit_main_gate_coverage.subprocess.run", lambda *args, **kwargs: answer
+    )
+
+    assert audit_main_gate_coverage._assert_recent_audit(40) == 1
+    output = capsys.readouterr().out
+    assert "last ran 41.0h ago" in output
+    assert "stopped running" in output
 
 
 # Two classes of run, and the concurrency policy is the difference between them.

@@ -17,7 +17,8 @@ name: Main Gate Coverage Audit
 # had aged past it ungated and unreported by anything.
 #
 # A schedule is also not a guarantee that anything runs, so the merge dispatcher asks this
-# workflow when it last succeeded. See `--assert-recent-audit`.
+# workflow when it last ran. Its coverage and protection outcomes are reported separately;
+# a recent failure proves execution freshness, not control success. See `--assert-recent-audit`.
 
 on:
   schedule:
