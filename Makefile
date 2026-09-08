@@ -149,7 +149,7 @@ image-provenance-check:
 runtime-sbom:
 	$(VENV_PYTHON) scripts/release_image_evidence.py runtime-sbom \
 	  --image-ref $(IMAGE_REF) \
-	  --output sbom.cdx.json \
+	  --output output/sbom.cdx.json \
 	  --evidence output/runtime-sbom-evidence.json
 
 docker-up:
