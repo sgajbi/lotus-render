@@ -17,7 +17,9 @@ discipline:
 - The RESIDUAL is always its own labelled row with a value and NO bar -- a
   residual drawn as a bar would visually rank it against contributors, and a
   zero residual still prints (zero is a finding). The stated reconciliation
-  facts print beside it; Render performs no arithmetic and verifies nothing.
+  facts print beside it. Render verifies that the visible contributions agree
+  with the stated reconciled sum; it never substitutes a recomputed value or
+  certifies the producer's wider risk arithmetic.
 - The scale convention is stated wherever a set draws.
 - Fail-visible, never part-drawn: a ready set without its unit, an incomplete
   reconciliation triple, contributor rows missing the locked fields, or
