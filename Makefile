@@ -137,9 +137,14 @@ docker-build:
 # default local flow is `make docker-build && make image-provenance-check`. A gate
 # only CI can run is one nobody checks before pushing.
 IMAGE_REF ?= backend-service:ci-test
+# Deliberately not $(VENV_PYTHON). These two run in the image-building job, which has
+# no venv because it never needs one, and `scripts/release_image_evidence.py` imports
+# only the standard library precisely so that a lane which builds an image can also
+# verify it without installing the application first.
+PROVENANCE_PYTHON ?= python
 
 image-provenance-check:
-	$(VENV_PYTHON) scripts/release_image_evidence.py verify-runtime-provenance \
+	$(PROVENANCE_PYTHON) scripts/release_image_evidence.py verify-runtime-provenance \
 	  --image-ref $(IMAGE_REF) \
 	  --expected-commit $(call shellquote,$(BUILD_COMMIT_SHA)) \
 	  --expected-branch $(call shellquote,$(GIT_BRANCH)) \
@@ -147,7 +152,7 @@ image-provenance-check:
 	  --output output/image-provenance.json
 
 runtime-sbom:
-	$(VENV_PYTHON) scripts/release_image_evidence.py runtime-sbom \
+	$(PROVENANCE_PYTHON) scripts/release_image_evidence.py runtime-sbom \
 	  --image-ref $(IMAGE_REF) \
 	  --output output/sbom.cdx.json \
 	  --evidence output/runtime-sbom-evidence.json
