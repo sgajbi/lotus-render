@@ -9,7 +9,9 @@ from app.contracts.system import (
     RenderSupportabilitySummary,
     TemplateProjectionEntry,
     TemplatesProjectionResponse,
+    VersionResponse,
 )
+from app.core.release_metadata import build_release_metadata
 from app.dependencies.container import ContainerDependency
 from app.observability.render_posture import refresh_render_posture_metrics
 
@@ -26,6 +28,21 @@ async def health(container: ContainerDependency) -> HealthResponse:
     service = container.render_foundation
     metadata = service.metadata()
     return HealthResponse(status="ok", service=str(metadata["service"]))
+
+
+@router.get(
+    "/version",
+    response_model=VersionResponse,
+    summary="Report the build this runtime is",
+    description=(
+        "Returns the commit, branch, repository, build timestamp, pipeline and image "
+        "digest the running service was built from. Every rendered document asserts "
+        "bounded determinism scoped to this runtime, and this is where that runtime is "
+        "identified."
+    ),
+)
+async def version() -> VersionResponse:
+    return VersionResponse(**build_release_metadata().as_response())
 
 
 @router.get(

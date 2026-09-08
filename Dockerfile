@@ -2,6 +2,34 @@ FROM ghcr.io/typst/typst:0.14.2 AS typst
 
 FROM python:3.12-slim
 
+# Build provenance. Same names and same defaults as the sibling services, so one
+# vocabulary covers the estate. Each default is the honest answer for a build that
+# supplied nothing, not a plausible-looking placeholder: `unknown` is a fact an
+# operator can act on, an invented sha is not.
+ARG LOTUS_BUILD_COMMIT_SHA=unknown
+ARG LOTUS_BUILD_GIT_BRANCH=unknown
+ARG LOTUS_BUILD_REPO_URL=https://github.com/sgajbi/lotus-render
+ARG LOTUS_BUILD_VERSION=0.1.0
+ARG LOTUS_BUILD_TIMESTAMP=unknown
+ARG LOTUS_CI_PIPELINE_ID=local
+ARG LOTUS_IMAGE_DIGEST=unknown
+
+LABEL org.opencontainers.image.title="lotus-render" \
+    org.opencontainers.image.source="${LOTUS_BUILD_REPO_URL}" \
+    org.opencontainers.image.revision="${LOTUS_BUILD_COMMIT_SHA}" \
+    com.lotus.image.digest="${LOTUS_IMAGE_DIGEST}"
+
+# An ARG is build-time only; the running process reads environment. Declaring the
+# arguments without this conversion is the failure mode where provenance exists in
+# the image metadata and the service still cannot report it.
+ENV LOTUS_BUILD_COMMIT_SHA="${LOTUS_BUILD_COMMIT_SHA}" \
+    LOTUS_BUILD_GIT_BRANCH="${LOTUS_BUILD_GIT_BRANCH}" \
+    LOTUS_BUILD_REPO_URL="${LOTUS_BUILD_REPO_URL}" \
+    LOTUS_BUILD_VERSION="${LOTUS_BUILD_VERSION}" \
+    LOTUS_BUILD_TIMESTAMP="${LOTUS_BUILD_TIMESTAMP}" \
+    LOTUS_CI_PIPELINE_ID="${LOTUS_CI_PIPELINE_ID}" \
+    LOTUS_IMAGE_DIGEST="${LOTUS_IMAGE_DIGEST}"
+
 WORKDIR /app
 COPY --from=typst /bin/typst /usr/local/bin/typst
 COPY pyproject.toml README.md ./

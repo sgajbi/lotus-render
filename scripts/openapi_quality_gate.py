@@ -20,6 +20,10 @@ EXPECTED_RESPONSE_CODES: dict[OperationKey, set[str]] = {
     ("GET", "/health"): {"200"},
     ("GET", "/health/live"): {"200"},
     ("GET", "/health/ready"): {"200", "503"},
+    # Provenance answers 200 unconditionally, including for a build that supplied
+    # none: `unknown` is the answer, not an error, so there is no failure code to
+    # declare (#300).
+    ("GET", "/version"): {"200"},
     ("GET", "/metadata"): {"200"},
     ("GET", "/system/templates"): {"200"},
     ("GET", "/metrics"): {"200"},
