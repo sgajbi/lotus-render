@@ -30,6 +30,7 @@ from __future__ import annotations
 
 import math
 from collections.abc import Mapping, Sequence
+from decimal import Decimal, InvalidOperation
 
 from app.services.reader_units import (
     fraction_reader_value,
@@ -134,6 +135,12 @@ def _ready_set(label: str, entry: Mapping[str, object]) -> str:
         return _stated_set(
             label, "The decomposition could not be drawn from what the source supplied."
         )
+    if not _contributions_reconcile(entry):
+        return _stated_set(
+            label,
+            "The stated contributions do not sum to the stated reconciled total, so the "
+            "decomposition is not drawn.",
+        )
     residual_value, reconciled_value, total_value = triple
     lines = [
         f"#v(6pt)\n#text(size: text-body, weight: 500, fill: ink)[{label}]",
@@ -165,6 +172,50 @@ def _reconciliation(entry: Mapping[str, object], unit: str) -> tuple[str, str, s
             return None
         values.append(escape_typst_string(formatted))
     return (values[0], values[1], values[2])
+
+
+# Contributions arrive as decimal strings rounded to four places, so summing n of them
+# admits up to n half-ulp errors. Stated here rather than discovered by widening it
+# until the fixtures pass.
+_ROUNDING_HALF_ULP = Decimal("0.00005")
+
+
+def _contributions_reconcile(entry: Mapping[str, object]) -> bool:
+    """Do the contributions the panel drew add up to the total it is about to assert?
+
+    The panel prints `Contributions sum to X` from the producer's `reconciled_sum`. That
+    sentence is a claim about the rows beside it, and nothing checked it -- so a stale
+    `reconciled_sum` produced a page whose own figures contradict its summary, with every
+    individual value correctly formatted and the set posture still `ready`.
+
+    Tolerance scales with the number of contributors because these arrive as decimal
+    strings rounded to four places: summing `n` of them admits up to `n` half-ulp errors,
+    so a fixed epsilon would refuse a legitimately-rounded decomposition once it grew
+    past a few rows. `_ROUNDING_HALF_ULP` is that half-place; the bound is stated here
+    rather than discovered by widening it until the fixtures pass.
+
+    Absent or unparseable values are **not** treated as reconciling. A set that cannot be
+    checked is not a set that passes -- the other refusals in this module take the same
+    view, and a check that returns True when it cannot answer is the failure mode this
+    exists to remove.
+    """
+
+    stated = entry.get("reconciled_sum")
+    contributors = entry.get("contributors")
+    if not isinstance(stated, str) or not isinstance(contributors, Sequence):
+        return False
+    if isinstance(contributors, str) or not contributors:
+        return False
+    try:
+        target = Decimal(stated)
+        total = sum(
+            (Decimal(str(row.get("component_contribution"))) for row in contributors),
+            Decimal(0),
+        )
+    except (ArithmeticError, InvalidOperation, TypeError, AttributeError, ValueError):
+        return False
+    tolerance = _ROUNDING_HALF_ULP * len(contributors)
+    return abs(total - target) <= tolerance
 
 
 def _contributor_rows(entry: Mapping[str, object], unit: str) -> list[str] | None:

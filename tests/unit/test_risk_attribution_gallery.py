@@ -12,6 +12,7 @@ import io
 import json
 import re
 from collections.abc import Callable
+from decimal import Decimal
 from pathlib import Path
 from typing import Any
 
@@ -47,18 +48,23 @@ def test_absence_draws_nothing_at_all() -> None:
 def test_both_decompositions_draw_with_units_fractions_and_the_residual_rule() -> None:
     """The locked vectors, drawn: metric-unit values shift by the set's unit
     (0.0784 -> 7.84%), percent_contribution by the STRUCTURAL fraction rule
-    (0.6258 -> 62.58%), optional stated facts print on their secondary line,
+    (0.6257 -> 62.57%), optional stated facts print on their secondary line,
     and the residual is a value with no bar."""
 
     markup = render_risk_attribution_panel(_case("ready-both-sets"))
 
     assert "Total risk — volatility" in markup
     assert "Active risk — tracking error" in markup
-    assert _bars(markup) == 4, "four contributor rows draw bars; residuals never do"
-    for needle in ("7.84%", "62.58%", "-1.12%", "-8.94%", "1.41%", "67.14%"):
+    assert _bars(markup) == 5, "five contributor rows draw bars; residuals never do"
+    for needle in ("7.84%", "62.57%", "-1.12%", "-8.94%", "5.77%", "46.05%", "1.41%", "67.14%"):
         assert needle in markup, f"missing formatted figure {needle}"
     assert "avg weight 24.5%" in markup, "a stated weight_average prints (fraction rule)"
     assert "marginal -3.1%" in markup, "a stated marginal_contribution prints (metric unit)"
+    # The combined line: no fixture exercised the two-piece join before, so the
+    # `" · ".join(pieces)` branch in `_optional_facts` had no golden coverage.
+    assert "avg weight 24.5% · marginal 5.21%" in markup, (
+        "a contributor stating both facts prints them on one joined line"
+    )
     assert "Residual (unallocated)" in markup
     assert "0.04%" in markup and "0.02%" in markup, "residuals print, small or not"
     assert "Contributions sum to 12.49%; stated total 12.53%." in markup
@@ -67,8 +73,11 @@ def test_both_decompositions_draw_with_units_fractions_and_the_residual_rule() -
     assert "by SECTOR · YTD 2026-01-02 to 2026-08-31" in markup
     assert markup.count("Bars are scaled within each decomposition") == 1
     assert "0.6258" not in markup, "raw fractions never reach the reader"
-    tech = markup.index("SECTOR_TECH")
-    fin = markup.index("SECTOR_FIN")
+    # Asserted on the rendered label, not the group key. Labels used to repeat their
+    # keys, so indexing on "SECTOR_TECH" passed whether or not a label ever reached
+    # the page -- it cannot distinguish the two while they are the same string.
+    tech = markup.index("Information Technology")
+    fin = markup.index("Financials")
     assert tech < fin, "contributor order is the source's, never re-ranked"
 
 
@@ -85,7 +94,7 @@ def test_a_negative_contribution_draws_signed_never_clamped() -> None:
 def test_an_unbenchmarked_portfolio_states_the_active_set_in_place() -> None:
     markup = render_risk_attribution_panel(_case("benchmark-not-applied"))
 
-    assert _bars(markup) == 2, "only the total-risk decomposition draws"
+    assert _bars(markup) == 3, "only the total-risk decomposition draws, and it has three rows"
     assert "Active risk — tracking error" in markup
     assert "Not available — BENCHMARK_UNAVAILABLE" in markup
 
@@ -254,7 +263,7 @@ def test_the_primitive_survives_the_real_engine_on_the_v3_page() -> None:
         "by SECTOR · YTD 2026-01-02 to 2026-08-31",
         "Total risk — volatility",
         "7.84%",
-        "62.58%",
+        "62.57%",
         "avg weight 24.5%",
         "marginal −3.1%",
         "Residual (unallocated)",
@@ -267,3 +276,62 @@ def test_the_primitive_survives_the_real_engine_on_the_v3_page() -> None:
     assert result.diagnostic.template_publication == "development", (
         "v3 is development until its own publication trigger fires"
     )
+
+
+def test_a_stated_sum_the_contributions_contradict_is_refused() -> None:
+    """The page must not assert an arithmetic it has not performed.
+
+    `Contributions sum to X` prints the producer's `reconciled_sum`, and that sentence is
+    a claim about the rows drawn beside it. Nothing checked it, so the shipped fixture
+    rendered "Contributions sum to 12.49%" above rows of 7.84% and -1.12% -- a page a
+    reader can disprove by adding two numbers on it.
+
+    Every other control passed on that input: posture `ready`, no quality flag, each
+    figure correctly formatted under its unit, and `residual` self-consistent with
+    `total_value - reconciled_sum`. Only the relationship between the rows and the
+    summary was wrong, and nothing was looking at it.
+
+    Refused rather than recomputed. Printing a corrected sum would state a number the
+    source never sent and would hide a producer defect behind a self-consistent page.
+    """
+
+    base = json.loads((GALLERY / "ready-both-sets.json").read_text(encoding="utf-8"))
+
+    drifted = json.loads(json.dumps(base))
+    drifted["sets"][0]["reconciled_sum"] = "0.1249"
+    drifted["sets"][0]["contributors"][2]["component_contribution"] = "0.0577"
+    assert (
+        render_risk_attribution_panel({"risk_attribution": drifted}).count("could not be drawn")
+        == 0
+    ), "the unmutated fixture must still draw, or this case proves nothing"
+
+    contradicted = json.loads(json.dumps(base))
+    contradicted["sets"][0]["contributors"][2]["component_contribution"] = "0.9999"
+    markup = render_risk_attribution_panel({"risk_attribution": contradicted})
+
+    assert "do not sum to the stated reconciled total" in markup
+    assert _bars(markup) == 2, "the contradicted set draws no bars; the other set still does"
+
+
+def test_rounding_at_the_stated_precision_still_reconciles() -> None:
+    """The tolerance must admit the precision the contract actually uses.
+
+    Contributions arrive as decimal strings rounded to four places, so summing n of them
+    admits up to n half-ulp errors. A fixed epsilon would refuse a legitimately-rounded
+    decomposition once it grew past a few rows, and the usual repair -- widening the
+    bound until the fixtures pass -- produces a number nobody can defend.
+
+    Drives the boundary directly: three contributors displaced by half a place each, in
+    the same direction, which is the worst case the stated bound is sized for.
+    """
+
+    base = json.loads((GALLERY / "ready-both-sets.json").read_text(encoding="utf-8"))
+    rounded = json.loads(json.dumps(base))
+    for row in rounded["sets"][0]["contributors"]:
+        shifted = Decimal(row["component_contribution"]) + Decimal("0.00005")
+        row["component_contribution"] = str(shifted)
+
+    markup = render_risk_attribution_panel({"risk_attribution": rounded})
+
+    assert "do not sum to the stated reconciled total" not in markup
+    assert _bars(markup) == 5, "a legitimately-rounded decomposition still draws"
