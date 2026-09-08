@@ -149,6 +149,10 @@ whenever a template is added, deprecated, blocked, or moved across ownership bou
 10. Envelope capacity probe: `make capacity-probe`
 11. CI parity: `make check` and `make ci`
 12. Local runtime: `uvicorn app.main:app --reload --port 8310`
+13. Image provenance: `make docker-build && make image-provenance-check` — starts the built
+    image and compares its own `/version` against the variables that built it
+14. Runtime inventory: `make runtime-sbom` — generates the SBOM inside an ephemeral container
+    of the image; covers Python distributions only, not OS packages or the Typst binary
 
 `make lint` also runs `monetary-float-guard`, so the float guard is reachable from
 `make check` and `make ci` through lint rather than as a separate entry.
@@ -306,6 +310,26 @@ Each of these was a live defect in this repository, not a precaution.
 6. **Post issue evidence with `gh issue comment`, not `gh issue close --comment`.** On an issue a
     PR's `Closes` keyword already closed, the close command aborts and the comment is silently
     discarded.
+7. **An inventory tool reports on the environment it runs in, not the artifact you mean.**
+    `python -m cyclonedx_py environment` with no argument inventories its own interpreter, so the
+    release SBOM described the CI runner that `make install` had filled with dev extras, and never
+    opened the image. It is the hard case because the wrong document looks entirely right: well
+    formed, licensed, and containing every declared runtime dependency, because the runner installs
+    those too. Generate from an ephemeral container of the image, and check the property that
+    separates the two environments — the image cannot contain `pytest` or `ruff`. Asking only
+    "does it list `fastapi`" passes on both.
+8. **A build argument that is passed is not a build argument that arrived.** Every CI image
+    reported `ci_pipeline_run_id=local` and `git_branch=HEAD` because nothing overrode the Makefile
+    defaults, and no lane failed: an image asserting it was not a CI build is a green build. Verify
+    provenance by starting the image and reading its own `/version` (`make image-provenance-check`),
+    which also catches a dropped `ARG` or an `ENV` overwritten later in the Dockerfile — both
+    invisible from the workflow side.
+9. **Make re-expands environment-supplied values.** An imported variable is recursively expanded,
+    so a branch named `feat/$(shell ...)` — which `git` permits — is executed rather than passed
+    through. Measured here: `feat/$(shell echo PWNED)` became `feat/PWNED`. `shellquote` does not
+    help; it protects the shell layer, and this happens in Make first. Read such values through
+    `$(call raw_environment_value,NAME,default)`, which uses `$(value)` under an `$(origin)`
+    guard.
 
 ## Context Maintenance Rule
 

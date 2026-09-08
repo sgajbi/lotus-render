@@ -1,4 +1,4 @@
-.PHONY: install lint monetary-float-guard typecheck openapi-gate template-registry-gate test test-unit test-integration test-e2e test-coverage security-audit check ci docker-build docker-up docker-down clean complexity-gate source-size-gate dead-code-gate dependency-hygiene-gate code-health-gates render-runtime-gate golden-fixtures main-gate-coverage capacity-probe
+.PHONY: install lint monetary-float-guard typecheck openapi-gate template-registry-gate test test-unit test-integration test-e2e test-coverage security-audit check ci docker-build image-provenance-check runtime-sbom docker-up docker-down clean complexity-gate source-size-gate dead-code-gate dependency-hygiene-gate code-health-gates render-runtime-gate golden-fixtures main-gate-coverage capacity-probe
 
 # Code-health baselines, banked at the measured tree with no headroom. An allowance above the
 # measurement is slack the next change spends, so each of these equals what the tree measures today
@@ -26,6 +26,12 @@ IMAGE_DIGEST ?= unavailable-before-push
 # syntax: git accepts branch names containing `;`, `$`, backticks and quotes, and an
 # unquoted expansion would let any of them change the command being run.
 shellquote = '$(subst ','"'"',$(1))'
+# Make imports environment variables as recursively-expanded, so a value containing
+# `$(...)` would be executed rather than passed through. `$(value)` returns the text as
+# written; the `$(origin)` guard keeps the in-file default for everything else.
+raw_environment_value = $(if $(filter environment,$(origin $(1))),$(value $(1)),$(2))
+CI_PIPELINE_ID := $(call raw_environment_value,CI_PIPELINE_ID,$(CI_PIPELINE_ID))
+GIT_BRANCH := $(call raw_environment_value,GIT_BRANCH,$(GIT_BRANCH))
 
 VENV_DIR ?= .venv
 
@@ -126,6 +132,25 @@ docker-build:
 		--build-arg LOTUS_CI_PIPELINE_ID=$(call shellquote,$(CI_PIPELINE_ID)) \
 		--build-arg LOTUS_IMAGE_DIGEST=$(call shellquote,$(IMAGE_DIGEST)) \
 		.
+
+# Compares the running image against the same variables that built it, so the
+# default local flow is `make docker-build && make image-provenance-check`. A gate
+# only CI can run is one nobody checks before pushing.
+IMAGE_REF ?= backend-service:ci-test
+
+image-provenance-check:
+	$(VENV_PYTHON) scripts/release_image_evidence.py verify-runtime-provenance \
+	  --image-ref $(IMAGE_REF) \
+	  --expected-commit $(call shellquote,$(BUILD_COMMIT_SHA)) \
+	  --expected-branch $(call shellquote,$(GIT_BRANCH)) \
+	  --expected-ci-run-id $(call shellquote,$(CI_PIPELINE_ID)) \
+	  --output output/image-provenance.json
+
+runtime-sbom:
+	$(VENV_PYTHON) scripts/release_image_evidence.py runtime-sbom \
+	  --image-ref $(IMAGE_REF) \
+	  --output sbom.cdx.json \
+	  --evidence output/runtime-sbom-evidence.json
 
 docker-up:
 	LOTUS_BUILD_COMMIT_SHA=$(call shellquote,$(BUILD_COMMIT_SHA)) \

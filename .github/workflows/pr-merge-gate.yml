@@ -134,12 +134,7 @@ jobs:
           CI_PIPELINE_ID: ${{ github.run_id }}
           GIT_BRANCH: ${{ github.head_ref || github.ref_name }}
       - name: Verify the built image reports this build
-        run: |
-          python scripts/release_image_evidence.py verify-runtime-provenance \
-            --image-ref backend-service:ci-test \
-            --expected-commit "${GITHUB_SHA}" \
-            --expected-branch "${PROVENANCE_BRANCH}" \
-            --expected-ci-run-id "${GITHUB_RUN_ID}" \
-            --output output/image-provenance.json
+        run: make image-provenance-check
         env:
-          PROVENANCE_BRANCH: ${{ github.head_ref || github.ref_name }}
+          CI_PIPELINE_ID: ${{ github.run_id }}
+          GIT_BRANCH: ${{ github.head_ref || github.ref_name }}
