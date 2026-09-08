@@ -86,3 +86,39 @@ def test_the_declared_sets_are_disjoint_and_non_empty() -> None:
     assert RUNTIME, "no declared runtime dependencies; the completeness half is vacuous"
     assert DEV_ONLY, "no dev-only distributions; the discriminating half is vacuous"
     assert not (RUNTIME & DEV_ONLY), "a distribution is both runtime and dev-only"
+
+
+def test_the_evidence_script_imports_only_the_standard_library() -> None:
+    """It runs where the application is not installed, so it must not need it.
+
+    `make image-provenance-check` and `make runtime-sbom` run in the image-building job,
+    which has no virtualenv because building an image needs none. A third-party import
+    added here would fail that lane with `ModuleNotFoundError` rather than a provenance
+    verdict — and it would fail only in CI, since a developer's checkout has the venv
+    that hides it.
+    """
+
+    import ast
+    import sys
+    from pathlib import Path
+
+    source = Path(__file__).resolve().parents[2] / "scripts" / "release_image_evidence.py"
+    tree = ast.parse(source.read_text(encoding="utf-8"))
+
+    imported = {
+        alias.name.split(".")[0]
+        for node in ast.walk(tree)
+        if isinstance(node, ast.Import)
+        for alias in node.names
+    }
+    imported |= {
+        (node.module or "").split(".")[0]
+        for node in ast.walk(tree)
+        if isinstance(node, ast.ImportFrom)
+    }
+
+    third_party = sorted(name for name in imported if name and name not in sys.stdlib_module_names)
+
+    assert third_party == [], (
+        f"{source.name} imports {third_party}, which the image-building job cannot provide"
+    )
