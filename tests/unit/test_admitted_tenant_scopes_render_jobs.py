@@ -7,10 +7,9 @@ the package body. Now the tenant is transport truth (`X-Tenant-Id`), bound at cr
 scoping every read, and carried into custody; the package's custody block is a claim
 that may only agree with it.
 
-This is step (a) of the rollout -- admit-if-present. A caller that sends no tenant is
-still admitted, because the producer has not started sending one; its job is
-unattributed, stays readable, and is never given an owner it did not assert. Refusing
-absence is step (c), after lotus-report threads the header on every call.
+This is step (c) of the rollout. Every route requires an admitted tenant before
+effects; legacy rows with no tenant are quarantined from tenant-scoped reads and can
+never be adopted by replay.
 
 Every HTTP test runs the registered routes through the app factory with the real
 SQLite store; only the render engine is scripted, so no Typst compile is needed.
@@ -26,11 +25,14 @@ from contextlib import closing, contextmanager
 from pathlib import Path
 from typing import Any
 
+import pytest
+from fastapi import HTTPException
 from fastapi.testclient import TestClient
 
 from app.contracts.examples import PORTFOLIO_REVIEW_RENDER_PACKAGE_EXAMPLE_PATH
 from app.contracts.render_package import RenderPackage
 from app.core.settings import Settings
+from app.dependencies.admitted_tenant import get_admitted_tenant
 from app.dependencies.container import get_render_submission_service
 from app.domain.render_attempts.models import RenderAttempt
 from app.domain.rendering.models import RenderDiagnostic, RenderResult
@@ -240,25 +242,69 @@ def test_the_same_job_id_from_another_tenant_is_a_conflict_not_a_takeover(
         assert client.post("/renders", json=payload, headers=_tenant(ALPHA)).status_code == 200
 
 
-def test_a_job_created_without_a_tenant_stays_readable_and_unattributed(
-    tmp_path: Path,
-) -> None:
-    """Step (a): the producer is not sending the header yet. Its jobs are admitted,
-    carry no tenant, remain readable with or without a header, and are never given an
-    owner they did not assert."""
+def test_missing_or_malformed_tenant_refuses_before_any_render_effect(tmp_path: Path) -> None:
+    """Step (c) makes tenant admission fail closed at every registered route."""
+
+    store_path = tmp_path / "render-store.sqlite3"
+    job = "rdr_tenant_required"
+    with _client(store_path) as (client, engine):
+        for headers, expected_status, expected_code in (
+            ({}, 401, "MISSING_TENANT_AUTHORITY"),
+            ({"X-Tenant-Id": ""}, 401, "MISSING_TENANT_AUTHORITY"),
+            ({"X-Tenant-Id": " "}, 400, "INVALID_TENANT_AUTHORITY"),
+            ({"X-Tenant-Id": " tenant-alpha "}, 400, "INVALID_TENANT_AUTHORITY"),
+            ({"X-Tenant-Id": "x" * 129}, 400, "INVALID_TENANT_AUTHORITY"),
+        ):
+            refused = client.post(
+                "/renders", json=_payload(job, custody_tenant=None), headers=headers
+            )
+            assert refused.status_code == expected_status, refused.text
+            assert refused.json()["detail"]["code"] == expected_code
+        assert engine.calls == 0
+        assert (
+            client.post(
+                "/renders", json=_payload(job, custody_tenant=ALPHA), headers=_tenant(ALPHA)
+            ).status_code
+            == 201
+        )
+        for path in (
+            f"/renders/{job}",
+            f"/renders/{job}/diagnostics",
+            f"/renders/{job}/artifact-metadata",
+        ):
+            assert client.get(path).status_code == 401, path
+            assert client.get(path, headers={"X-Tenant-Id": " "}).status_code == 400, path
+
+
+def test_non_printable_tenant_authority_is_refused_without_normalization() -> None:
+    """Controls are malformed authority, never a tenant spelling to clean up."""
+
+    with pytest.raises(HTTPException) as error:
+        get_admitted_tenant("tenant-alpha\x7f")
+
+    refusal = error.value
+    assert refusal.status_code == 400
+    assert isinstance(refusal.detail, dict)
+    assert refusal.detail["code"] == "INVALID_TENANT_AUTHORITY"
+
+
+def test_an_unattributed_legacy_job_is_quarantined_and_never_adopted(tmp_path: Path) -> None:
+    """A transport assertion cannot rewrite a pre-admission row into tenant ownership."""
 
     store_path = tmp_path / "render-store.sqlite3"
     job = "rdr_tenant_unattributed"
+    service, _ = _service(store_path)
+    service.submit(
+        RenderPackage.model_validate(_payload(job, custody_tenant=None)), admitted_tenant=None
+    )
+    assert _row_tenant(store_path, job) is None
     with _client(store_path) as (client, _):
-        assert client.post("/renders", json=_payload(job, custody_tenant=None)).status_code == 201
-        assert _row_tenant(store_path, job) is None
-        assert client.get(f"/renders/{job}").status_code == 200
-        assert client.get(f"/renders/{job}", headers=_tenant(ALPHA)).status_code == 200
-        # A later replay WITH a header must not quietly adopt the row.
+        assert client.get(f"/renders/{job}", headers=_tenant(ALPHA)).status_code == 404
         replay = client.post(
             "/renders", json=_payload(job, custody_tenant=None), headers=_tenant(ALPHA)
         )
-        assert replay.status_code == 200
+        assert replay.status_code == 409
+        assert replay.json()["detail"]["code"] == "render_job_conflict"
         assert _row_tenant(store_path, job) is None
 
 
@@ -337,10 +383,7 @@ def test_the_store_refuses_a_foreign_tenant_and_a_cross_tenant_create(tmp_path: 
 
 
 def test_a_pre_admission_database_upgrades_to_unattributed_rows(tmp_path: Path) -> None:
-    """Rows written before the tenant column existed surface with no tenant, stay
-    readable to any admitted tenant while the header is optional, and are not
-    backfilled -- the platform's stateful-migration bar: no state the new runtime
-    neither reads nor recovers."""
+    """Legacy rows stay unattributed and are hidden from every tenant-scoped read."""
 
     db_path = tmp_path / "render-store.sqlite3"
     with closing(sqlite3.connect(db_path)) as connection, connection:
@@ -376,5 +419,10 @@ def test_a_pre_admission_database_upgrades_to_unattributed_rows(tmp_path: Path) 
     store.check_ready()
 
     assert store.get("rdr_legacy_no_tenant", tenant_id=None).tenant_id is None
-    assert store.get("rdr_legacy_no_tenant", tenant_id=ALPHA).tenant_id is None
-    assert store.get("rdr_legacy_no_tenant", tenant_id=BETA).tenant_id is None
+    for tenant in (ALPHA, BETA):
+        try:
+            store.get("rdr_legacy_no_tenant", tenant_id=tenant)
+        except RenderJobNotFoundError:
+            pass
+        else:
+            raise AssertionError("an unattributed row was visible to an admitted tenant")

@@ -136,8 +136,8 @@ whenever a template is added, deprecated, blocked, or moved across ownership bou
    - the tenant a job belongs to is the admitted `X-Tenant-Id` transport context (C6-REN-02,
      lotus-report#375): bound at create, scoping every read, carried into Archive custody, and
      never taken from the package's custody block, which is a claim that may only agree with it.
-     The header is optional until the producer sends it on every call; an unattributed job stays
-     readable and is never backfilled with an owner.
+     Header absence/blankness now refuses before I/O; an unattributed legacy job is quarantined
+     from tenant-scoped reads and is never backfilled or adopted on replay.
 
 ## Repo-Native Commands
 

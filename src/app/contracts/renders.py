@@ -130,6 +130,20 @@ API_ERROR_RESPONSE_EXAMPLES: dict[str, dict[str, Any]] = {
             "message": "Render job was not found.",
         }
     },
+    "missing_tenant_authority": {
+        "detail": {
+            "code": "MISSING_TENANT_AUTHORITY",
+            "message": "X-Tenant-Id is required for tenant-owned render operations.",
+        }
+    },
+    "invalid_tenant_authority": {
+        "detail": {
+            "code": "INVALID_TENANT_AUTHORITY",
+            "message": (
+                "X-Tenant-Id must name a non-blank tenant of at most 128 printable characters."
+            ),
+        }
+    },
     "render_job_conflict": {
         "detail": {
             "code": "render_job_conflict",

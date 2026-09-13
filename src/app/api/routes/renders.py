@@ -46,17 +46,18 @@ def _custody_tenant(request_payload: RenderSubmitRequest) -> str | None:
 
 
 def _refuse_tenant_contradiction(
-    request_payload: RenderSubmitRequest, admitted_tenant: str | None
+    request_payload: RenderSubmitRequest, admitted_tenant: str
 ) -> None:
     """Refuse a package whose custody block names a tenant other than the admitted one.
 
     The admitted tenant is transport truth; the custody block is a claim about the
     document. When both are present they must agree, and a contradiction is refused
     here -- before the job is created, claimed, compiled or handed to Archive -- because
-    nothing downstream can decide which of the two to believe. Either alone is fine.
+    nothing downstream can decide which of the two to believe. The transport tenant
+    is required; the custody claim may be absent.
     """
     custody_tenant = _custody_tenant(request_payload)
-    if admitted_tenant is None or custody_tenant is None or custody_tenant == admitted_tenant:
+    if custody_tenant is None or custody_tenant == admitted_tenant:
         return
     raise HTTPException(
         status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
@@ -81,6 +82,21 @@ def _error_response(
             },
         }
     }
+
+
+TENANT_AUTH_RESPONSES = _error_response(
+    status.HTTP_401_UNAUTHORIZED,
+    example_key="missing_tenant_authority",
+    description="Returned when X-Tenant-Id is absent; refused before any render or custody effect.",
+)
+
+INVALID_TENANT_RESPONSE = _error_response(
+    status.HTTP_400_BAD_REQUEST,
+    example_key="invalid_tenant_authority",
+    description=(
+        "Returned when X-Tenant-Id is malformed; refused before any render or custody effect."
+    ),
+)
 
 
 @router.post(
@@ -114,6 +130,7 @@ def _error_response(
         }
     },
     responses={
+        **TENANT_AUTH_RESPONSES,
         # The idempotent-replay branch: the job already reached a terminal state, so the
         # render is not repeated and no artifact bytes are returned. The wiki calls this
         # the caller's first trap - "a client that assumes artifact_base64 is always
@@ -129,7 +146,7 @@ def _error_response(
         **_error_response(
             status.HTTP_400_BAD_REQUEST,
             example_key="invalid_content_length",
-            description="Returned when Content-Length is malformed or negative.",
+            description="Returned when Content-Length or X-Tenant-Id is malformed.",
         ),
         **_error_response(
             status.HTTP_413_CONTENT_TOO_LARGE,
@@ -227,6 +244,8 @@ async def submit_render(
         "render outcome, and artifact hash metadata when available."
     ),
     responses={
+        **TENANT_AUTH_RESPONSES,
+        **INVALID_TENANT_RESPONSE,
         **_error_response(
             status.HTTP_422_UNPROCESSABLE_CONTENT,
             example_key="render_package_invalid",
@@ -268,6 +287,8 @@ async def get_render_status(
         "retention truth, or upstream replay commands."
     ),
     responses={
+        **TENANT_AUTH_RESPONSES,
+        **INVALID_TENANT_RESPONSE,
         **_error_response(
             status.HTTP_422_UNPROCESSABLE_CONTENT,
             example_key="render_package_invalid",
@@ -313,6 +334,8 @@ async def get_render_diagnostics(
         "without retrieving archive or distribution semantics."
     ),
     responses={
+        **TENANT_AUTH_RESPONSES,
+        **INVALID_TENANT_RESPONSE,
         **_error_response(
             status.HTTP_422_UNPROCESSABLE_CONTENT,
             example_key="render_package_invalid",

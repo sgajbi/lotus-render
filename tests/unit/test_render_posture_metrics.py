@@ -62,7 +62,7 @@ def test_a_stale_in_flight_job_is_visible_to_its_alert(tmp_path: Path) -> None:
     settings = Settings(render_store_path=str(tmp_path / "stale.sqlite3"))
     app = create_app(settings)
 
-    with TestClient(app) as client:
+    with TestClient(app, headers={"X-Tenant-Id": "tenant-posture-metrics"}) as client:
         payload = Path("tests/golden/portfolio-review/v1/render-package.json").read_text(
             encoding="utf-8"
         )

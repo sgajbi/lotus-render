@@ -3,6 +3,11 @@
 What protects `lotus-render`, what deliberately does not live here, and what a deployment must
 therefore provide. Measured against `main`.
 
+> **Current scope and evidence (Cycle 6 C6-REN-02):** the service requires transport-admitted
+> tenant authority for every render operation. Route/store tests and the generated OpenAPI gate
+> verify refusal before effects and quarantine of pre-admission tenantless rows; ingress remains
+> the authentication authority.
+
 ## The controlling fact: this service does not authenticate callers
 
 `lotus-render` performs **no authentication and no authorization of its own**. There is no API key,
@@ -15,17 +20,17 @@ bound to the job at submission and scopes every later read, so a job another ten
 indistinguishable from one that does not exist, and the Archive custody handoff carries the
 admitted tenant rather than whatever the package's custody block claimed. A package whose custody
 block names a different tenant than the header is refused (`tenant_scope_contradiction`) before
-the job is created, claimed, compiled or handed to Archive. The header is **optional** while the
-producer (`lotus-report`) rolls out sending it (lotus-report#375): a job created without one is
-unattributed, stays readable, and is never backfilled with an invented owner. Admitting the
-header is not authenticating the caller — ingress still decides who may assert a tenant at all.
+the job is created, claimed, compiled or handed to Archive. The header is **required**:
+missing/empty values return `401 MISSING_TENANT_AUTHORITY`, malformed values return
+`400 INVALID_TENANT_AUTHORITY`, and legacy unattributed rows are invisible to tenant-scoped
+reads and never adopted by replay. Admitting the header is not authenticating the caller — ingress
+still decides who may assert a tenant at all.
 
 Two consequences follow, and both are deployment obligations rather than service behaviour:
 
-1. **Anything that can reach the port can submit a render or read any job's status.** Until the
-   tenant header is required, the render job id is the only thing standing between a caller and
-   another caller's job posture, and it is not a secret; with the header, a caller sees only its own
-   tenant's jobs and the unattributed ones.
+1. **Anything that can reach the port still relies on ingress for authentication.** At this service
+   boundary, every render operation now requires a tenant and exposes only that tenant's jobs;
+   foreign and absent remain indistinguishable.
 2. **`/metrics` and `/metadata` are equally unauthenticated.** They are support-safe by design — see
    below — but they are still service-internal surfaces that should not be routed to the public
    internet.
