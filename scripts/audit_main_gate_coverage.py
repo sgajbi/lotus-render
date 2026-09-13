@@ -40,6 +40,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import shutil
 import subprocess
 from datetime import UTC, datetime
@@ -67,6 +68,8 @@ def _git(*arguments: str) -> list[str]:
 # evaluated nothing, and counting it says a commit was gated when the gate did not
 # finish -- which is the failure this script exists to find.
 VERDICT_CONCLUSIONS = frozenset({"success", "failure"})
+_TITLE_SOURCE = re.compile(r"^Main Releasability Gate for ([0-9a-f]{40})$")
+_GATE_TITLE_PREFIX = "Main Releasability Gate for "
 
 
 def _titled_runs(created_since: str) -> list[dict[str, object]] | None:
@@ -91,7 +94,7 @@ def _titled_runs(created_since: str) -> list[dict[str, object]] | None:
             "--limit",
             "1000",
             "--json",
-            "conclusion,displayTitle,headSha",
+            "databaseId,conclusion,displayTitle,headSha,status",
         ],
         capture_output=True,
         text=True,
@@ -104,6 +107,79 @@ def _titled_runs(created_since: str) -> list[dict[str, object]] | None:
     except json.JSONDecodeError:
         return None
     return runs if isinstance(runs, list) else None
+
+
+def _run_details(run_id: int) -> dict[str, object] | None:
+    """Fetch one run's authoritative metadata before it becomes audit evidence.
+
+    ``gh run list`` is a discovery index, not the identity boundary.  In particular,
+    a fallback run has the *workflow definition* tree in ``headSha`` while the
+    title names the immutable tree evaluated through ``expected_sha``.  Fetching by
+    stable database id keeps that distinction explicit and prevents partial listing
+    fields from being promoted into coverage evidence.
+    """
+
+    completed = subprocess.run(
+        [
+            "gh",
+            "run",
+            "view",
+            str(run_id),
+            "--json",
+            "databaseId,conclusion,displayTitle,headSha,status",
+        ],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if completed.returncode != 0:
+        return None
+    try:
+        detail = json.loads(completed.stdout)
+    except json.JSONDecodeError:
+        return None
+    return detail if isinstance(detail, dict) else None
+
+
+def _candidate_run_ids(runs: list[dict[str, object]]) -> list[int] | None:
+    """Deduplicate listing candidates before retrieving their complete metadata."""
+
+    seen: set[int] = set()
+    candidates: list[int] = []
+    for run in runs:
+        run_id = run.get("databaseId")
+        if not isinstance(run_id, int) or isinstance(run_id, bool) or run_id <= 0:
+            # A list row without a stable identity cannot be reconciled safely.  Do
+            # not fall back to a title/head pair that could conflate distinct runs.
+            return None
+        if run_id not in seen:
+            seen.add(run_id)
+            candidates.append(run_id)
+    return candidates
+
+
+def _evaluated_source(run: dict[str, object]) -> str | None:
+    """Return the exact tested source, never confusing it with workflow definition."""
+
+    title = str(run.get("displayTitle") or "")
+    match = _TITLE_SOURCE.fullmatch(title)
+    if match:
+        return match.group(1)
+    if title.startswith(_GATE_TITLE_PREFIX):
+        # It claims to be a governed run-name but does not carry a usable immutable
+        # source identity.  Its head is the workflow-definition identity under the
+        # fallback path, so it cannot be substituted as source evidence.
+        return None
+    if title:
+        # An unrelated/malformed title is not source identity.  In particular, do
+        # not let a fall-back run with a presentation change silently credit the
+        # workflow-definition tree.  It stays visible in the queried history but
+        # cannot erase a separate valid record for the same source.
+        return None
+    # Older tag-dispatched history can have no display title.  It is attributable
+    # only in that narrow legacy case, through its immutable tag/head identity.
+    head_sha = run.get("headSha")
+    return head_sha if isinstance(head_sha, str) else None
 
 
 def _run_count(sha: str, titled_runs: list[dict[str, object]] | None) -> int | None:
@@ -123,7 +199,7 @@ def _run_count(sha: str, titled_runs: list[dict[str, object]] | None) -> int | N
             "--commit",
             sha,
             "--json",
-            "conclusion",
+            "databaseId,conclusion,displayTitle,headSha,status",
         ],
         capture_output=True,
         text=True,
@@ -136,18 +212,29 @@ def _run_count(sha: str, titled_runs: list[dict[str, object]] | None) -> int | N
     except json.JSONDecodeError:
         return None
     if titled_runs is not None:
-        runs = runs + [
-            run
-            for run in titled_runs
-            if sha in str(run.get("displayTitle", "")) and run.get("headSha") != sha
-        ]
-    verdicts = sum(1 for run in runs if run.get("conclusion") in VERDICT_CONCLUSIONS)
+        runs = runs + titled_runs
+    candidate_ids = _candidate_run_ids(runs)
+    if candidate_ids is None:
+        return None
+
+    evidence: list[dict[str, object]] = []
+    for run_id in candidate_ids:
+        run = _run_details(run_id)
+        if run is None:
+            return None
+        if _evaluated_source(run) == sha:
+            evidence.append(run)
+    verdicts = sum(1 for run in evidence if run.get("conclusion") in VERDICT_CONCLUSIONS)
     if verdicts:
         return verdicts
     # A run with no conclusion yet is in flight. It is not evidence, and it is not a
     # gap either -- reported as pending so a commit merged minutes ago is not called
     # ungated, and so a run that never finishes stays visible by name.
-    return -1 if runs else 0
+    if not evidence:
+        return 0
+    # Terminal cancelled/skipped/neutral outcomes did not produce a verdict and
+    # cannot be deferred as live pending evidence.
+    return -1 if any(str(run.get("status")) != "completed" for run in evidence) else 0
 
 
 def main() -> int:

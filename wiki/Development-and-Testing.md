@@ -1,6 +1,7 @@
 # Development and Testing
 
-Setting the service up locally, the commands that matter, and what CI actually enforces.
+Current development and CI evidence posture: setting the service up locally, the commands that
+matter, and what CI actually enforces.
 
 ## Local setup
 
@@ -105,6 +106,21 @@ contract and security checks. `tests/unit/test_ci_gate_liveness.py` expands Make
 workflow invocations, then fails when any gate advertised by `make check` / `make ci` is unreachable
 from GitHub Actions. The parser has its own regression proof so a blank recipe or adjacent Make
 target cannot be misclassified as a dependency.
+
+### Exact-main coverage evidence
+
+The scheduled Main Gate Coverage Audit examines every revision in its declared time window; it is
+separate from branch-protection liveness. A successful run is coverage evidence for the immutable
+source named by the governed run title, not automatically for the workflow-definition `headSha`.
+That distinction preserves the permitted fallback path, where main supplies workflow text while
+`expected_sha` selects the tree under test. Run metadata is reconciled by GitHub run identity before
+the audit credits a revision, so overlapping list queries cannot double-count one run.
+
+Completed `cancelled` or `skipped` histories have no verdict and remain an attributable coverage
+gap that fails `--fail-on-gap`; only queued or running evidence is reported as `PENDING`. Historical
+failed verdicts remain coverage rather than being erased or represented as green. Operators can run
+`python scripts/audit_main_gate_coverage.py --fail-on-gap` from the repository root with authenticated
+GitHub CLI access to inspect the same policy outside the scheduled workflow.
 
 `complexity-gate` and `dead-code-gate` also reject zero governed inputs and name the paths they
 scanned. This distinguishes a clean result from a missing or misaddressed source tree. Reviewed
