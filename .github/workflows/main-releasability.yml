@@ -1,4 +1,9 @@
 name: Main Releasability Gate
+# The revision under test is in the run title so the coverage audit can attribute a
+# run to it even when the run's head SHA is not that revision -- a run dispatched at
+# `main` (the dispatcher's fallback when its tag write is refused, issue #310) carries
+# main's tip as head SHA while testing `expected_sha`.
+run-name: Main Releasability Gate for ${{ inputs.expected_sha || github.sha }}
 
 on:
   workflow_dispatch:
@@ -34,6 +39,12 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v6
+        with:
+          # The tree under test is the dispatched revision, never the ref's tip: a
+          # run dispatched at `main` (the dispatcher's fallback when its tag write is
+          # refused, issue #310) would otherwise gate main's tip and report it as
+          # this revision's verdict.
+          ref: ${{ inputs.expected_sha || github.sha }}
       - name: Assert expected merged PR SHA
         shell: bash
         env:
@@ -61,6 +72,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+        with:
+          # The tree under test is the dispatched revision, never the ref's tip: a
+          # run dispatched at `main` (the dispatcher's fallback when its tag write is
+          # refused, issue #310) would otherwise gate main's tip and report it as
+          # this revision's verdict.
+          ref: ${{ inputs.expected_sha || github.sha }}
       - uses: reviewdog/action-actionlint@v1
 
   lint-typecheck-security:
@@ -69,6 +86,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+        with:
+          # The tree under test is the dispatched revision, never the ref's tip: a
+          # run dispatched at `main` (the dispatcher's fallback when its tag write is
+          # refused, issue #310) would otherwise gate main's tip and report it as
+          # this revision's verdict.
+          ref: ${{ inputs.expected_sha || github.sha }}
       - uses: actions/setup-python@v6
         with:
           python-version: ${{ env.PYTHON_VERSION }}
@@ -106,6 +129,12 @@ jobs:
             path: tests/e2e
     steps:
       - uses: actions/checkout@v6
+        with:
+          # The tree under test is the dispatched revision, never the ref's tip: a
+          # run dispatched at `main` (the dispatcher's fallback when its tag write is
+          # refused, issue #310) would otherwise gate main's tip and report it as
+          # this revision's verdict.
+          ref: ${{ inputs.expected_sha || github.sha }}
       - uses: actions/setup-python@v6
         with:
           python-version: ${{ env.PYTHON_VERSION }}
@@ -132,6 +161,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+        with:
+          # The tree under test is the dispatched revision, never the ref's tip: a
+          # run dispatched at `main` (the dispatcher's fallback when its tag write is
+          # refused, issue #310) would otherwise gate main's tip and report it as
+          # this revision's verdict.
+          ref: ${{ inputs.expected_sha || github.sha }}
       - uses: actions/setup-python@v6
         with:
           python-version: ${{ env.PYTHON_VERSION }}
@@ -167,6 +202,12 @@ jobs:
       COMPOSE_DOCKER_CLI_BUILD: "1"
     steps:
       - uses: actions/checkout@v6
+        with:
+          # The tree under test is the dispatched revision, never the ref's tip: a
+          # run dispatched at `main` (the dispatcher's fallback when its tag write is
+          # refused, issue #310) would otherwise gate main's tip and report it as
+          # this revision's verdict.
+          ref: ${{ inputs.expected_sha || github.sha }}
       - uses: docker/setup-buildx-action@v4
       - uses: actions/setup-python@v6
         with:
@@ -191,6 +232,12 @@ jobs:
         run: make runtime-sbom
       - name: Generate release metadata manifest
         shell: python
+        env:
+          # GITHUB_SHA is the ref's tip, which under a `main`-ref dispatch is not the
+          # tree that was built and tested; commit_sha must name what this evidence is
+          # evidence OF. The definition SHA is kept beside it so a reader can tell
+          # which workflow text produced the run.
+          TESTED_SHA: ${{ inputs.expected_sha || github.sha }}
         run: |
           import json
           import os
@@ -200,7 +247,8 @@ jobs:
               json.dumps(
                   {
                       "repository": os.environ["GITHUB_REPOSITORY"],
-                      "commit_sha": os.environ["GITHUB_SHA"],
+                      "commit_sha": os.environ["TESTED_SHA"],
+                      "workflow_definition_sha": os.environ["GITHUB_SHA"],
                       "ref": os.environ["GITHUB_REF"],
                       "workflow": os.environ["GITHUB_WORKFLOW"],
                       "run_id": os.environ["GITHUB_RUN_ID"],

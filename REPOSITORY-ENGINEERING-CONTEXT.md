@@ -284,27 +284,39 @@ Each of these was a live defect in this repository, not a precaution.
     narrowings across the estate, each added for a measured reason and correct about its own case,
     left holes of identical shape. Also assert what the classifier must ACCEPT: a check widened
     until it rejects everything still passes its rejection tests.
-4. **A workflow-touching merge loses per-commit gating, and shows no run rather than a red one.**
-    Settled, not hypothesised: `GITHUB_TOKEN` cannot create a ref pointing at a commit whose tree
-    contains workflow changes. The merged-PR dispatcher creates one tag per revision, so the tag
-    write is refused with `POST .../git/refs` → `403 Resource not accessible by integration`
-    while enumeration itself succeeds. It is the same protection that stops a workflow granting
-    itself new workflow code. Reproduced in lotus-gateway (run `34040043355`), with the control
-    that settles it: run `34025292627` dispatched a revision touching a context doc and a test
-    file and no workflow, and succeeded. A locally-scoped token creates the same tags with no
-    refusal, so the boundary is the workflow's own token rather than tag creation.
+4. **A workflow-touching merge used to lose per-commit gating, and showed no run rather than a
+    red one.** Settled, not hypothesised: `GITHUB_TOKEN` cannot create a ref pointing at a commit
+    whose tree contains workflow changes — it lacks the `workflows` scope — so the merged-PR
+    dispatcher's per-revision tag write was refused with `POST .../git/refs` →
+    `403 Resource not accessible by integration` while enumeration itself succeeded. Reproduced in
+    lotus-gateway (run `34040043355`); control run `34025292627` dispatched a non-workflow revision
+    and succeeded. The predicate is workflow-touching alone; multi-commit was a correlate.
 
-    **The predicate is workflow-touching alone.** An earlier version of this entry said
-    workflow-touching AND multi-commit. Multi-commit is a correlate, not a cause — a merge with
-    more revisions is likelier to contain a workflow-touching one, which is why that rule kept
-    almost fitting. A single-commit workflow PR fails identically, so "prefer single-commit for
-    workflow changes" bought nothing and has been removed.
+    Since #310 the dispatcher tolerates exactly that refusal and nothing else: it dispatches
+    `main`'s gate definition with `expected_sha=<revision>`, and every checkout in
+    `main-releasability.yml` is pinned to `inputs.expected_sha`, so the tree under test is still
+    the revision. Two consequences to plan for:
 
-    The consequence to plan for is the shape of the failure, not its cause: the dispatch never
-    happens, so `main` shows **no run at all** rather than a failing one, and an absent run reads
-    as success in every interface. After merging anything that touches `.github/workflows`,
-    resolve `main`'s SHA and look the run up by it; treat absence as the finding. Recover with a
-    pinned tag-anchored backfill, sequentially, never a shortcut.
+    - **Attribution.** A fallback run's `headSha` is main's tip, so `gh run list --commit
+      <revision>` cannot find it. The gate's `run-name` carries the tested revision and
+      `scripts/audit_main_gate_coverage.py` matches on it, time-bounded from the window's oldest
+      commit; `release-evidence.json` records `commit_sha` as the TESTED revision beside a
+      `workflow_definition_sha`. When looking a run up by hand, search the run title as well as
+      `--commit`.
+    - **The change that introduces a dispatcher runs the OLD one.** `pull_request_target` executes
+      the base branch's workflow, so a merge that changes the dispatcher is itself dispatched by
+      the previous definition. Such a merge still needs a manual backfill —
+      `gh workflow run main-releasability.yml --ref main -f expected_sha=<sha>
+      -f triggering_pr=backfill`, no tag required — and the new behaviour is proven only on the
+      NEXT workflow-touching merge. After merging anything under `.github/workflows`, resolve
+      `main`'s SHA and look the run up; absence is the finding.
+
+    The enumeration is the landed interval `base.sha..merge_commit_sha`, never the count-bounded
+    `rev-list -n`: `pull_request.commits` describes the branch when the event fired, and after a
+    rebase drops a commit already on main the count walks off the end of the PR's history into
+    earlier merges' commits (lotus-platform#859). The count survives only as a cross-check whose
+    two directions mean opposite things — fewer is a stale count, more is over-claiming and is
+    refused.
 5. **The branch-protection checker and its tests are lifted verbatim and must stay byte-identical**
     to the canonical in `lotus-gateway`; `quality/branch_protection_policy.v1.json` is the file that
     must NOT be, because it carries this repository's own posture. Verify parity by comparing git

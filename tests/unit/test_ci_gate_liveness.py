@@ -81,8 +81,14 @@ def test_merged_pr_dispatch_binds_main_releasability_to_exact_sha() -> None:
     assert not _workflows_triggered_by_push_to_main()
     assert "MERGE_COMMIT_SHA: ${{ github.event.pull_request.merge_commit_sha }}" in dispatcher
     assert "COMMIT_COUNT: ${{ github.event.pull_request.commits }}" in dispatcher
-    # Every revision the PR added, not only the one that ended up as head.
-    assert 'git rev-list -n "$COMMIT_COUNT" "$MERGE_COMMIT_SHA"' in dispatcher
+    # Every revision the PR added, bounded by what actually landed: base..merge. The
+    # count-bounded `rev-list -n COMMIT_COUNT` form walked off the end of the PR's own
+    # history whenever a rebase dropped a commit already on main, because
+    # pull_request.commits describes the branch when the event fired, not what landed
+    # (lotus-platform#859, #310). The count survives only as a cross-check.
+    assert "BASE_SHA: ${{ github.event.pull_request.base.sha }}" in dispatcher
+    assert 'revisions="$(git rev-list --reverse "$BASE_SHA..$MERGE_COMMIT_SHA")"' in dispatcher
+    assert 'git rev-list -n "$COMMIT_COUNT"' not in dispatcher
     assert "for revision in $revisions; do" in dispatcher
     assert 'dispatch_ref="main-releasability-${revision}"' in dispatcher
     assert '-f expected_sha="$revision"' in dispatcher
@@ -334,6 +340,117 @@ def test_a_recent_failed_audit_is_live_and_names_the_independent_outcomes(
     assert "stopped running" not in output
     assert "--status=success" not in commands[0]
     assert commands[1][:4] == ["gh", "run", "view", "123"]
+
+
+def test_a_refused_dispatch_tag_falls_back_to_a_pinned_main_dispatch() -> None:
+    """GITHUB_TOKEN cannot tag a revision whose tree changes .github/workflows (#310).
+
+    The refusal lacks the `workflows` scope, so every workflow-touching merge used to
+    dispatch nothing and main showed no run at all -- which reads as success in every
+    interface. Only that refusal falls back to dispatching main's gate definition; the
+    tree under test stays the revision because every checkout in the gate is pinned
+    to `expected_sha`, and the gate titles the run with it so the audit can find it.
+    """
+
+    dispatcher = (ROOT / ".github/workflows/merged-pr-main-releasability.yml").read_text(
+        encoding="utf-8"
+    )
+    main_gate = (ROOT / ".github/workflows/main-releasability.yml").read_text(encoding="utf-8")
+
+    # Only the scope refusal is tolerated; any other failure to create the ref is fatal.
+    assert 'grep -q "(HTTP 403)"' in dispatcher
+    assert 'dispatch_ref="main"' in dispatcher
+    # The ref lookup's own failure is never masked (a masked lookup creates a tag it
+    # should have refused, which the platform validator rejects by name).
+    assert "|| true" not in dispatcher
+    parsed = yaml.safe_load(main_gate)
+    checkouts = [
+        step
+        for job in parsed["jobs"].values()
+        for step in job["steps"]
+        if str(step.get("uses", "")).startswith("actions/checkout")
+    ]
+    assert checkouts, "the gate must check the repository out somewhere"
+    for step in checkouts:
+        assert step.get("with", {}).get("ref") == "${{ inputs.expected_sha || github.sha }}", (
+            "a checkout without the pin tests the dispatch ref's tip -- main's, under the "
+            "fallback -- and reports it as this revision's verdict"
+        )
+    expected_title = "Main Releasability Gate for ${{ inputs.expected_sha || github.sha }}"
+    assert parsed["run-name"] == expected_title
+    # Release evidence names the tree that was built, not the ref's tip.
+    assert "TESTED_SHA: ${{ inputs.expected_sha || github.sha }}" in main_gate
+    assert '"commit_sha": os.environ["TESTED_SHA"]' in main_gate
+
+
+def test_a_run_dispatched_at_main_is_attributed_to_the_revision_in_its_title(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A fallback run carries main's tip as head SHA, so `--commit` cannot find it (#310).
+
+    Before the title attribution every revision gated through the fallback was
+    reported UNGATED -- the audit inverting the dispatcher's own recovery. The title,
+    and only the title, attributes such a run; a tag-dispatched run is found by
+    `--commit` and must not be counted a second time by its title.
+    """
+
+    revision = "a" * 40
+    main_tip = "b" * 40
+    titled: list[dict[str, object]] = [
+        {
+            "conclusion": "success",
+            "displayTitle": f"Main Releasability Gate for {revision}",
+            "headSha": main_tip,
+        },
+        {
+            "conclusion": "success",
+            "displayTitle": f"Main Releasability Gate for {main_tip}",
+            "headSha": main_tip,
+        },
+    ]
+    commands: list[list[str]] = []
+
+    def _nothing_by_commit(command: list[str], **_: object) -> subprocess.CompletedProcess[str]:
+        commands.append(command)
+        return subprocess.CompletedProcess([], 0, stdout="[]", stderr="")
+
+    monkeypatch.setattr("scripts.audit_main_gate_coverage.subprocess.run", _nothing_by_commit)
+
+    assert audit_main_gate_coverage._run_count(revision, titled) == 1
+    assert "--commit" in commands[0], "the per-revision query remains the primary evidence"
+    # A title naming a different revision is not evidence for this one.
+    assert audit_main_gate_coverage._run_count("c" * 40, titled) == 0
+    # Without the title index the fallback run is invisible, exactly the old gap.
+    assert audit_main_gate_coverage._run_count(revision, None) == 0
+
+    def _one_by_commit(command: list[str], **_: object) -> subprocess.CompletedProcess[str]:
+        return subprocess.CompletedProcess(
+            [], 0, stdout=json.dumps([{"conclusion": "failure"}]), stderr=""
+        )
+
+    monkeypatch.setattr("scripts.audit_main_gate_coverage.subprocess.run", _one_by_commit)
+    assert audit_main_gate_coverage._run_count(main_tip, titled) == 1, (
+        "the tag-dispatched run was found by --commit; its own title must not double it"
+    )
+
+
+def test_the_title_index_is_bounded_by_time_rather_than_by_count(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The same lesson as the audit window: a count is a window that ages out."""
+
+    commands: list[list[str]] = []
+
+    def _run(command: list[str], **_: object) -> subprocess.CompletedProcess[str]:
+        commands.append(command)
+        return subprocess.CompletedProcess([], 0, stdout="[]", stderr="")
+
+    monkeypatch.setattr("scripts.audit_main_gate_coverage.subprocess.run", _run)
+
+    assert audit_main_gate_coverage._titled_runs("2026-09-10") == []
+    assert "--created" in commands[0]
+    assert ">=2026-09-10" in commands[0]
+    assert "displayTitle" in ",".join(commands[0])
 
 
 def test_an_audit_that_really_has_not_run_lately_fails_liveness(
