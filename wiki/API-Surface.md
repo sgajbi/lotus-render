@@ -4,6 +4,10 @@ Every operation `lotus-render` publishes, taken from the generated OpenAPI docum
 There are **eleven**, and there is no undocumented twelfth: four form the render contract and seven
 are operational.
 
+> **Current scope and evidence (Cycle 6 C6-REN-02):** every render operation requires a valid
+> `X-Tenant-Id`; the checked-in OpenAPI gate and route/store tests prove missing or malformed
+> authority is refused before effects, and pre-admission rows cannot be adopted.
+
 ## The render contract
 
 | operation | purpose |
@@ -88,17 +92,20 @@ the package's `render_context.archive` block claims.
 | header and custody block agree, or the block names no tenant | admitted; job bound to the header's tenant |
 | header and custody block name different tenants | `422 tenant_scope_contradiction`, refused before the job is created, claimed, compiled or handed to Archive |
 | same `render_job_id` submitted by a different tenant | `409 render_job_conflict` — the same signal as a package mismatch; the row keeps its owner |
-| no header | admitted while the producer rolls the header out (lotus-report#375); the job is unattributed, stays readable, and is never backfilled with an owner |
+| no or empty header | `401 MISSING_TENANT_AUTHORITY`, refused before any effect |
+| whitespace-only/control/overlong header | `400 INVALID_TENANT_AUTHORITY`, refused before any effect |
+| pre-admission `NULL`-tenant row | `404 render_job_not_found` on tenant-scoped reads; replay is `409 render_job_conflict`, never adoption |
 
-The header is optional today by design, not by omission: `lotus-report` threads it as a required
-argument on its side first, and only then does Render refuse its absence. Admitting the header is
-not authenticating the caller — see [Security and Controls](Security-and-Controls).
+The header is required by the Render receiver after `lotus-report` released required producer
+threading. Admitting the header is not authenticating the caller — see [Security and Controls](Security-and-Controls).
 
 ### Error codes
 
 | status | code | when |
 |---|---|---|
 | `400` | `invalid_content_length` | `Content-Length` is malformed or negative |
+| `400` | `INVALID_TENANT_AUTHORITY` | `X-Tenant-Id` is malformed, whitespace-only, or overlong |
+| `401` | `MISSING_TENANT_AUTHORITY` | `X-Tenant-Id` is absent or empty |
 | `404` | `render_job_not_found` | unknown `render_job_id` on any read |
 | `409` | `render_job_conflict` | `render_job_id` reused with a different package, or already owned by another admitted tenant |
 | `409` | `render_artifact_not_ready` | artifact metadata requested before a successful render |

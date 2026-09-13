@@ -25,7 +25,7 @@ def _build_client(tmp_path: Path) -> TestClient:
             render_store_path=str(tmp_path / "render-store.sqlite3"),
         )
     )
-    return TestClient(app)
+    return TestClient(app, headers={"X-Tenant-Id": "tenant-integration"})
 
 
 def test_submit_render_and_fetch_status_and_artifact_metadata(tmp_path: Path) -> None:
@@ -214,7 +214,7 @@ def test_render_diagnostics_reports_stale_in_progress_without_raw_identifiers(
             stale_rendering_seconds=60,
         )
     )
-    with TestClient(app) as client:
+    with TestClient(app, headers={"X-Tenant-Id": "tenant-integration"}) as client:
         store = app.state.container.render_store
         store.create_or_get(
             render_job_id="rdr_stale_api",
@@ -233,7 +233,7 @@ def test_render_diagnostics_reports_stale_in_progress_without_raw_identifiers(
             output_format="pdf",
             runtime_engine="typst",
             runtime_engine_version="0.14.2",
-            tenant_id=None,
+            tenant_id="tenant-integration",
         )
         store.claim_for_rendering("rdr_stale_api", rendering_stale_seconds=900)
         with closing(sqlite3.connect(tmp_path / "render-store.sqlite3")) as connection, connection:
@@ -272,7 +272,7 @@ def test_submit_render_returns_bad_gateway_when_render_execution_fails(tmp_path:
         )
     )
 
-    with TestClient(app) as client:
+    with TestClient(app, headers={"X-Tenant-Id": "tenant-integration"}) as client:
         app.dependency_overrides[get_render_submission_service] = lambda: (
             _FailingRenderSubmissionService()
         )
@@ -295,7 +295,7 @@ def test_submit_render_rejects_when_execution_capacity_is_exhausted(tmp_path: Pa
         )
     )
 
-    with TestClient(app) as client:
+    with TestClient(app, headers={"X-Tenant-Id": "tenant-integration"}) as client:
         assert app.state.container.render_execution_limiter.acquire() is True
         try:
             response = client.post(
@@ -336,7 +336,7 @@ def test_health_remains_responsive_while_render_submission_runs_in_threadpool(
         )
     )
 
-    with TestClient(app) as client:
+    with TestClient(app, headers={"X-Tenant-Id": "tenant-integration"}) as client:
         app.dependency_overrides[get_render_submission_service] = lambda: (
             _SlowFailingRenderSubmissionService()
         )
@@ -375,7 +375,7 @@ def test_artifact_metadata_reraises_unexpected_value_error(tmp_path: Path) -> No
         )
     )
 
-    with TestClient(app) as client:
+    with TestClient(app, headers={"X-Tenant-Id": "tenant-integration"}) as client:
         app.dependency_overrides[get_render_submission_service] = lambda: (
             _UnexpectedArtifactMetadataService()
         )
@@ -419,7 +419,7 @@ def test_submit_render_rejects_oversized_request_body_without_payload_echo(
         )
     )
 
-    with TestClient(app) as client:
+    with TestClient(app, headers={"X-Tenant-Id": "tenant-integration"}) as client:
         response = client.post(
             "/renders",
             content=payload,
@@ -497,7 +497,7 @@ def test_a_replay_is_not_rejected_when_execution_capacity_is_exhausted(tmp_path:
     payload = PORTFOLIO_REVIEW_RENDER_PACKAGE_EXAMPLE_PATH.read_text(encoding="utf-8")
 
     app = create_app(Settings(render_store_path=str(tmp_path / "render-store.sqlite3")))
-    with TestClient(app) as client:
+    with TestClient(app, headers={"X-Tenant-Id": "tenant-integration"}) as client:
         first = client.post(
             "/renders", content=payload, headers={"Content-Type": "application/json"}
         )
@@ -527,7 +527,7 @@ def test_a_new_render_is_still_rejected_when_capacity_is_exhausted(tmp_path: Pat
     payload = PORTFOLIO_REVIEW_RENDER_PACKAGE_EXAMPLE_PATH.read_text(encoding="utf-8")
 
     app = create_app(Settings(render_store_path=str(tmp_path / "render-store.sqlite3")))
-    with TestClient(app) as client:
+    with TestClient(app, headers={"X-Tenant-Id": "tenant-integration"}) as client:
         limiter = app.state.container.render_execution_limiter
         held = [limiter.acquire() for _ in range(limiter.concurrency_limit)]
         assert all(held), "could not saturate the execution limiter"

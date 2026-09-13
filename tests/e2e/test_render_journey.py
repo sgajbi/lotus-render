@@ -41,7 +41,7 @@ def test_submit_renders_the_banked_document_end_to_end(
     payload = Path(fixture["package_path"]).read_text(encoding="utf-8")
     app = create_app(Settings(render_store_path=str(tmp_path / "render-store.sqlite3")))
 
-    with TestClient(app) as client:
+    with TestClient(app, headers={"X-Tenant-Id": "tenant-e2e-golden"}) as client:
         submit = client.post(
             "/renders", content=payload, headers={"Content-Type": "application/json"}
         )

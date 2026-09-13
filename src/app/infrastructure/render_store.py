@@ -104,10 +104,9 @@ class RenderStore:
 
         With an admitted tenant the read is scoped: a job another tenant created is
         indistinguishable from one that does not exist. A job with no tenant of its
-        own (created before admission existed, or by a caller that sent none) stays
-        readable while the header is optional; once it is required those rows leave
-        tenant-scoped reads (C6-REN-02). With no admitted tenant the read is the
-        pre-admission read, unscoped -- the producer has not started sending yet.
+        own (created before admission existed) has no attributable owner and is
+        excluded from tenant-scoped reads. The unscoped branch is for internal
+        migration/recovery code, never the admitted HTTP boundary (C6-REN-02).
         """
         with self._connect() as connection:
             if tenant_id is None:
@@ -119,7 +118,7 @@ class RenderStore:
                 row = connection.execute(
                     """
                     SELECT * FROM render_job
-                    WHERE render_job_id = ? AND (tenant_id = ? OR tenant_id IS NULL)
+                    WHERE render_job_id = ? AND tenant_id = ?
                     """,
                     (render_job_id, tenant_id),
                 ).fetchone()
@@ -271,11 +270,7 @@ class RenderStore:
                 ).fetchone()
                 assert row is not None
                 job = row_to_job(row)
-                if (
-                    tenant_id is not None
-                    and job.tenant_id is not None
-                    and job.tenant_id != tenant_id
-                ):
+                if tenant_id is not None and job.tenant_id != tenant_id:
                     raise RenderJobConflictError("render_job_conflict")
                 if job.package_hash != package_hash:
                     raise RenderJobConflictError("render_job_conflict")

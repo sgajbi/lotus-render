@@ -106,7 +106,7 @@ def test_an_upstream_correlation_id_finds_the_render(
         encoding="utf-8"
     )
     with caplog.at_level(logging.INFO, logger="lotus_render.render"):
-        with TestClient(app) as client:
+        with TestClient(app, headers={"X-Tenant-Id": "tenant-logging"}) as client:
             client.post(
                 "/renders",
                 content=payload,
