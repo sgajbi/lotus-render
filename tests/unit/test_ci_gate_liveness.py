@@ -3,10 +3,13 @@
 from __future__ import annotations
 
 import json
+import os
+import shutil
 import subprocess
+import sys
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 import pytest
 import yaml
@@ -401,11 +404,13 @@ def test_a_run_dispatched_at_main_is_attributed_to_the_revision_in_its_title(
     main_tip = "b" * 40
     titled: list[dict[str, object]] = [
         {
+            "databaseId": 6,
             "conclusion": "success",
             "displayTitle": f"Main Releasability Gate for {revision}",
             "headSha": main_tip,
         },
         {
+            "databaseId": 7,
             "conclusion": "success",
             "displayTitle": f"Main Releasability Gate for {main_tip}",
             "headSha": main_tip,
@@ -418,6 +423,11 @@ def test_a_run_dispatched_at_main_is_attributed_to_the_revision_in_its_title(
         return subprocess.CompletedProcess([], 0, stdout="[]", stderr="")
 
     monkeypatch.setattr("scripts.audit_main_gate_coverage.subprocess.run", _nothing_by_commit)
+    monkeypatch.setattr(
+        audit_main_gate_coverage,
+        "_run_details",
+        lambda run_id: next(run for run in titled if run["databaseId"] == run_id),
+    )
 
     assert audit_main_gate_coverage._run_count(revision, titled) == 1
     assert "--commit" in commands[0], "the per-revision query remains the primary evidence"
@@ -428,13 +438,421 @@ def test_a_run_dispatched_at_main_is_attributed_to_the_revision_in_its_title(
 
     def _one_by_commit(command: list[str], **_: object) -> subprocess.CompletedProcess[str]:
         return subprocess.CompletedProcess(
-            [], 0, stdout=json.dumps([{"conclusion": "failure"}]), stderr=""
+            [],
+            0,
+            stdout=json.dumps(
+                [
+                    {
+                        "databaseId": 7,
+                        "conclusion": "failure",
+                        "displayTitle": f"Main Releasability Gate for {main_tip}",
+                        "headSha": main_tip,
+                        "status": "completed",
+                    }
+                ]
+            ),
+            stderr="",
         )
 
     monkeypatch.setattr("scripts.audit_main_gate_coverage.subprocess.run", _one_by_commit)
+    monkeypatch.setattr(
+        audit_main_gate_coverage,
+        "_run_details",
+        lambda run_id: (
+            {
+                "databaseId": 7,
+                "conclusion": "failure",
+                "displayTitle": f"Main Releasability Gate for {main_tip}",
+                "headSha": main_tip,
+                "status": "completed",
+            }
+            if run_id == 7
+            else titled[0]
+        ),
+    )
     assert audit_main_gate_coverage._run_count(main_tip, titled) == 1, (
         "the tag-dispatched run was found by --commit; its own title must not double it"
     )
+
+
+def test_a_fallback_run_never_credits_its_workflow_definition_head(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The fallback definition/head B can execute tested source A, never both."""
+
+    source = "a" * 40
+    definition = "b" * 40
+    fallback = {
+        "databaseId": 17,
+        "conclusion": "success",
+        "displayTitle": f"Main Releasability Gate for {source}",
+        "headSha": definition,
+        "status": "completed",
+    }
+    monkeypatch.setattr(
+        "scripts.audit_main_gate_coverage.subprocess.run",
+        lambda *args, **kwargs: subprocess.CompletedProcess(
+            [], 0, stdout=json.dumps([fallback]), stderr=""
+        ),
+    )
+    monkeypatch.setattr(audit_main_gate_coverage, "_run_details", lambda _run_id: fallback)
+
+    assert audit_main_gate_coverage._run_count(source, [fallback]) == 1
+    assert audit_main_gate_coverage._run_count(definition, [fallback]) == 0
+
+
+@pytest.mark.parametrize(
+    ("status", "conclusion", "expected_exit", "expected_label"),
+    [
+        ("completed", "cancelled", 1, "UNGATED"),
+        ("completed", "skipped", 1, "UNGATED"),
+        ("in_progress", None, 0, "PENDING"),
+    ],
+)
+def test_shipped_audit_cli_distinguishes_terminal_nonverdicts_from_live_evidence(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+    status: str,
+    conclusion: str | None,
+    expected_exit: int,
+    expected_label: str,
+) -> None:
+    """`--fail-on-gap` must not let cancelled/skipped histories masquerade as pending."""
+
+    revision = "d" * 40
+    monkeypatch.setattr(
+        audit_main_gate_coverage,
+        "_git",
+        lambda *args: (
+            [f"{revision} deadbee controlled temporary history"]
+            if args[0] == "log" and "--format=%H %h %s" in args
+            else ["2026-09-13"]
+        ),
+    )
+    run = {
+        "databaseId": 91,
+        "displayTitle": f"Main Releasability Gate for {revision}",
+        "headSha": revision,
+        "status": status,
+        "conclusion": conclusion,
+    }
+    monkeypatch.setattr(
+        "scripts.audit_main_gate_coverage.subprocess.run",
+        lambda command, **kwargs: subprocess.CompletedProcess(
+            [],
+            0,
+            stdout=json.dumps(
+                run
+                if command[1:3] == ["run", "view"]
+                else ([] if "--created" in command else [run])
+            ),
+            stderr="",
+        ),
+    )
+    monkeypatch.setattr("sys.argv", ["audit", "--since", "1 day ago", "--fail-on-gap"])
+
+    assert audit_main_gate_coverage.main() == expected_exit
+    assert expected_label in capsys.readouterr().out
+
+
+def _audit_history(tmp_path: Path) -> tuple[Path, str, str]:
+    """Create two real immutable main revisions for the shipped audit CLI."""
+
+    repository = tmp_path / "audit-history"
+    repository.mkdir()
+    commands = (
+        ("init", "-q", "-b", "main"),
+        ("config", "user.email", "audit@example.invalid"),
+        ("config", "user.name", "audit"),
+    )
+    for command in commands:
+        subprocess.run(["git", *command], cwd=repository, check=True)
+    document = repository / "evidence.txt"
+    document.write_text("A\n", encoding="utf-8")
+    subprocess.run(["git", "add", "evidence.txt"], cwd=repository, check=True)
+    subprocess.run(["git", "commit", "-qm", "revision A"], cwd=repository, check=True)
+    source_a = subprocess.check_output(
+        ["git", "rev-parse", "HEAD"], cwd=repository, text=True
+    ).strip()
+    document.write_text("A\nB\n", encoding="utf-8")
+    subprocess.run(["git", "commit", "-qam", "revision B"], cwd=repository, check=True)
+    source_b = subprocess.check_output(
+        ["git", "rev-parse", "HEAD"], cwd=repository, text=True
+    ).strip()
+    subprocess.run(
+        ["git", "update-ref", "refs/remotes/origin/main", source_b], cwd=repository, check=True
+    )
+    return repository, source_a, source_b
+
+
+def _write_recording_gh(tmp_path: Path, fixture: dict[str, object]) -> tuple[Path, Path]:
+    """Install a recording GitHub CLI boundary for the child-process audit exercise."""
+
+    binary_directory = tmp_path / "bin"
+    binary_directory.mkdir()
+    fixture_path = tmp_path / "github-runs.json"
+    fixture_path.write_text(json.dumps(fixture), encoding="utf-8")
+    calls_path = tmp_path / "github-calls.jsonl"
+    boundary = binary_directory / "recording_gh.py"
+    boundary.write_text(
+        "\n".join(
+            (
+                "import json, os, sys",
+                "arguments = sys.argv[1:]",
+                "with open(os.environ['AUDIT_GH_CALLS'], 'a', encoding='utf-8') as calls:",
+                "    calls.write(json.dumps(arguments) + '\\n')",
+                "with open(os.environ['AUDIT_GH_FIXTURE'], encoding='utf-8') as source:",
+                "    fixture = json.load(source)",
+                "if arguments[:2] == ['run', 'view']:",
+                "    answer = fixture['details'][arguments[2]]",
+                "elif arguments[:2] == ['run', 'list'] and '--created' in arguments:",
+                "    answer = fixture['titled']",
+                "elif arguments[:2] == ['run', 'list']:",
+                "    sha = arguments[arguments.index('--commit') + 1]",
+                "    answer = fixture['by_commit'].get(sha, [])",
+                "else:",
+                "    raise SystemExit('unexpected gh command: ' + repr(arguments))",
+                "print(json.dumps(answer))",
+            )
+        ),
+        encoding="utf-8",
+    )
+    # Windows' CreateProcess only discovers real executable extensions for a bare
+    # ``gh`` argv[0], while the shipped audit deliberately invokes the ordinary CLI
+    # name.  A process-startup hook gives both Windows and Linux the same recording
+    # boundary without replacing the actual Git subprocesses that build the history.
+    # The audit still runs as its own process and performs its normal gh list/view
+    # calls; only the unavailable external network is replaced.
+    (binary_directory / "sitecustomize.py").write_text(
+        "\n".join(
+            (
+                "import json, os, shutil, subprocess",
+                "_real_run = subprocess.run",
+                "_real_which = shutil.which",
+                "def _run(command, *args, **kwargs):",
+                "    if isinstance(command, list) and command and command[0] == 'gh':",
+                "        with open(os.environ['AUDIT_GH_CALLS'], 'a', encoding='utf-8') as calls:",
+                "            calls.write(json.dumps(command[1:]) + '\\n')",
+                "        with open(os.environ['AUDIT_GH_FIXTURE'], encoding='utf-8') as source:",
+                "            fixture = json.load(source)",
+                "        arguments = command[1:]",
+                "        if arguments[:2] == ['run', 'view']:",
+                "            answer = fixture['details'][arguments[2]]",
+                "        elif arguments[:2] == ['run', 'list'] and '--created' in arguments:",
+                "            answer = fixture['titled']",
+                "        elif arguments[:2] == ['run', 'list']:",
+                "            sha = arguments[arguments.index('--commit') + 1]",
+                "            answer = fixture['by_commit'].get(sha, [])",
+                "        else:",
+                "            raise AssertionError('unexpected gh command: ' + repr(arguments))",
+                "        result = subprocess.CompletedProcess(command, 0,",
+                "            stdout=json.dumps(answer), stderr='')",
+                "        return result",
+                "    return _real_run(command, *args, **kwargs)",
+                "subprocess.run = _run",
+                "def _which(name, *args, **kwargs):",
+                "    return 'recording-gh' if name == 'gh' else _real_which(name, *args, **kwargs)",
+                "shutil.which = _which",
+            )
+        ),
+        encoding="utf-8",
+    )
+    return binary_directory, calls_path
+
+
+def _run_shipped_audit(
+    tmp_path: Path, fixture_for_sources: Callable[[str, str], dict[str, object]]
+) -> tuple[subprocess.CompletedProcess[str], list[list[str]], str, str]:
+    repository, source_a, source_b = _audit_history(tmp_path)
+    fixture = fixture_for_sources(source_a, source_b)
+    binary_directory, calls_path = _write_recording_gh(tmp_path, fixture)
+    git = shutil.which("git")
+    assert git is not None, "the shipped audit CLI requires Git to inspect main history"
+    constrained_path = os.pathsep.join(
+        (str(binary_directory), str(Path(git).parent), str(Path(sys.executable).parent))
+    )
+    completed = subprocess.run(
+        [
+            sys.executable,
+            str(ROOT / "scripts" / "audit_main_gate_coverage.py"),
+            "--since",
+            "2000-01-01",
+            "--fail-on-gap",
+        ],
+        cwd=repository,
+        env={
+            **os.environ,
+            "PATH": constrained_path,
+            "AUDIT_GH_CALLS": str(calls_path),
+            "AUDIT_GH_FIXTURE": str(tmp_path / "github-runs.json"),
+            "PYTHONPATH": str(binary_directory),
+            "GIT_CONFIG_GLOBAL": os.devnull,
+            "GIT_CONFIG_SYSTEM": os.devnull,
+        },
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    calls = (
+        [json.loads(line) for line in calls_path.read_text(encoding="utf-8").splitlines()]
+        if calls_path.exists()
+        else []
+    )
+    return completed, calls, source_a, source_b
+
+
+def test_shipped_audit_cli_keeps_fallback_source_separate_from_definition_head(
+    tmp_path: Path,
+) -> None:
+    """A real Git history plus GitHub boundary proves A is covered and B is not."""
+
+    def fixture(source_a: str, source_b: str) -> dict[str, object]:
+        fallback = {
+            "databaseId": 101,
+            "displayTitle": f"Main Releasability Gate for {source_a}",
+            "headSha": source_b,
+            "status": "completed",
+            "conclusion": "success",
+        }
+        malformed = {
+            "databaseId": 102,
+            "displayTitle": "Main Releasability Gate for not-an-immutable-sha",
+            "headSha": source_b,
+            "status": "completed",
+            "conclusion": "success",
+        }
+        unrelated = {
+            "databaseId": 103,
+            "displayTitle": "manual historical entry",
+            "headSha": source_b,
+            "status": "completed",
+            "conclusion": "success",
+        }
+        return {
+            "titled": [fallback, malformed, unrelated],
+            "by_commit": {source_a: [fallback], source_b: []},
+            "details": {str(run["databaseId"]): run for run in (fallback, malformed, unrelated)},
+        }
+
+    completed, calls, audit_a, audit_b = _run_shipped_audit(tmp_path, fixture)
+    assert calls, (completed.stdout, completed.stderr)
+    assert completed.returncode == 1
+    assert f"UNGATED  {audit_b[:7]}" in completed.stdout
+    assert f"UNGATED  {audit_a[:7]}" not in completed.stdout
+    assert any(call[:2] == ["run", "view"] for call in calls)
+
+
+@pytest.mark.parametrize("conclusion", ["success", "failure"])
+def test_shipped_audit_cli_accepts_legacy_tag_history_with_each_terminal_verdict(
+    tmp_path: Path, conclusion: str
+) -> None:
+    """An old tag run still uses its immutable head, whether it passed or failed."""
+
+    def fixture(source_a: str, source_b: str) -> dict[str, object]:
+        fallback = {
+            "databaseId": 201,
+            "displayTitle": f"Main Releasability Gate for {source_a}",
+            "headSha": source_b,
+            "status": "completed",
+            "conclusion": "success",
+        }
+        legacy_tag = {
+            "databaseId": 202,
+            "displayTitle": "",
+            "headSha": source_b,
+            "status": "completed",
+            "conclusion": conclusion,
+        }
+        return {
+            "titled": [fallback, legacy_tag],
+            "by_commit": {source_a: [fallback], source_b: [legacy_tag]},
+            "details": {"201": fallback, "202": legacy_tag},
+        }
+
+    completed, calls, source_a, source_b = _run_shipped_audit(tmp_path, fixture)
+    assert completed.returncode == 0, completed.stdout
+    assert "UNGATED" not in completed.stdout
+    assert source_a and source_b
+    assert [call[2] for call in calls if call[:2] == ["run", "view"]].count("201") == 2
+    assert [call[2] for call in calls if call[:2] == ["run", "view"]].count("202") == 2
+
+
+@pytest.mark.parametrize(
+    ("status", "conclusion", "expected_exit", "expected_label"),
+    [
+        ("completed", "cancelled", 1, "UNGATED"),
+        ("completed", "skipped", 1, "UNGATED"),
+        ("in_progress", None, 0, "PENDING"),
+    ],
+)
+def test_shipped_audit_cli_classifies_terminal_nonverdicts_and_live_runs(
+    tmp_path: Path,
+    status: str,
+    conclusion: str | None,
+    expected_exit: int,
+    expected_label: str,
+) -> None:
+    """The actual CLI reserves PENDING for live work, not completed non-verdicts."""
+
+    def fixture(source_a: str, source_b: str) -> dict[str, object]:
+        valid = {
+            "databaseId": 301,
+            "displayTitle": "",
+            "headSha": source_a,
+            "status": "completed",
+            "conclusion": "success",
+        }
+        candidate = {
+            "databaseId": 302,
+            "displayTitle": "",
+            "headSha": source_b,
+            "status": status,
+            "conclusion": conclusion,
+        }
+        return {
+            "titled": [valid, candidate],
+            "by_commit": {source_a: [valid], source_b: [candidate]},
+            "details": {"301": valid, "302": candidate},
+        }
+
+    completed, _calls, _source_a, source_b = _run_shipped_audit(tmp_path, fixture)
+    assert completed.returncode == expected_exit, completed.stdout
+    assert f"{expected_label}  {source_b[:7]}" in completed.stdout
+
+
+def test_run_detail_fetches_are_deduplicated_by_stable_run_identity(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The listing overlap is discovery-only; each run is resolved exactly once."""
+
+    source = "a" * 40
+    run = {
+        "databaseId": 404,
+        "displayTitle": f"Main Releasability Gate for {source}",
+        "headSha": "b" * 40,
+        "status": "completed",
+        "conclusion": "success",
+    }
+    monkeypatch.setattr(
+        "scripts.audit_main_gate_coverage.subprocess.run",
+        lambda *args, **kwargs: subprocess.CompletedProcess(
+            [], 0, stdout=json.dumps([run]), stderr=""
+        ),
+    )
+    fetched: list[int] = []
+
+    def detail(run_id: int) -> dict[str, object]:
+        fetched.append(run_id)
+        return run
+
+    monkeypatch.setattr(
+        audit_main_gate_coverage,
+        "_run_details",
+        detail,
+    )
+
+    assert audit_main_gate_coverage._run_count(source, [run]) == 1
+    assert fetched == [404]
 
 
 def test_the_title_index_is_bounded_by_time_rather_than_by_count(
