@@ -17,6 +17,7 @@ from app.contracts.renders import (
     RenderSubmitRequest,
     RenderSubmitResponse,
 )
+from app.dependencies.admitted_tenant import AdmittedTenantDependency
 from app.dependencies.container import ContainerDependency, RenderSubmissionDependency
 from app.infrastructure.render_store import RenderJobConflictError, RenderJobNotFoundError
 from app.observability.render_metrics import record_render_operation
@@ -27,6 +28,40 @@ from app.services.render_submission import (
 )
 
 router = APIRouter(prefix="/renders", tags=["Renders"])
+
+
+def _custody_tenant(request_payload: RenderSubmitRequest) -> str | None:
+    """The tenant the package's custody block names, or None when it names none.
+
+    A claim about the document, checked against the admitted tenant and never used in
+    its place: the body cannot grant authority the transport did not.
+    """
+    custody = request_payload.render_context.get("archive")
+    if not isinstance(custody, dict):
+        return None
+    tenant = custody.get("tenant_id")
+    if not isinstance(tenant, str) or not tenant.strip():
+        return None
+    return tenant.strip()
+
+
+def _refuse_tenant_contradiction(
+    request_payload: RenderSubmitRequest, admitted_tenant: str | None
+) -> None:
+    """Refuse a package whose custody block names a tenant other than the admitted one.
+
+    The admitted tenant is transport truth; the custody block is a claim about the
+    document. When both are present they must agree, and a contradiction is refused
+    here -- before the job is created, claimed, compiled or handed to Archive -- because
+    nothing downstream can decide which of the two to believe. Either alone is fine.
+    """
+    custody_tenant = _custody_tenant(request_payload)
+    if admitted_tenant is None or custody_tenant is None or custody_tenant == admitted_tenant:
+        return
+    raise HTTPException(
+        status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+        detail=API_ERROR_RESPONSE_EXAMPLES["tenant_scope_contradiction"]["detail"],
+    )
 
 
 def _error_response(
@@ -107,13 +142,18 @@ def _error_response(
             status.HTTP_409_CONFLICT,
             example_key="render_job_conflict",
             description=(
-                "Returned when the render job identifier is reused with a different package."
+                "Returned when the render job identifier is reused with a different package, "
+                "or already belongs to a different admitted tenant."
             ),
         ),
         **_error_response(
             status.HTTP_422_UNPROCESSABLE_CONTENT,
             example_key="render_package_invalid",
-            description="Returned when governed package or template validation fails.",
+            description=(
+                "Returned when governed package or template validation fails, or (code "
+                "tenant_scope_contradiction) when the admitted X-Tenant-Id contradicts the "
+                "package's custody tenant; refused before any render or archive effect."
+            ),
         ),
         **_error_response(
             status.HTTP_502_BAD_GATEWAY,
@@ -132,9 +172,13 @@ async def submit_render(
     response: Response,
     container: ContainerDependency,
     service: RenderSubmissionDependency,
+    admitted_tenant: AdmittedTenantDependency,
 ) -> RenderSubmitResponse:
+    _refuse_tenant_contradiction(request_payload, admitted_tenant)
     try:
-        result = await run_in_threadpool(service.submit, request_payload)
+        result = await run_in_threadpool(
+            service.submit, request_payload, admitted_tenant=admitted_tenant
+        )
     except RenderCapacityExhaustedError as exc:
         # The slot is taken inside the service, around work that actually renders, so a
         # replay or an already-terminal job can no longer exhaust capacity (issue #115).
@@ -202,9 +246,10 @@ async def submit_render(
 async def get_render_status(
     render_job_id: str,
     service: RenderSubmissionDependency,
+    admitted_tenant: AdmittedTenantDependency,
 ) -> RenderJobStatusResponse:
     try:
-        return service.get_status(render_job_id)
+        return service.get_status(render_job_id, admitted_tenant=admitted_tenant)
     except RenderJobNotFoundError as exc:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -242,12 +287,14 @@ async def get_render_status(
 async def get_render_diagnostics(
     render_job_id: str,
     container: ContainerDependency,
+    admitted_tenant: AdmittedTenantDependency,
 ) -> RenderJobDiagnosticsResponse:
     try:
         return container.render_submission_service.get_diagnostics(
             render_job_id,
             accepted_stale_seconds=container.settings.stale_accepted_seconds,
             rendering_stale_seconds=container.settings.stale_rendering_seconds,
+            admitted_tenant=admitted_tenant,
         )
     except RenderJobNotFoundError as exc:
         raise HTTPException(
@@ -290,9 +337,10 @@ async def get_render_diagnostics(
 async def get_render_artifact_metadata(
     render_job_id: str,
     service: RenderSubmissionDependency,
+    admitted_tenant: AdmittedTenantDependency,
 ) -> RenderArtifactMetadataResponse:
     try:
-        return service.get_artifact_metadata(render_job_id)
+        return service.get_artifact_metadata(render_job_id, admitted_tenant=admitted_tenant)
     except RenderJobNotFoundError as exc:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

@@ -134,10 +134,12 @@ def test_a_document_over_the_envelope_never_reaches_a_render_slot(tmp_path: Path
     )
 
     with pytest.raises(RenderPackageInvalidError):
-        service.submit(_package(positions=6_000, render_job_id="rdr_over_envelope"))
+        service.submit(
+            _package(positions=6_000, render_job_id="rdr_over_envelope"), admitted_tenant=None
+        )
 
     assert limiter.acquired == 0, "a document that cannot render took a render slot"
-    stored = store.get("rdr_over_envelope")
+    stored = store.get("rdr_over_envelope", tenant_id=None)
     assert stored.status == "failed"
     assert stored.failure_category == "resource_limit_exceeded"
 

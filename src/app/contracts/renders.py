@@ -142,6 +142,15 @@ API_ERROR_RESPONSE_EXAMPLES: dict[str, dict[str, Any]] = {
             "message": "Render package failed governed validation.",
         }
     },
+    "tenant_scope_contradiction": {
+        "detail": {
+            "code": "tenant_scope_contradiction",
+            "message": (
+                "The admitted X-Tenant-Id does not match the package's custody tenant; "
+                "the request was refused before any render or archive effect."
+            ),
+        }
+    },
     "render_artifact_not_ready": {
         "detail": {
             "code": "render_artifact_not_ready",

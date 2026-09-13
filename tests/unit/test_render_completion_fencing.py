@@ -173,14 +173,14 @@ def test_a_losing_completion_adopts_the_winner_and_returns_no_foreign_bytes(
 
     def takeover() -> None:
         _age_job(db_path, package.render_job_id)
-        response = new_service.submit(package)
+        response = new_service.submit(package, admitted_tenant=None)
         assert response.status == "rendered"
 
     old_service, store, old_transport = _worker(
         db_path, LOSING_BYTES, document_id="doc_loser", on_render=takeover
     )
 
-    response = old_service.submit(package)
+    response = old_service.submit(package, admitted_tenant=None)
 
     winning_sha = hashlib.sha256(WINNING_BYTES).hexdigest()
     assert response.status == "rendered"
@@ -192,7 +192,7 @@ def test_a_losing_completion_adopts_the_winner_and_returns_no_foreign_bytes(
     assert response.archive_document_id == "doc_winner"
     assert old_transport.deliveries == [], "the losing attempt must make zero Archive calls"
     assert len(new_transport.deliveries) == 1
-    stored = store.get(package.render_job_id)
+    stored = store.get(package.render_job_id, tenant_id=None)
     assert stored.artifact_sha256 == f"sha256:{winning_sha}"
     assert stored.archive_document_id == "doc_winner", "winning custody must be stable"
     assert stored.claim_generation == 2
@@ -210,13 +210,13 @@ def test_a_losing_completion_with_identical_bytes_returns_the_winning_artifact(
 
     def takeover() -> None:
         _age_job(db_path, package.render_job_id)
-        new_service.submit(package)
+        new_service.submit(package, admitted_tenant=None)
 
     old_service, store, old_transport = _worker(
         db_path, WINNING_BYTES, document_id="doc_loser", on_render=takeover
     )
 
-    response = old_service.submit(package)
+    response = old_service.submit(package, admitted_tenant=None)
 
     assert response.status == "rendered"
     assert response.artifact_base64 is not None
@@ -227,7 +227,7 @@ def test_a_losing_completion_with_identical_bytes_returns_the_winning_artifact(
     )
     assert old_transport.deliveries == [], "identical bytes still do not license a second handoff"
     assert len(new_transport.deliveries) == 1
-    assert store.get(package.render_job_id).archive_document_id == "doc_winner"
+    assert store.get(package.render_job_id, tenant_id=None).archive_document_id == "doc_winner"
 
 
 def test_an_old_completion_after_takeover_cannot_beat_the_live_claim(tmp_path: Path) -> None:
@@ -251,7 +251,7 @@ def test_an_old_completion_after_takeover_cannot_beat_the_live_claim(tmp_path: P
         db_path, LOSING_BYTES, document_id="doc_loser", on_render=takeover_without_completion
     )
 
-    response = old_service.submit(package)
+    response = old_service.submit(package, admitted_tenant=None)
 
     assert response.status == "rendering", (
         "the job belongs to the live claim; the old attempt reports that truth"
@@ -259,7 +259,7 @@ def test_an_old_completion_after_takeover_cannot_beat_the_live_claim(tmp_path: P
     assert response.artifact_base64 is None
     assert response.artifact_sha256 is None
     assert old_transport.deliveries == []
-    row = new_store.get(package.render_job_id)
+    row = new_store.get(package.render_job_id, tenant_id=None)
     assert row.status == "rendering"
     assert row.claim_generation == claims[0], "the live claim must survive the old completion"
 
@@ -295,12 +295,12 @@ def test_a_late_failure_cannot_overwrite_the_live_claim(tmp_path: Path) -> None:
         db_path, LOSING_BYTES, document_id="doc_loser", on_render=takeover_then_fail
     )
 
-    response = old_service.submit(package)
+    response = old_service.submit(package, admitted_tenant=None)
 
     assert response.status == "rendering", "the late failure adopted the live claim's truth"
     assert response.failure_category is None
     assert old_transport.deliveries == []
-    row = new_store.get(package.render_job_id)
+    row = new_store.get(package.render_job_id, tenant_id=None)
     assert row.status == "rendering", "the live claim must not be failed by a stale attempt"
     assert row.claim_generation == claims[0]
 
@@ -315,21 +315,21 @@ def test_a_late_failure_cannot_overwrite_the_winner(tmp_path: Path) -> None:
 
     def takeover_then_fail() -> None:
         _age_job(db_path, package.render_job_id)
-        new_service.submit(package)
+        new_service.submit(package, admitted_tenant=None)
         raise RuntimeError("old worker dies after the winner completed")
 
     old_service, store, old_transport = _worker(
         db_path, LOSING_BYTES, document_id="doc_loser", on_render=takeover_then_fail
     )
 
-    response = old_service.submit(package)
+    response = old_service.submit(package, admitted_tenant=None)
 
     assert response.status == "rendered"
     assert response.failure_category is None
     assert response.archive_document_id == "doc_winner"
     assert old_transport.deliveries == []
     assert len(new_transport.deliveries) == 1
-    stored = store.get(package.render_job_id)
+    stored = store.get(package.render_job_id, tenant_id=None)
     assert stored.status == "rendered"
     assert stored.archive_document_id == "doc_winner"
 
@@ -341,9 +341,9 @@ def test_custody_writes_are_fenced_to_the_winning_generation(tmp_path: Path) -> 
     db_path = tmp_path / "render-store.sqlite3"
     package = _package("rdr_fence_custody")
     service, store, _ = _worker(db_path, WINNING_BYTES, document_id="doc_winner")
-    response = service.submit(package)
+    response = service.submit(package, admitted_tenant=None)
     assert response.archive_document_id == "doc_winner"
-    winning_generation = store.get(package.render_job_id).claim_generation
+    winning_generation = store.get(package.render_job_id, tenant_id=None).claim_generation
 
     with pytest.raises(RenderJobTransitionError, match="stale_archive_outcome_write"):
         store.record_archive_outcome(
@@ -355,7 +355,7 @@ def test_custody_writes_are_fenced_to_the_winning_generation(tmp_path: Path) -> 
             expected_claim_generation=winning_generation - 1,
         )
 
-    stored = store.get(package.render_job_id)
+    stored = store.get(package.render_job_id, tenant_id=None)
     assert stored.archive_document_id == "doc_winner", "stale custody write must not land"
 
     refreshed = store.record_archive_outcome(
@@ -387,6 +387,7 @@ def test_restart_preserves_the_fence_against_a_pre_restart_zombie(tmp_path: Path
         output_format=package.output_format,
         runtime_engine="typst",
         runtime_engine_version="0.14.2",
+        tenant_id=None,
     )
     zombie_claim = pre_restart_store.claim_for_rendering(
         package.render_job_id, rendering_stale_seconds=STALE_SECONDS
@@ -418,7 +419,7 @@ def test_restart_preserves_the_fence_against_a_pre_restart_zombie(tmp_path: Path
             failure_message="zombie timeout",
             claim_generation=zombie_claim.claim_generation,
         )
-    stored = post_restart_store.get(package.render_job_id)
+    stored = post_restart_store.get(package.render_job_id, tenant_id=None)
     assert stored.status == "rendered"
     assert stored.artifact_sha256 == f"sha256:{hashlib.sha256(WINNING_BYTES).hexdigest()}"
 
@@ -469,7 +470,7 @@ def test_a_legacy_rendering_row_is_claimable_and_fenced_after_upgrade(tmp_path: 
             CURRENT_RENDER_STORE_SCHEMA_VERSION
         )
 
-    legacy = store.get("rdr_legacy_in_flight")
+    legacy = store.get("rdr_legacy_in_flight", tenant_id=None)
     assert legacy.claim_generation == 0
 
     claimed = store.claim_for_rendering(

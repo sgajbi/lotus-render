@@ -233,6 +233,7 @@ def test_render_diagnostics_reports_stale_in_progress_without_raw_identifiers(
             output_format="pdf",
             runtime_engine="typst",
             runtime_engine_version="0.14.2",
+            tenant_id=None,
         )
         store.claim_for_rendering("rdr_stale_api", rendering_stale_seconds=900)
         with closing(sqlite3.connect(tmp_path / "render-store.sqlite3")) as connection, connection:
@@ -262,7 +263,7 @@ def test_submit_render_returns_bad_gateway_when_render_execution_fails(tmp_path:
     payload = PORTFOLIO_REVIEW_RENDER_PACKAGE_EXAMPLE_PATH.read_text(encoding="utf-8")
 
     class _FailingRenderSubmissionService:
-        def submit(self, _request_payload: object) -> object:
+        def submit(self, _request_payload: object, *, admitted_tenant: str | None) -> object:
             raise RenderExecutionFailedError("runtime render failed")
 
     app = create_app(
@@ -323,7 +324,7 @@ def test_health_remains_responsive_while_render_submission_runs_in_threadpool(
     responses: list[int] = []
 
     class _SlowFailingRenderSubmissionService:
-        def submit(self, _request_payload: object) -> object:
+        def submit(self, _request_payload: object, *, admitted_tenant: str | None) -> object:
             started.set()
             assert release.wait(timeout=5)
             raise RenderExecutionFailedError("runtime render failed")
@@ -363,7 +364,9 @@ def test_health_remains_responsive_while_render_submission_runs_in_threadpool(
 
 def test_artifact_metadata_reraises_unexpected_value_error(tmp_path: Path) -> None:
     class _UnexpectedArtifactMetadataService:
-        def get_artifact_metadata(self, _render_job_id: str) -> object:
+        def get_artifact_metadata(
+            self, _render_job_id: str, *, admitted_tenant: str | None
+        ) -> object:
             raise ValueError("unexpected-artifact-error")
 
     app = create_app(

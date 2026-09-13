@@ -261,8 +261,13 @@ class ArchiveHandoff:
         runtime_engine_version: str,
         template_digest: str | None,
         template_publication: str | None,
+        admitted_tenant: str | None,
     ) -> ArchiveHandoffOutcome | None:
-        """The custody outcome for these exact bytes, or None when no handoff applies."""
+        """The custody outcome for these exact bytes, or None when no handoff applies.
+
+        ``admitted_tenant`` is the tenant the job was created under -- server-owned
+        truth from the admitted transport context, not the package's custody block.
+        """
         metadata = build_archive_metadata(
             render_package,
             artifact_sha256=artifact_sha256,
@@ -281,23 +286,30 @@ class ArchiveHandoff:
         }
         return self._post_until_settled(
             payload,
-            headers=self._headers(render_package, metadata),
+            headers=self._headers(render_package, metadata, admitted_tenant=admitted_tenant),
             archive_request_id=str(metadata["archive_request_id"]),
         )
 
     def _headers(
-        self, render_package: RenderPackage, metadata: Mapping[str, object]
+        self,
+        render_package: RenderPackage,
+        metadata: Mapping[str, object],
+        *,
+        admitted_tenant: str | None,
     ) -> dict[str, str]:
-        # Tenant and region come from the custody block Report supplied; when they are
-        # absent the handoff still posts and Archive's own authorization refuses it --
-        # a named refusal on the job beats silently skipping custody.
+        # The custody tenant is the one the job was admitted under; the package's custody
+        # block supplies it only for a job no tenant was admitted for (pre-admission rows,
+        # or a producer not yet sending the header). Region still comes from the custody
+        # block. When absent the handoff still posts and Archive's own authorization
+        # refuses it -- a named refusal on the job beats silently skipping custody.
+        tenant = admitted_tenant if admitted_tenant is not None else metadata.get("tenant_id", "")
         return {
             "Content-Type": "application/json",
             "X-Caller-Service": "lotus-render",
             "X-Caller-Application": "lotus-render",
             "X-Actor-Type": "service",
             "X-Actor-Id": render_package.requested_by,
-            "X-Tenant-Id": str(metadata.get("tenant_id", "")),
+            "X-Tenant-Id": str(tenant),
             "X-Region": str(metadata.get("region", "")),
             "X-Correlation-ID": render_package.correlation_id,
             "X-Trace-ID": render_package.trace_id,
@@ -380,6 +392,9 @@ def hand_off_and_record(
             runtime_engine_version=diagnostic.runtime_engine_version,
             template_digest=diagnostic.template_digest,
             template_publication=diagnostic.template_publication,
+            # Custody is bound to the tenant persisted on the job at admission, never to
+            # the package body (C6-REN-02).
+            admitted_tenant=stored.tenant_id,
         )
     except Exception:
         logger.exception("archive_handoff_unexpected_error")

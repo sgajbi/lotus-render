@@ -3,7 +3,7 @@ from __future__ import annotations
 import sqlite3
 from collections.abc import Callable
 
-CURRENT_RENDER_STORE_SCHEMA_VERSION = 6
+CURRENT_RENDER_STORE_SCHEMA_VERSION = 7
 
 Migration = Callable[[sqlite3.Connection], None]
 
@@ -146,6 +146,26 @@ def _add_claim_generation_column(connection: sqlite3.Connection) -> None:
     _add_column_if_missing(connection, columns, "claim_generation", "INTEGER NOT NULL DEFAULT 0")
 
 
+def _add_tenant_column(connection: sqlite3.Connection) -> None:
+    """Record which admitted tenant a job belongs to (C6-REN-02, lotus-report#375).
+
+    Written only from the admitted transport context at create, never from the
+    package body -- the body's custody block is a claim, not authority. NULL means
+    the job was created before tenant admission existed or by a caller that sent
+    none: unattributable, readable while the header is optional, and excluded from
+    tenant-scoped reads once it becomes required. No backfill: an owner nobody
+    asserted at the boundary would be invention.
+    """
+    columns = render_store_columns(connection)
+    _add_column_if_missing(connection, columns, "tenant_id", "TEXT")
+    connection.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_render_job_tenant_id
+        ON render_job(tenant_id)
+        """
+    )
+
+
 def _add_column_if_missing(
     connection: sqlite3.Connection,
     columns: set[str],
@@ -165,4 +185,5 @@ _MIGRATIONS: tuple[tuple[int, Migration], ...] = (
     (4, _add_archive_handoff_columns),
     (5, _add_template_publication_column),
     (6, _add_claim_generation_column),
+    (7, _add_tenant_column),
 )

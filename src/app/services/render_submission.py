@@ -87,7 +87,16 @@ class RenderSubmissionService:
         # state, which the contract defines as "no handoff applies" (issue #120).
         self._archive_handoff = archive_handoff
 
-    def submit(self, render_package: RenderPackage) -> RenderSubmitResponse:
+    def submit(
+        self, render_package: RenderPackage, *, admitted_tenant: str | None
+    ) -> RenderSubmitResponse:
+        """Submit under the admitted tenant -- transport context, never a body claim.
+
+        The tenant is bound to the job at create and scopes every later read; a job
+        another tenant owns is a conflict here and invisible everywhere else. None means
+        the caller sent no tenant, which is admitted while the header is optional
+        (C6-REN-02 step a) and leaves the job unattributed.
+        """
         started_at = perf_counter()
         package_hash = hashlib.sha256(
             json.dumps(
@@ -115,6 +124,7 @@ class RenderSubmissionService:
                 output_format=render_package.output_format,
                 runtime_engine=runtime_metadata.runtime_engine,
                 runtime_engine_version=runtime_metadata.runtime_engine_version,
+                tenant_id=admitted_tenant,
             )
         except RenderJobConflictError:
             record_render_operation(
@@ -322,7 +332,9 @@ class RenderSubmissionService:
         the winning artifact under bounded determinism -- and are withheld otherwise,
         because bytes beside a digest they do not hash to are corruption, not a reply.
         """
-        stored = self._render_store.get(render_job_id)
+        # Post-admission re-read of the row this request already admitted at intake:
+        # the scope decision was made there, and the job id is not caller-chosen here.
+        stored = self._render_store.get(render_job_id, tenant_id=None)
         self._record_submit_metric(stored, started_at=started_at)
         artifact_base64: str | None = None
         if stored.status == "rendered" and stored.artifact_sha256 is not None:
@@ -368,10 +380,12 @@ class RenderSubmissionService:
             return self._to_submit_response(failure, artifact_base64=None)
         raise error_type(failure.failure_message or fallback_message) from cause
 
-    def get_status(self, render_job_id: str) -> RenderJobStatusResponse:
+    def get_status(
+        self, render_job_id: str, *, admitted_tenant: str | None
+    ) -> RenderJobStatusResponse:
         started_at = perf_counter()
         try:
-            stored = self._render_store.get(render_job_id)
+            stored = self._render_store.get(render_job_id, tenant_id=admitted_tenant)
         except RenderJobNotFoundError:
             record_render_operation(
                 operation="render_status_lookup",
@@ -391,10 +405,12 @@ class RenderSubmissionService:
     def get_artifact_metadata(
         self,
         render_job_id: str,
+        *,
+        admitted_tenant: str | None,
     ) -> RenderArtifactMetadataResponse:
         started_at = perf_counter()
         try:
-            stored = self._render_store.get(render_job_id)
+            stored = self._render_store.get(render_job_id, tenant_id=admitted_tenant)
         except RenderJobNotFoundError:
             record_render_operation(
                 operation="artifact_metadata_lookup",
@@ -427,10 +443,11 @@ class RenderSubmissionService:
         *,
         accepted_stale_seconds: int,
         rendering_stale_seconds: int,
+        admitted_tenant: str | None,
     ) -> RenderJobDiagnosticsResponse:
         started_at = perf_counter()
         try:
-            stored = self._render_store.get(render_job_id)
+            stored = self._render_store.get(render_job_id, tenant_id=admitted_tenant)
         except RenderJobNotFoundError:
             record_render_operation(
                 operation="render_diagnostics_lookup",
@@ -467,7 +484,8 @@ class RenderSubmissionService:
                 claim_generation=claim_generation,
             )
         except RenderJobTransitionError:
-            return self._render_store.get(render_job_id)
+            # Post-admission re-read of the row this request already admitted at intake.
+            return self._render_store.get(render_job_id, tenant_id=None)
 
     @staticmethod
     def _to_submit_response(

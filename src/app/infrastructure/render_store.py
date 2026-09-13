@@ -99,12 +99,30 @@ class RenderStore:
         if missing_columns:
             raise RuntimeError(f"render_store_schema_missing:{sorted(missing_columns)[0]}")
 
-    def get(self, render_job_id: str) -> StoredRenderJob:
+    def get(self, render_job_id: str, *, tenant_id: str | None) -> StoredRenderJob:
+        """The job as the admitted tenant may see it.
+
+        With an admitted tenant the read is scoped: a job another tenant created is
+        indistinguishable from one that does not exist. A job with no tenant of its
+        own (created before admission existed, or by a caller that sent none) stays
+        readable while the header is optional; once it is required those rows leave
+        tenant-scoped reads (C6-REN-02). With no admitted tenant the read is the
+        pre-admission read, unscoped -- the producer has not started sending yet.
+        """
         with self._connect() as connection:
-            row = connection.execute(
-                "SELECT * FROM render_job WHERE render_job_id = ?",
-                (render_job_id,),
-            ).fetchone()
+            if tenant_id is None:
+                row = connection.execute(
+                    "SELECT * FROM render_job WHERE render_job_id = ?",
+                    (render_job_id,),
+                ).fetchone()
+            else:
+                row = connection.execute(
+                    """
+                    SELECT * FROM render_job
+                    WHERE render_job_id = ? AND (tenant_id = ? OR tenant_id IS NULL)
+                    """,
+                    (render_job_id, tenant_id),
+                ).fetchone()
         if row is None:
             raise RenderJobNotFoundError("render_job_not_found")
         return row_to_job(row)
@@ -181,7 +199,17 @@ class RenderStore:
         output_format: str,
         runtime_engine: str,
         runtime_engine_version: str,
+        tenant_id: str | None,
     ) -> CreateOrGetRenderJobResult:
+        """Create the job under the admitted tenant, or return the existing one.
+
+        The tenant is the admitted transport context, never a body claim. An existing
+        job owned by a different tenant is a cross-tenant collision on the raw key and
+        surfaces as the same conflict a same-tenant package mismatch does -- one
+        signal class, no new existence oracle. An existing job with no tenant stays
+        unattributed: the caller's assertion at the boundary is not proof of
+        ownership, so it is never backfilled (C6-REN-02).
+        """
         with self._lock:
             with self._connect() as connection:
                 now = utc_now()
@@ -196,11 +224,11 @@ class RenderStore:
                         failure_message, runtime_engine, runtime_engine_version,
                         determinism_mode, determinism_statement, bounded_determinism_fingerprint,
                         artifact_sha256, mime_type, output_size_bytes, render_duration_ms,
-                        created_at, updated_at, completed_at
+                        created_at, updated_at, completed_at, tenant_id
                     )
                     VALUES (
                         ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
-                        ?, ?, ?, ?
+                        ?, ?, ?, ?, ?
                     )
                     """,
                     (
@@ -233,6 +261,7 @@ class RenderStore:
                         now_text,
                         now_text,
                         None,
+                        tenant_id,
                     ),
                 )
                 created = cursor.rowcount == 1
@@ -242,6 +271,12 @@ class RenderStore:
                 ).fetchone()
                 assert row is not None
                 job = row_to_job(row)
+                if (
+                    tenant_id is not None
+                    and job.tenant_id is not None
+                    and job.tenant_id != tenant_id
+                ):
+                    raise RenderJobConflictError("render_job_conflict")
                 if job.package_hash != package_hash:
                     raise RenderJobConflictError("render_job_conflict")
                 return CreateOrGetRenderJobResult(job=job, created=created)

@@ -6,16 +6,26 @@ therefore provide. Measured against `main`.
 ## The controlling fact: this service does not authenticate callers
 
 `lotus-render` performs **no authentication and no authorization of its own**. There is no API key,
-no bearer-token check, no tenant claim and no per-caller policy anywhere in the request path. The
-published OpenAPI description states the assumption directly: *authentication and authorization are
-enforced by governed platform ingress and service-to-service policy before this internal API is
-reached*.
+no bearer-token check and no per-caller policy anywhere in the request path. The published OpenAPI
+description states the assumption directly: *authentication and authorization are enforced by
+governed platform ingress and service-to-service policy before this internal API is reached*.
+
+What the service does admit is a **tenant**: the `X-Tenant-Id` header a trusted caller sends is
+bound to the job at submission and scopes every later read, so a job another tenant created is
+indistinguishable from one that does not exist, and the Archive custody handoff carries the
+admitted tenant rather than whatever the package's custody block claimed. A package whose custody
+block names a different tenant than the header is refused (`tenant_scope_contradiction`) before
+the job is created, claimed, compiled or handed to Archive. The header is **optional** while the
+producer (`lotus-report`) rolls out sending it (lotus-report#375): a job created without one is
+unattributed, stays readable, and is never backfilled with an invented owner. Admitting the
+header is not authenticating the caller — ingress still decides who may assert a tenant at all.
 
 Two consequences follow, and both are deployment obligations rather than service behaviour:
 
-1. **Anything that can reach the port can submit a render or read any job's status.** The render job
-   id is the only thing standing between a caller and another caller's job posture, and it is not a
-   secret.
+1. **Anything that can reach the port can submit a render or read any job's status.** Until the
+   tenant header is required, the render job id is the only thing standing between a caller and
+   another caller's job posture, and it is not a secret; with the header, a caller sees only its own
+   tenant's jobs and the unattributed ones.
 2. **`/metrics` and `/metadata` are equally unauthenticated.** They are support-safe by design — see
    below — but they are still service-internal surfaces that should not be routed to the public
    internet.

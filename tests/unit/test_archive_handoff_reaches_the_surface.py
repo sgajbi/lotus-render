@@ -141,7 +141,7 @@ def test_verified_custody_reaches_the_response_and_survives_a_restart(
     transport = _ScriptedTransport((201, {"document_id": "doc_ab12"}))
     service, store_path = _service(tmp_path, transport)
 
-    response = service.submit(_package(with_custody=True))
+    response = service.submit(_package(with_custody=True), admitted_tenant=None)
 
     assert response.status == "rendered"
     assert response.artifact_base64 is not None, "custody must never withhold the artifact"
@@ -157,21 +157,24 @@ def test_verified_custody_reaches_the_response_and_survives_a_restart(
         "rdr_golden_portfolio_review_v1",
         accepted_stale_seconds=300,
         rendering_stale_seconds=900,
+        admitted_tenant=None,
     )
     assert diagnostics.template_publication == "published"
     assert (
-        service.get_artifact_metadata("rdr_golden_portfolio_review_v1").template_publication
+        service.get_artifact_metadata(
+            "rdr_golden_portfolio_review_v1", admitted_tenant=None
+        ).template_publication
         == "published"
     )
 
     # A fresh store over the same file is the restart: the truth was persisted, not held.
     reopened = RenderStore(store_path)
-    stored = reopened.get("rdr_golden_portfolio_review_v1")
+    stored = reopened.get("rdr_golden_portfolio_review_v1", tenant_id=None)
     assert stored.archive_state == "archived_verified"
     assert stored.archive_document_id == "doc_ab12"
     assert stored.archive_request_id == derive_archive_request_id(REFERENCE, ARTIFACT_SHA)
 
-    status = service.get_status("rdr_golden_portfolio_review_v1")
+    status = service.get_status("rdr_golden_portfolio_review_v1", admitted_tenant=None)
     assert status.archive_state == "archived_verified"
     assert status.archive_document_id == "doc_ab12"
     assert response.archive_detail is None and status.archive_detail is None, (
@@ -185,7 +188,7 @@ def test_an_unreachable_archive_never_fails_the_render(tmp_path: Path) -> None:
     )
     service, store_path = _service(tmp_path, transport)
 
-    response = service.submit(_package(with_custody=True))
+    response = service.submit(_package(with_custody=True), admitted_tenant=None)
 
     assert response.status == "rendered"
     assert response.artifact_base64 is not None
@@ -196,7 +199,7 @@ def test_an_unreachable_archive_never_fails_the_render(tmp_path: Path) -> None:
     # refusal is not, and archive_state alone cannot say which.
     assert response.archive_detail is not None
     assert "archive_unreachable" in response.archive_detail
-    stored = RenderStore(store_path).get("rdr_golden_portfolio_review_v1")
+    stored = RenderStore(store_path).get("rdr_golden_portfolio_review_v1", tenant_id=None)
     assert stored.archive_detail is not None
     assert "archive_unreachable" in stored.archive_detail
 
@@ -208,7 +211,7 @@ def test_a_timeout_leaves_the_reconciliation_key_on_the_job(tmp_path: Path) -> N
     transport = _ScriptedTransport(TimeoutError("deadline"))
     service, store_path = _service(tmp_path, transport)
 
-    response = service.submit(_package(with_custody=True))
+    response = service.submit(_package(with_custody=True), admitted_tenant=None)
 
     assert response.status == "rendered"
     assert response.archive_state == "archive_pending"
@@ -217,7 +220,7 @@ def test_a_timeout_leaves_the_reconciliation_key_on_the_job(tmp_path: Path) -> N
     )
     assert response.archive_detail is not None
     assert "reconcile" in response.archive_detail
-    stored = RenderStore(store_path).get("rdr_golden_portfolio_review_v1")
+    stored = RenderStore(store_path).get("rdr_golden_portfolio_review_v1", tenant_id=None)
     assert stored.archive_request_id == derive_archive_request_id(REFERENCE, ARTIFACT_SHA)
 
 
@@ -228,12 +231,12 @@ def test_a_handoff_crash_is_contained_and_named(tmp_path: Path) -> None:
     transport = _ScriptedTransport(RuntimeError("nobody expects this"))
     service, _ = _service(tmp_path, transport)
 
-    response = service.submit(_package(with_custody=True))
+    response = service.submit(_package(with_custody=True), admitted_tenant=None)
 
     assert response.status == "rendered"
     assert response.artifact_base64 is not None
     assert response.archive_state == "archive_failed"
-    stored_detail = service.get_status("rdr_golden_portfolio_review_v1")
+    stored_detail = service.get_status("rdr_golden_portfolio_review_v1", admitted_tenant=None)
     assert stored_detail.archive_state == "archive_failed"
 
 
@@ -241,7 +244,7 @@ def test_a_package_without_custody_carries_no_archive_state(tmp_path: Path) -> N
     transport = _ScriptedTransport()
     service, _ = _service(tmp_path, transport)
 
-    response = service.submit(_package(with_custody=False))
+    response = service.submit(_package(with_custody=False), admitted_tenant=None)
 
     assert response.status == "rendered"
     assert response.archive_state is None
@@ -252,7 +255,7 @@ def test_a_package_without_custody_carries_no_archive_state(tmp_path: Path) -> N
 def test_an_unconfigured_deployment_records_no_archive_state(tmp_path: Path) -> None:
     service, _ = _service(tmp_path, None)
 
-    response = service.submit(_package(with_custody=True))
+    response = service.submit(_package(with_custody=True), admitted_tenant=None)
 
     assert response.status == "rendered"
     assert response.archive_state is None
@@ -288,7 +291,7 @@ def test_a_store_that_cannot_record_custody_still_returns_the_render(
         archive_handoff=handoff,
     )
 
-    response = service.submit(_package(with_custody=True))
+    response = service.submit(_package(with_custody=True), admitted_tenant=None)
 
     assert transport.calls == 1
     assert response.status == "rendered"
@@ -318,12 +321,12 @@ def test_a_connection_lost_after_send_surfaces_as_pending(tmp_path: Path) -> Non
     transport = _ScriptedTransport(ArchiveOutcomeUnknownError("connection reset by peer"))
     service, store_path = _service(tmp_path, transport)
 
-    response = service.submit(_package(with_custody=True))
+    response = service.submit(_package(with_custody=True), admitted_tenant=None)
 
     assert response.status == "rendered"
     assert response.artifact_base64 is not None
     assert response.archive_state == "archive_pending"
     assert response.archive_request_id == derive_archive_request_id(REFERENCE, ARTIFACT_SHA)
-    stored = RenderStore(store_path).get("rdr_golden_portfolio_review_v1")
+    stored = RenderStore(store_path).get("rdr_golden_portfolio_review_v1", tenant_id=None)
     assert stored.archive_detail is not None
     assert "archive_outcome_unknown" in stored.archive_detail

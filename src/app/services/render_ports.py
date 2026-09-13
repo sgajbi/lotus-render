@@ -39,6 +39,7 @@ class RenderJobStorePort(Protocol):
         output_format: str,
         runtime_engine: str,
         runtime_engine_version: str,
+        tenant_id: str | None,
     ) -> CreateOrGetRenderJobResult: ...
 
     def claim_for_rendering(
@@ -72,7 +73,7 @@ class RenderJobStorePort(Protocol):
         claim_generation: int,
     ) -> StoredRenderJob: ...
 
-    def get(self, render_job_id: str) -> StoredRenderJob: ...
+    def get(self, render_job_id: str, *, tenant_id: str | None) -> StoredRenderJob: ...
 
 
 class RenderEnginePort(Protocol):

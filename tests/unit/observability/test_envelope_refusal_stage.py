@@ -191,16 +191,17 @@ def test_forcing_an_admission_refusal_increments_admission_and_not_runtime(tmp_p
     before_runtime = _count("runtime")
 
     with pytest.raises(RenderPackageInvalidError):
-        service.submit(_over_envelope_package("rdr_stage_admission"))
+        service.submit(_over_envelope_package("rdr_stage_admission"), admitted_tenant=None)
 
     assert _count("admission") == before_admission + 1
     assert _count("runtime") == before_runtime, (
         "an admission refusal was counted as a runtime kill, which would read as the "
         "envelope model mispredicting when it in fact worked"
     )
-    assert store.get("rdr_stage_admission").failure_category == "resource_limit_exceeded", (
-        "the caller-facing category must not change; the separation is for the operator"
-    )
+    assert (
+        store.get("rdr_stage_admission", tenant_id=None).failure_category
+        == "resource_limit_exceeded"
+    ), "the caller-facing category must not change; the separation is for the operator"
 
 
 def test_forcing_a_runtime_kill_increments_runtime_and_not_admission(

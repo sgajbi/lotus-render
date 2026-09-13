@@ -75,16 +75,36 @@ Idempotency is keyed on `render_job_id` **plus the package**:
 The conflict is deliberate. Silently rendering a different document under an id another system has
 already recorded would make the render job id useless as evidence.
 
+### Tenant admission
+
+Every render operation admits an `X-Tenant-Id` header, and the tenant is transport truth — never
+read from the package. On `POST /renders` it is bound to the job at creation; on every read it
+scopes the lookup, so a job another tenant created is `404 render_job_not_found`, exactly like a
+job that does not exist. The Archive custody handoff carries the admitted tenant, not the tenant
+the package's `render_context.archive` block claims.
+
+| situation | outcome |
+|---|---|
+| header and custody block agree, or the block names no tenant | admitted; job bound to the header's tenant |
+| header and custody block name different tenants | `422 tenant_scope_contradiction`, refused before the job is created, claimed, compiled or handed to Archive |
+| same `render_job_id` submitted by a different tenant | `409 render_job_conflict` — the same signal as a package mismatch; the row keeps its owner |
+| no header | admitted while the producer rolls the header out (lotus-report#375); the job is unattributed, stays readable, and is never backfilled with an owner |
+
+The header is optional today by design, not by omission: `lotus-report` threads it as a required
+argument on its side first, and only then does Render refuse its absence. Admitting the header is
+not authenticating the caller — see [Security and Controls](Security-and-Controls).
+
 ### Error codes
 
 | status | code | when |
 |---|---|---|
 | `400` | `invalid_content_length` | `Content-Length` is malformed or negative |
 | `404` | `render_job_not_found` | unknown `render_job_id` on any read |
-| `409` | `render_job_conflict` | `render_job_id` reused with a different package |
+| `409` | `render_job_conflict` | `render_job_id` reused with a different package, or already owned by another admitted tenant |
 | `409` | `render_artifact_not_ready` | artifact metadata requested before a successful render |
 | `413` | `request_body_too_large` | body over `LOTUS_RENDER_MAX_REQUEST_BODY_BYTES` |
 | `422` | `render_package_invalid` | package failed governed validation |
+| `422` | `tenant_scope_contradiction` | the admitted `X-Tenant-Id` contradicts the package's custody tenant; refused before any effect |
 | `429` | `render_execution_capacity_exhausted` | concurrency limit reached; retry the identical package |
 | `502` | `render_failed` | execution failed inside the governed runtime envelope |
 | `503` | — | `/health/ready` while draining or a dependency is unavailable |

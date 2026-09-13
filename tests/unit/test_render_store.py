@@ -61,7 +61,7 @@ def test_render_store_get_unknown_job_raises_not_found(tmp_path: Path) -> None:
     store = _build_store(tmp_path)
 
     with pytest.raises(RenderJobNotFoundError, match="render_job_not_found"):
-        store.get("rdr_missing")
+        store.get("rdr_missing", tenant_id=None)
 
 
 def test_render_store_migrates_prior_schema_without_losing_rows(tmp_path: Path) -> None:
@@ -130,7 +130,7 @@ def test_render_store_migrates_prior_schema_without_losing_rows(tmp_path: Path) 
         assert connection.execute("PRAGMA user_version").fetchone()[0] == (
             CURRENT_RENDER_STORE_SCHEMA_VERSION
         )
-    migrated = store.get("rdr_legacy")
+    migrated = store.get("rdr_legacy", tenant_id=None)
     assert migrated.report_job_id == "rjob_legacy"
     assert migrated.snapshot_id == ""
     assert migrated.lineage_refs == ()
@@ -156,6 +156,7 @@ def _create_job(store: RenderStore, render_job_id: str = "rdr_store") -> str:
         output_format="pdf",
         runtime_engine="typst",
         runtime_engine_version="0.14.2",
+        tenant_id=None,
     )
     return job.render_job_id
 
@@ -180,6 +181,7 @@ def test_render_store_persists_support_safe_source_lineage(tmp_path: Path) -> No
         output_format="pdf",
         runtime_engine="typst",
         runtime_engine_version="0.14.2",
+        tenant_id=None,
     )
 
     assert job.snapshot_id == "rsnap_lineage"
@@ -210,6 +212,7 @@ def test_render_store_bounds_corrupt_json_lineage_fields(tmp_path: Path) -> None
         output_format="pdf",
         runtime_engine="typst",
         runtime_engine_version="0.14.2",
+        tenant_id=None,
     )
     with closing(sqlite3.connect(db_path)) as connection, connection:
         connection.execute(
@@ -218,7 +221,7 @@ def test_render_store_bounds_corrupt_json_lineage_fields(tmp_path: Path) -> None
         )
         connection.commit()
 
-    restored = store.get(job.render_job_id)
+    restored = store.get(job.render_job_id, tenant_id=None)
 
     assert restored.lineage_refs == ()
     assert restored.disclosure_refs == ("portfolio-review.standard-disclosures.v1",)
@@ -314,6 +317,7 @@ def test_render_store_create_or_get_is_atomic_across_store_instances(tmp_path: P
             output_format="pdf",
             runtime_engine="typst",
             runtime_engine_version="0.14.2",
+            tenant_id=None,
         ).status
 
     with ThreadPoolExecutor(max_workers=8) as executor:
@@ -341,6 +345,7 @@ def test_render_store_create_or_get_conflicts_for_different_package_hash(
             output_format="pdf",
             runtime_engine="typst",
             runtime_engine_version="0.14.2",
+            tenant_id=None,
         )
 
 
@@ -428,7 +433,7 @@ def test_record_archive_outcome_never_touches_the_render_status(tmp_path: Path) 
     assert updated.status == "rendered"
     assert updated.archive_state == "archive_pending"
     assert updated.archive_request_id == "areq_reconcile_me"
-    assert store.get(render_job_id).archive_state == "archive_pending"
+    assert store.get(render_job_id, tenant_id=None).archive_state == "archive_pending"
 
 
 def test_archive_columns_survive_a_replayed_migration(tmp_path: Path) -> None:
@@ -443,7 +448,7 @@ def test_archive_columns_survive_a_replayed_migration(tmp_path: Path) -> None:
 
     replayed = _build_store(tmp_path)
     render_job_id = _create_job(replayed, "rdr_after_replay")
-    assert replayed.get(render_job_id).archive_state is None
+    assert replayed.get(render_job_id, tenant_id=None).archive_state is None
     with closing(sqlite3.connect(path)) as connection:
         assert connection.execute("PRAGMA user_version").fetchone()[0] == (
             CURRENT_RENDER_STORE_SCHEMA_VERSION
