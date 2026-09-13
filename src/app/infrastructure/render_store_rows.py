@@ -53,6 +53,9 @@ class StoredRenderJob:
     created_at: datetime
     updated_at: datetime
     completed_at: datetime | None
+    # Which claim currently owns the job. Bumped by every successful claim; terminal
+    # and custody writes are fenced to it, so a stale attempt's write cannot land (#313).
+    claim_generation: int
     archive_state: str | None = None
     archive_document_id: str | None = None
     archive_request_id: str | None = None
@@ -90,6 +93,7 @@ REQUIRED_RENDER_JOB_COLUMNS = {
     "runtime_engine_version",
     "created_at",
     "updated_at",
+    "claim_generation",
 }
 
 
@@ -134,6 +138,7 @@ def row_to_job(row: sqlite3.Row) -> StoredRenderJob:
         created_at=dt_from_text(row["created_at"]) or utc_now(),
         updated_at=dt_from_text(row["updated_at"]) or utc_now(),
         completed_at=dt_from_text(row["completed_at"]),
+        claim_generation=int(row["claim_generation"]),
         archive_state=row["archive_state"],
         archive_document_id=row["archive_document_id"],
         archive_request_id=row["archive_request_id"],

@@ -234,7 +234,7 @@ def test_render_diagnostics_reports_stale_in_progress_without_raw_identifiers(
             runtime_engine="typst",
             runtime_engine_version="0.14.2",
         )
-        store.mark_rendering("rdr_stale_api")
+        store.claim_for_rendering("rdr_stale_api", rendering_stale_seconds=900)
         with closing(sqlite3.connect(tmp_path / "render-store.sqlite3")) as connection, connection:
             connection.execute(
                 "UPDATE render_job SET updated_at = ? WHERE render_job_id = ?",

@@ -263,6 +263,13 @@ class RenderStore:
         Returns ``None`` when the job is not claimable, which is the ordinary outcome for
         a concurrent duplicate submission of a render that is genuinely still running.
         The claim is a single conditional UPDATE, so exactly one caller can win it.
+
+        Every won claim increments ``claim_generation`` in that same UPDATE. The
+        generation is the claim's identity: terminal and custody writes are fenced to
+        it, so an attempt whose job was taken over while it was stalled holds a stale
+        generation and none of its writes can land (#313). A timestamp going stale
+        proves nothing about whether the old process died -- the generation is what
+        makes the takeover exclusive rather than merely probable.
         """
         observed_at = now or utc_now()
         stale_cutoff = dt_to_text(observed_at - timedelta(seconds=rendering_stale_seconds))
@@ -277,7 +284,8 @@ class RenderStore:
                 cursor = connection.execute(
                     """
                     UPDATE render_job
-                    SET status = 'rendering', updated_at = ?
+                    SET status = 'rendering', updated_at = ?,
+                        claim_generation = claim_generation + 1
                     WHERE render_job_id = ?
                       AND (
                         status = 'accepted'
@@ -294,26 +302,9 @@ class RenderStore:
                 ).fetchone()
         return row_to_job(row)
 
-    def mark_rendering(self, render_job_id: str) -> StoredRenderJob:
-        return self._update(
-            render_job_id=render_job_id,
-            status="rendering",
-            failure_category=None,
-            failure_message=None,
-            determinism_mode=None,
-            determinism_statement=None,
-            bounded_determinism_fingerprint=None,
-            template_digest=None,
-            artifact_sha256=None,
-            mime_type=None,
-            output_size_bytes=None,
-            render_duration_ms=None,
-            completed_at=None,
-            template_publication=None,
-            expected_statuses=("accepted",),
-        )
-
-    def mark_rendered(self, render_job_id: str, result: RenderResult) -> StoredRenderJob:
+    def mark_rendered(
+        self, render_job_id: str, result: RenderResult, *, claim_generation: int
+    ) -> StoredRenderJob:
         return self._update(
             render_job_id=render_job_id,
             status="rendered",
@@ -330,6 +321,7 @@ class RenderStore:
             render_duration_ms=result.diagnostic.render_duration_ms,
             completed_at=utc_now(),
             expected_statuses=("rendering",),
+            expected_claim_generation=claim_generation,
         )
 
     def mark_failed(
@@ -338,6 +330,7 @@ class RenderStore:
         render_job_id: str,
         failure_category: RenderFailureCategory,
         failure_message: str,
+        claim_generation: int,
     ) -> StoredRenderJob:
         return self._update(
             render_job_id=render_job_id,
@@ -355,6 +348,7 @@ class RenderStore:
             completed_at=utc_now(),
             template_publication=None,
             expected_statuses=("accepted", "rendering"),
+            expected_claim_generation=claim_generation,
         )
 
     def record_archive_outcome(
@@ -365,15 +359,25 @@ class RenderStore:
         archive_document_id: str | None,
         archive_request_id: str | None,
         archive_detail: str | None,
+        expected_claim_generation: int,
     ) -> StoredRenderJob:
         """Record the custody truth for a rendered artifact without touching status.
 
         The render outcome and the archive outcome are different facts with different
         authorities: the job stays 'rendered' whatever Archive said (issue #120), so
         this write deliberately bypasses the status-transition machinery.
+
+        It does not bypass ownership: the write is fenced to the claim generation the
+        caller holds, so a stale attempt's custody cannot replace the winner's (#313).
         """
         with self._lock:
             with self._connect() as connection:
+                existing = connection.execute(
+                    "SELECT claim_generation FROM render_job WHERE render_job_id = ?",
+                    (render_job_id,),
+                ).fetchone()
+                if existing is None:
+                    raise RenderJobNotFoundError("render_job_not_found")
                 cursor = connection.execute(
                     """
                     UPDATE render_job
@@ -382,7 +386,7 @@ class RenderStore:
                         archive_request_id = ?,
                         archive_detail = ?,
                         updated_at = ?
-                    WHERE render_job_id = ?
+                    WHERE render_job_id = ? AND claim_generation = ?
                     """,
                     (
                         archive_state,
@@ -391,10 +395,15 @@ class RenderStore:
                         archive_detail,
                         dt_to_text(utc_now()),
                         render_job_id,
+                        expected_claim_generation,
                     ),
                 )
-                if cursor.rowcount == 0:
-                    raise RenderJobNotFoundError("render_job_not_found")
+                if cursor.rowcount != 1:
+                    raise RenderJobTransitionError(
+                        "stale_archive_outcome_write:"
+                        f"expected_generation_{expected_claim_generation}"
+                        f"_found_{int(existing['claim_generation'])}"
+                    )
                 row = connection.execute(
                     "SELECT * FROM render_job WHERE render_job_id = ?",
                     (render_job_id,),
@@ -419,11 +428,19 @@ class RenderStore:
         render_duration_ms: int | None,
         completed_at: datetime | None,
         expected_statuses: tuple[RenderJobStatus, ...],
+        expected_claim_generation: int,
     ) -> StoredRenderJob:
+        """One conditional terminal write: right prior status AND the caller's claim.
+
+        The status precondition alone cannot fence a stale attempt, because a stale
+        takeover leaves the status at 'rendering' -- exactly what the old attempt
+        expects to find. The claim generation is what distinguishes the two attempts,
+        so both predicates live in the same UPDATE (#313).
+        """
         with self._lock:
             with self._connect() as connection:
                 existing = connection.execute(
-                    "SELECT status FROM render_job WHERE render_job_id = ?",
+                    "SELECT status, claim_generation FROM render_job WHERE render_job_id = ?",
                     (render_job_id,),
                 ).fetchone()
                 if existing is None:
@@ -441,7 +458,7 @@ class RenderStore:
                         artifact_sha256 = ?, mime_type = ?,
                         output_size_bytes = ?, render_duration_ms = ?, updated_at = ?,
                         completed_at = ?
-                    WHERE render_job_id = ? AND status IN (
+                    WHERE render_job_id = ? AND claim_generation = ? AND status IN (
                     """
                     + placeholders
                     + """
@@ -463,13 +480,16 @@ class RenderStore:
                         now_text,
                         completed_at_text,
                         render_job_id,
+                        expected_claim_generation,
                         *expected_statuses,
                     ),
                 )
                 if cursor.rowcount != 1:
-                    current_status = str(existing["status"])
-                    raise RenderJobTransitionError(
-                        f"invalid_render_job_transition:{current_status}->{status}"
+                    raise _transition_refusal(
+                        existing,
+                        status=status,
+                        expected_statuses=expected_statuses,
+                        expected_claim_generation=expected_claim_generation,
                     )
                 row = connection.execute(
                     "SELECT * FROM render_job WHERE render_job_id = ?",
@@ -477,6 +497,30 @@ class RenderStore:
                 ).fetchone()
                 assert row is not None
                 return row_to_job(row)
+
+
+def _transition_refusal(
+    existing: sqlite3.Row,
+    *,
+    status: RenderJobStatus,
+    expected_statuses: tuple[RenderJobStatus, ...],
+    expected_claim_generation: int,
+) -> RenderJobTransitionError:
+    """Name why a terminal write did not land: wrong prior status, or a stale claim.
+
+    A stale claim leaves the status exactly as the loser expects, so the two refusals
+    are distinguishable only here -- the message tells an operator whether the job
+    moved on (invalid transition) or was taken over (stale claim).
+    """
+    current_status = str(existing["status"])
+    current_generation = int(existing["claim_generation"])
+    if current_status in expected_statuses and current_generation != expected_claim_generation:
+        return RenderJobTransitionError(
+            "stale_render_claim:"
+            f"expected_generation_{expected_claim_generation}"
+            f"_found_{current_generation}"
+        )
+    return RenderJobTransitionError(f"invalid_render_job_transition:{current_status}->{status}")
 
 
 def _age_seconds(updated_at: datetime, observed_at: datetime) -> int:

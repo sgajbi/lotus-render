@@ -223,10 +223,15 @@ Primary governing artifacts:
 8. HTTP routes should consume typed dependencies from `src/app/dependencies/` rather than reading
    concrete adapters from raw `app.state`; route tests should use app-factory instances and
    dependency overrides instead of the module-level singleton app.
-9. Persisted render job lifecycle updates are compare-and-set transitions. Same-package
-   `accepted`, `rendering`, `rendered`, and `failed` replays return prior truth without rerunning
-   the renderer; terminal states are immutable unless a future governed recovery workflow changes
-   that contract.
+9. Persisted render job lifecycle updates are compare-and-set transitions fenced by a durable
+   `claim_generation`: every successful claim increments it in the claiming UPDATE, and terminal
+   and Archive-custody writes land only under the generation the caller holds, so a stale
+   attempt that lost its job to takeover cannot commit output, return its bytes as the winning
+   artifact, or overwrite the winner's custody (#313). Same-package `accepted`, `rendering`,
+   `rendered`, and `failed` replays return prior truth without rerunning the renderer; terminal
+   states are immutable unless a future governed recovery workflow changes that contract. A
+   losing completion adopts stored truth and returns bytes only when they hash to the stored
+   winning digest.
 10. Settings live behind the `LOTUS_RENDER_` contract catalogued in `wiki/Configuration.md`.
     Required invalid configuration fails at service startup; runtime unavailability reports as
     `runtime_configuration_unavailable`; Typst/Docker compile timeouts persist as failed render

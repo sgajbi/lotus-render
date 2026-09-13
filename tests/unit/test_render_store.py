@@ -137,11 +137,11 @@ def test_render_store_migrates_prior_schema_without_losing_rows(tmp_path: Path) 
     assert migrated.disclosure_refs == ()
 
 
-def test_render_store_mark_rendering_unknown_job_raises_not_found(tmp_path: Path) -> None:
+def test_render_store_claim_unknown_job_raises_not_found(tmp_path: Path) -> None:
     store = _build_store(tmp_path)
 
     with pytest.raises(RenderJobNotFoundError, match="render_job_not_found"):
-        store.mark_rendering("rdr_missing")
+        store.claim_for_rendering("rdr_missing", rendering_stale_seconds=900)
 
 
 def _create_job(store: RenderStore, render_job_id: str = "rdr_store") -> str:
@@ -258,31 +258,42 @@ def _render_result(render_job_id: str) -> RenderResult:
 def test_render_store_rejects_terminal_state_overwrites(tmp_path: Path) -> None:
     store = _build_store(tmp_path)
     render_job_id = _create_job(store)
-    store.mark_rendering(render_job_id)
+    claimed = store.claim_for_rendering(render_job_id, rendering_stale_seconds=900)
+    assert claimed is not None
     store.mark_failed(
         render_job_id=render_job_id,
         failure_category="template_render_failed",
         failure_message="failed",
+        claim_generation=claimed.claim_generation,
     )
 
     with pytest.raises(RenderJobTransitionError, match="failed->rendered"):
-        store.mark_rendered(render_job_id, _render_result(render_job_id))
+        store.mark_rendered(
+            render_job_id,
+            _render_result(render_job_id),
+            claim_generation=claimed.claim_generation,
+        )
 
-    with pytest.raises(RenderJobTransitionError, match="failed->rendering"):
-        store.mark_rendering(render_job_id)
+    assert store.claim_for_rendering(render_job_id, rendering_stale_seconds=900) is None, (
+        "a terminal job must not be claimable"
+    )
 
 
 def test_render_store_rejects_rendered_state_overwrites(tmp_path: Path) -> None:
     store = _build_store(tmp_path)
     render_job_id = _create_job(store)
-    store.mark_rendering(render_job_id)
-    store.mark_rendered(render_job_id, _render_result(render_job_id))
+    claimed = store.claim_for_rendering(render_job_id, rendering_stale_seconds=900)
+    assert claimed is not None
+    store.mark_rendered(
+        render_job_id, _render_result(render_job_id), claim_generation=claimed.claim_generation
+    )
 
     with pytest.raises(RenderJobTransitionError, match="rendered->failed"):
         store.mark_failed(
             render_job_id=render_job_id,
             failure_category="template_render_failed",
             failure_message="late failure",
+            claim_generation=claimed.claim_generation,
         )
 
 
@@ -339,9 +350,12 @@ def test_render_store_reports_source_backed_in_flight_summaries(tmp_path: Path) 
     accepted_id = _create_job(store, "rdr_accepted")
     rendering_id = _create_job(store, "rdr_rendering")
     rendered_id = _create_job(store, "rdr_rendered")
-    store.mark_rendering(rendering_id)
-    store.mark_rendering(rendered_id)
-    store.mark_rendered(rendered_id, _render_result(rendered_id))
+    store.claim_for_rendering(rendering_id, rendering_stale_seconds=900)
+    claimed = store.claim_for_rendering(rendered_id, rendering_stale_seconds=900)
+    assert claimed is not None
+    store.mark_rendered(
+        rendered_id, _render_result(rendered_id), claim_generation=claimed.claim_generation
+    )
 
     observed_at = datetime(2026, 7, 5, 12, 0, 0, tzinfo=UTC)
     with closing(sqlite3.connect(db_path)) as connection, connection:
@@ -386,6 +400,7 @@ def test_record_archive_outcome_unknown_job_raises_not_found(tmp_path: Path) -> 
             archive_document_id="doc_x",
             archive_request_id="areq_x",
             archive_detail=None,
+            expected_claim_generation=1,
         )
 
 
@@ -395,8 +410,11 @@ def test_record_archive_outcome_never_touches_the_render_status(tmp_path: Path) 
 
     store = _build_store(tmp_path)
     render_job_id = _create_job(store)
-    store.mark_rendering(render_job_id)
-    store.mark_rendered(render_job_id, _render_result(render_job_id))
+    claimed = store.claim_for_rendering(render_job_id, rendering_stale_seconds=900)
+    assert claimed is not None
+    store.mark_rendered(
+        render_job_id, _render_result(render_job_id), claim_generation=claimed.claim_generation
+    )
 
     updated = store.record_archive_outcome(
         render_job_id,
@@ -404,6 +422,7 @@ def test_record_archive_outcome_never_touches_the_render_status(tmp_path: Path) 
         archive_document_id=None,
         archive_request_id="areq_reconcile_me",
         archive_detail="archive_timeout: reconcile by archive_request_id",
+        expected_claim_generation=claimed.claim_generation,
     )
 
     assert updated.status == "rendered"

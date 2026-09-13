@@ -2,7 +2,7 @@
 
 `classify_compile_failure` tells a killed compile from a rejected template and returns
 `resource_limit_exceeded` for the first. It stamped that on a local attempt and then
-raised a bare `RuntimeError`, and `_unexpected_failure_category` re-derived the category
+raised a bare `RuntimeError`, and `unexpected_failure_category` re-derived the category
 from `str(exc)` -- a matcher that knows only `engine_unavailable` and
 `template_render_failed`. So every memory-killed compile was stored, metered and
 answered as a template failure, with the recovery action "escalate template support".
@@ -29,9 +29,9 @@ import pytest
 from app.contracts.renders import RenderFailureCategory as ContractFailureCategory
 from app.domain.render_attempts.models import RenderFailureCategory as RuntimeFailureCategory
 from app.services.compile_failures import classify_compile_failure
+from app.services.render_job_views import unexpected_failure_category
 from app.services.render_ports import RenderCompileFailedError
 from app.services.render_recovery import diagnostic_recovery
-from app.services.render_submission import _unexpected_failure_category
 
 
 def _killed_process(signal_number: int = 9) -> subprocess.CompletedProcess[str]:
@@ -55,7 +55,7 @@ def test_the_category_survives_the_raise() -> None:
     category, summary = classify_compile_failure(_killed_process())
     error = RenderCompileFailedError(category, summary)
 
-    assert _unexpected_failure_category(error) == "resource_limit_exceeded"
+    assert unexpected_failure_category(error) == "resource_limit_exceeded"
 
 
 def test_a_template_failure_is_still_a_template_failure() -> None:
@@ -64,7 +64,7 @@ def test_a_template_failure_is_still_a_template_failure() -> None:
     rejected = subprocess.CompletedProcess(["typst"], 1, "error: unknown variable", "")
     category, summary = classify_compile_failure(rejected)
 
-    assert _unexpected_failure_category(RenderCompileFailedError(category, summary)) == (
+    assert unexpected_failure_category(RenderCompileFailedError(category, summary)) == (
         "template_render_failed"
     )
 
@@ -72,12 +72,10 @@ def test_a_template_failure_is_still_a_template_failure() -> None:
 def test_an_unclassified_runtime_error_is_unchanged() -> None:
     """Everything that does not carry a category keeps the old message matching."""
 
-    assert _unexpected_failure_category(RuntimeError("neither docker nor typst is installed")) == (
+    assert unexpected_failure_category(RuntimeError("neither docker nor typst is installed")) == (
         "engine_unavailable"
     )
-    assert _unexpected_failure_category(RuntimeError("something else")) == (
-        "template_render_failed"
-    )
+    assert unexpected_failure_category(RuntimeError("something else")) == ("template_render_failed")
 
 
 def test_the_recovery_advice_does_not_send_an_operator_to_template_support() -> None:

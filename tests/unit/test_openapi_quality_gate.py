@@ -64,7 +64,7 @@ def test_the_gate_rejects_a_deleted_replay_branch() -> None:
 
 
 def test_the_gate_rejects_an_undocumented_operation() -> None:
-    """The wiki claims nine operations and no undocumented tenth; now that is enforced."""
+    """The wiki claims eleven operations and no undocumented twelfth; now that is enforced."""
 
     spec = _spec()
     spec["paths"]["/renders/{render_job_id}/raw-package"] = {

@@ -402,6 +402,9 @@ def hand_off_and_record(
             archive_document_id=outcome.archive_document_id,
             archive_request_id=outcome.archive_request_id,
             archive_detail=outcome.archive_detail,
+            # Fenced to the claim that won the render: a write under any other
+            # generation must not replace the winner's custody truth (issue #313).
+            expected_claim_generation=stored.claim_generation,
         )
     except Exception:
         logger.exception("archive_outcome_not_recorded")
