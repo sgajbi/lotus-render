@@ -124,6 +124,7 @@ def _deliver(handoff: ArchiveHandoff, package: RenderPackage) -> ArchiveHandoffO
         runtime_engine_version="0.14.2",
         template_digest="sha256:feedbeef",
         template_publication="published",
+        admitted_tenant=None,
     )
 
 

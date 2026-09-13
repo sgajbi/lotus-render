@@ -133,6 +133,11 @@ whenever a template is added, deprecated, blocked, or moved across ownership bou
      available; local Typst is fallback only when Docker is unavailable.
    - direct service HTTP access is bounded by trusted-host and request-body-size controls; browser
      access and authentication remain platform-ingress responsibilities until governed otherwise.
+   - the tenant a job belongs to is the admitted `X-Tenant-Id` transport context (C6-REN-02,
+     lotus-report#375): bound at create, scoping every read, carried into Archive custody, and
+     never taken from the package's custody block, which is a claim that may only agree with it.
+     The header is optional until the producer sends it on every call; an unattributed job stays
+     readable and is never backfilled with an owner.
 
 ## Repo-Native Commands
 
@@ -264,6 +269,12 @@ Primary governing artifacts:
     from a guess.
 17. Promote a template component to a shared module on the SECOND consumer, not on the appearance
     of generality (#150). A component used once stays where it is used, however general it looks.
+18. Tenant scope and claim ownership are orthogonal predicates in the same conditional writes:
+    `tenant_id` decides what a caller may see, `claim_generation` decides which attempt may write
+    (#313). `RenderStore.get` and `create_or_get_with_outcome` take the tenant as a REQUIRED
+    keyword so a new caller cannot forget the scope; the service's post-admission re-reads of a
+    row the same request already admitted pass `tenant_id=None` and say so at the call site.
+    Foreign and absent must stay indistinguishable at every read surface.
 
 ## Working Practices That Cost Us Something To Learn
 
@@ -303,13 +314,18 @@ Each of these was a live defect in this repository, not a precaution.
       commit; `release-evidence.json` records `commit_sha` as the TESTED revision beside a
       `workflow_definition_sha`. When looking a run up by hand, search the run title as well as
       `--commit`.
-    - **The change that introduces a dispatcher runs the OLD one.** `pull_request_target` executes
-      the base branch's workflow, so a merge that changes the dispatcher is itself dispatched by
-      the previous definition. Such a merge still needs a manual backfill —
+    - **The refusal is about the TIP, not about touching workflows.** `GITHUB_TOKEN` is refused
+      only when the tagged commit's workflow tree differs from main's tip. A single-commit
+      workflow-touching merge is therefore tagged fine — measured on #315's own merge
+      (`eefbc4f`): `pull_request_target` read the dispatcher from post-merge `main`, so the NEW
+      dispatcher ran, and its tag write succeeded because the commit was the tip. What the 403
+      hits is an interior workflow-touching revision of a multi-commit merge (#308's case), or a
+      tip that main has already moved past. The fallback exists for exactly those and is proven
+      only when one occurs: after any merge under `.github/workflows`, resolve `main`'s SHA, look
+      the run up by `--commit` and by title, and treat absence as the finding. If a revision is
+      ever left with no run, the manual backfill is
       `gh workflow run main-releasability.yml --ref main -f expected_sha=<sha>
-      -f triggering_pr=backfill`, no tag required — and the new behaviour is proven only on the
-      NEXT workflow-touching merge. After merging anything under `.github/workflows`, resolve
-      `main`'s SHA and look the run up; absence is the finding.
+      -f triggering_pr=backfill` — no tag required.
 
     The enumeration is the landed interval `base.sha..merge_commit_sha`, never the count-bounded
     `rev-list -n`: `pull_request.commits` describes the branch when the event fired, and after a

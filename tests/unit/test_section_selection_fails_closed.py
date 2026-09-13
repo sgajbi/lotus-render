@@ -166,11 +166,14 @@ def test_a_refused_selection_never_reaches_a_render_slot(tmp_path: Path) -> None
     )
 
     with pytest.raises(RenderPackageInvalidError) as refusal:
-        service.submit(_package(["performance", "unknown"], render_job_id="rdr_sections_refused"))
+        service.submit(
+            _package(["performance", "unknown"], render_job_id="rdr_sections_refused"),
+            admitted_tenant=None,
+        )
 
     assert "'unknown'" in str(refusal.value)
     assert limiter.acquired == 0, "a selection that cannot render took a render slot"
-    stored = store.get("rdr_sections_refused")
+    stored = store.get("rdr_sections_refused", tenant_id=None)
     assert stored.status == "failed"
     assert stored.failure_category == "package_validation_failed"
 

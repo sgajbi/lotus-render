@@ -56,6 +56,10 @@ class StoredRenderJob:
     # Which claim currently owns the job. Bumped by every successful claim; terminal
     # and custody writes are fenced to it, so a stale attempt's write cannot land (#313).
     claim_generation: int
+    # The admitted tenant the job was created under, from transport context only; None
+    # is unattributable (pre-admission row, or a caller that sent none) and is never
+    # backfilled (C6-REN-02).
+    tenant_id: str | None = None
     archive_state: str | None = None
     archive_document_id: str | None = None
     archive_request_id: str | None = None
@@ -94,6 +98,7 @@ REQUIRED_RENDER_JOB_COLUMNS = {
     "created_at",
     "updated_at",
     "claim_generation",
+    "tenant_id",
 }
 
 
@@ -139,6 +144,7 @@ def row_to_job(row: sqlite3.Row) -> StoredRenderJob:
         updated_at=dt_from_text(row["updated_at"]) or utc_now(),
         completed_at=dt_from_text(row["completed_at"]),
         claim_generation=int(row["claim_generation"]),
+        tenant_id=row["tenant_id"],
         archive_state=row["archive_state"],
         archive_document_id=row["archive_document_id"],
         archive_request_id=row["archive_request_id"],

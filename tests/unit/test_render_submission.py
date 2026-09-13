@@ -281,7 +281,7 @@ class _RacingRenderStore:
         )
         return self.current
 
-    def get(self, _render_job_id: str) -> StoredRenderJob:
+    def get(self, _render_job_id: str, *, tenant_id: str | None) -> StoredRenderJob:
         return self.current
 
 
@@ -312,7 +312,7 @@ class _StaticRenderStore:
     ) -> StoredRenderJob:
         return self._job
 
-    def get(self, _render_job_id: str) -> StoredRenderJob:
+    def get(self, _render_job_id: str, *, tenant_id: str | None) -> StoredRenderJob:
         return self._job
 
 
@@ -330,6 +330,7 @@ def test_render_submission_returns_existing_failed_job_without_retrying(tmp_path
         output_format=package.output_format,
         runtime_engine="typst",
         runtime_engine_version="0.14.2",
+        tenant_id=None,
     )
     store.mark_failed(
         render_job_id=existing.render_job_id,
@@ -345,7 +346,7 @@ def test_render_submission_returns_existing_failed_job_without_retrying(tmp_path
         render_engine=cast(Any, _SuccessfulTypstService()),
     )
 
-    response = service.submit(package)
+    response = service.submit(package, admitted_tenant=None)
 
     assert response.status == "failed"
     assert response.failure_category == "template_render_failed"
@@ -362,9 +363,9 @@ def test_render_submission_marks_failed_for_package_value_error(tmp_path: Path) 
     )
 
     with pytest.raises(RenderPackageInvalidError, match="package payload invalid"):
-        service.submit(_render_package(render_job_id="rdr_value_error"))
+        service.submit(_render_package(render_job_id="rdr_value_error"), admitted_tenant=None)
 
-    stored = store.get("rdr_value_error")
+    stored = store.get("rdr_value_error", tenant_id=None)
     assert stored.status == "failed"
     assert stored.failure_category == "package_validation_failed"
     assert stored.failure_message == "package payload invalid"
@@ -387,9 +388,11 @@ def test_render_submission_marks_engine_unavailable_for_runtime_dependency_failu
     )
 
     with pytest.raises(RenderExecutionFailedError, match="Render runtime is unavailable"):
-        service.submit(_render_package(render_job_id="rdr_engine_unavailable"))
+        service.submit(
+            _render_package(render_job_id="rdr_engine_unavailable"), admitted_tenant=None
+        )
 
-    stored = store.get("rdr_engine_unavailable")
+    stored = store.get("rdr_engine_unavailable", tenant_id=None)
     assert stored.status == "failed"
     assert stored.failure_category == "engine_unavailable"
     assert (
@@ -409,9 +412,9 @@ def test_render_submission_fail_closes_on_unexpected_exception(tmp_path: Path) -
     )
 
     with pytest.raises(RenderExecutionFailedError):
-        service.submit(_render_package(render_job_id="rdr_unexpected"))
+        service.submit(_render_package(render_job_id="rdr_unexpected"), admitted_tenant=None)
 
-    stored = store.get("rdr_unexpected")
+    stored = store.get("rdr_unexpected", tenant_id=None)
     assert stored.status == "failed"
     assert stored.failure_category == "unexpected_render_error"
     assert stored.failure_message == "Render execution failed in the governed runtime envelope."
@@ -427,9 +430,9 @@ def test_render_submission_marks_failed_for_render_timeout(tmp_path: Path) -> No
     )
 
     with pytest.raises(RenderExecutionFailedError, match="timed out"):
-        service.submit(_render_package(render_job_id="rdr_timeout"))
+        service.submit(_render_package(render_job_id="rdr_timeout"), admitted_tenant=None)
 
-    stored = store.get("rdr_timeout")
+    stored = store.get("rdr_timeout", tenant_id=None)
     assert stored.status == "failed"
     assert stored.failure_category == "timeout"
     assert stored.failure_message == "Render execution timed out in the governed runtime envelope."
@@ -455,7 +458,9 @@ def test_render_submission_returns_current_truth_when_failure_transition_races(
         render_engine=cast(Any, _ExceptionTypstService(exc)),
     )
 
-    response = service.submit(_render_package(render_job_id="rdr_failure_race"))
+    response = service.submit(
+        _render_package(render_job_id="rdr_failure_race"), admitted_tenant=None
+    )
 
     assert response.status == "rendering"
     assert response.artifact_base64 is None
@@ -470,7 +475,9 @@ def test_render_submission_returns_current_truth_when_rendered_transition_races(
         render_engine=cast(Any, _SuccessfulTypstService()),
     )
 
-    response = service.submit(_render_package(render_job_id="rdr_rendered_race"))
+    response = service.submit(
+        _render_package(render_job_id="rdr_rendered_race"), admitted_tenant=None
+    )
 
     assert response.status == "rendering"
     assert response.artifact_base64 is None
@@ -492,6 +499,7 @@ def test_render_submission_returns_existing_in_progress_job_without_retrying(
         output_format=package.output_format,
         runtime_engine="typst",
         runtime_engine_version="0.14.2",
+        tenant_id=None,
     )
     store.claim_for_rendering(existing.render_job_id, rendering_stale_seconds=900)
     renderer = _SuccessfulTypstService()
@@ -502,7 +510,7 @@ def test_render_submission_returns_existing_in_progress_job_without_retrying(
         execution_limiter=RenderExecutionLimiter(_settings().render_execution_concurrency_limit),
     )
 
-    response = service.submit(package)
+    response = service.submit(package, admitted_tenant=None)
 
     assert response.status == "rendering"
     assert response.artifact_base64 is None
@@ -532,6 +540,7 @@ def test_render_submission_diagnostics_reports_stale_in_progress_handoff(
         output_format=package.output_format,
         runtime_engine="typst",
         runtime_engine_version="0.14.2",
+        tenant_id=None,
     )
     store.claim_for_rendering(existing.render_job_id, rendering_stale_seconds=900)
     with closing(sqlite3.connect(db_path)) as connection, connection:
@@ -554,6 +563,7 @@ def test_render_submission_diagnostics_reports_stale_in_progress_handoff(
         existing.render_job_id,
         accepted_stale_seconds=300,
         rendering_stale_seconds=900,
+        admitted_tenant=None,
     )
 
     assert diagnostics.status == "rendering"
@@ -576,12 +586,15 @@ def test_render_submission_diagnostics_maps_failed_runtime_without_raw_message(
         render_engine=cast(Any, _TimeoutTypstService()),
     )
     with pytest.raises(RenderExecutionFailedError):
-        service.submit(_render_package(render_job_id="rdr_diagnostics_timeout"))
+        service.submit(
+            _render_package(render_job_id="rdr_diagnostics_timeout"), admitted_tenant=None
+        )
 
     diagnostics = service.get_diagnostics(
         "rdr_diagnostics_timeout",
         accepted_stale_seconds=300,
         rendering_stale_seconds=900,
+        admitted_tenant=None,
     )
 
     assert diagnostics.status == "failed"
@@ -687,6 +700,7 @@ def test_render_submission_diagnostics_maps_recovery_actions(
         job.render_job_id,
         accepted_stale_seconds=300,
         rendering_stale_seconds=900,
+        admitted_tenant=None,
     )
 
     assert diagnostics.stale_state == expected_stale_state
@@ -709,9 +723,9 @@ def test_render_submission_sanitizes_runtime_diagnostics_before_persistence(
     )
 
     with pytest.raises(RenderExecutionFailedError, match="governed runtime envelope"):
-        service.submit(_render_package(render_job_id="rdr_sensitive_failure"))
+        service.submit(_render_package(render_job_id="rdr_sensitive_failure"), admitted_tenant=None)
 
-    stored = store.get("rdr_sensitive_failure")
+    stored = store.get("rdr_sensitive_failure", tenant_id=None)
     assert stored.status == "failed"
     assert stored.failure_category == "template_render_failed"
     assert stored.failure_message == "Render execution failed in the governed runtime envelope."
@@ -736,6 +750,7 @@ def _seed_job(store: RenderStore, package: RenderPackage) -> StoredRenderJob:
         output_format=package.output_format,
         runtime_engine="typst",
         runtime_engine_version="0.14.2",
+        tenant_id=None,
     )
 
 
@@ -774,11 +789,11 @@ def test_resubmitting_a_stale_rendering_job_actually_re_renders_it(tmp_path: Pat
         execution_limiter=RenderExecutionLimiter(_settings().render_execution_concurrency_limit),
     )
 
-    response = service.submit(package)
+    response = service.submit(package, admitted_tenant=None)
 
     assert renderer.calls == 1, "a stale abandoned job must be re-rendered, not echoed"
     assert response.status == "rendered"
-    assert store.get(existing.render_job_id).status == "rendered"
+    assert store.get(existing.render_job_id, tenant_id=None).status == "rendered"
 
 
 def test_resubmitting_a_live_rendering_job_does_not_render_twice(tmp_path: Path) -> None:
@@ -798,7 +813,7 @@ def test_resubmitting_a_live_rendering_job_does_not_render_twice(tmp_path: Path)
         execution_limiter=RenderExecutionLimiter(_settings().render_execution_concurrency_limit),
     )
 
-    response = service.submit(package)
+    response = service.submit(package, admitted_tenant=None)
 
     assert renderer.calls == 0
     assert response.status == "rendering"
@@ -853,14 +868,14 @@ def test_a_replay_does_not_consume_an_execution_slot(tmp_path: Path) -> None:
         execution_limiter=limiter,
     )
 
-    first = service.submit(package)
+    first = service.submit(package, admitted_tenant=None)
     assert first.status == "rendered"
     assert renderer.calls == 1
 
     # Occupy the only slot, then replay the finished job: it must still answer.
     assert limiter.acquire() is True
     try:
-        replay = service.submit(package)
+        replay = service.submit(package, admitted_tenant=None)
     finally:
         limiter.release()
 
@@ -889,15 +904,15 @@ def test_a_render_that_needs_a_slot_is_rejected_when_capacity_is_gone(tmp_path: 
     assert limiter.acquire() is True
     try:
         with pytest.raises(RenderCapacityExhaustedError):
-            service.submit(package)
+            service.submit(package, admitted_tenant=None)
     finally:
         limiter.release()
 
-    assert store.get(package.render_job_id).status == "accepted", (
+    assert store.get(package.render_job_id, tenant_id=None).status == "accepted", (
         "a capacity rejection left the job somewhere other than 'accepted'"
     )
 
-    recovered = service.submit(package)
+    recovered = service.submit(package, admitted_tenant=None)
 
     assert recovered.status == "rendered", "the rejected job could not be rendered afterwards"
     assert renderer.calls == 1
