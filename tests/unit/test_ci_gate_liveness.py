@@ -357,8 +357,11 @@ def test_a_refused_dispatch_tag_falls_back_to_a_pinned_main_dispatch() -> None:
     )
     main_gate = (ROOT / ".github/workflows/main-releasability.yml").read_text(encoding="utf-8")
 
-    # Only the scope refusal is tolerated; any other failure to create the ref is fatal.
-    assert 'grep -q "(HTTP 403)"' in dispatcher
+    # Only the scope refusal is tolerated, classified on the API's own status and
+    # message fields rather than on gh's prose; any other failure is fatal.
+    assert '[ "$create_status" = "403" ]' in dispatcher
+    assert '[ "$create_message" = "Resource not accessible by integration" ]' in dispatcher
+    assert '[ "$lookup_status" != "404" ]' in dispatcher
     assert 'dispatch_ref="main"' in dispatcher
     # The ref lookup's own failure is never masked (a masked lookup creates a tag it
     # should have refused, which the platform validator rejects by name).

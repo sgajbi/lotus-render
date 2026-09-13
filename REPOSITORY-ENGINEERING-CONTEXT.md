@@ -326,6 +326,24 @@ Each of these was a live defect in this repository, not a precaution.
       ever left with no run, the manual backfill is
       `gh workflow run main-releasability.yml --ref main -f expected_sha=<sha>
       -f triggering_pr=backfill` — no tag required.
+    - **Classify GitHub's answer before acting on it, and classify the answer, not gh's prose.**
+      The dispatcher first shipped reading any failed ref lookup as "the tag is absent" and any
+      HTTP 403 on the create as the permitted refusal; a rate-limited lookup would have led to a
+      create, and a rate-limited create would have become a fallback. `gh api` leaves GitHub's
+      own answer on stdout either way — the ref object, or the refusal body with `status` (a
+      JSON string) and `message` — and only that body is classified, through
+      `scripts/read_github_api_answer.py`; gh's stderr line `gh: Not Found (HTTP 404)` is shown
+      to the reader and read by nothing. Absence is `status` `404` alone and every other lookup
+      answer is fatal (`lookup-failed status=…`, `none` when GitHub never answered); the fallback
+      fires only on `status` `403` **and** `message` exactly `Resource not accessible by
+      integration` (`fallback-permitted`), and every other create answer is fatal
+      (`create-refused status=…`). Each dispatch emits one `dispatch-outcome` line naming
+      `tested_source` (the tree the gate tests, its `expected_sha`) and `workflow_definition`
+      (the ref whose workflow text runs: the tag, or `main` under the fallback) — the two
+      identities Platform #772 asks to keep explicit. `tests/unit/test_dispatch_step_classifies_
+      github_answers.py` executes the shipped step text against real temporary Git history with
+      a recording `gh` on PATH that speaks the measured body contract; assert on the recorded
+      calls and the parsed outcome lines, never on prose.
 
     The enumeration is the landed interval `base.sha..merge_commit_sha`, never the count-bounded
     `rev-list -n`: `pull_request.commits` describes the branch when the event fired, and after a

@@ -55,6 +55,11 @@ jobs:
         with:
           ref: main
           fetch-depth: 0
+      # For scripts/read_github_api_answer.py, which is how the step reads what GitHub
+      # answered (its `status`, `message`, `object.sha`) rather than how gh phrased it.
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
 
       - name: Dispatch main releasability gate for every commit this PR added
         shell: bash
@@ -153,34 +158,66 @@ jobs:
             # `workflow_dispatch` takes a ref, and a branch name would move underneath it.
             dispatch_ref="main-releasability-${revision}"
             existing_ref_sha=""
-            if existing_ref_sha="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$dispatch_ref" --jq .object.sha 2>/dev/null)"; then
+            outcome=""
+            # Three answers to "does the dispatch ref exist?", and only one of them is
+            # "no": a ref with a SHA, a 404, and everything else. A rate-limited or
+            # unauthenticated lookup also fails, and reading that as absence would go
+            # on to create a tag -- or fall back -- on the strength of a question
+            # GitHub never answered. So absence is the 404 alone; any other failure is
+            # fatal and says so. `gh api` leaves GitHub's own answer on stdout either
+            # way -- the ref object, or the refusal with its `status` and `message` --
+            # and that body is the one thing classified; gh's stderr rendering is
+            # shown for the reader, never read by the step. No body at all is a
+            # transport failure: GitHub said nothing, so nothing is inferred.
+            if gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$dispatch_ref" \
+                >"$RUNNER_TEMP/lookup-ref.stdout" 2>"$RUNNER_TEMP/lookup-ref.stderr"; then
+              existing_ref_sha="$(python scripts/read_github_api_answer.py object.sha "$RUNNER_TEMP/lookup-ref.stdout")"
+              lookup_status="answered"
+            else
+              lookup_status="$(python scripts/read_github_api_answer.py status "$RUNNER_TEMP/lookup-ref.stdout")"
+            fi
+            if [ -n "$existing_ref_sha" ]; then
               if [ "$existing_ref_sha" != "$revision" ]; then
+                echo "dispatch-outcome revision=$revision tested_source=$revision workflow_definition=$dispatch_ref outcome=identity-mismatch existing=$existing_ref_sha"
                 echo "::error::Dispatch ref $dispatch_ref points to $existing_ref_sha, expected $revision"
                 exit 1
               fi
-            else
-              existing_ref_sha=""
+              outcome="tag-existing"
+            elif [ "$lookup_status" != "404" ]; then
+              cat "$RUNNER_TEMP/lookup-ref.stderr" >&2
+              echo "dispatch-outcome revision=$revision tested_source=$revision workflow_definition=$dispatch_ref outcome=lookup-failed status=${lookup_status:-none}"
+              echo "::error::Could not determine whether $dispatch_ref exists: GitHub answered '${lookup_status:-nothing}' rather than 404 or a ref, so neither creating it nor falling back is justified. Refusing to guess."
+              exit 1
             fi
             if [ -z "$existing_ref_sha" ]; then
               # GITHUB_TOKEN cannot create a ref pointing at a commit whose workflow
-              # tree differs from main's tip: it lacks the `workflows` scope, so every
-              # workflow-touching merge used to leave main with no run at all, which
-              # reads as success everywhere (issue #310). That refusal, and only that
-              # refusal, falls back to dispatching main's gate DEFINITION against the
-              # pinned revision: main-releasability.yml checks out `expected_sha` in
-              # every job, so the tree under test is still exactly this revision, and
-              # its run-name carries the revision for the coverage audit to find.
-              # Any other failure to create the ref is still fatal.
-              if ! gh api "repos/$GITHUB_REPOSITORY/git/refs" \
+              # tree differs from main's tip: it lacks the `workflows` scope, and
+              # GitHub refuses with status 403 and the message `Resource not accessible
+              # by integration`. That refusal, and only that refusal, falls back to
+              # dispatching main's gate DEFINITION against the pinned revision:
+              # main-releasability.yml checks out `expected_sha` in every job, so the
+              # tree under test is still exactly this revision, and its run-name
+              # carries the revision for the coverage audit to find (issue #310). A
+              # rate limit also answers 403 with a different message and is NOT that
+              # refusal; it, a 401, a 5xx, and a transport failure are all fatal.
+              if gh api "repos/$GITHUB_REPOSITORY/git/refs" \
                   -f ref="refs/tags/$dispatch_ref" \
-                  -f sha="$revision" >/dev/null 2>"$RUNNER_TEMP/create-ref.stderr"; then
-                if ! grep -q "(HTTP 403)" "$RUNNER_TEMP/create-ref.stderr"; then
+                  -f sha="$revision" \
+                  >"$RUNNER_TEMP/create-ref.stdout" 2>"$RUNNER_TEMP/create-ref.stderr"; then
+                outcome="tag-created"
+              else
+                create_status="$(python scripts/read_github_api_answer.py status "$RUNNER_TEMP/create-ref.stdout")"
+                create_message="$(python scripts/read_github_api_answer.py message "$RUNNER_TEMP/create-ref.stdout")"
+                if [ "$create_status" = "403" ] && [ "$create_message" = "Resource not accessible by integration" ]; then
+                  echo "::notice::GITHUB_TOKEN cannot create $dispatch_ref (revision $revision changes the workflow tree); dispatching main's gate definition against the pinned revision instead."
+                  dispatch_ref="main"
+                  outcome="fallback-permitted"
+                else
                   cat "$RUNNER_TEMP/create-ref.stderr" >&2
-                  echo "::error::Creating dispatch ref $dispatch_ref for $revision failed for a reason other than the workflows-scope refusal; refusing to guess."
+                  echo "dispatch-outcome revision=$revision tested_source=$revision workflow_definition=$dispatch_ref outcome=create-refused status=${create_status:-none}"
+                  echo "::error::Creating dispatch ref $dispatch_ref for $revision failed with status '${create_status:-none}' (${create_message:-no API message}) rather than the workflows-scope refusal; refusing to guess."
                   exit 1
                 fi
-                echo "::notice::GITHUB_TOKEN cannot create $dispatch_ref (revision $revision changes the workflow tree); dispatching main's gate definition against the pinned revision instead."
-                dispatch_ref="main"
               fi
             fi
 
@@ -189,5 +226,9 @@ jobs:
               --ref "$dispatch_ref" \
               -f expected_sha="$revision" \
               -f triggering_pr="$PR_NUMBER"
-            echo "dispatched main-releasability for $revision via $dispatch_ref"
+            # tested_source is the tree the gate tests (its expected_sha); workflow_definition
+            # is the ref whose workflow text runs -- the immutable tag, or main under the
+            # permitted fallback. Both are stated on every dispatch so a reader never has
+            # to infer one from the other (lotus-platform#772).
+            echo "dispatch-outcome revision=$revision tested_source=$revision workflow_definition=$dispatch_ref outcome=$outcome"
           done
