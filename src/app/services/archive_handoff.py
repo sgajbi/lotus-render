@@ -95,6 +95,21 @@ def derive_archive_request_id(document_reference: str, artifact_sha256: str) -> 
     return f"areq_{digest[:32]}"
 
 
+def reconciliation_request_id(render_package: RenderPackage, *, artifact_sha256: str) -> str | None:
+    """The stable Archive identity when this package has custody to reconcile.
+
+    Compute it before delivery, not after a transport outcome: an unexpected error
+    can happen after Archive accepts the POST but before this process observes its
+    result. In that future this key is the only safe way to reconcile rather than
+    inventing another document.
+    """
+    custody = render_package.render_context.get("archive")
+    reference = render_package.render_context.get("document_reference")
+    if not isinstance(custody, Mapping) or not isinstance(reference, str) or not reference.strip():
+        return None
+    return derive_archive_request_id(reference.strip(), artifact_sha256)
+
+
 def build_archive_metadata(
     render_package: RenderPackage,
     *,
@@ -116,14 +131,15 @@ def build_archive_metadata(
     """
     custody = render_package.render_context.get("archive")
     reference = render_package.render_context.get("document_reference")
-    if not isinstance(custody, Mapping) or not isinstance(reference, str) or not reference.strip():
+    request_id = reconciliation_request_id(render_package, artifact_sha256=artifact_sha256)
+    if not isinstance(custody, Mapping) or not isinstance(reference, str) or request_id is None:
         return None
     document_reference = reference.strip()
     declared_sha256 = normalize_sha256(artifact_sha256)
     metadata: dict[str, object] = dict(custody)
     metadata.update(
         {
-            "archive_request_id": derive_archive_request_id(document_reference, declared_sha256),
+            "archive_request_id": request_id,
             "document_reference": document_reference,
             "declared_artifact_sha256": declared_sha256,
             "report_job_id": render_package.report_job_id,
@@ -382,6 +398,9 @@ def hand_off_and_record(
         return stored
     started = perf_counter()
     diagnostic = result.diagnostic
+    request_id = reconciliation_request_id(
+        render_package, artifact_sha256=diagnostic.artifact_sha256 or ""
+    )
     try:
         outcome = handoff.deliver(
             render_package,
@@ -398,11 +417,7 @@ def hand_off_and_record(
         )
     except Exception:
         logger.exception("archive_handoff_unexpected_error")
-        outcome = ArchiveHandoffOutcome(
-            archive_state="archive_failed",
-            archive_request_id=None,
-            archive_detail="archive_handoff_unexpected_error",
-        )
+        outcome = _unexpected_handoff_outcome(request_id)
     if outcome is None:
         return stored
     record_render_operation(
@@ -424,6 +439,16 @@ def hand_off_and_record(
     except Exception:
         logger.exception("archive_outcome_not_recorded")
         return stored
+
+
+def _unexpected_handoff_outcome(archive_request_id: str | None) -> ArchiveHandoffOutcome | None:
+    """Keep an ambiguous delivery reconcilable when local outcome handling crashes."""
+    if archive_request_id is None:
+        return None
+    # A delivery call was entered and may have written its POST before the unexpected
+    # path fired. Preserve the identity so restart/replay reconciles the one possible
+    # document; never mislabel this as a proven never-sent failure.
+    return _pending(archive_request_id, "archive_handoff_unexpected_error")
 
 
 def _settled_outcome(
