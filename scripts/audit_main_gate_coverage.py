@@ -69,8 +69,51 @@ def _git(*arguments: str) -> list[str]:
 VERDICT_CONCLUSIONS = frozenset({"success", "failure"})
 
 
-def _run_count(sha: str) -> int | None:
-    """Gate runs that reached a verdict for this commit, or None if it cannot be asked."""
+def _titled_runs(created_since: str) -> list[dict[str, object]] | None:
+    """Gate runs in the window with the revision each one tested in its title, or None.
+
+    A run dispatched at `main` -- the dispatcher's fallback when its per-revision tag
+    write is refused for lack of the `workflows` scope (issue #310) -- carries main's
+    tip as its head SHA while testing `expected_sha`, so `--commit` can never find it
+    and the revision it gated would be reported as ungated. The gate writes the tested
+    revision into its run title, and that is what is matched here. The window is a
+    span of time, like the audit's own, not a count that ages out.
+    """
+    completed = subprocess.run(
+        [
+            "gh",
+            "run",
+            "list",
+            f"--workflow={WORKFLOW}",
+            "--created",
+            f">={created_since}",
+            # A ceiling, not the window: --created is the bound.
+            "--limit",
+            "1000",
+            "--json",
+            "conclusion,displayTitle,headSha",
+        ],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if completed.returncode != 0:
+        return None
+    try:
+        runs = json.loads(completed.stdout)
+    except json.JSONDecodeError:
+        return None
+    return runs if isinstance(runs, list) else None
+
+
+def _run_count(sha: str, titled_runs: list[dict[str, object]] | None) -> int | None:
+    """Gate runs that reached a verdict for this commit, or None if it cannot be asked.
+
+    Two attributions, because two dispatch paths exist: a tag-dispatched run has the
+    revision as its head SHA and `--commit` finds it; a main-dispatched run names the
+    revision only in its title (issue #310). A titled run whose head SHA is the
+    revision is the same run the first query returned, and is not counted twice.
+    """
     completed = subprocess.run(
         [
             "gh",
@@ -92,6 +135,12 @@ def _run_count(sha: str) -> int | None:
         runs = json.loads(completed.stdout)
     except json.JSONDecodeError:
         return None
+    if titled_runs is not None:
+        runs = runs + [
+            run
+            for run in titled_runs
+            if sha in str(run.get("displayTitle", "")) and run.get("headSha") != sha
+        ]
     verdicts = sum(1 for run in runs if run.get("conclusion") in VERDICT_CONCLUSIONS)
     if verdicts:
         return verdicts
@@ -151,10 +200,18 @@ def main() -> int:
     ungated: list[str] = []
     unknown = 0
 
+    # One time-bounded listing for the title attribution, from the oldest commit in
+    # the window; per-commit `--commit` queries stay the primary evidence.
+    titled_runs: list[dict[str, object]] | None = None
+    if commits:
+        oldest_sha = commits[-1].split(" ", 1)[0]
+        oldest_date = _git("log", "-1", "--format=%cs", oldest_sha)[0]
+        titled_runs = _titled_runs(oldest_date)
+
     pending: list[str] = []
     for entry in commits:
         sha, short, subject = entry.split(" ", 2)
-        count = _run_count(sha)
+        count = _run_count(sha, titled_runs)
         if count is None:
             unknown += 1
             continue
@@ -185,10 +242,11 @@ def main() -> int:
             "deployed one.\n"
             "\n"
             "Backfill one with:\n"
-            "  gh api repos/OWNER/REPO/git/refs "
-            "-f ref=refs/tags/main-releasability-SHA -f sha=SHA\n"
-            "  gh workflow run main-releasability.yml --ref main-releasability-SHA "
+            "  gh workflow run main-releasability.yml --ref main "
             "-f expected_sha=SHA -f triggering_pr=backfill\n"
+            "main's gate definition checks out expected_sha in every job and titles the "
+            "run with it, so the run is attributed to SHA; no tag is needed and the "
+            "workflows-scope refusal that blocks GITHUB_TOKEN's tag write does not apply.\n"
             "\n"
             "A commit predating those inputs takes a bare dispatch instead: the workflow "
             "that runs is the one defined at that revision, not this one."

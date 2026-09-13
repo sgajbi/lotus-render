@@ -61,6 +61,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           MERGE_COMMIT_SHA: ${{ github.event.pull_request.merge_commit_sha }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
           COMMIT_COUNT: ${{ github.event.pull_request.commits }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
@@ -70,30 +71,59 @@ jobs:
             echo "::error::pull_request.merge_commit_sha is required for exact-main releasability dispatch"
             exit 1
           fi
+          if [ -z "$BASE_SHA" ]; then
+            echo "::error::pull_request.base.sha is required to bound the merged revision window"
+            exit 1
+          fi
           if [ -z "$COMMIT_COUNT" ] || [ "$COMMIT_COUNT" -lt 1 ]; then
-            echo "::error::pull_request.commits is required to enumerate the revisions this PR added"
+            echo "::error::pull_request.commits was '$COMMIT_COUNT'; cannot cross-check the enumerated window"
             exit 1
           fi
 
-          # The enumeration below is "the last N commits ending at the merge SHA", which
-          # is what a rebase merge produces and only what a rebase merge produces. A
-          # squash would add one commit however many the PR held, and a merge commit
-          # would add a second parent. Assert the repository still allows neither, so a
-          # settings change fails here loudly rather than silently gating the wrong set.
+          # The enumeration is correct ONLY under rebase-only merging: a squash lands one
+          # commit however many the PR held, and a merge commit adds a second parent so
+          # the walk would descend into main's own history. Assert the repository still
+          # allows neither, so a settings change fails here loudly rather than silently
+          # gating the wrong set.
           merge_methods="$(gh api "repos/$GITHUB_REPOSITORY" \
             --jq '[.allow_squash_merge, .allow_merge_commit, .allow_rebase_merge] | join(",")')"
           if [ "$merge_methods" != "false,false,true" ]; then
             echo "::error::Repository merge methods are squash,merge,rebase = $merge_methods."
-            echo "::error::This dispatcher enumerates a PR's commits as the last N ending at the merge SHA, which holds only for rebase-only merging."
+            echo "::error::Per-commit enumeration assumes rebase-only merging. Update the dispatcher before merging anything."
             exit 1
           fi
 
-          # Every commit the PR put on main, oldest first, so the earliest is dispatched
-          # first and a reader of the run list sees them in the order they landed.
-          revisions="$(git rev-list -n "$COMMIT_COUNT" "$MERGE_COMMIT_SHA" | tac)"
-          echo "PR #$PR_NUMBER added $COMMIT_COUNT revision(s) ending at $MERGE_COMMIT_SHA:"
+          # base..tip is the window by definition. Counting back COMMIT_COUNT commits
+          # from the tip is not: pull_request.commits describes the branch when the
+          # event fired, not what landed. A rebase that drops a commit already on main
+          # leaves that count larger than the window, and the walk then runs off the
+          # end of this PR's history into commits earlier merges put there -- genuine
+          # ancestors of main that genuinely number COMMIT_COUNT, so an ancestry check
+          # passes while the enumeration is wrong (issue #310, lotus-platform#859).
+          revisions="$(git rev-list --reverse "$BASE_SHA..$MERGE_COMMIT_SHA")"
+          if [ -z "$revisions" ]; then
+            echo "::error::No revisions enumerated for merged PR #$PR_NUMBER in $BASE_SHA..$MERGE_COMMIT_SHA"
+            exit 1
+          fi
+          enumerated="$(printf '%s\n' "$revisions" | grep -c .)"
+
+          # The two directions of a count mismatch mean opposite things. FEWER than
+          # COMMIT_COUNT is expected and safe: a rebase dropped a commit already on
+          # main, or the branch was updated; every revision in the range still landed
+          # and still gets a verdict. MORE means the range spans revisions this PR did
+          # not add, and dispatching them would stamp this PR's number onto another
+          # PR's revisions -- refused rather than over-claimed.
+          if [ "$enumerated" -gt "$COMMIT_COUNT" ]; then
+            echo "::error::Enumerated $enumerated revision(s) for PR #$PR_NUMBER but pull_request.commits reported $COMMIT_COUNT; the range spans revisions this PR did not add. Refusing to dispatch."
+            exit 1
+          fi
+          if [ "$enumerated" -lt "$COMMIT_COUNT" ]; then
+            echo "::notice::Enumerated $enumerated revision(s) for PR #$PR_NUMBER; pull_request.commits reported $COMMIT_COUNT. Expected after a rebase or branch update: the range is authoritative."
+          fi
+          echo "PR #$PR_NUMBER added $enumerated revision(s) in $BASE_SHA..$MERGE_COMMIT_SHA:"
           echo "$revisions"
 
+          previous=""
           for revision in $revisions; do
             # HEAD is main as it stood when this checkout ran, which is the tree the
             # revision has to belong to. A remote-tracking ref would depend on the
@@ -102,6 +132,22 @@ jobs:
               echo "::error::Revision $revision is not reachable from main; refusing to dispatch."
               exit 1
             fi
+            # Reachable from the base means an earlier merge put it there, not this
+            # one; a rebased commit is never reachable from the base.
+            if git merge-base --is-ancestor "$revision" "$BASE_SHA"; then
+              echo "::error::Revision $revision is an ancestor of base $BASE_SHA, so this PR did not add it. Refusing to dispatch."
+              exit 1
+            fi
+            parent_count="$(git rev-list --parents -n 1 "$revision" | wc -w)"
+            if [ "$parent_count" -ne 2 ]; then
+              echo "::error::Revision $revision has $((parent_count - 1)) parent(s); the enumerated window must be linear."
+              exit 1
+            fi
+            if [ -n "$previous" ] && [ "$(git rev-parse "${revision}^")" != "$previous" ]; then
+              echo "::error::Revision $revision does not follow $previous; the enumerated window is not contiguous."
+              exit 1
+            fi
+            previous="$revision"
 
             # A tag pins the revision so the dispatched run checks out that exact tree.
             # `workflow_dispatch` takes a ref, and a branch name would move underneath it.
@@ -116,9 +162,26 @@ jobs:
               existing_ref_sha=""
             fi
             if [ -z "$existing_ref_sha" ]; then
-              gh api "repos/$GITHUB_REPOSITORY/git/refs" \
-                -f ref="refs/tags/$dispatch_ref" \
-                -f sha="$revision" >/dev/null
+              # GITHUB_TOKEN cannot create a ref pointing at a commit whose workflow
+              # tree differs from main's tip: it lacks the `workflows` scope, so every
+              # workflow-touching merge used to leave main with no run at all, which
+              # reads as success everywhere (issue #310). That refusal, and only that
+              # refusal, falls back to dispatching main's gate DEFINITION against the
+              # pinned revision: main-releasability.yml checks out `expected_sha` in
+              # every job, so the tree under test is still exactly this revision, and
+              # its run-name carries the revision for the coverage audit to find.
+              # Any other failure to create the ref is still fatal.
+              if ! gh api "repos/$GITHUB_REPOSITORY/git/refs" \
+                  -f ref="refs/tags/$dispatch_ref" \
+                  -f sha="$revision" >/dev/null 2>"$RUNNER_TEMP/create-ref.stderr"; then
+                if ! grep -q "(HTTP 403)" "$RUNNER_TEMP/create-ref.stderr"; then
+                  cat "$RUNNER_TEMP/create-ref.stderr" >&2
+                  echo "::error::Creating dispatch ref $dispatch_ref for $revision failed for a reason other than the workflows-scope refusal; refusing to guess."
+                  exit 1
+                fi
+                echo "::notice::GITHUB_TOKEN cannot create $dispatch_ref (revision $revision changes the workflow tree); dispatching main's gate definition against the pinned revision instead."
+                dispatch_ref="main"
+              fi
             fi
 
             gh workflow run main-releasability.yml \
@@ -126,5 +189,5 @@ jobs:
               --ref "$dispatch_ref" \
               -f expected_sha="$revision" \
               -f triggering_pr="$PR_NUMBER"
-            echo "dispatched main-releasability for $revision"
+            echo "dispatched main-releasability for $revision via $dispatch_ref"
           done
