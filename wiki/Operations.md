@@ -98,6 +98,13 @@ owned it died without reaching a terminal state. A job still inside its window i
 a resubmission during a genuine render returns the current status rather than rendering twice. The
 claim is a single conditional update, so exactly one caller can win it.
 
+A timestamp going stale does not prove the old worker died, so every won claim also increments a
+durable claim generation, and terminal and Archive-custody writes land only under the generation
+their attempt holds. If the "dead" worker resumes after a takeover, none of its writes land: it
+cannot complete or fail the job, cannot deliver its bytes to Archive, and its response reports the
+current owner's truth — with artifact bytes only when they hash to the stored winning digest. The
+winning attempt's artifact hash and custody identifiers are therefore stable once written.
+
 Shutdown drains rather than abandons: the instance marks itself draining, stops reporting ready, and
 waits for in-flight renders up to the compile timeout before exiting. **A deployment's termination
 grace period must therefore exceed `RENDER_COMPILE_TIMEOUT_SECONDS`**, or the platform will kill a

@@ -41,8 +41,6 @@ class RenderJobStorePort(Protocol):
         runtime_engine_version: str,
     ) -> CreateOrGetRenderJobResult: ...
 
-    def mark_rendering(self, render_job_id: str) -> StoredRenderJob: ...
-
     def claim_for_rendering(
         self,
         render_job_id: str,
@@ -50,7 +48,9 @@ class RenderJobStorePort(Protocol):
         rendering_stale_seconds: int,
     ) -> StoredRenderJob | None: ...
 
-    def mark_rendered(self, render_job_id: str, result: RenderResult) -> StoredRenderJob: ...
+    def mark_rendered(
+        self, render_job_id: str, result: RenderResult, *, claim_generation: int
+    ) -> StoredRenderJob: ...
 
     def record_archive_outcome(
         self,
@@ -60,6 +60,7 @@ class RenderJobStorePort(Protocol):
         archive_document_id: str | None,
         archive_request_id: str | None,
         archive_detail: str | None,
+        expected_claim_generation: int,
     ) -> StoredRenderJob: ...
 
     def mark_failed(
@@ -68,6 +69,7 @@ class RenderJobStorePort(Protocol):
         render_job_id: str,
         failure_category: RenderFailureCategory,
         failure_message: str,
+        claim_generation: int,
     ) -> StoredRenderJob: ...
 
     def get(self, render_job_id: str) -> StoredRenderJob: ...

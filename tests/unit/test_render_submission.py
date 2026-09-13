@@ -181,6 +181,7 @@ def _stored_job(
     failure_category: RenderFailureCategory | None = None,
     failure_message: str | None = None,
     updated_at: datetime | None = None,
+    claim_generation: int = 0,
 ) -> StoredRenderJob:
     observed_at = updated_at or datetime.now(UTC)
     return StoredRenderJob(
@@ -214,6 +215,7 @@ def _stored_job(
         created_at=observed_at,
         updated_at=observed_at,
         completed_at=None,
+        claim_generation=claim_generation,
     )
 
 
@@ -226,14 +228,15 @@ class _RacingRenderStore:
     def create_or_get_with_outcome(self, **_: object) -> CreateOrGetRenderJobResult:
         return CreateOrGetRenderJobResult(job=self.current, created=True)
 
-    def mark_rendering(self, render_job_id: str) -> StoredRenderJob:
-        self.current = _stored_job(render_job_id=render_job_id, status="rendering")
-        return self.current
-
     def claim_for_rendering(
         self, render_job_id: str, *, rendering_stale_seconds: int
     ) -> StoredRenderJob | None:
-        return self.mark_rendering(render_job_id)
+        self.current = _stored_job(
+            render_job_id=render_job_id,
+            status="rendering",
+            claim_generation=self.current.claim_generation + 1,
+        )
+        return self.current
 
     def record_archive_outcome(
         self,
@@ -243,13 +246,20 @@ class _RacingRenderStore:
         archive_document_id: str | None,
         archive_request_id: str | None,
         archive_detail: str | None,
+        expected_claim_generation: int,
     ) -> StoredRenderJob:
         raise AssertionError("no archive handoff is configured in these tests")
 
-    def mark_rendered(self, render_job_id: str, _result: RenderResult) -> StoredRenderJob:
+    def mark_rendered(
+        self, render_job_id: str, _result: RenderResult, *, claim_generation: int
+    ) -> StoredRenderJob:
         if self._fail_mark_rendered:
             raise RenderJobTransitionError("rendering->rendered raced")
-        self.current = _stored_job(render_job_id=render_job_id, status="rendered")
+        self.current = _stored_job(
+            render_job_id=render_job_id,
+            status="rendered",
+            claim_generation=claim_generation,
+        )
         return self.current
 
     def mark_failed(
@@ -258,6 +268,7 @@ class _RacingRenderStore:
         render_job_id: str,
         failure_category: RenderFailureCategory,
         failure_message: str,
+        claim_generation: int,
     ) -> StoredRenderJob:
         if self._fail_mark_failed:
             raise RenderJobTransitionError("rendering->failed raced")
@@ -266,6 +277,7 @@ class _RacingRenderStore:
             status="failed",
             failure_category=failure_category,
             failure_message=failure_message,
+            claim_generation=claim_generation,
         )
         return self.current
 
@@ -280,15 +292,14 @@ class _StaticRenderStore:
     def create_or_get_with_outcome(self, **_: object) -> CreateOrGetRenderJobResult:
         return CreateOrGetRenderJobResult(job=self._job, created=False)
 
-    def mark_rendering(self, _render_job_id: str) -> StoredRenderJob:
-        return self._job
-
     def claim_for_rendering(
         self, _render_job_id: str, *, rendering_stale_seconds: int
     ) -> StoredRenderJob | None:
         return self._job
 
-    def mark_rendered(self, _render_job_id: str, _result: RenderResult) -> StoredRenderJob:
+    def mark_rendered(
+        self, _render_job_id: str, _result: RenderResult, *, claim_generation: int
+    ) -> StoredRenderJob:
         return self._job
 
     def mark_failed(
@@ -297,6 +308,7 @@ class _StaticRenderStore:
         render_job_id: str,
         failure_category: RenderFailureCategory,
         failure_message: str,
+        claim_generation: int,
     ) -> StoredRenderJob:
         return self._job
 
@@ -323,6 +335,7 @@ def test_render_submission_returns_existing_failed_job_without_retrying(tmp_path
         render_job_id=existing.render_job_id,
         failure_category="template_render_failed",
         failure_message="prior render failed",
+        claim_generation=existing.claim_generation,
     )
 
     service = RenderSubmissionService(
@@ -480,7 +493,7 @@ def test_render_submission_returns_existing_in_progress_job_without_retrying(
         runtime_engine="typst",
         runtime_engine_version="0.14.2",
     )
-    store.mark_rendering(existing.render_job_id)
+    store.claim_for_rendering(existing.render_job_id, rendering_stale_seconds=900)
     renderer = _SuccessfulTypstService()
     service = RenderSubmissionService(
         render_store=store,
@@ -520,7 +533,7 @@ def test_render_submission_diagnostics_reports_stale_in_progress_handoff(
         runtime_engine="typst",
         runtime_engine_version="0.14.2",
     )
-    store.mark_rendering(existing.render_job_id)
+    store.claim_for_rendering(existing.render_job_id, rendering_stale_seconds=900)
     with closing(sqlite3.connect(db_path)) as connection, connection:
         connection.execute(
             "UPDATE render_job SET updated_at = ? WHERE render_job_id = ?",
@@ -750,7 +763,7 @@ def test_resubmitting_a_stale_rendering_job_actually_re_renders_it(tmp_path: Pat
     store = RenderStore(db_path)
     package = _render_package(render_job_id="rdr_stale_recoverable")
     existing = _seed_job(store, package)
-    store.mark_rendering(existing.render_job_id)
+    store.claim_for_rendering(existing.render_job_id, rendering_stale_seconds=900)
     _age_job(db_path, existing.render_job_id, seconds=_settings().stale_rendering_seconds + 1)
 
     renderer = _SuccessfulTypstService()
@@ -775,7 +788,7 @@ def test_resubmitting_a_live_rendering_job_does_not_render_twice(tmp_path: Path)
     store = RenderStore(db_path)
     package = _render_package(render_job_id="rdr_live_rendering")
     existing = _seed_job(store, package)
-    store.mark_rendering(existing.render_job_id)
+    store.claim_for_rendering(existing.render_job_id, rendering_stale_seconds=900)
 
     renderer = _SuccessfulTypstService()
     service = RenderSubmissionService(
@@ -799,7 +812,7 @@ def test_only_one_caller_can_claim_a_stale_job(tmp_path: Path) -> None:
     store = RenderStore(db_path)
     package = _render_package(render_job_id="rdr_contended")
     existing = _seed_job(store, package)
-    store.mark_rendering(existing.render_job_id)
+    store.claim_for_rendering(existing.render_job_id, rendering_stale_seconds=900)
     _age_job(db_path, existing.render_job_id, seconds=_settings().stale_rendering_seconds + 1)
 
     stale_seconds = _settings().stale_rendering_seconds

@@ -42,11 +42,11 @@ from app.observability.render_metrics import (
 )
 from app.services.render_execution import RenderExecutionLimiter
 from app.services.render_intake import RenderIntakeService
+from app.services.render_job_views import unexpected_failure_category
 from app.services.render_ports import RenderCompileFailedError, RenderRuntimeMetadata
 from app.services.render_submission import (
     RenderPackageInvalidError,
     RenderSubmissionService,
-    _unexpected_failure_category,
 )
 from app.services.typst_rendering import TypstRenderService
 
@@ -232,7 +232,7 @@ def test_forcing_a_runtime_kill_increments_runtime_and_not_admission(
         "a model miss was counted as an admission refusal, which is the exact inversion "
         "this issue exists to prevent"
     )
-    assert _unexpected_failure_category(raised.value) == "resource_limit_exceeded", (
+    assert unexpected_failure_category(raised.value) == "resource_limit_exceeded", (
         "the caller sees the same category either way, which is correct: the action is "
         "identical. That is precisely why the operator needs the stage recorded here."
     )
@@ -264,7 +264,7 @@ def test_a_compile_failure_that_is_not_a_bound_counts_nothing(
     with pytest.raises(RenderCompileFailedError) as raised:
         service.render(_load_golden_package())
 
-    assert _unexpected_failure_category(raised.value) == "template_render_failed"
+    assert unexpected_failure_category(raised.value) == "template_render_failed"
     assert _count("runtime") == before_runtime
     assert _count("admission") == before_admission
 

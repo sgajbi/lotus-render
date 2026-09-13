@@ -3,9 +3,7 @@ from __future__ import annotations
 import base64
 import hashlib
 import json
-from datetime import UTC, datetime
 from time import perf_counter
-from typing import Any
 
 from app.contracts.render_evidence import (
     RenderArtifactMetadataResponse,
@@ -32,11 +30,18 @@ from app.observability.render_metrics import (
     record_render_artifact_size,
     record_render_operation,
 )
-from app.services.archive_handoff import ArchiveHandoff, hand_off_and_record
+from app.services.archive_handoff import ArchiveHandoff, hand_off_and_record, normalize_sha256
 from app.services.render_envelope import envelope_refusal
 from app.services.render_execution import RenderExecutionLimiter
+from app.services.render_job_views import (
+    age_seconds,
+    job_response_fields,
+    stale_threshold_seconds,
+    support_safe_render_failure_message,
+    to_artifact_metadata_response,
+    unexpected_failure_category,
+)
 from app.services.render_ports import (
-    RenderCompileFailedError,
     RenderEnginePort,
     RenderEngineTimeoutError,
     RenderJobStorePort,
@@ -170,6 +175,7 @@ class RenderSubmissionService:
                 fallback_message="resource_limit_exceeded",
                 cause=ValueError(refusal),
                 started_at=started_at,
+                claim_generation=current.claim_generation,
             )
         # An explicit section selection that cannot be honoured exactly refuses here
         # too: the same selection refuses identically on retry, and honouring part of
@@ -184,6 +190,7 @@ class RenderSubmissionService:
                 fallback_message="section_selection_invalid",
                 cause=ValueError(selection_refusal),
                 started_at=started_at,
+                claim_generation=current.claim_generation,
             )
         if not self._execution_limiter.acquire():
             raise RenderCapacityExhaustedError("render_execution_capacity_exhausted")
@@ -202,17 +209,19 @@ class RenderSubmissionService:
         if claimed is None:
             self._record_submit_metric(current, started_at=started_at)
             return self._to_submit_response(current, artifact_base64=None)
+        claim_generation = claimed.claim_generation
         try:
             result = self._render_engine.render(render_package)
         except RenderEngineTimeoutError as exc:
             return self._fail_submit(
                 render_package.render_job_id,
                 failure_category="timeout",
-                failure_message=_support_safe_render_failure_message("timeout"),
+                failure_message=support_safe_render_failure_message("timeout"),
                 error_type=RenderExecutionFailedError,
                 fallback_message="render_failed",
                 cause=exc,
                 started_at=started_at,
+                claim_generation=claim_generation,
             )
         except TemplateCompatibilityError as exc:
             return self._fail_submit(
@@ -223,6 +232,7 @@ class RenderSubmissionService:
                 fallback_message="template_not_supported",
                 cause=exc,
                 started_at=started_at,
+                claim_generation=claim_generation,
             )
         except ValueError as exc:
             return self._fail_submit(
@@ -233,48 +243,67 @@ class RenderSubmissionService:
                 fallback_message="package_validation_failed",
                 cause=exc,
                 started_at=started_at,
+                claim_generation=claim_generation,
             )
         except Exception as exc:
             # Fail-closed: RuntimeError and every other unexpected error (ArithmeticError
             # from malformed numerics, OSError, OverflowError, sqlite failures, ...) must
             # move the job to 'failed'. Nothing may leave it at 'rendering': a stranded job
             # is only recoverable once it goes stale and a resubmission reclaims it (#105).
-            failure_category = _unexpected_failure_category(exc)
+            failure_category = unexpected_failure_category(exc)
             return self._fail_submit(
                 render_package.render_job_id,
                 failure_category=failure_category,
-                failure_message=_support_safe_render_failure_message(failure_category),
+                failure_message=support_safe_render_failure_message(failure_category),
                 error_type=RenderExecutionFailedError,
                 fallback_message="render_failed",
                 cause=exc,
                 started_at=started_at,
+                claim_generation=claim_generation,
             )
 
-        return self._record_render_result(render_package, result, started_at=started_at)
+        return self._record_render_result(
+            render_package, result, started_at=started_at, claim_generation=claim_generation
+        )
 
     def _record_render_result(
-        self, render_package: RenderPackage, result: RenderResult, *, started_at: float
+        self,
+        render_package: RenderPackage,
+        result: RenderResult,
+        *,
+        started_at: float,
+        claim_generation: int,
     ) -> RenderSubmitResponse:
-        """Persist a successful render, or fail the job closed if persisting it fails."""
+        """Persist a successful render, or fail the job closed if persisting it fails.
+
+        The write is fenced to the claim this attempt holds. Losing the fence means
+        another attempt took the job over while this one was stalled: the stored row
+        is that attempt's truth, so this one adopts it -- it must not deliver its own
+        bytes to Archive, overwrite the winner's custody, or return its local bytes
+        under the winner's metadata (issue #313).
+        """
         try:
-            stored = self._render_store.mark_rendered(render_package.render_job_id, result)
+            stored = self._render_store.mark_rendered(
+                render_package.render_job_id, result, claim_generation=claim_generation
+            )
         except RenderJobTransitionError:
-            stored = self._render_store.get(render_package.render_job_id)
+            return self._adopt_stored_truth(
+                render_package.render_job_id, result, started_at=started_at
+            )
         except Exception as exc:
             # The render succeeded but recording it did not; still fail-close so the job
             # reaches a terminal state rather than stranding at 'rendering'.
             return self._fail_submit(
                 render_package.render_job_id,
                 failure_category="unexpected_render_error",
-                failure_message=_support_safe_render_failure_message("unexpected_render_error"),
+                failure_message=support_safe_render_failure_message("unexpected_render_error"),
                 error_type=RenderExecutionFailedError,
                 fallback_message="render_failed",
                 cause=exc,
                 started_at=started_at,
+                claim_generation=claim_generation,
             )
         self._record_submit_metric(stored, started_at=started_at)
-        if stored.status != "rendered":
-            return self._to_submit_response(stored, artifact_base64=None)
         stored = hand_off_and_record(
             self._archive_handoff, self._render_store, render_package, result, stored
         )
@@ -282,6 +311,25 @@ class RenderSubmissionService:
             stored,
             artifact_base64=base64.b64encode(result.artifact_bytes).decode("ascii"),
         )
+
+    def _adopt_stored_truth(
+        self, render_job_id: str, result: RenderResult, *, started_at: float
+    ) -> RenderSubmitResponse:
+        """Report the winning attempt's truth from a losing completion.
+
+        No Archive call is made here: the winner owns custody. The local bytes are
+        returned only when they hash to the stored winning digest -- then they ARE
+        the winning artifact under bounded determinism -- and are withheld otherwise,
+        because bytes beside a digest they do not hash to are corruption, not a reply.
+        """
+        stored = self._render_store.get(render_job_id)
+        self._record_submit_metric(stored, started_at=started_at)
+        artifact_base64: str | None = None
+        if stored.status == "rendered" and stored.artifact_sha256 is not None:
+            local_sha256 = hashlib.sha256(result.artifact_bytes).hexdigest()
+            if normalize_sha256(stored.artifact_sha256) == local_sha256:
+                artifact_base64 = base64.b64encode(result.artifact_bytes).decode("ascii")
+        return self._to_submit_response(stored, artifact_base64=artifact_base64)
 
     def _fail_submit(
         self,
@@ -293,8 +341,15 @@ class RenderSubmissionService:
         fallback_message: str,
         cause: Exception,
         started_at: float,
+        claim_generation: int,
     ) -> RenderSubmitResponse:
-        """Persist the failure, then raise -- unless a racing writer already holds the truth."""
+        """Persist the failure, then raise -- unless a racing writer already holds the truth.
+
+        The failure write is fenced to the claim this attempt observed or holds, so a
+        late failure from a taken-over attempt cannot fail a job another attempt is
+        rendering or has already completed (issue #313); the current truth is
+        returned instead.
+        """
         # The support-safe message is what gets persisted and returned; the engine's own
         # diagnostic is only available here, on `cause`, and is otherwise discarded (#129).
         log_render_failed(
@@ -306,6 +361,7 @@ class RenderSubmissionService:
             render_job_id,
             failure_category=failure_category,
             failure_message=failure_message,
+            claim_generation=claim_generation,
         )
         self._record_submit_metric(failure, started_at=started_at)
         if failure.status != "failed":
@@ -355,7 +411,7 @@ class RenderSubmissionService:
                 duration_seconds=perf_counter() - started_at,
             )
             raise ValueError("render_artifact_not_ready")
-        response = _to_artifact_metadata_response(stored)
+        response = to_artifact_metadata_response(stored)
         record_render_operation(
             operation="artifact_metadata_lookup",
             status=stored.status,
@@ -401,12 +457,14 @@ class RenderSubmissionService:
         *,
         failure_category: RenderFailureCategory,
         failure_message: str,
+        claim_generation: int,
     ) -> StoredRenderJob:
         try:
             return self._render_store.mark_failed(
                 render_job_id=render_job_id,
                 failure_category=failure_category,
                 failure_message=failure_message,
+                claim_generation=claim_generation,
             )
         except RenderJobTransitionError:
             return self._render_store.get(render_job_id)
@@ -417,11 +475,11 @@ class RenderSubmissionService:
         *,
         artifact_base64: str | None,
     ) -> RenderSubmitResponse:
-        return RenderSubmitResponse(**_job_response_fields(stored), artifact_base64=artifact_base64)
+        return RenderSubmitResponse(**job_response_fields(stored), artifact_base64=artifact_base64)
 
     @staticmethod
     def _to_status_response(stored: StoredRenderJob) -> RenderJobStatusResponse:
-        return RenderJobStatusResponse(**_job_response_fields(stored))
+        return RenderJobStatusResponse(**job_response_fields(stored))
 
     @staticmethod
     def _to_diagnostics_response(
@@ -430,15 +488,15 @@ class RenderSubmissionService:
         accepted_stale_seconds: int,
         rendering_stale_seconds: int,
     ) -> RenderJobDiagnosticsResponse:
-        age_seconds = _age_seconds(stored.updated_at)
-        stale_threshold_seconds = _stale_threshold_seconds(
+        job_age_seconds = age_seconds(stored.updated_at)
+        threshold_seconds = stale_threshold_seconds(
             status=stored.status,
             accepted_stale_seconds=accepted_stale_seconds,
             rendering_stale_seconds=rendering_stale_seconds,
         )
         stale_state: RenderStaleState = "not_applicable"
-        if stale_threshold_seconds is not None:
-            stale_state = "stale" if age_seconds >= stale_threshold_seconds else "fresh"
+        if threshold_seconds is not None:
+            stale_state = "stale" if job_age_seconds >= threshold_seconds else "fresh"
         retryable, recovery_action, handoff_owner, support_message = diagnostic_recovery(
             status=stored.status,
             failure_category=stored.failure_category,
@@ -451,8 +509,8 @@ class RenderSubmissionService:
             artifact_ready=stored.status == "rendered",
             template_publication=stored.template_publication,
             stale_state=stale_state,
-            age_seconds=age_seconds,
-            stale_threshold_seconds=stale_threshold_seconds,
+            age_seconds=job_age_seconds,
+            stale_threshold_seconds=threshold_seconds,
             retryable=retryable,
             recovery_action=recovery_action,
             handoff_owner=handoff_owner,
@@ -477,116 +535,3 @@ class RenderSubmissionService:
             duration_seconds=perf_counter() - started_at,
         )
         record_render_artifact_size(status=stored.status, size_bytes=stored.output_size_bytes)
-
-
-def _to_artifact_metadata_response(stored: StoredRenderJob) -> RenderArtifactMetadataResponse:
-    """A rendered job always carries its artifact facts; anything else is store corruption."""
-    assert stored.artifact_sha256 is not None
-    assert stored.bounded_determinism_fingerprint is not None
-    assert stored.mime_type is not None
-    assert stored.output_size_bytes is not None
-    assert stored.render_duration_ms is not None
-    assert stored.determinism_mode is not None
-    return RenderArtifactMetadataResponse(
-        render_job_id=stored.render_job_id,
-        status=stored.status,
-        output_format=stored.output_format,
-        artifact_sha256=stored.artifact_sha256,
-        bounded_determinism_fingerprint=stored.bounded_determinism_fingerprint,
-        template_digest=stored.template_digest or "",
-        template_publication=stored.template_publication,
-        mime_type=stored.mime_type,
-        output_size_bytes=stored.output_size_bytes,
-        render_duration_ms=stored.render_duration_ms,
-        determinism_mode=stored.determinism_mode,
-    )
-
-
-def _runtime_failure_category(failure_message: str) -> RenderFailureCategory:
-    if "neither docker nor typst is installed" in failure_message.lower():
-        return "engine_unavailable"
-    return "template_render_failed"
-
-
-def _unexpected_failure_category(exc: Exception) -> RenderFailureCategory:
-    """Classify an exception the render step did not expect to fail-close on.
-
-    A ``RuntimeError`` keeps its runtime classification (engine vs template);
-    anything else is a genuinely unexpected internal error.
-    """
-    if isinstance(exc, RenderCompileFailedError):
-        # The runtime already decided; matching on the message would discard it.
-        # `.value` crosses from the runtime StrEnum to the contract Literal, which
-        # `test_the_two_failure_category_spellings_agree` holds to the same members --
-        # they had drifted, and that drift is why this category had nowhere to land.
-        return exc.failure_category.value
-    if isinstance(exc, RuntimeError):
-        return _runtime_failure_category(str(exc))
-    return "unexpected_render_error"
-
-
-def _support_safe_render_failure_message(failure_category: RenderFailureCategory) -> str:
-    if failure_category == "engine_unavailable":
-        return "Render runtime is unavailable in the governed runtime envelope."
-    if failure_category == "timeout":
-        return "Render execution timed out in the governed runtime envelope."
-    return "Render execution failed in the governed runtime envelope."
-
-
-def _age_seconds(updated_at: datetime) -> int:
-    elapsed = datetime.now(UTC) - updated_at.astimezone(UTC)
-    return max(0, int(elapsed.total_seconds()))
-
-
-def _stale_threshold_seconds(
-    *,
-    status: str,
-    accepted_stale_seconds: int,
-    rendering_stale_seconds: int,
-) -> int | None:
-    if status == "accepted":
-        return accepted_stale_seconds
-    if status == "rendering":
-        return rendering_stale_seconds
-    return None
-
-
-def _job_response_fields(stored: StoredRenderJob) -> dict[str, Any]:
-    """The job facts every job-shaped response surface states verbatim.
-
-    The submit and status responses must never disagree about the same job; stating
-    the shared facts once is what makes that impossible rather than merely tested.
-    """
-    return dict(
-        render_job_id=stored.render_job_id,
-        report_job_id=stored.report_job_id,
-        snapshot_id=stored.snapshot_id,
-        lineage_refs=list(stored.lineage_refs),
-        disclosure_refs=list(stored.disclosure_refs),
-        requested_by=stored.requested_by,
-        package_correlation_id=stored.package_correlation_id,
-        package_trace_id=stored.package_trace_id,
-        status=stored.status,
-        failure_category=stored.failure_category,
-        failure_message=stored.failure_message,
-        template_id=stored.template_id,
-        template_version=stored.template_version,
-        output_format=stored.output_format,
-        artifact_sha256=stored.artifact_sha256,
-        bounded_determinism_fingerprint=stored.bounded_determinism_fingerprint,
-        runtime_engine=stored.runtime_engine,
-        runtime_engine_version=stored.runtime_engine_version,
-        determinism_mode=stored.determinism_mode,
-        determinism_statement=stored.determinism_statement,
-        mime_type=stored.mime_type,
-        output_size_bytes=stored.output_size_bytes,
-        render_duration_ms=stored.render_duration_ms,
-        created_at=stored.created_at,
-        updated_at=stored.updated_at,
-        completed_at=stored.completed_at,
-        archive_state=stored.archive_state,
-        archive_document_id=stored.archive_document_id,
-        archive_request_id=stored.archive_request_id,
-        archive_detail=stored.archive_detail,
-        template_publication=stored.template_publication,
-    )

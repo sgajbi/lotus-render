@@ -15,7 +15,7 @@ whole input.
 |---|---|
 | [Home](https://github.com/sgajbi/lotus-render/wiki/Home) | what the service is for, what it produces today, what it does not own |
 | [Architecture](https://github.com/sgajbi/lotus-render/wiki/Architecture) | how a submission becomes a PDF, and why job state is instance-local |
-| [API Surface](https://github.com/sgajbi/lotus-render/wiki/API-Surface) | the nine operations, the package contract, idempotency and errors |
+| [API Surface](https://github.com/sgajbi/lotus-render/wiki/API-Surface) | the eleven operations, the package contract, idempotency and errors |
 | [Template Registry](https://github.com/sgajbi/lotus-render/wiki/Template-Registry) | the four active templates and their contract shapes |
 | [Configuration](https://github.com/sgajbi/lotus-render/wiki/Configuration) | every `LOTUS_RENDER_` setting, deployment and secrets |
 | [Security and Controls](https://github.com/sgajbi/lotus-render/wiki/Security-and-Controls) | what protects the service, and what a deployment must provide |

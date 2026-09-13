@@ -1,8 +1,8 @@
 # API Surface
 
 Every operation `lotus-render` publishes, taken from the generated OpenAPI document on `main`.
-There are **nine**, and there is no undocumented tenth: four form the render contract and five are
-operational.
+There are **eleven**, and there is no undocumented twelfth: four form the render contract and seven
+are operational.
 
 ## The render contract
 
@@ -21,6 +21,9 @@ operational.
 | `GET /health/live` | process liveness only — no dependency checks |
 | `GET /health/ready` | drain posture **and** render-store readiness **and** Typst/Docker availability, and the service that answered |
 | `GET /version` | which build is serving: commit, branch, repository, build timestamp, pipeline and image digest |
+| `GET /metadata` | service identity, runtime posture, supportability state, aggregate stale posture |
+| `GET /metrics` | Prometheus exposition |
+| `GET /system/templates` | which template versions this runtime can render, and their posture |
 
 Every rendered document asserts bounded determinism "within the governed lotus-render
 runtime envelope". `GET /version` is where that runtime is identified, so an artifact can
@@ -30,9 +33,6 @@ Absent values are reported rather than omitted. `unknown` means the build suppli
 nothing; `image_digest` reports `unavailable-before-push`, because an image cannot
 contain its own digest — it exists only once the image does, so no build argument can
 carry it.
-| `GET /metadata` | service identity, runtime posture, supportability state, aggregate stale posture |
-| `GET /metrics` | Prometheus exposition |
-| `GET /system/templates` | which template versions this runtime can render, and their posture |
 
 `/health/live` and `/health/ready` answer genuinely different questions: a process that is alive but
 whose render store or compile runtime is unavailable is **live and not ready**, and must not be sent

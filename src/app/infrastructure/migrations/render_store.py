@@ -3,7 +3,7 @@ from __future__ import annotations
 import sqlite3
 from collections.abc import Callable
 
-CURRENT_RENDER_STORE_SCHEMA_VERSION = 5
+CURRENT_RENDER_STORE_SCHEMA_VERSION = 6
 
 Migration = Callable[[sqlite3.Connection], None]
 
@@ -130,6 +130,22 @@ def _add_template_publication_column(connection: sqlite3.Connection) -> None:
     _add_column_if_missing(connection, columns, "template_publication", "TEXT")
 
 
+def _add_claim_generation_column(connection: sqlite3.Connection) -> None:
+    """Give every claim of a job a durable ownership generation (issue #313).
+
+    The stale-takeover recovery (#105) lets a second attempt reclaim a job whose
+    worker looks dead, but a timestamp going stale does not prove the old process
+    died. The generation is what makes ownership decidable after the fact:
+    ``claim_for_rendering`` increments it in the same conditional UPDATE that takes
+    ownership, and every terminal or custody write must name the generation it
+    claimed under. Legacy rows start at 0 -- the next claim of a legacy in-flight
+    row takes generation 1, so pre-upgrade rows stay claimable and recoverable
+    without any backfill, and none would be truthful.
+    """
+    columns = render_store_columns(connection)
+    _add_column_if_missing(connection, columns, "claim_generation", "INTEGER NOT NULL DEFAULT 0")
+
+
 def _add_column_if_missing(
     connection: sqlite3.Connection,
     columns: set[str],
@@ -148,4 +164,5 @@ _MIGRATIONS: tuple[tuple[int, Migration], ...] = (
     (3, _add_template_digest_column),
     (4, _add_archive_handoff_columns),
     (5, _add_template_publication_column),
+    (6, _add_claim_generation_column),
 )
