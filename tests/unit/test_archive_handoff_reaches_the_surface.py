@@ -224,20 +224,45 @@ def test_a_timeout_leaves_the_reconciliation_key_on_the_job(tmp_path: Path) -> N
     assert stored.archive_request_id == derive_archive_request_id(REFERENCE, ARTIFACT_SHA)
 
 
-def test_a_handoff_crash_is_contained_and_named(tmp_path: Path) -> None:
-    """A bug in the handoff code itself must not take the render down with it --
-    the job records a named failure instead of the exception propagating."""
+def test_a_post_accepted_before_an_unexpected_handoff_error_stays_reconcilable(
+    tmp_path: Path,
+) -> None:
+    """A post-send exception cannot erase the only dedupe/reconciliation key."""
 
-    transport = _ScriptedTransport(RuntimeError("nobody expects this"))
-    service, _ = _service(tmp_path, transport)
+    class _AcceptThenRaiseTransport:
+        def __init__(self) -> None:
+            self.calls = 0
+            self.request_ids: list[str] = []
+
+        def post_document(self, payload: Any, *, headers: Any) -> tuple[int, dict[str, Any]]:
+            self.calls += 1
+            metadata = payload["metadata"]
+            assert isinstance(metadata, dict)
+            self.request_ids.append(str(metadata["archive_request_id"]))
+            # The receiving side accepted the POST; local outcome handling then dies.
+            raise RuntimeError("outcome handling failed after Archive accepted POST")
+
+    transport = _AcceptThenRaiseTransport()
+    service, store_path = _service(tmp_path, transport)  # type: ignore[arg-type]
 
     response = service.submit(_package(with_custody=True), admitted_tenant=None)
 
     assert response.status == "rendered"
     assert response.artifact_base64 is not None
-    assert response.archive_state == "archive_failed"
-    stored_detail = service.get_status("rdr_golden_portfolio_review_v1", admitted_tenant=None)
-    assert stored_detail.archive_state == "archive_failed"
+    expected = derive_archive_request_id(REFERENCE, ARTIFACT_SHA)
+    assert transport.calls == 1
+    assert transport.request_ids == [expected]
+    assert response.archive_state == "archive_pending"
+    assert response.archive_request_id == expected
+    assert "archive_handoff_unexpected_error" in (response.archive_detail or "")
+    reopened = RenderStore(store_path).get("rdr_golden_portfolio_review_v1", tenant_id=None)
+    assert reopened.archive_state == "archive_pending"
+    assert reopened.archive_request_id == expected
+    # Replay returns stored render/custody truth and never sends a second POST.
+    replay = service.submit(_package(with_custody=True), admitted_tenant=None)
+    assert replay.archive_state == "archive_pending"
+    assert replay.archive_request_id == expected
+    assert transport.calls == 1
 
 
 def test_a_package_without_custody_carries_no_archive_state(tmp_path: Path) -> None:

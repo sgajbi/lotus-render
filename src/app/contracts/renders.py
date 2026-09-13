@@ -380,9 +380,9 @@ class RenderSubmitResponse(BaseModel):
         description=(
             "Custody state of the rendered artifact with lotus-archive: 'archived_verified' "
             "once Archive independently verified the declared SHA-256 and holds the bytes, "
-            "'archive_pending' when the handoff deadline expired and reconciliation by "
-            "archive_request_id will resolve it, 'archive_failed' when Archive refused or "
-            "was unreachable. Null when no archive handoff applies to this job."
+            "'archive_pending' when delivery may have reached Archive and reconciliation by "
+            "archive_request_id will resolve it, 'archive_failed' only for a deterministic "
+            "Archive refusal or proven never-sent delivery. Null when no handoff applies."
         ),
         examples=["archived_verified"],
     )
@@ -577,9 +577,9 @@ class RenderJobStatusResponse(BaseModel):
         description=(
             "Custody state of the rendered artifact with lotus-archive: 'archived_verified' "
             "once Archive independently verified the declared SHA-256 and holds the bytes, "
-            "'archive_pending' when the handoff deadline expired and reconciliation by "
-            "archive_request_id will resolve it, 'archive_failed' when Archive refused or "
-            "was unreachable. Null when no archive handoff applies to this job."
+            "'archive_pending' when delivery may have reached Archive and reconciliation by "
+            "archive_request_id will resolve it, 'archive_failed' only for a deterministic "
+            "Archive refusal or proven never-sent delivery. Null when no handoff applies."
         ),
         examples=["archived_verified"],
     )
