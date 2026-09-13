@@ -92,7 +92,7 @@ SHAPES = {
 }
 
 
-def _package_with(rows: int, shape: str) -> RenderPackage:
+def _package_with(rows: int, shape: str, *, template_version: str) -> RenderPackage:
     raw = json.loads(GOLDEN.read_text(encoding="utf-8"))
     report = raw["report_data"]
     for key, id_field in SHAPES[shape]:
@@ -105,20 +105,30 @@ def _package_with(rows: int, shape: str) -> RenderPackage:
                 }
                 for index in range(rows)
             ]
-    raw["render_job_id"] = f"rdr_capacity_{shape}_{rows}"
+    raw["render_job_id"] = f"rdr_capacity_{template_version}_{shape}_{rows}"
+    raw["template_version"] = template_version
     return RenderPackage.model_validate(raw)
 
 
-def _renders(service: TypstRenderService, rows: int, shape: str) -> tuple[bool, float, str]:
+def _renders(
+    service: TypstRenderService, rows: int, shape: str, *, template_version: str
+) -> tuple[bool, float, str]:
     started = time.perf_counter()
     try:
-        result = service.render(_package_with(rows, shape))
+        result = service.render(_package_with(rows, shape, template_version=template_version))
     except Exception as exc:  # noqa: BLE001 - the probe reports whatever happens
         return False, time.perf_counter() - started, str(exc).splitlines()[0][:60]
     return True, time.perf_counter() - started, f"{len(result.artifact_bytes) / 1024:.0f} KB"
 
 
-def _ceiling(service: TypstRenderService, shape: str, low: int, precision: int) -> tuple[int, int]:
+def _ceiling(
+    service: TypstRenderService,
+    shape: str,
+    low: int,
+    precision: int,
+    *,
+    template_version: str,
+) -> tuple[int, int]:
     """Double until it fails, then bisect.
 
     The ceiling differs by shape, so a fixed upper bound would either miss a taller one
@@ -129,7 +139,9 @@ def _ceiling(service: TypstRenderService, shape: str, low: int, precision: int) 
     probe = low
     high = 0
     while True:
-        rendered, elapsed, detail = _renders(service, probe, shape)
+        rendered, elapsed, detail = _renders(
+            service, probe, shape, template_version=template_version
+        )
         print(f"{probe:>7} {'renders' if rendered else 'KILLED':>9} {elapsed:>8.1f}  {detail}")
         if not rendered:
             high = probe
@@ -142,7 +154,9 @@ def _ceiling(service: TypstRenderService, shape: str, low: int, precision: int) 
 
     while high - low > precision:
         middle = (low + high) // 2
-        rendered, elapsed, detail = _renders(service, middle, shape)
+        rendered, elapsed, detail = _renders(
+            service, middle, shape, template_version=template_version
+        )
         print(f"{middle:>7} {'renders' if rendered else 'KILLED':>9} {elapsed:>8.1f}  {detail}")
         low, high = (middle, high) if rendered else (low, middle)
     return low, high
@@ -156,7 +170,9 @@ MODEL_CEILINGS = {"positions": 3125, "transactions": 4875}
 MODEL_MIXES = ((3000, 500), (2500, 500), (500, 4000), (1500, 1500), (2800, 300))
 
 
-def _verify_model(service: TypstRenderService, precision_note: str = "") -> bool:
+def _verify_model(
+    service: TypstRenderService, *, template_version: str, precision_note: str = ""
+) -> bool:
     """Check the additive rule against mixes neither ceiling was measured from."""
     del precision_note
     print(
@@ -171,20 +187,28 @@ def _verify_model(service: TypstRenderService, precision_note: str = "") -> bool
             positions / MODEL_CEILINGS["positions"] + transactions / MODEL_CEILINGS["transactions"]
         )
         predicted = "renders" if cost <= 1.0 else "KILLED"
-        package = _mixed_package(positions, transactions)
+        package = _mixed_package(positions, transactions, template_version=template_version)
+        started = time.perf_counter()
         try:
-            service.render(package)
+            result = service.render(package)
             actual = "renders"
+            detail = (
+                f"{time.perf_counter() - started:.1f}s {len(result.artifact_bytes) / 1024:.0f} KB"
+            )
         except Exception:  # noqa: BLE001 - the probe reports whatever happens
             actual = "KILLED"
+            detail = f"{time.perf_counter() - started:.1f}s"
         agreed = agreed and predicted == actual
         mark = "" if predicted == actual else "  <-- the rule is wrong here"
-        print(f"{positions:>10,} {transactions:>7,} {cost:>6.2f} {predicted:>10} {actual:>9}{mark}")
+        print(
+            f"{positions:>10,} {transactions:>7,} {cost:>6.2f} {predicted:>10} "
+            f"{actual:>9} {detail}{mark}"
+        )
     print("the rule held" if agreed else "the rule did not hold; re-derive the ceilings")
     return agreed
 
 
-def _mixed_package(positions: int, transactions: int) -> RenderPackage:
+def _mixed_package(positions: int, transactions: int, *, template_version: str) -> RenderPackage:
     raw = json.loads(GOLDEN.read_text(encoding="utf-8"))
     report = raw["report_data"]
     counts = {"positions": positions, "top_holdings": positions, "transactions": transactions}
@@ -198,7 +222,8 @@ def _mixed_package(positions: int, transactions: int) -> RenderPackage:
                 }
                 for index in range(counts[key])
             ]
-    raw["render_job_id"] = f"rdr_mix_{positions}_{transactions}"
+    raw["render_job_id"] = f"rdr_mix_{template_version}_{positions}_{transactions}"
+    raw["template_version"] = template_version
     return RenderPackage.model_validate(raw)
 
 
@@ -218,6 +243,15 @@ def main() -> int:
         action="store_true",
         help="re-check the additive cost rule against asymmetric mixes",
     )
+    parser.add_argument(
+        "--template-version",
+        choices=("v1", "v2", "v3", "v4"),
+        default="v1",
+        help=(
+            "portfolio-review candidate to measure (default v1 preserves the historic model); "
+            "use v3 or v4 when an un-published candidate changes row cost"
+        ),
+    )
     arguments = parser.parse_args()
 
     settings = Settings()
@@ -230,7 +264,13 @@ def main() -> int:
 
     results: dict[str, tuple[int, int]] = {}
     for shape in arguments.shapes:
-        results[shape] = _ceiling(service, shape, arguments.low, arguments.precision)
+        results[shape] = _ceiling(
+            service,
+            shape,
+            arguments.low,
+            arguments.precision,
+            template_version=arguments.template_version,
+        )
 
     print(f"\n{'shape':>13} {'largest rendered':>18} {'smallest failure':>18}")
     for shape, (rendered, failed) in results.items():
@@ -246,7 +286,7 @@ def main() -> int:
         )
 
     if arguments.verify_model:
-        _verify_model(service)
+        _verify_model(service, template_version=arguments.template_version)
 
     print(
         f"\nThe render package contract admits {MAX_ITEMS:,} items per list, and this "

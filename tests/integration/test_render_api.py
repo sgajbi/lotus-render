@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import shutil
 import sqlite3
 import threading
 from contextlib import closing
@@ -26,6 +27,24 @@ def _build_client(tmp_path: Path) -> TestClient:
         )
     )
     return TestClient(app, headers={"X-Tenant-Id": "tenant-integration"})
+
+
+def _registry_with_versions(tmp_path: Path, *versions: str) -> Path:
+    """Build a registry fixture without ever editing a governed template.
+
+    Report activation changes which already-governed version it names. The
+    fixture mirrors that boundary: v4 is added as a registered version between
+    two app lifetimes while the SQLite render store is deliberately retained.
+    """
+
+    registry = tmp_path / "template-registry" / "portfolio-review"
+    registry.mkdir(parents=True, exist_ok=True)
+    for version in versions:
+        shutil.copyfile(
+            Path("templates/registry/portfolio-review") / f"{version}.manifest.json",
+            registry / f"{version}.manifest.json",
+        )
+    return registry.parent
 
 
 def test_submit_render_and_fetch_status_and_artifact_metadata(tmp_path: Path) -> None:
@@ -114,6 +133,86 @@ def test_submit_render_is_idempotent_for_same_render_job(tmp_path: Path) -> None
         assert second.status_code == 200
         assert second.json()["render_job_id"] == first.json()["render_job_id"]
         assert second.json()["artifact_base64"] is None
+
+
+def test_accepted_render_keeps_its_template_across_report_activation_and_replay(
+    tmp_path: Path,
+) -> None:
+    """A Report configuration change cannot rewrite accepted Render work.
+
+    This is deliberately an API-and-SQLite proof, not a registry unit double:
+    submit v2, restart against a fixture where v4 has become selectable, then
+    replay the v2 package and submit a new v4 package. The old artifact must
+    retain its stored version/digest and the replay must not compile it again.
+    """
+
+    payload: dict[str, object] = json.loads(
+        PORTFOLIO_REVIEW_RENDER_PACKAGE_EXAMPLE_PATH.read_text(encoding="utf-8")
+    )
+    payload.update(
+        {
+            "render_job_id": "rdr_activation_v2_accepted",
+            "report_job_id": "rjob_activation_v2_accepted",
+            "snapshot_id": "rsnap_activation_v2_accepted",
+            "template_version": "v2",
+        }
+    )
+    store_path = tmp_path / "render-store.sqlite3"
+    registry_path = _registry_with_versions(tmp_path, "v2")
+    settings = Settings(
+        render_store_path=str(store_path), template_registry_path=str(registry_path)
+    )
+
+    with TestClient(create_app(settings), headers={"X-Tenant-Id": "tenant-integration"}) as client:
+        accepted = client.post("/renders", json=payload)
+        assert accepted.status_code == 201, accepted.text
+        accepted_body = accepted.json()
+        old_metadata = client.get(f"/renders/{accepted_body['render_job_id']}/artifact-metadata")
+        assert old_metadata.status_code == 200
+        old_metadata_body = old_metadata.json()
+        old_status = client.get(f"/renders/{accepted_body['render_job_id']}")
+        assert old_status.status_code == 200
+        assert old_status.json()["template_version"] == "v2"
+
+    # This is the only activation action: a new Report package may now name
+    # v4. Existing v2 package bytes and the persisted row are untouched.
+    _registry_with_versions(tmp_path, "v4")
+    activated_settings = Settings(
+        render_store_path=str(store_path), template_registry_path=str(registry_path)
+    )
+    with TestClient(
+        create_app(activated_settings), headers={"X-Tenant-Id": "tenant-integration"}
+    ) as client:
+        replay = client.post("/renders", json=payload)
+        assert replay.status_code == 200, replay.text
+        assert replay.json()["artifact_base64"] is None
+
+        replayed_metadata = client.get(
+            f"/renders/{accepted_body['render_job_id']}/artifact-metadata"
+        )
+        assert replayed_metadata.status_code == 200
+        assert replayed_metadata.json() == old_metadata_body
+        replayed_status = client.get(f"/renders/{accepted_body['render_job_id']}")
+        assert replayed_status.status_code == 200
+        assert replayed_status.json()["template_version"] == "v2"
+
+        v4_payload = dict(payload)
+        v4_payload.update(
+            {
+                "render_job_id": "rdr_activation_v4_new",
+                "report_job_id": "rjob_activation_v4_new",
+                "snapshot_id": "rsnap_activation_v4_new",
+                "template_version": "v4",
+            }
+        )
+        new_render = client.post("/renders", json=v4_payload)
+        assert new_render.status_code == 201, new_render.text
+        new_metadata = client.get("/renders/rdr_activation_v4_new/artifact-metadata")
+        assert new_metadata.status_code == 200
+        assert new_metadata.json()["template_digest"] != old_metadata_body["template_digest"]
+        new_status = client.get("/renders/rdr_activation_v4_new")
+        assert new_status.status_code == 200
+        assert new_status.json()["template_version"] == "v4"
 
 
 def test_submit_render_rejects_conflicting_reuse_of_render_job_id(tmp_path: Path) -> None:

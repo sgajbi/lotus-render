@@ -131,6 +131,19 @@ Lifecycle changes are governed the same way: move a template to `deprecated_rere
 - `brand_variant`: `private_banking`
 - `output_format`: `pdf`
 
+## v3/v4 publication evidence pack
+
+`v3` and `v4` remain development candidates. Their decision pack is
+[Portfolio-review v3/v4 publication evidence](https://github.com/sgajbi/lotus-render/blob/main/docs/portfolio-review-publication-evidence-pack.md):
+it records the diagnostic-only visual matrix, page-frame and text-layer checks, capacity probe,
+v2 compatibility, and the Report configuration-only activation/reversal sequence. It is not a
+publication decision and does not change v1/v2's frozen bytes.
+
+The pack also records a current upstream contract prerequisite: Render has a generic payload
+string ceiling but no Report-owned maximum for reader-facing identity fields. It must not claim a
+maximum-length visual acceptance until Report supplies the versioned field limits and admission
+behavior. Report #254 / Risk #291 empirical-content acceptance remains separate from this pack.
+
 - `template_id`: `outcome-review`
 - `template_version`: `v1`
 - `report_type`: `outcome_review`
