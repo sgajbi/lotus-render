@@ -24,6 +24,7 @@ from __future__ import annotations
 
 import io
 import json
+import os
 import re
 from pathlib import Path
 from typing import Any
@@ -145,6 +146,84 @@ def _refusal_composite() -> dict[str, Any]:
     return package
 
 
+def _long_visual_identities() -> dict[str, Any]:
+    """Exercise the longest identity-like facts currently evidenced in a fixture.
+
+    The package contract has only one generic 100,000-character string ceiling;
+    it does not define an identity-field maximum.  This is therefore deliberately
+    not labelled a maximum-length contract test: it protects the long reader-facing
+    values this repository can render while the Report-owned field limits remain
+    an explicit publication-decision prerequisite.
+    """
+
+    package: dict[str, Any] = json.loads(
+        (GOLDEN_ROOT / "v4" / "render-package.json").read_text(encoding="utf-8")
+    )
+    package["render_job_id"] = "rdr_v4_matrix_long_identities"
+    report_data = package["report_data"]
+    report_data["client_name"] = "Dr Alexandra Beatrice Charlotte de Montfort-Langley"
+    report_data["portfolio_name"] = (
+        "Singapore Global Balanced Discretionary Mandate – Strategic Liquidity Reserve"
+    )
+    report_data["currency"] = "USD (United States dollar reporting currency)"
+    report_data["review_period_label"] = "Year to date through 23 April 2026"
+    report_data["mandate"]["objective"] = (
+        "Long-term real wealth growth with controlled income, liquidity, and capital preservation."
+    )
+    report_data["benchmark_presentation"] = {
+        "posture": "available",
+        "benchmark_code": "MSCI All Country World / Bloomberg Global Aggregate 60/40 blend",
+    }
+    return package
+
+
+def _with_withheld_presentation(name: str) -> dict[str, Any]:
+    """Make one Report-owned posture unavailable while its source-shaped data remains.
+
+    Keeping the ordinary rows in place is the proof that Render reads the stated
+    posture rather than deriving an answer from the shape of those rows.
+    """
+
+    package: dict[str, Any] = json.loads(
+        (GOLDEN_ROOT / "v4" / "render-package.json").read_text(encoding="utf-8")
+    )
+    package["render_job_id"] = f"rdr_v4_matrix_withheld_{name}"
+    report_data = package["report_data"]
+    if name == "allocation":
+        report_data["allocation_presentation"] = {
+            "dimensions": [
+                {
+                    "dimension": "asset_class",
+                    "package_key": "by_asset_class",
+                    "posture": "unavailable",
+                }
+            ]
+        }
+    elif name == "benchmark":
+        report_data["benchmark_presentation"] = {
+            "posture": "unavailable",
+            "benchmark_code": "Diagnostic benchmark deliberately withheld",
+        }
+    elif name == "risk":
+        report_data["risk_posture"] = {
+            "posture": "unavailable",
+            "notes": [
+                {
+                    "message": "Risk source was deliberately withheld for this diagnostic package.",
+                }
+            ],
+        }
+    elif name == "holdings":
+        report_data["holdings_presentation"] = {"posture": "unavailable"}
+    elif name == "contribution":
+        report_data["contribution_ranking"] = {"posture": "unavailable"}
+    elif name == "earnings":
+        report_data["earnings_statement"] = {"posture": "unavailable"}
+    else:  # pragma: no cover - table below is intentionally closed.
+        raise ValueError(f"unknown withheld presentation {name}")
+    return package
+
+
 PACKAGE_BUILDERS: dict[str, Any] = {
     "advisory-narrative": lambda: _variant("advisory-narrative"),
     "advisor-memo": lambda: _variant("advisor-memo"),
@@ -152,6 +231,18 @@ PACKAGE_BUILDERS: dict[str, Any] = {
     "advisor-commentary": lambda: _variant("advisor-commentary"),
     "benchmarked": _benchmarked,
     "refusal-postures": _refusal_composite,
+    "long-identities": _long_visual_identities,
+    **{
+        f"withheld-{name}": (lambda name=name: _with_withheld_presentation(name))
+        for name in (
+            "allocation",
+            "benchmark",
+            "risk",
+            "holdings",
+            "contribution",
+            "earnings",
+        )
+    },
 }
 
 #: Each variant's own substance: the statements that make it THIS document --
@@ -212,7 +303,44 @@ CASES: dict[str, tuple[list[str], list[str]]] = {
         ],
         ["Bars are scaled"],
     ),
+    "long-identities": (
+        [
+            "Dr Alexandra Beatrice Charlotte de Montfort-Langley",
+            "Singapore Global Balanced Discretionary Mandate – Strategic Liquidity Reserve",
+            "USD (United States dollar reporting currency)",
+            "Year to date through 23 April 2026",
+            "MSCI All Country World / Bloomberg Global Aggregate 60/40 blend",
+        ],
+        [],
+    ),
+    "withheld-allocation": (["This grouping could not be retrieved for this report."], []),
+    "withheld-benchmark": (
+        ["The comparison against Diagnostic benchmark deliberately withheld could not be sourced"],
+        [],
+    ),
+    "withheld-risk": (
+        ["Risk source was deliberately withheld for this diagnostic package."],
+        [],
+    ),
+    "withheld-holdings": (["Holdings could not be sourced for this report."], []),
+    "withheld-contribution": (["Contribution could not be sourced for this period."], []),
+    "withheld-earnings": (
+        ["Income and realized figures could not be composed for this report."],
+        [],
+    ),
 }
+
+
+def _write_diagnostic_capture(name: str, artifact_bytes: bytes, pages: list[str]) -> None:
+    """Persist opt-in review captures without making them golden or demo evidence."""
+
+    output = os.environ.get("LOTUS_RENDER_DIAGNOSTIC_OUTPUT")
+    if output is None:
+        return
+    directory = Path(output)
+    directory.mkdir(parents=True, exist_ok=True)
+    (directory / f"diagnostic-{name}.pdf").write_bytes(artifact_bytes)
+    (directory / f"diagnostic-{name}.txt").write_text("\n\f\n".join(pages), encoding="utf-8")
 
 
 @pytest.fixture(scope="module")
@@ -235,6 +363,7 @@ def rendered_variants(render_service: TypstRenderService) -> dict[str, dict[str,
         result = render_service.render(RenderPackage.model_validate(package))
         reader = pypdf.PdfReader(io.BytesIO(result.artifact_bytes))
         pages = [re.sub(r"\s+", " ", page.extract_text() or "") for page in reader.pages]
+        _write_diagnostic_capture(name, result.artifact_bytes, pages)
         rendered[name] = {
             "pages": pages,
             "client": str(report_data["client_name"]),
@@ -332,3 +461,59 @@ def test_a_later_page_losing_its_frame_fails_the_checker(
     unnumbered[target] = unnumbered[target].replace(f"{target + 1} / {len(pages)}", "")
     defects = frame_defects(unnumbered, **identity)
     assert any("pagination" in defect for defect in defects), defects
+
+
+def _rendered_text(render_service: TypstRenderService, package: dict[str, Any]) -> str:
+    result = render_service.render(RenderPackage.model_validate(package))
+    reader = pypdf.PdfReader(io.BytesIO(result.artifact_bytes))
+    return " ".join(re.sub(r"\s+", " ", page.extract_text() or "") for page in reader.pages)
+
+
+@pytest.mark.parametrize("name", sorted(CASES))
+def test_v3_and_v4_retain_each_variant_s_stated_business_facts(
+    name: str, render_service: TypstRenderService
+) -> None:
+    """The v4 page architecture must not alter the v3 package's stated facts.
+
+    The diagnostic text captures keep the full extracted-layer diff reviewable;
+    this executable assertion holds the facts that identify each variant in both
+    candidate versions.  Frame/page-number wording is intentionally not a business
+    fact, so a layout change cannot mask or create an economic statement here.
+    """
+
+    package = PACKAGE_BUILDERS[name]()
+    needles, forbidden = CASES[name]
+    for version in ("v3", "v4"):
+        candidate = json.loads(json.dumps(package))
+        candidate["template_version"] = version
+        candidate["render_job_id"] = f"rdr_{version}_parity_{name.replace('-', '_')}"
+        document = _rendered_text(render_service, candidate)
+        for needle in needles:
+            assert needle in document, f"{name}/{version}: missing stated fact {needle!r}"
+        for needle in forbidden:
+            assert needle not in document, f"{name}/{version}: forbidden text {needle!r}"
+
+
+def test_v2_compatibility_facts_remain_in_v3_without_changing_v2_bytes(
+    render_service: TypstRenderService,
+) -> None:
+    """v3 is additive: the v2 facts render from the same package in both versions."""
+
+    package: dict[str, Any] = json.loads(
+        (GOLDEN_ROOT / "v2" / "render-package.json").read_text(encoding="utf-8")
+    )
+    facts = (
+        "Alex Tan",
+        "PB SG Global Balanced",
+        "15234567.89",
+        "Year-to-date",
+        "Current month",
+        "Risk profile",
+    )
+    for version in ("v2", "v3"):
+        candidate = json.loads(json.dumps(package))
+        candidate["template_version"] = version
+        candidate["render_job_id"] = f"rdr_{version}_v2_compatibility"
+        document = _rendered_text(render_service, candidate)
+        for fact in facts:
+            assert fact in document, f"{version}: v2 compatibility fact missing: {fact!r}"
