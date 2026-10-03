@@ -65,11 +65,22 @@ handling. This is registered-route Render SQLite evidence, not a deployed-produc
 
 ## Capacity and identity limits
 
-Run the final-tree governed-runtime measurement from the repository root:
+Run model verification from the repository root with the governed compile runtime available:
 
 ```powershell
 .\.venv\Scripts\python.exe scripts\capacity_probe.py --verify-model
 ```
+
+```bash
+./.venv/bin/python scripts/capacity_probe.py --verify-model
+```
+
+This command runs only the five asymmetric mixes against the existing cost model. Exit zero
+means all predictions agree with successful renders or typed `resource_limit_exceeded`
+refusals. Disagreement, unqualified compile failures, configuration failures and timeouts
+return nonzero; an `ERROR` is not evidence of a memory limit. Use the governed Docker512m
+RSS path for comparison with the banked model. The local address-space branch is a different
+envelope. `make capacity-probe` separately searches ceilings when remeasurement is required.
 
 The rows at `CEILING_POSITIONS` / `CEILING_TRANSACTIONS` must render and a one-row-over package
 must fail at admission with `resource_limit_exceeded`; it must not take a render slot or rely on a
