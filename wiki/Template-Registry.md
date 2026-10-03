@@ -66,6 +66,16 @@ Lifecycle changes are governed the same way: move a template to `deprecated_rere
 
 ## Current active templates
 
+Portfolio allocation emitters preserve unavailable figures independently from measured
+zero. Same-bucket aggregation retains uncertainty in each affected field, and unknown
+bucket names remain visible even when fully supplied groups fold into Other. Unknown
+weights prevent a numeric grouping-coverage claim. The donut uses only positive supplied
+weights with supplied values; excluded unknown figures are explained beside the chart and
+remain in the breakdown, without contributing fabricated zero to its Charted total.
+Report owns dimension `ready` / `empty` / `unavailable` posture. This consumer correction
+changes Python interpretation of input figures, with no template source/digest or
+publication change. See [the design-system allocation rules](https://github.com/sgajbi/lotus-render/blob/main/docs/portfolio-review-typst-design-system.md).
+
 - `template_id`: `portfolio-review`
 - `template_version`: `v1` -- **published 2026-09-04** (the #120 Archive-handoff go-live);
   bytes frozen with shared design `v1`
