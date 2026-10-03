@@ -29,9 +29,28 @@ version will produce artifacts that do not match the banked proofs.
 | `make code-health-gates` | complexity, source size, dead code, dependency hygiene |
 | `make check` | lint, typecheck, code-health gates, both gates above, **unit tests only** |
 | `make ci` | the above plus integration, e2e, coverage and security audit |
+| `make capacity-probe` | separate empirical ceiling search for each document shape |
 
 `make test` is an alias for `make test-unit`, so `make check` does **not** exercise the integration
 or e2e suites. Run `make ci` before opening a PR if the change touches the render path.
+
+For cost-model verification only, run from the repository root with the governed compile
+runtime available:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\capacity_probe.py --verify-model
+```
+
+```bash
+./.venv/bin/python scripts/capacity_probe.py --verify-model
+```
+
+Verification runs the five asymmetric mixes without ceiling searches. Exit zero means every
+prediction agrees with a successful render or a typed runtime `resource_limit_exceeded`
+refusal. Disagreement or unqualified failures return nonzero; template, configuration and
+timeout failures cannot validate a predicted memory refusal. Compare the banked model using
+the governed Docker512m RSS envelope; local address-space limits describe a different
+envelope. This empirical tool does not certify production capacity.
 
 ## Test layout
 

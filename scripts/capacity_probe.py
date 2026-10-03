@@ -70,8 +70,10 @@ from app.contracts.render_package import (  # noqa: E402
 )
 from app.contracts.render_package import RenderPackage  # noqa: E402
 from app.core.settings import Settings  # noqa: E402
+from app.domain.render_attempts.models import RenderFailureCategory  # noqa: E402
 from app.domain.templates.registry import TemplateRegistry  # noqa: E402
 from app.services.render_intake import RenderIntakeService  # noqa: E402
+from app.services.render_ports import RenderCompileFailedError  # noqa: E402
 from app.services.typst_rendering import TypstRenderService  # noqa: E402
 
 GOLDEN = Path("tests/golden/portfolio-review/v1/render-package.json")
@@ -195,9 +197,18 @@ def _verify_model(
             detail = (
                 f"{time.perf_counter() - started:.1f}s {len(result.artifact_bytes) / 1024:.0f} KB"
             )
-        except Exception:  # noqa: BLE001 - the probe reports whatever happens
-            actual = "KILLED"
-            detail = f"{time.perf_counter() - started:.1f}s"
+        except Exception as exc:  # noqa: BLE001 - every unqualified failure disagrees
+            resource_limited = (
+                isinstance(exc, RenderCompileFailedError)
+                and exc.failure_category == RenderFailureCategory.RESOURCE_LIMIT_EXCEEDED
+            )
+            actual = "KILLED" if resource_limited else "ERROR"
+            category = (
+                exc.failure_category.value
+                if isinstance(exc, RenderCompileFailedError)
+                else type(exc).__name__
+            )
+            detail = f"{time.perf_counter() - started:.1f}s {category}"
         agreed = agreed and predicted == actual
         mark = "" if predicted == actual else "  <-- the rule is wrong here"
         print(
@@ -241,7 +252,7 @@ def main() -> int:
     parser.add_argument(
         "--verify-model",
         action="store_true",
-        help="re-check the additive cost rule against asymmetric mixes",
+        help="verify only the five asymmetric mixes; exit nonzero if the rule does not hold",
     )
     parser.add_argument(
         "--template-version",
@@ -261,6 +272,9 @@ def main() -> int:
             TemplateRegistry.load_from_directory(Path(settings.template_registry_path))
         ),
     )
+
+    if arguments.verify_model:
+        return 0 if _verify_model(service, template_version=arguments.template_version) else 1
 
     results: dict[str, tuple[int, int]] = {}
     for shape in arguments.shapes:
@@ -284,9 +298,6 @@ def main() -> int:
             f"{ceilings[lowest]:,} rows. A limit set from any other shape admits a "
             "document that cannot render."
         )
-
-    if arguments.verify_model:
-        _verify_model(service, template_version=arguments.template_version)
 
     print(
         f"\nThe render package contract admits {MAX_ITEMS:,} items per list, and this "

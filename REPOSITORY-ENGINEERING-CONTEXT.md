@@ -267,6 +267,11 @@ Primary governing artifacts:
     `CEILING_TRANSACTIONS` in `src/app/services/render_envelope.py` in the same change. The
     ceilings carry their provenance beside their values so a later reader can tell a measurement
     from a guess.
+    Run from the repository root in the governed compile envelope. `--verify-model` runs only
+    the five asymmetric mixes: exit zero means genuine model agreement, and nonzero means
+    disagreement or an unqualified failure. Only a typed runtime `resource_limit_exceeded`
+    counts as the predicted memory refusal; template/configuration/timeout failures cannot
+    validate the model. A plain `make capacity-probe` remains the separate ceiling search (#332).
 17. Promote a template component to a shared module on the SECOND consumer, not on the appearance
     of generality (#150). A component used once stays where it is used, however general it looks.
 18. Tenant scope and claim ownership are orthogonal predicates in the same conditional writes:
