@@ -92,9 +92,8 @@ def test_allocation_items_skip_rows_that_carry_no_usable_slice() -> None:
         ]
     )
 
-    assert [item.label for item in items] == ["Equity", "Cash"]
+    assert [item.label for item in items] == ["Equity"]
     assert items[0].market_value == Decimal("7000")
-    assert items[1].market_value == Decimal("0")
 
 
 def _classes(count: int, weight: str = "3.00%") -> list[dict[str, str]]:

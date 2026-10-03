@@ -88,6 +88,24 @@ same split: one Python module per analytic composes invoked Typst component call
 components own the visual treatment. If chart data is absent, the section renders a quiet
 placeholder instead of failing or showing an empty frame.
 
+Allocation figures are qualified before aggregation in `allocation_values.py`, shared by
+the table and chart input readers. Missing keys, nulls, governed absence sentinels,
+malformed numbers and non-finite numbers display as `Not available`; supplied zero stays
+numeric. Each aggregate field is available only when every contributor supplies that
+field, so a known contributor cannot conceal an unknown contributor in the same bucket.
+The `weight` spelling is used only when `weight_pct` is absent, never to replace its zero
+or explicit null. Finite allocation sums use Decimal and the shared numeric formatters.
+
+Unknown bucket identities remain individually visible in the breakdown. Only fully
+supplied groups may fold into Other; many unknown buckets can therefore add rows/pages.
+Grouping coverage is unavailable when any constituent weight is unknown. A donut includes
+only buckets with positive supplied weights and supplied market values, and its centre
+remains the **Charted total** of those eligible buckets. If buckets are excluded for unknown
+figures, a chart note directs the reader to the breakdown; if no eligible slice remains,
+a placeholder explains that chart values are unavailable. Negative supplied weights remain
+in the table under the existing signed-chart policy. These are numeric presentation rules:
+Report's `ready`, `empty` and `unavailable` dimension postures remain authoritative.
+
 ## Configuration Model
 
 The full report renders when `sections` is omitted. An explicit `render_context.sections` list is honoured exactly or refused at admission -- an explicit scope can narrow a document or fail; it never silently widens (`section_selection.py`). Section keys include `cover`, `contents`, `overview`, `performance`, `allocation`, `positions`, `transactions`, and `appendix`; common aliases are normalized, duplicates draw once at first position, and caller order is preserved. When an included reviewed advisory narrative package is present, the default composition inserts `advisory_narrative` before the appendix, and callers can request it directly with `reviewed-advisory-narrative`; likewise `advisor_memo` via `advisor-proposal-memo` and `advisor_commentary`. Unknown or unavailable requested sections refuse the whole selection with a typed validation problem naming the tokens; an explicit empty list is refused. The one documented narrowing: an explicitly requested appendix is dropped when the document uses no term it would explain.

@@ -278,6 +278,14 @@ Primary governing artifacts:
 
 ## Working Practices That Cost Us Something To Learn
 
+Allocation numeric qualification belongs in `src/app/services/allocation_values.py`.
+Missing/null/sentinel/malformed/non-finite figures are unavailable, never additive zero.
+Each bucket field stays unavailable if any contributor lacks that field; supplied zero
+remains numeric. Tables preserve unknown bucket identity and fold only complete groups.
+Charts use only positive supplied weights and supplied market values, with a visible
+exclusion note; grouping coverage is unavailable if any weight is unknown. These rules
+interpret supplied figures and do not change Report-owned presentation posture (#331).
+
 Each of these was a live defect in this repository, not a precaution.
 
 1. **Never write file content through a shell heredoc.** The shell interprets backslash escapes

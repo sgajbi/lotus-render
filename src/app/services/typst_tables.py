@@ -6,10 +6,10 @@ the performance, holdings, positions, transactions and allocation tables.
 
 from __future__ import annotations
 
-from collections.abc import Iterable, Mapping, Sequence
+from collections.abc import Iterable, Mapping
 from decimal import Decimal
 
-from app.services.absence import supplied_text
+from app.services.absence import NOT_AVAILABLE, supplied_text
 from app.services.allocation_presentation import (
     EMPTY,
     READY,
@@ -17,6 +17,12 @@ from app.services.allocation_presentation import (
     presented_dimension,
     presented_dimensions,
     presented_rows,
+)
+from app.services.allocation_values import (
+    AllocationBucket,
+    allocation_buckets,
+    folded_allocation_buckets,
+    qualified_sum,
 )
 from app.services.appendix_glossary import applicable_glossary
 from app.services.benchmark_chart import benchmark_chart_dressing
@@ -44,8 +50,6 @@ from app.services.typst_values import (
     escape_typst_string,
     mapping_entries,
     optional_percent,
-    parse_number,
-    parse_percent,
     performance_bar_domain,
     performance_bar_geometry,
     row_sequence,
@@ -198,13 +202,12 @@ def render_allocation_chart_section(report_data: Mapping[str, object]) -> str:
             '#chart-placeholder("Asset Allocation", '
             '"This report does not present an asset-class breakdown.")'
         )
-    items = allocation_items_from_rows(presented_rows(report_data, asset_class))
+    source = presented_rows(report_data, asset_class)
+    incomplete = any(not bucket.complete for bucket in allocation_buckets(source))
+    items = allocation_items_from_rows(source)
     segments = donut_segments(items)
     if not segments:
-        return (
-            '#chart-placeholder("Asset Allocation", '
-            '"No allocation breakdown is available for this report.")'
-        )
+        return _allocation_chart_placeholder(incomplete)
 
     paths = _typst_array(_donut_path_literal(segment) for segment in segments)
     alt = _donut_alt(items)
@@ -218,7 +221,7 @@ def render_allocation_chart_section(report_data: Mapping[str, object]) -> str:
         for item in items
     )
     total = sum((item.market_value for item in items), Decimal("0"))
-    note = _donut_coverage_note(items)
+    note = _allocation_chart_note(items, incomplete)
 
     return (
         '#chart-card("Asset Allocation", '
@@ -231,6 +234,24 @@ def render_allocation_chart_section(report_data: Mapping[str, object]) -> str:
         f"  ))\n"
         "]"
     )
+
+
+def _allocation_chart_placeholder(incomplete: bool) -> str:
+    message = (
+        "Chart values are not available. See the allocation breakdown."
+        if incomplete
+        else "No allocation breakdown is available for this report."
+    )
+    return f'#chart-placeholder("Asset Allocation", "{message}")'
+
+
+def _allocation_chart_note(items: list[AllocationSlice], incomplete: bool) -> str:
+    if incomplete:
+        return (
+            '"Chart includes only supplied weights and values; '
+            'excluded bucket totals are not available. See the allocation breakdown."'
+        )
+    return _donut_coverage_note(items)
 
 
 def render_observation_notes(observations: object) -> str:
@@ -449,26 +470,6 @@ def render_transaction_table(transactions: object) -> tuple[str, str, str]:
 MAX_COMPOSITION_ROWS = 9
 
 
-def _folded_buckets(
-    ordered: list[tuple[str, dict[str, float]]],
-) -> tuple[list[tuple[str, dict[str, float]]], int]:
-    """The buckets to draw, and how many were folded into the last of them.
-
-    A country breakdown has thirty-odd buckets and a reader scans none of them. The tail
-    becomes one row that says how many it stands for, because an "Other" indistinguishable
-    from a real group is a bucket the reader will try to look up.
-    """
-    if len(ordered) <= MAX_COMPOSITION_ROWS:
-        return ordered, 0
-    kept = ordered[: MAX_COMPOSITION_ROWS - 1]
-    folded = ordered[MAX_COMPOSITION_ROWS - 1 :]
-    other = {
-        "weight": sum(totals["weight"] for _, totals in folded),
-        "value": sum(totals["value"] for _, totals in folded),
-    }
-    return [*kept, (f"Other ({len(folded)} groups)", other)], len(folded)
-
-
 def composition_note(rows: object) -> str:
     """What this grouping does not say, or `none` when it says everything.
 
@@ -476,20 +477,26 @@ def composition_note(rows: object) -> str:
     portfolio it covers, and how many groups were folded. Stated only where true -- a note
     that always appears is furniture a reader stops reading.
     """
-    items = row_sequence(rows)
-    aggregates = _aggregated_allocation_buckets(items) if items is not None else {}
+    aggregates = allocation_buckets(rows)
     if not aggregates:
         return "none"
-    coverage = sum(totals["weight"] for totals in aggregates.values())
+    coverage = qualified_sum(bucket.weight for bucket in aggregates)
     sentences = []
-    if coverage < float(DONUT_FULL_COVERAGE_PCT):
+    if coverage is None:
+        sentences.append("This grouping's coverage is not available because weights are missing.")
+    elif coverage < DONUT_FULL_COVERAGE_PCT:
         sentences.append(f"This grouping covers {format_percent(coverage)} of portfolio value.")
-    if len(aggregates) > MAX_COMPOSITION_ROWS:
-        folded = len(aggregates) - (MAX_COMPOSITION_ROWS - 1)
-        sentences.append(f"The {folded} smallest groups are shown together as Other.")
+    _, folded = folded_allocation_buckets(aggregates, MAX_COMPOSITION_ROWS)
+    if folded:
+        sentences.append(_allocation_folding_note(aggregates, folded))
     if not sentences:
         return "none"
     return f'"{escape_typst_string(" ".join(sentences))}"'
+
+
+def _allocation_folding_note(buckets: list[AllocationBucket], folded: int) -> str:
+    qualifier = "" if all(bucket.complete for bucket in buckets) else "fully supplied "
+    return f"The {folded} smallest {qualifier}groups are shown together as Other."
 
 
 def render_allocation_breakdown_rows(rows: object) -> str:
@@ -500,44 +507,30 @@ def render_allocation_breakdown_rows(rows: object) -> str:
     items = row_sequence(rows)
     if items is None:
         return empty
-    aggregates = _aggregated_allocation_buckets(items)
+    aggregates = allocation_buckets(items)
     if not aggregates:
         return empty
-    ordered, _ = _folded_buckets(
-        sorted(aggregates.items(), key=lambda entry: entry[1]["weight"], reverse=True)
-    )
+    ordered, _ = folded_allocation_buckets(aggregates, MAX_COMPOSITION_ROWS)
     rendered = [
         'compact-allocation-row("'
-        + escape_typst_string(name)
+        + escape_typst_string(bucket.label)
         + '", "'
-        + escape_typst_string(format_percent(totals["weight"]))
+        + escape_typst_string(
+            format_percent(bucket.weight) if bucket.weight is not None else NOT_AVAILABLE
+        )
         + '", "'
-        + escape_typst_string(format_money(totals["value"]))
+        + escape_typst_string(
+            format_money(bucket.value) if bucket.value is not None else NOT_AVAILABLE
+        )
         + '", '
         # `weight_width_token` is the governed one and floors nothing; this site kept
         # its own `max(weight, 8.0)`, so Cash at 1.64% drew an 8% bar beside a donut
         # showing 1.64%.
-        + weight_width_token(totals["weight"])
+        + weight_width_token(bucket.weight)
         + ")"
-        for name, totals in ordered
+        for bucket in ordered
     ]
     return "(\n" + ",\n".join(rendered) + ",\n)"
-
-
-def _aggregated_allocation_buckets(rows: Sequence[object]) -> dict[str, dict[str, float]]:
-    aggregates: dict[str, dict[str, float]] = {}
-    for item in rows:
-        if not isinstance(item, Mapping):
-            continue
-        bucket_name = str(
-            item.get("name") or item.get("asset_class") or item.get("currency") or "Not available"
-        )
-        weight = parse_percent(item.get("weight_pct") or item.get("weight"))
-        value = parse_number(item.get("market_value"))
-        bucket = aggregates.setdefault(bucket_name, {"weight": 0.0, "value": 0.0})
-        bucket["weight"] += weight
-        bucket["value"] += value
-    return aggregates
 
 
 # What a posture says, in the reader's terms. `empty` is a fact about the portfolio -- a

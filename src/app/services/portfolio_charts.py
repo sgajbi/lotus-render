@@ -15,8 +15,10 @@ import math
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from datetime import datetime
-from decimal import Decimal, InvalidOperation
+from decimal import Decimal
 
+from app.services.absence import NOT_AVAILABLE
+from app.services.allocation_values import allocation_buckets, allocation_number
 from app.services.typst_values import row_sequence
 
 # Series names, not colours: what they look like is decided in `_design.typ` with the
@@ -175,23 +177,16 @@ def allocation_items_from_rows(source: object) -> list[AllocationSlice]:
     ]
 
 
-def _allocation_entry(item: object) -> tuple[str, Decimal, Decimal] | None:
-    if not isinstance(item, Mapping):
-        return None
-    label = str(item.get("label") or item.get("name") or "").strip()
-    weight = _parse_decimal_number(item.get("weight_pct"), strip_percent=True)
-    if not label or weight is None or weight <= 0:
-        return None
-    value = _parse_currency_number(item.get("market_value"))
-    return label, weight, value or Decimal("0")
-
-
 def _parsed_allocation_entries(rows: Sequence[object]) -> list[tuple[str, Decimal, Decimal]]:
     entries: list[tuple[str, Decimal, Decimal]] = []
-    for item in rows:
-        entry = _allocation_entry(item)
-        if entry is not None:
-            entries.append(entry)
+    for bucket in allocation_buckets(rows):
+        if (
+            bucket.label != NOT_AVAILABLE
+            and bucket.weight is not None
+            and bucket.weight > 0
+            and bucket.value is not None
+        ):
+            entries.append((bucket.label, bucket.weight, bucket.value))
     entries.sort(key=lambda entry: entry[1], reverse=True)
     return entries
 
@@ -300,24 +295,7 @@ def _parse_percent_or_number(value: object) -> float | None:
 
 
 def _parse_currency_number(value: object) -> Decimal | None:
-    return _parse_decimal_number(value, strip_percent=False)
-
-
-def _parse_decimal_number(value: object, *, strip_percent: bool) -> Decimal | None:
-    if value is None:
-        return None
-    text = str(value).strip().replace(",", "").replace("USD", "").strip()
-    if strip_percent:
-        text = text.removesuffix("%").strip()
-    if not text:
-        return None
-    try:
-        parsed = Decimal(text)
-    except InvalidOperation:
-        return None
-    # Decimal("NaN")/("Infinity") construct fine but signal InvalidOperation on the
-    # first comparison downstream, stranding the render; treat non-finite as absent.
-    return parsed if parsed.is_finite() else None
+    return allocation_number(value)
 
 
 def _month_label(value: str) -> str:
