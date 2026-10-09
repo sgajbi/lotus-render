@@ -1,0 +1,815 @@
+{
+  "artifact_identity_v4_display_rounding": "Declared column decimal places; HALF_UP; source ratios remain ratios",
+  "availability": "Genuine source null or uncaptured sentinel: canonical_value=null,availability=UNAVAILABLE,reason_codes=[SOURCE_VALUE_UNAVAILABLE]. Known empty reason vectors use NOT_APPLICABLE/NO_APPLICABLE_REASONS at /report_facts/no_reasons/value. Rule-defined unused numeric slots (all READINESS numeric slots; CASH gross_inflow/gross_outflow/admitted_flow_count) use NOT_APPLICABLE/RULE_FIELD_NOT_APPLICABLE only when null, with exact original source pointer. Missing flow evidence remains UNAVAILABLE. Otherwise AVAILABLE with exact scalar text and empty reasons. Booleans are lowercase true/false.",
+  "capacity_accounting": "Visible tables plus row identities; seven-cell CellEvidence row for every semantic cell; twelve-cell ColumnPolicy row for every column; two-cell ArtifactIdentity with ordered_json_text_v1 fragments; two-cell PinnedData compact ASCII JSON chunks. Include partition headers, UTF16 literal lengths and UTF8 text bytes. Preflight full serialized request before Render/Archive calls; output ZIP size remains actual Render writer guard.",
+  "capacity_policy": {
+    "json_chunk_characters": 16000,
+    "max_cell_utf16_units": 32767,
+    "max_columns": 100,
+    "max_output_bytes": 16777216,
+    "max_request_body_bytes": 8388608,
+    "max_rows_per_sheet": 1000,
+    "max_sheets": 64,
+    "max_total_cells": 210000,
+    "max_total_rows": 30000,
+    "max_total_text_bytes": 16777216
+  },
+  "complete_projection": "Consumer must independently reconstruct the complete table/row/column/pointer/policy/cell population from full source months and reject omission/extra/duplicates, relabeling, wrong availability and precision. No source economic rule evaluation.",
+  "contract_version": "composite_review.v4",
+  "currency_policy": "USD here illustrates the exact selected reporting_currency; MONEY columns must match it.",
+  "custody_identity": {
+    "composite_report_identity": [
+      "contract_version",
+      "qualification",
+      "publication_state",
+      "selection",
+      "series_digest",
+      "source_revision_digest",
+      "factual_content_digest"
+    ],
+    "digests": "Existing Report-derived SHA256 digest fields are 64 lowercase hex without prefix in Archive custody; source selectors retain sha256: prefix.",
+    "existing_envelope": "portfolio_scope=composite,portfolio_id=null,composite_id,tenant_id,as_of_date,reporting_period_start/end,report_revision_id plus composite_report_identity",
+    "revision_vector": "lotus-manage source product/version/evaluation_revision/content_hash/evaluated_at; no Performance run. Request selection pins remain part of existing series identity.",
+    "selection": "Exact eligibility_selection model serialized as selection, including all per-month evidence-kind and content/response pins. No calculation_id or Archive envelope currency field."
+  },
+  "cut_binding_semantics": "selection.months[i].source_cut_id binds evaluation.source_cut_id and observations.source_cut_id. Input universe.source_cut_id is a distinct retained source identity, bound through full proposal/universe hashes and whole-response pins. Published receipt/membership/universe/publication cuts bind the input-universe cut, not the observation cut. Preserve original product and POLICY_INPUT locator cut IDs.",
+  "endpoint": "POST /reports/composite-reviews",
+  "layout_version": "composite_workbook.v4",
+  "legacy": "All v1/v2/v3 schemas/layouts/serialization/retained bytes unchanged; no legacy version enrichment.",
+  "not_established": [
+    "Producer runtime capture",
+    "Render/Archive admission",
+    "Bank authority",
+    "Full RPT04 or programme completion"
+  ],
+  "proposal_roots": {
+    "EVALUATED_ONLY": "/source_months/{i}/proposal",
+    "PUBLISHED": "/source_months/{i}/receipt/approval/proposal"
+  },
+  "publication_state": "NOT_ATTESTED",
+  "qualification": "CONTROLLED_ELIGIBILITY_SOURCE_REPLAY",
+  "r2_correction": "Owning unchanged literal controls RED a7cac4/1 (two assertion failures) to GREEN09ba5d/0: known zero reasons and unused readiness ratio differ from unavailable flow evidence. Frozen r1 remains immutable. Dataset schema availability adds NOT_APPLICABLE; selector schema unchanged.",
+  "r3_correction": "Actual controlled Manage795 proposal admission RED 200236/1 exposed distinct observation/universe cuts. Unchanged owning literal control RED 34b811/1 to GREEN 204f6c/0; all 17 actual captured proposals admitted ee5793/0, receipt a1e9aaa090071eb3d5214c37bead8e67135a20b69c70287af43d3a399eab7497. Schema and selector shapes unchanged from r2; no evaluator or source runtime execution.",
+  "report_type": "composite_review",
+  "rows": {
+    "Disclosures": "d{i}; all six Report-owned statements in defined order",
+    "EligibilityAssessments": "m{i}:p{p}:a{a}; three source assessments in SIGNIFICANT_FLOW/CASH/READINESS order",
+    "EligibilityReasons": "m{i}:p{p}:a{a}:{failure_reasons|unknown_reasons}:{ordinal}; all occurrences; m{i}:not_applicable if known zero occurrences, preserving month with remaining cells bound to /report_facts/no_reasons/value",
+    "Lineage": "m{i}:s{ordinal}; proposal first; then membership,parent_membership,universe,receipt for published",
+    "Members": "m{i}:p{p}; each source expected portfolio once in canonical order",
+    "MembershipHistory": "m{i}:{parent_membership|membership}:d{d}; every original canonical interval; m{i}:unavailable for evaluated-only",
+    "Methods": "m{i}; exact evaluation.resolved_policy fields",
+    "Summary": "m{i}; exactly one per selected month; source evaluation counts and qualification"
+  },
+  "source_hash_policies": "Manage receipt/proposal/evaluation/policy/approval/v2 definition: root content_hash excluded. Membership/universe/v1 definition: recursive content_hash excluded. Manage JSON uses sorted keys, compact separators and ASCII escaping. Capture response_digest independently binds whole raw response, including nested hashes; no authority is inferred.",
+  "source_month_variants": {
+    "EVALUATED_ONLY": "proposal + exact response_digests.proposal; approval/receipt/publication/history unavailable",
+    "PUBLISHED": "receipt, membership, universe, parent_membership, publication + exact response_digests for all five"
+  },
+  "source_pointer_roots": [
+    "/source_months/",
+    "/selection/",
+    "/report_facts/"
+  ],
+  "status": "FROZEN_PRODUCER_INTERFACE_R3_NOT_EXECUTION_ACCEPTANCE",
+  "tables_in_order": [
+    {
+      "columns": [
+        {
+          "column_id": "month",
+          "currency": null,
+          "display_conversion": "IDENTITY",
+          "display_decimal_places": null,
+          "display_rounding_mode": "HALF_UP",
+          "display_unit": "TEXT",
+          "label": "month",
+          "scale": "1",
+          "unit": "TEXT",
+          "value_type": "TEXT"
+        },
+        {
+          "column_id": "evidence_kind",
+          "currency": null,
+          "display_conversion": "IDENTITY",
+          "display_decimal_places": null,
+          "display_rounding_mode": "HALF_UP",
+          "display_unit": "TEXT",
+          "label": "evidence kind",
+          "scale": "1",
+          "unit": "TEXT",
+          "value_type": "TEXT"
+        },
+        {
+          "column_id": "expected_count",
+          "currency": null,
+          "display_conversion": "IDENTITY",
+          "display_decimal_places": 0,
+          "display_rounding_mode": "HALF_UP",
+          "display_unit": "PORTFOLIO_COUNT",
+          "label": "expected count",
+          "scale": "1",
+          "unit": "PORTFOLIO_COUNT",
+          "value_type": "COUNT"
+        },
+        {
+          "column_id": "observed_count",
+          "currency": null,
+          "display_conversion": "IDENTITY",
+          "display_decimal_places": 0,
+          "display_rounding_mode": "HALF_UP",
+          "display_unit": "PORTFOLIO_COUNT",
+          "label": "observed count",
+          "scale": "1",
+          "unit": "PORTFOLIO_COUNT",
+          "value_type": "COUNT"
+        },
+        {
+          "column_id": "included_count",
+          "currency": null,
+          "display_conversion": "IDENTITY",
+          "display_decimal_places": 0,
+          "display_rounding_mode": "HALF_UP",
+          "display_unit": "PORTFOLIO_COUNT",
+          "label": "included count",
+          "scale": "1",
+          "unit": "PORTFOLIO_COUNT",
+          "value_type": "COUNT"
+        },
+        {
+          "column_id": "excluded_count",
+          "currency": null,
+          "display_conversion": "IDENTITY",
+          "display_decimal_places": 0,
+          "display_rounding_mode": "HALF_UP",
+          "display_unit": "PORTFOLIO_COUNT",
+          "label": "excluded count",
+          "scale": "1",
+          "unit": "PORTFOLIO_COUNT",
+          "value_type": "COUNT"
+        },
+        {
+          "column_id": "pending_review_count",
+          "currency": null,
+          "display_conversion": "IDENTITY",
+          "display_decimal_places": 0,
+          "display_rounding_mode": "HALF_UP",
+          "display_unit": "PORTFOLIO_COUNT",
+          "label": "pending review count",
+          "scale": "1",
+          "unit": "PORTFOLIO_COUNT",
+          "value_type": "COUNT"
+        },
+        {
+          "column_id": "population_verification",
+          "currency": null,
+          "display_conversion": "IDENTITY",
+          "display_decimal_places": null,
+          "display_rounding_mode": "HALF_UP",
+          "display_unit": "TEXT",
+          "label": "population verification",
+          "scale": "1",
+          "unit": "TEXT",
+          "value_type": "TEXT"
+        },
+        {
+          "column_id": "official_activation",
+          "currency": null,
+          "display_conversion": "IDENTITY",
+          "display_decimal_places": null,
+          "display_rounding_mode": "HALF_UP",
+          "display_unit": "TEXT",
+          "label": "official activation",
+          "scale": "1",
+          "unit": "TEXT",
+          "value_type": "TEXT"
+        }
+      ],
+      "table_id": "Summary"
+    },
+    {
+      "columns": [
+        {
+          "column_id": "month",
+          "currency": null,
+          "display_conversion": "IDENTITY",
+          "display_decimal_places": null,
+          "display_rounding_mode": "HALF_UP",
+          "display_unit": "TEXT",
+          "label": "month",
+          "scale": "1",
+          "unit": "TEXT",
+          "value_type": "TEXT"
+        },
+        {
+          "column_id": "portfolio_id",
+          "currency": null,
+          "display_conversion": "IDENTITY",
+          "display_decimal_places": null,
+          "display_rounding_mode": "HALF_UP",
+          "display_unit": "TEXT",
+          "label": "portfolio id",
+          "scale": "1",
+          "unit": "TEXT",
+          "value_type": "TEXT"
+        },
+        {
+          "column_id": "status",
+          "currency": null,
+          "display_conversion": "IDENTITY",
+          "display_decimal_places": null,
+          "display_rounding_mode": "HALF_UP",
+          "display_unit": "TEXT",
+          "label": "status",
+          "scale": "1",
+          "unit": "TEXT",
+          "value_type": "TEXT"
+        },
+        {
+          "column_id": "observations_present",
+          "currency": null,
+          "display_conversion": "IDENTITY",
+          "display_decimal_places": null,
+          "display_rounding_mode": "HALF_UP",
+          "display_unit": "BOOLEAN",
+          "label": "observations present",
+          "scale": "1",
+          "unit": "BOOLEAN",
+          "value_type": "BOOLEAN"
+        }
+      ],
+      "table_id": "Members"
+    },
+    {
+      "columns": [
+        {
+          "column_id": "month",
+          "currency": null,
+          "display_conversion": "IDENTITY",
+          "display_decimal_places": null,
+          "display_rounding_mode": "HALF_UP",
+          "display_unit": "TEXT",
+          "label": "month",
+          "scale": "1",
+          "unit": "TEXT",
+          "value_type": "TEXT"
+        },
+        {
+          "column_id": "portfolio_id",
+          "currency": null,
+          "display_conversion": "IDENTITY",
+          "display_decimal_places": null,
+          "display_rounding_mode": "HALF_UP",
+          "display_unit": "TEXT",
+          "label": "portfolio id",
+          "scale": "1",
+          "unit": "TEXT",
+          "value_type": "TEXT"
+        },
+        {
+          "column_id": "rule",
+          "currency": null,
+          "display_conversion": "IDENTITY",
+          "display_decimal_places": null,
+          "display_rounding_mode": "HALF_UP",
+          "display_unit": "TEXT",
+          "label": "rule",
+          "scale": "1",
+          "unit": "TEXT",
+          "value_type": "TEXT"
+        },
+        {
+          "column_id": "outcome",
+          "currency": null,
+          "display_conversion": "IDENTITY",
+          "display_decimal_places": null,
+          "display_rounding_mode": "HALF_UP",
+          "display_unit": "TEXT",
+          "label": "outcome",
+          "scale": "1",
+          "unit": "TEXT",
+          "value_type": "TEXT"
+        },
+        {
+          "column_id": "numerator",
+          "currency": "USD",
+          "display_conversion": "IDENTITY",
+          "display_decimal_places": 2,
+          "display_rounding_mode": "HALF_UP",
+          "display_unit": "CURRENCY_UNITS",
+          "label": "numerator",
+          "scale": "1",
+          "unit": "CURRENCY_UNITS",
+          "value_type": "MONEY"
+        },
+        {
+          "column_id": "denominator",
+          "currency": "USD",
+          "display_conversion": "IDENTITY",
+          "display_decimal_places": 2,
+          "display_rounding_mode": "HALF_UP",
+          "display_unit": "CURRENCY_UNITS",
+          "label": "denominator",
+          "scale": "1",
+          "unit": "CURRENCY_UNITS",
+          "value_type": "MONEY"
+        },
+        {
+          "column_id": "ratio",
+          "currency": null,
+          "display_conversion": "IDENTITY",
+          "display_decimal_places": 12,
+          "display_rounding_mode": "HALF_UP",
+          "display_unit": "DECIMAL_RATIO",
+          "label": "ratio",
+          "scale": "1",
+          "unit": "DECIMAL_RATIO",
+          "value_type": "DECIMAL_FACTOR"
+        },
+        {
+          "column_id": "gross_inflow",
+          "currency": "USD",
+          "display_conversion": "IDENTITY",
+          "display_decimal_places": 2,
+          "display_rounding_mode": "HALF_UP",
+          "display_unit": "CURRENCY_UNITS",
+          "label": "gross inflow",
+          "scale": "1",
+          "unit": "CURRENCY_UNITS",
+          "value_type": "MONEY"
+        },
+        {
+          "column_id": "gross_outflow",
+          "currency": "USD",
+          "display_conversion": "IDENTITY",
+          "display_decimal_places": 2,
+          "display_rounding_mode": "HALF_UP",
+          "display_unit": "CURRENCY_UNITS",
+          "label": "gross outflow",
+          "scale": "1",
+          "unit": "CURRENCY_UNITS",
+          "value_type": "MONEY"
+        },
+        {
+          "column_id": "admitted_flow_count",
+          "currency": null,
+          "display_conversion": "IDENTITY",
+          "display_decimal_places": 0,
+          "display_rounding_mode": "HALF_UP",
+          "display_unit": "EVENT_COUNT",
+          "label": "admitted flow count",
+          "scale": "1",
+          "unit": "EVENT_COUNT",
+          "value_type": "COUNT"
+        }
+      ],
+      "table_id": "EligibilityAssessments"
+    },
+    {
+      "columns": [
+        {
+          "column_id": "month",
+          "currency": null,
+          "display_conversion": "IDENTITY",
+          "display_decimal_places": null,
+          "display_rounding_mode": "HALF_UP",
+          "display_unit": "TEXT",
+          "label": "month",
+          "scale": "1",
+          "unit": "TEXT",
+          "value_type": "TEXT"
+        },
+        {
+          "column_id": "portfolio_id",
+          "currency": null,
+          "display_conversion": "IDENTITY",
+          "display_decimal_places": null,
+          "display_rounding_mode": "HALF_UP",
+          "display_unit": "TEXT",
+          "label": "portfolio id",
+          "scale": "1",
+          "unit": "TEXT",
+          "value_type": "TEXT"
+        },
+        {
+          "column_id": "rule",
+          "currency": null,
+          "display_conversion": "IDENTITY",
+          "display_decimal_places": null,
+          "display_rounding_mode": "HALF_UP",
+          "display_unit": "TEXT",
+          "label": "rule",
+          "scale": "1",
+          "unit": "TEXT",
+          "value_type": "TEXT"
+        },
+        {
+          "column_id": "kind",
+          "currency": null,
+          "display_conversion": "IDENTITY",
+          "display_decimal_places": null,
+          "display_rounding_mode": "HALF_UP",
+          "display_unit": "TEXT",
+          "label": "kind",
+          "scale": "1",
+          "unit": "TEXT",
+          "value_type": "TEXT"
+        },
+        {
+          "column_id": "reason_code",
+          "currency": null,
+          "display_conversion": "IDENTITY",
+          "display_decimal_places": null,
+          "display_rounding_mode": "HALF_UP",
+          "display_unit": "TEXT",
+          "label": "reason code",
+          "scale": "1",
+          "unit": "TEXT",
+          "value_type": "TEXT"
+        }
+      ],
+      "table_id": "EligibilityReasons"
+    },
+    {
+      "columns": [
+        {
+          "column_id": "month",
+          "currency": null,
+          "display_conversion": "IDENTITY",
+          "display_decimal_places": null,
+          "display_rounding_mode": "HALF_UP",
+          "display_unit": "TEXT",
+          "label": "month",
+          "scale": "1",
+          "unit": "TEXT",
+          "value_type": "TEXT"
+        },
+        {
+          "column_id": "membership_revision",
+          "currency": null,
+          "display_conversion": "IDENTITY",
+          "display_decimal_places": null,
+          "display_rounding_mode": "HALF_UP",
+          "display_unit": "TEXT",
+          "label": "membership revision",
+          "scale": "1",
+          "unit": "TEXT",
+          "value_type": "TEXT"
+        },
+        {
+          "column_id": "portfolio_id",
+          "currency": null,
+          "display_conversion": "IDENTITY",
+          "display_decimal_places": null,
+          "display_rounding_mode": "HALF_UP",
+          "display_unit": "TEXT",
+          "label": "portfolio id",
+          "scale": "1",
+          "unit": "TEXT",
+          "value_type": "TEXT"
+        },
+        {
+          "column_id": "effective_from",
+          "currency": null,
+          "display_conversion": "IDENTITY",
+          "display_decimal_places": null,
+          "display_rounding_mode": "HALF_UP",
+          "display_unit": "TEXT",
+          "label": "effective from",
+          "scale": "1",
+          "unit": "TEXT",
+          "value_type": "TEXT"
+        },
+        {
+          "column_id": "effective_to",
+          "currency": null,
+          "display_conversion": "IDENTITY",
+          "display_decimal_places": null,
+          "display_rounding_mode": "HALF_UP",
+          "display_unit": "TEXT",
+          "label": "effective to",
+          "scale": "1",
+          "unit": "TEXT",
+          "value_type": "TEXT"
+        },
+        {
+          "column_id": "status",
+          "currency": null,
+          "display_conversion": "IDENTITY",
+          "display_decimal_places": null,
+          "display_rounding_mode": "HALF_UP",
+          "display_unit": "TEXT",
+          "label": "status",
+          "scale": "1",
+          "unit": "TEXT",
+          "value_type": "TEXT"
+        },
+        {
+          "column_id": "reason_code",
+          "currency": null,
+          "display_conversion": "IDENTITY",
+          "display_decimal_places": null,
+          "display_rounding_mode": "HALF_UP",
+          "display_unit": "TEXT",
+          "label": "reason code",
+          "scale": "1",
+          "unit": "TEXT",
+          "value_type": "TEXT"
+        },
+        {
+          "column_id": "discretionary",
+          "currency": null,
+          "display_conversion": "IDENTITY",
+          "display_decimal_places": null,
+          "display_rounding_mode": "HALF_UP",
+          "display_unit": "BOOLEAN",
+          "label": "discretionary",
+          "scale": "1",
+          "unit": "BOOLEAN",
+          "value_type": "BOOLEAN"
+        },
+        {
+          "column_id": "approval_ref",
+          "currency": null,
+          "display_conversion": "IDENTITY",
+          "display_decimal_places": null,
+          "display_rounding_mode": "HALF_UP",
+          "display_unit": "TEXT",
+          "label": "approval ref",
+          "scale": "1",
+          "unit": "TEXT",
+          "value_type": "TEXT"
+        },
+        {
+          "column_id": "source_snapshot_id",
+          "currency": null,
+          "display_conversion": "IDENTITY",
+          "display_decimal_places": null,
+          "display_rounding_mode": "HALF_UP",
+          "display_unit": "TEXT",
+          "label": "source snapshot id",
+          "scale": "1",
+          "unit": "TEXT",
+          "value_type": "TEXT"
+        },
+        {
+          "column_id": "supersedes_membership_revision",
+          "currency": null,
+          "display_conversion": "IDENTITY",
+          "display_decimal_places": null,
+          "display_rounding_mode": "HALF_UP",
+          "display_unit": "TEXT",
+          "label": "supersedes membership revision",
+          "scale": "1",
+          "unit": "TEXT",
+          "value_type": "TEXT"
+        },
+        {
+          "column_id": "affected_from",
+          "currency": null,
+          "display_conversion": "IDENTITY",
+          "display_decimal_places": null,
+          "display_rounding_mode": "HALF_UP",
+          "display_unit": "TEXT",
+          "label": "affected from",
+          "scale": "1",
+          "unit": "TEXT",
+          "value_type": "TEXT"
+        },
+        {
+          "column_id": "affected_to",
+          "currency": null,
+          "display_conversion": "IDENTITY",
+          "display_decimal_places": null,
+          "display_rounding_mode": "HALF_UP",
+          "display_unit": "TEXT",
+          "label": "affected to",
+          "scale": "1",
+          "unit": "TEXT",
+          "value_type": "TEXT"
+        }
+      ],
+      "table_id": "MembershipHistory"
+    },
+    {
+      "columns": [
+        {
+          "column_id": "month",
+          "currency": null,
+          "display_conversion": "IDENTITY",
+          "display_decimal_places": null,
+          "display_rounding_mode": "HALF_UP",
+          "display_unit": "TEXT",
+          "label": "month",
+          "scale": "1",
+          "unit": "TEXT",
+          "value_type": "TEXT"
+        },
+        {
+          "column_id": "profile_kind",
+          "currency": null,
+          "display_conversion": "IDENTITY",
+          "display_decimal_places": null,
+          "display_rounding_mode": "HALF_UP",
+          "display_unit": "TEXT",
+          "label": "profile kind",
+          "scale": "1",
+          "unit": "TEXT",
+          "value_type": "TEXT"
+        },
+        {
+          "column_id": "flow_threshold",
+          "currency": null,
+          "display_conversion": "IDENTITY",
+          "display_decimal_places": 12,
+          "display_rounding_mode": "HALF_UP",
+          "display_unit": "DECIMAL_RATIO",
+          "label": "flow threshold",
+          "scale": "1",
+          "unit": "DECIMAL_RATIO",
+          "value_type": "DECIMAL_FACTOR"
+        },
+        {
+          "column_id": "cash_threshold",
+          "currency": null,
+          "display_conversion": "IDENTITY",
+          "display_decimal_places": 12,
+          "display_rounding_mode": "HALF_UP",
+          "display_unit": "DECIMAL_RATIO",
+          "label": "cash threshold",
+          "scale": "1",
+          "unit": "DECIMAL_RATIO",
+          "value_type": "DECIMAL_FACTOR"
+        },
+        {
+          "column_id": "flow_measure",
+          "currency": null,
+          "display_conversion": "IDENTITY",
+          "display_decimal_places": null,
+          "display_rounding_mode": "HALF_UP",
+          "display_unit": "TEXT",
+          "label": "flow measure",
+          "scale": "1",
+          "unit": "TEXT",
+          "value_type": "TEXT"
+        },
+        {
+          "column_id": "flow_breach_operator",
+          "currency": null,
+          "display_conversion": "IDENTITY",
+          "display_decimal_places": null,
+          "display_rounding_mode": "HALF_UP",
+          "display_unit": "TEXT",
+          "label": "flow breach operator",
+          "scale": "1",
+          "unit": "TEXT",
+          "value_type": "TEXT"
+        },
+        {
+          "column_id": "cash_breach_operator",
+          "currency": null,
+          "display_conversion": "IDENTITY",
+          "display_decimal_places": null,
+          "display_rounding_mode": "HALF_UP",
+          "display_unit": "TEXT",
+          "label": "cash breach operator",
+          "scale": "1",
+          "unit": "TEXT",
+          "value_type": "TEXT"
+        },
+        {
+          "column_id": "reentry",
+          "currency": null,
+          "display_conversion": "IDENTITY",
+          "display_decimal_places": null,
+          "display_rounding_mode": "HALF_UP",
+          "display_unit": "TEXT",
+          "label": "reentry",
+          "scale": "1",
+          "unit": "TEXT",
+          "value_type": "TEXT"
+        },
+        {
+          "column_id": "content_hash",
+          "currency": null,
+          "display_conversion": "IDENTITY",
+          "display_decimal_places": null,
+          "display_rounding_mode": "HALF_UP",
+          "display_unit": "TEXT",
+          "label": "content hash",
+          "scale": "1",
+          "unit": "TEXT",
+          "value_type": "TEXT"
+        }
+      ],
+      "table_id": "Methods"
+    },
+    {
+      "columns": [
+        {
+          "column_id": "month",
+          "currency": null,
+          "display_conversion": "IDENTITY",
+          "display_decimal_places": null,
+          "display_rounding_mode": "HALF_UP",
+          "display_unit": "TEXT",
+          "label": "month",
+          "scale": "1",
+          "unit": "TEXT",
+          "value_type": "TEXT"
+        },
+        {
+          "column_id": "evidence_kind",
+          "currency": null,
+          "display_conversion": "IDENTITY",
+          "display_decimal_places": null,
+          "display_rounding_mode": "HALF_UP",
+          "display_unit": "TEXT",
+          "label": "evidence kind",
+          "scale": "1",
+          "unit": "TEXT",
+          "value_type": "TEXT"
+        },
+        {
+          "column_id": "product",
+          "currency": null,
+          "display_conversion": "IDENTITY",
+          "display_decimal_places": null,
+          "display_rounding_mode": "HALF_UP",
+          "display_unit": "TEXT",
+          "label": "product",
+          "scale": "1",
+          "unit": "TEXT",
+          "value_type": "TEXT"
+        },
+        {
+          "column_id": "revision",
+          "currency": null,
+          "display_conversion": "IDENTITY",
+          "display_decimal_places": null,
+          "display_rounding_mode": "HALF_UP",
+          "display_unit": "TEXT",
+          "label": "revision",
+          "scale": "1",
+          "unit": "TEXT",
+          "value_type": "TEXT"
+        },
+        {
+          "column_id": "content_hash",
+          "currency": null,
+          "display_conversion": "IDENTITY",
+          "display_decimal_places": null,
+          "display_rounding_mode": "HALF_UP",
+          "display_unit": "TEXT",
+          "label": "content hash",
+          "scale": "1",
+          "unit": "TEXT",
+          "value_type": "TEXT"
+        },
+        {
+          "column_id": "response_digest",
+          "currency": null,
+          "display_conversion": "IDENTITY",
+          "display_decimal_places": null,
+          "display_rounding_mode": "HALF_UP",
+          "display_unit": "TEXT",
+          "label": "response digest",
+          "scale": "1",
+          "unit": "TEXT",
+          "value_type": "TEXT"
+        }
+      ],
+      "table_id": "Lineage"
+    },
+    {
+      "columns": [
+        {
+          "column_id": "code",
+          "currency": null,
+          "display_conversion": "IDENTITY",
+          "display_decimal_places": null,
+          "display_rounding_mode": "HALF_UP",
+          "display_unit": "TEXT",
+          "label": "code",
+          "scale": "1",
+          "unit": "TEXT",
+          "value_type": "TEXT"
+        },
+        {
+          "column_id": "text",
+          "currency": null,
+          "display_conversion": "IDENTITY",
+          "display_decimal_places": null,
+          "display_rounding_mode": "HALF_UP",
+          "display_unit": "TEXT",
+          "label": "text",
+          "scale": "1",
+          "unit": "TEXT",
+          "value_type": "TEXT"
+        }
+      ],
+      "table_id": "Disclosures"
+    }
+  ],
+  "template_id": "composite-review",
+  "template_version": "v4"
+}

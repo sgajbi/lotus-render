@@ -214,6 +214,17 @@
       "output_formats": ["xlsx"],
       "status": "active",
       "scope": "RPT01 controlled NOT_ATTESTED source-owned linked contribution and factor presentation only; no linking calculation, institutional authority or uncaptured products"
+    },
+    {
+      "template_id": "composite-review",
+      "template_version": "v4",
+      "report_types": ["composite_review"],
+      "report_data_contract_versions": ["composite_review.v4"],
+      "locales": ["en-SG"],
+      "brand_variants": ["private_banking"],
+      "output_formats": ["xlsx"],
+      "status": "active",
+      "scope": "Controlled NOT_ATTESTED Manage eligibility evidence presentation; complete assessments, reason occurrences and revision-scoped history; no source evaluator, institutional authority or joined custody qualification"
     }
   ],
   "non_goals": [

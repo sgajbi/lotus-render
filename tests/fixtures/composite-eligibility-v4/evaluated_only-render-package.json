@@ -1,0 +1,2338 @@
+{
+  "brand_variant": "private_banking",
+  "correlation_id": "corr_884f649df059",
+  "disclosure_refs": [
+    "composite-review.standard-disclosures.v1"
+  ],
+  "lineage_refs": [
+    "rsnap_b9603f89c5ae4811ae0bc846887448d2",
+    "rrv3_44a49fc7f2757153f8ab24ffa6dfb2ab2409147bd19c1f904f8e5ea1720cbf49"
+  ],
+  "locale": "en-SG",
+  "output_format": "xlsx",
+  "render_context": {
+    "archive": {
+      "as_of_date": "2026-07-31",
+      "classification": "confidential",
+      "composite_id": "test-composite",
+      "composite_report_identity": {
+        "contract_version": "composite_review.v4",
+        "factual_content_digest": "2760d33964a3d4a370ca525583305e200def5b7a9e88f4f5e8f293f4546b78bc",
+        "publication_state": "NOT_ATTESTED",
+        "qualification": "CONTROLLED_ELIGIBILITY_SOURCE_REPLAY",
+        "selection": {
+          "composite_id": "test-composite",
+          "definition_version": "d1",
+          "months": [
+            {
+              "evaluation_revision": "eval-2026-07",
+              "evidence_kind": "EVALUATED_ONLY",
+              "month": "2026-07",
+              "parent_membership_content_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+              "parent_membership_revision": "parent-r1",
+              "proposal_content_hash": "sha256:2096b58b63a8818a76fe6c2d4219d411f765f6260210be5f6454d9dc6e61d6fd",
+              "proposal_response_digest": "sha256:18d6f74c89bb244f2e03c25544efc9227d6273f40f5b6cbe1a9148522fb0d166",
+              "source_cut_id": "cut-1"
+            }
+          ],
+          "period_end": "2026-07-31",
+          "period_start": "2026-07-01",
+          "reporting_currency": "USD",
+          "tenant_id": "test-tenant"
+        },
+        "series_digest": "c940123182f2c525ccb950ba553a70ac19bc6a724b30f7713f12eb2ae5d111d5",
+        "source_revision_digest": "8cae37b3095c542c589fd5678eb951a91d5ff144f3d10aed37598ee88b92ce08"
+      },
+      "frequency": "ad_hoc",
+      "portfolio_id": null,
+      "portfolio_scope": "composite",
+      "region": "APAC",
+      "report_request_id": "rrq_6b57477e360c45e98088807c0ab5129c",
+      "report_revision_id": "rrv3_44a49fc7f2757153f8ab24ffa6dfb2ab2409147bd19c1f904f8e5ea1720cbf49",
+      "reporting_period_end": "2026-07-31",
+      "reporting_period_start": "2026-07-01",
+      "retention_start_date": "2026-07-31",
+      "tenant_id": "test-tenant"
+    },
+    "document_reference": "rdoc_9c6a25ae-9afa-5164-bc00-c602ce4cc2d2",
+    "report_revision_id": "rrv3_44a49fc7f2757153f8ab24ffa6dfb2ab2409147bd19c1f904f8e5ea1720cbf49",
+    "timezone": "Asia/Singapore"
+  },
+  "render_job_id": "rdr_rjob_46d21cf5b9b54a7fb35deae52f36beb5_xlsx",
+  "render_package_version": "render_package.v1",
+  "report_data": {
+    "contract_version": "composite_review.v4",
+    "publication_state": "NOT_ATTESTED",
+    "qualification": "CONTROLLED_ELIGIBILITY_SOURCE_REPLAY",
+    "report_facts": {
+      "disclosures": [
+        {
+          "code": "CONTROLLED_SYNTHETIC_ONLY",
+          "text": "Controlled synthetic source replay / NOT_ATTESTED. Population and published completeness are UNVERIFIED; official activation is UNAVAILABLE."
+        },
+        {
+          "code": "SOURCE_OWNED_DECISIONS",
+          "text": "Manage owns eligibility and publication. Report preserves all three assessments and does not evaluate thresholds or manufacture approvals."
+        },
+        {
+          "code": "FIRST_REASON_LOSS_BOUNDARY",
+          "text": "Membership reason_code is only the first reason. EligibilityReasons preserves every failure and unknown occurrence; occurrences are not unique excluded members."
+        },
+        {
+          "code": "EVALUATED_IS_NOT_PUBLISHED",
+          "text": "EVALUATED_ONLY retains a proposal and missing-observation UNKNOWN cases. Approval, publication and membership history are unavailable for that variant; no receipt is inferred."
+        },
+        {
+          "code": "EXACT_HISTORY",
+          "text": "History retains original inclusive revision intervals. Selected month gaps are not filled; same-month policy diffs are not cross-month history. Cleared cash alone does not imply re-entry."
+        },
+        {
+          "code": "SOURCE_UNITS",
+          "text": "Ratios are source decimal ratios, not return percentages. Money, portfolio counts, event counts and booleans remain distinct. Raw decimal spelling and nulls remain retained."
+        }
+      ],
+      "no_reasons": {
+        "statement": "All captured assessment reason arrays for this month are empty; no applicable reason occurrences.",
+        "value": null
+      },
+      "reason_kinds": {
+        "failure_reasons": "FAILURE",
+        "unknown_reasons": "UNKNOWN"
+      },
+      "unavailable": null
+    },
+    "selection": {
+      "composite_id": "test-composite",
+      "definition_version": "d1",
+      "months": [
+        {
+          "evaluation_revision": "eval-2026-07",
+          "evidence_kind": "EVALUATED_ONLY",
+          "month": "2026-07",
+          "parent_membership_content_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+          "parent_membership_revision": "parent-r1",
+          "proposal_content_hash": "sha256:2096b58b63a8818a76fe6c2d4219d411f765f6260210be5f6454d9dc6e61d6fd",
+          "proposal_response_digest": "sha256:18d6f74c89bb244f2e03c25544efc9227d6273f40f5b6cbe1a9148522fb0d166",
+          "source_cut_id": "cut-1"
+        }
+      ],
+      "period_end": "2026-07-31",
+      "period_start": "2026-07-01",
+      "reporting_currency": "USD",
+      "tenant_id": "test-tenant"
+    },
+    "source_months": [
+      {
+        "evidence_kind": "EVALUATED_ONLY",
+        "proposal": {
+          "content_hash": "sha256:2096b58b63a8818a76fe6c2d4219d411f765f6260210be5f6454d9dc6e61d6fd",
+          "correlation_id": "test-correlation",
+          "evaluation": {
+            "composite_id": "test-composite",
+            "content_hash": "sha256:35f8fd23d8250238987d59c9520fe3157715abd3f6a11610ccbfd1a88775c10a",
+            "declared_universe_coverage": "INCOMPLETE",
+            "definition_version": "d1",
+            "evaluated_at": "2026-10-01T00:00:00.000000Z",
+            "evidence_class": "SYNTHETIC_UNQUALIFIED",
+            "excluded_count": 1,
+            "expected_count": 2,
+            "included_count": 0,
+            "input_content_hash": "sha256:af355220f1e04225892ddcf0e695f892ac6a615ad5611fba4783a1a300f930f7",
+            "month": "2026-07",
+            "observed_count": 1,
+            "official_activation": "UNAVAILABLE",
+            "pending_review_count": 1,
+            "population_verification": "UNVERIFIED",
+            "portfolios": [
+              {
+                "assessments": [
+                  {
+                    "admitted_flow_count": 1,
+                    "denominator": "1000.00",
+                    "failure_reasons": [
+                      "SIGNIFICANT_FLOW_THRESHOLD_BREACH"
+                    ],
+                    "gross_inflow": "100.00",
+                    "gross_outflow": "0.00",
+                    "numerator": "100.00",
+                    "outcome": "FAIL",
+                    "ratio": "0.1",
+                    "rule": "SIGNIFICANT_FLOW",
+                    "unknown_reasons": []
+                  },
+                  {
+                    "admitted_flow_count": null,
+                    "denominator": null,
+                    "failure_reasons": [
+                      "CASH_THRESHOLD_BREACH"
+                    ],
+                    "gross_inflow": null,
+                    "gross_outflow": null,
+                    "numerator": null,
+                    "outcome": "FAIL",
+                    "ratio": null,
+                    "rule": "CASH",
+                    "unknown_reasons": []
+                  },
+                  {
+                    "admitted_flow_count": null,
+                    "denominator": null,
+                    "failure_reasons": [
+                      "READINESS_FUNDED_FAILED"
+                    ],
+                    "gross_inflow": null,
+                    "gross_outflow": null,
+                    "numerator": null,
+                    "outcome": "FAIL",
+                    "ratio": null,
+                    "rule": "READINESS",
+                    "unknown_reasons": [
+                      "READINESS_INVESTED_UNKNOWN"
+                    ]
+                  }
+                ],
+                "observations_present": true,
+                "portfolio_id": "excluded",
+                "status": "EXCLUDED"
+              },
+              {
+                "assessments": [
+                  {
+                    "admitted_flow_count": null,
+                    "denominator": null,
+                    "failure_reasons": [],
+                    "gross_inflow": null,
+                    "gross_outflow": null,
+                    "numerator": null,
+                    "outcome": "UNKNOWN",
+                    "ratio": null,
+                    "rule": "SIGNIFICANT_FLOW",
+                    "unknown_reasons": [
+                      "MISSING_EXPECTED_PORTFOLIO_OBSERVATIONS"
+                    ]
+                  },
+                  {
+                    "admitted_flow_count": null,
+                    "denominator": null,
+                    "failure_reasons": [],
+                    "gross_inflow": null,
+                    "gross_outflow": null,
+                    "numerator": null,
+                    "outcome": "UNKNOWN",
+                    "ratio": null,
+                    "rule": "CASH",
+                    "unknown_reasons": [
+                      "MISSING_EXPECTED_PORTFOLIO_OBSERVATIONS"
+                    ]
+                  },
+                  {
+                    "admitted_flow_count": null,
+                    "denominator": null,
+                    "failure_reasons": [],
+                    "gross_inflow": null,
+                    "gross_outflow": null,
+                    "numerator": null,
+                    "outcome": "UNKNOWN",
+                    "ratio": null,
+                    "rule": "READINESS",
+                    "unknown_reasons": [
+                      "MISSING_EXPECTED_PORTFOLIO_OBSERVATIONS"
+                    ]
+                  }
+                ],
+                "observations_present": false,
+                "portfolio_id": "missing",
+                "status": "PENDING_REVIEW"
+              }
+            ],
+            "product_name": "CompositeMonthlyEligibilityEvaluation",
+            "product_version": "v1",
+            "resolved_policy": {
+              "cash_breach_operator": "GREATER_THAN",
+              "cash_denominator": "MONTH_END_NET_ASSETS",
+              "cash_numerator": "SETTLED_UNENCUMBERED_CASH_ONLY",
+              "cash_threshold": "0.05",
+              "content_hash": "sha256:16afbc965d1f720265715575ea0c96f119b2739af8aea0a759c9f438cc8d8db9",
+              "currency_treatment": "SOURCE_NORMALIZED_SINGLE_CURRENCY",
+              "evaluation_timing": "AFTER_MONTH_END",
+              "flow_breach_operator": "GREATER_THAN_OR_EQUAL",
+              "flow_date_basis": "SOURCE_BUSINESS_DATE_UTC",
+              "flow_denominator": "PRIOR_MONTH_END_NET_ASSETS",
+              "flow_measure": "ABS_NET",
+              "flow_threshold": "0.10",
+              "holiday_treatment": "NO_DATE_SHIFT",
+              "layers": [
+                {
+                  "level": "PLATFORM",
+                  "policy_id": "test-policy",
+                  "revision": "r1"
+                }
+              ],
+              "membership_frequency": "CALENDAR_MONTH",
+              "missing_data": "REQUIRED_UNKNOWN",
+              "month": "2026-07",
+              "observation_window": "WHOLE_TARGET_MONTH",
+              "official_activation": "UNAVAILABLE",
+              "product_name": "CompositeMonthlyEligibilityPolicy",
+              "product_version": "v1",
+              "profile_kind": "SYNTHETIC_MONTHLY_ABS_NET_CASH_READINESS",
+              "ratio_unit": "DECIMAL_FRACTION",
+              "reentry": "REEVALUATE_ALL_NEXT_MONTH_RULES",
+              "scope": {
+                "composite_id": "test-composite",
+                "definition_version": "d1",
+                "run_id": null,
+                "strategy_code": "BALANCED",
+                "tenant_id": "test-tenant"
+              },
+              "source_cut_timing": "AFTER_MONTH_END"
+            },
+            "source_cut_id": "cut-1",
+            "source_revision": "obs-r1",
+            "tenant_id": "test-tenant",
+            "universe_content_hash": "sha256:4bdaf91920b32490f5ad2e22618f1dc6d999539a76b130e4046d8ade6beba537"
+          },
+          "evaluation_revision": "eval-2026-07",
+          "observations": {
+            "composite_id": "test-composite",
+            "definition_version": "d1",
+            "evidence_class": "SYNTHETIC_UNQUALIFIED",
+            "expected_portfolio_ids": [
+              "excluded",
+              "missing"
+            ],
+            "month": "2026-07",
+            "portfolios": [
+              {
+                "cash_as_of": "2026-07-31",
+                "currency": "USD",
+                "discretionary": true,
+                "flow_coverage_from": "2026-07-01",
+                "flow_coverage_to": "2026-07-31",
+                "flows": [],
+                "funded": false,
+                "invested": null,
+                "month_end_assets": "1000.00",
+                "portfolio_id": "excluded",
+                "prior_assets_as_of": "2026-06-30",
+                "prior_month_end_assets": "1000.00",
+                "readiness_as_of": "2026-07-31",
+                "settled_unencumbered_cash": "51.00"
+              }
+            ],
+            "product_name": "CompositeMonthlyEligibilityObservations",
+            "product_version": "v1",
+            "reporting_currency": "USD",
+            "source_cut_id": "cut-1",
+            "source_generated_at": "2026-10-01T00:00:00.000000Z",
+            "source_revision": "obs-r1",
+            "tenant_id": "test-tenant"
+          },
+          "parent_membership_content_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+          "parent_membership_revision": "parent-r1",
+          "policy_approval": {
+            "approved_at": "2026-06-02T00:00:00.000000Z",
+            "approved_by": "test-checker",
+            "content_hash": "sha256:3504badcf9c2374e0122894f8e593d59b120b8edf771703430fba577778ab7ef",
+            "evidence_kind": "SYNTHETIC_UNSIGNED",
+            "official_activation": "UNAVAILABLE",
+            "product_name": "CompositeMonthlyPolicyApproval",
+            "product_version": "v1",
+            "proposal": {
+              "attachments": [],
+              "content_hash": "sha256:3d93e5b3e6e39b7823e63b0b88df2c031691220212076ae2b808d21355a7d45e",
+              "eligibility_policy_version": "p1",
+              "policy": {
+                "cash_breach_operator": "GREATER_THAN",
+                "cash_denominator": "MONTH_END_NET_ASSETS",
+                "cash_numerator": "SETTLED_UNENCUMBERED_CASH_ONLY",
+                "cash_threshold": "0.05",
+                "content_hash": "sha256:16afbc965d1f720265715575ea0c96f119b2739af8aea0a759c9f438cc8d8db9",
+                "currency_treatment": "SOURCE_NORMALIZED_SINGLE_CURRENCY",
+                "evaluation_timing": "AFTER_MONTH_END",
+                "flow_breach_operator": "GREATER_THAN_OR_EQUAL",
+                "flow_date_basis": "SOURCE_BUSINESS_DATE_UTC",
+                "flow_denominator": "PRIOR_MONTH_END_NET_ASSETS",
+                "flow_measure": "ABS_NET",
+                "flow_threshold": "0.10",
+                "holiday_treatment": "NO_DATE_SHIFT",
+                "layers": [
+                  {
+                    "level": "PLATFORM",
+                    "policy_id": "test-policy",
+                    "revision": "r1"
+                  }
+                ],
+                "membership_frequency": "CALENDAR_MONTH",
+                "missing_data": "REQUIRED_UNKNOWN",
+                "month": "2026-07",
+                "observation_window": "WHOLE_TARGET_MONTH",
+                "official_activation": "UNAVAILABLE",
+                "product_name": "CompositeMonthlyEligibilityPolicy",
+                "product_version": "v1",
+                "profile_kind": "SYNTHETIC_MONTHLY_ABS_NET_CASH_READINESS",
+                "ratio_unit": "DECIMAL_FRACTION",
+                "reentry": "REEVALUATE_ALL_NEXT_MONTH_RULES",
+                "scope": {
+                  "composite_id": "test-composite",
+                  "definition_version": "d1",
+                  "run_id": null,
+                  "strategy_code": "BALANCED",
+                  "tenant_id": "test-tenant"
+                },
+                "source_cut_timing": "AFTER_MONTH_END"
+              },
+              "product_name": "CompositeMonthlyPolicyProposal",
+              "product_version": "v1",
+              "proposal_revision": "policy-r1",
+              "proposed_at": "2026-06-01T00:00:00.000000Z",
+              "proposed_by": "test-maker"
+            }
+          },
+          "product_name": "CompositeMonthlyEvaluationProposal",
+          "product_version": "v1",
+          "proposed_at": "2026-10-01T00:00:00.000000Z",
+          "proposed_by": "test-maker",
+          "target_membership_revision": "target-2026-07",
+          "universe": {
+            "attestation_version": "input-u1",
+            "attested_at": "2026-10-01T00:00:00.000000Z",
+            "attested_by": "test-source",
+            "composite_id": "test-composite",
+            "content_hash": "sha256:4bdaf91920b32490f5ad2e22618f1dc6d999539a76b130e4046d8ade6beba537",
+            "correlation_id": "test-correlation",
+            "coverage_from": "2026-07-01",
+            "coverage_gap_portfolio_ids": [],
+            "coverage_to": "2026-07-31",
+            "definition_version": "d1",
+            "expected_portfolio_count": 2,
+            "expected_portfolio_ids": [
+              "excluded",
+              "missing"
+            ],
+            "membership_content_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+            "membership_revision": "parent-r1",
+            "missing_portfolio_ids": [
+              "missing"
+            ],
+            "observed_portfolio_count": 1,
+            "policy_version": "p1",
+            "posture": "INCOMPLETE",
+            "product_name": "CompositeUniverseAttestation",
+            "product_version": "v1",
+            "reason_code": "UNVERIFIED",
+            "source_cut_id": "cut-1",
+            "source_products": [
+              {
+                "authority_scope": "POLICY_INPUT",
+                "content_hash": "sha256:af355220f1e04225892ddcf0e695f892ac6a615ad5611fba4783a1a300f930f7",
+                "contract_version": "v1",
+                "owner_service": "lotus-manage",
+                "product_name": "CompositeMonthlyEligibilityObservations",
+                "source_cut_id": "cut-1",
+                "source_watermark": "obs-r1"
+              }
+            ],
+            "tenant_id": "test-tenant",
+            "unexpected_portfolio_ids": []
+          }
+        },
+        "response_digests": {
+          "proposal": "sha256:18d6f74c89bb244f2e03c25544efc9227d6273f40f5b6cbe1a9148522fb0d166"
+        }
+      }
+    ],
+    "tables": [
+      {
+        "columns": [
+          {
+            "column_id": "month",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": null,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "TEXT",
+            "label": "month",
+            "scale": "1",
+            "unit": "TEXT",
+            "value_type": "TEXT"
+          },
+          {
+            "column_id": "evidence_kind",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": null,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "TEXT",
+            "label": "evidence kind",
+            "scale": "1",
+            "unit": "TEXT",
+            "value_type": "TEXT"
+          },
+          {
+            "column_id": "expected_count",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": 0,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "PORTFOLIO_COUNT",
+            "label": "expected count",
+            "scale": "1",
+            "unit": "PORTFOLIO_COUNT",
+            "value_type": "COUNT"
+          },
+          {
+            "column_id": "observed_count",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": 0,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "PORTFOLIO_COUNT",
+            "label": "observed count",
+            "scale": "1",
+            "unit": "PORTFOLIO_COUNT",
+            "value_type": "COUNT"
+          },
+          {
+            "column_id": "included_count",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": 0,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "PORTFOLIO_COUNT",
+            "label": "included count",
+            "scale": "1",
+            "unit": "PORTFOLIO_COUNT",
+            "value_type": "COUNT"
+          },
+          {
+            "column_id": "excluded_count",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": 0,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "PORTFOLIO_COUNT",
+            "label": "excluded count",
+            "scale": "1",
+            "unit": "PORTFOLIO_COUNT",
+            "value_type": "COUNT"
+          },
+          {
+            "column_id": "pending_review_count",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": 0,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "PORTFOLIO_COUNT",
+            "label": "pending review count",
+            "scale": "1",
+            "unit": "PORTFOLIO_COUNT",
+            "value_type": "COUNT"
+          },
+          {
+            "column_id": "population_verification",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": null,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "TEXT",
+            "label": "population verification",
+            "scale": "1",
+            "unit": "TEXT",
+            "value_type": "TEXT"
+          },
+          {
+            "column_id": "official_activation",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": null,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "TEXT",
+            "label": "official activation",
+            "scale": "1",
+            "unit": "TEXT",
+            "value_type": "TEXT"
+          }
+        ],
+        "rows": [
+          {
+            "cells": {
+              "evidence_kind": {
+                "availability": "AVAILABLE",
+                "canonical_value": "EVALUATED_ONLY",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/evidence_kind"
+              },
+              "excluded_count": {
+                "availability": "AVAILABLE",
+                "canonical_value": "1",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/proposal/evaluation/excluded_count"
+              },
+              "expected_count": {
+                "availability": "AVAILABLE",
+                "canonical_value": "2",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/proposal/evaluation/expected_count"
+              },
+              "included_count": {
+                "availability": "AVAILABLE",
+                "canonical_value": "0",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/proposal/evaluation/included_count"
+              },
+              "month": {
+                "availability": "AVAILABLE",
+                "canonical_value": "2026-07",
+                "reason_codes": [],
+                "source_pointer": "/selection/months/0/month"
+              },
+              "observed_count": {
+                "availability": "AVAILABLE",
+                "canonical_value": "1",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/proposal/evaluation/observed_count"
+              },
+              "official_activation": {
+                "availability": "AVAILABLE",
+                "canonical_value": "UNAVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/proposal/evaluation/official_activation"
+              },
+              "pending_review_count": {
+                "availability": "AVAILABLE",
+                "canonical_value": "1",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/proposal/evaluation/pending_review_count"
+              },
+              "population_verification": {
+                "availability": "AVAILABLE",
+                "canonical_value": "UNVERIFIED",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/proposal/evaluation/population_verification"
+              }
+            },
+            "row_id": "m0"
+          }
+        ],
+        "table_id": "Summary",
+        "title": "Summary"
+      },
+      {
+        "columns": [
+          {
+            "column_id": "month",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": null,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "TEXT",
+            "label": "month",
+            "scale": "1",
+            "unit": "TEXT",
+            "value_type": "TEXT"
+          },
+          {
+            "column_id": "portfolio_id",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": null,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "TEXT",
+            "label": "portfolio id",
+            "scale": "1",
+            "unit": "TEXT",
+            "value_type": "TEXT"
+          },
+          {
+            "column_id": "status",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": null,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "TEXT",
+            "label": "status",
+            "scale": "1",
+            "unit": "TEXT",
+            "value_type": "TEXT"
+          },
+          {
+            "column_id": "observations_present",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": null,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "BOOLEAN",
+            "label": "observations present",
+            "scale": "1",
+            "unit": "BOOLEAN",
+            "value_type": "BOOLEAN"
+          }
+        ],
+        "rows": [
+          {
+            "cells": {
+              "month": {
+                "availability": "AVAILABLE",
+                "canonical_value": "2026-07",
+                "reason_codes": [],
+                "source_pointer": "/selection/months/0/month"
+              },
+              "observations_present": {
+                "availability": "AVAILABLE",
+                "canonical_value": "true",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/proposal/evaluation/portfolios/0/observations_present"
+              },
+              "portfolio_id": {
+                "availability": "AVAILABLE",
+                "canonical_value": "excluded",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/proposal/evaluation/portfolios/0/portfolio_id"
+              },
+              "status": {
+                "availability": "AVAILABLE",
+                "canonical_value": "EXCLUDED",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/proposal/evaluation/portfolios/0/status"
+              }
+            },
+            "row_id": "m0:p0"
+          },
+          {
+            "cells": {
+              "month": {
+                "availability": "AVAILABLE",
+                "canonical_value": "2026-07",
+                "reason_codes": [],
+                "source_pointer": "/selection/months/0/month"
+              },
+              "observations_present": {
+                "availability": "AVAILABLE",
+                "canonical_value": "false",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/proposal/evaluation/portfolios/1/observations_present"
+              },
+              "portfolio_id": {
+                "availability": "AVAILABLE",
+                "canonical_value": "missing",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/proposal/evaluation/portfolios/1/portfolio_id"
+              },
+              "status": {
+                "availability": "AVAILABLE",
+                "canonical_value": "PENDING_REVIEW",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/proposal/evaluation/portfolios/1/status"
+              }
+            },
+            "row_id": "m0:p1"
+          }
+        ],
+        "table_id": "Members",
+        "title": "Members"
+      },
+      {
+        "columns": [
+          {
+            "column_id": "month",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": null,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "TEXT",
+            "label": "month",
+            "scale": "1",
+            "unit": "TEXT",
+            "value_type": "TEXT"
+          },
+          {
+            "column_id": "portfolio_id",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": null,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "TEXT",
+            "label": "portfolio id",
+            "scale": "1",
+            "unit": "TEXT",
+            "value_type": "TEXT"
+          },
+          {
+            "column_id": "rule",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": null,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "TEXT",
+            "label": "rule",
+            "scale": "1",
+            "unit": "TEXT",
+            "value_type": "TEXT"
+          },
+          {
+            "column_id": "outcome",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": null,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "TEXT",
+            "label": "outcome",
+            "scale": "1",
+            "unit": "TEXT",
+            "value_type": "TEXT"
+          },
+          {
+            "column_id": "numerator",
+            "currency": "USD",
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": 2,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "CURRENCY_UNITS",
+            "label": "numerator",
+            "scale": "1",
+            "unit": "CURRENCY_UNITS",
+            "value_type": "MONEY"
+          },
+          {
+            "column_id": "denominator",
+            "currency": "USD",
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": 2,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "CURRENCY_UNITS",
+            "label": "denominator",
+            "scale": "1",
+            "unit": "CURRENCY_UNITS",
+            "value_type": "MONEY"
+          },
+          {
+            "column_id": "ratio",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": 12,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "DECIMAL_RATIO",
+            "label": "ratio",
+            "scale": "1",
+            "unit": "DECIMAL_RATIO",
+            "value_type": "DECIMAL_FACTOR"
+          },
+          {
+            "column_id": "gross_inflow",
+            "currency": "USD",
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": 2,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "CURRENCY_UNITS",
+            "label": "gross inflow",
+            "scale": "1",
+            "unit": "CURRENCY_UNITS",
+            "value_type": "MONEY"
+          },
+          {
+            "column_id": "gross_outflow",
+            "currency": "USD",
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": 2,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "CURRENCY_UNITS",
+            "label": "gross outflow",
+            "scale": "1",
+            "unit": "CURRENCY_UNITS",
+            "value_type": "MONEY"
+          },
+          {
+            "column_id": "admitted_flow_count",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": 0,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "EVENT_COUNT",
+            "label": "admitted flow count",
+            "scale": "1",
+            "unit": "EVENT_COUNT",
+            "value_type": "COUNT"
+          }
+        ],
+        "rows": [
+          {
+            "cells": {
+              "admitted_flow_count": {
+                "availability": "AVAILABLE",
+                "canonical_value": "1",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/proposal/evaluation/portfolios/0/assessments/0/admitted_flow_count"
+              },
+              "denominator": {
+                "availability": "AVAILABLE",
+                "canonical_value": "1000.00",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/proposal/evaluation/portfolios/0/assessments/0/denominator"
+              },
+              "gross_inflow": {
+                "availability": "AVAILABLE",
+                "canonical_value": "100.00",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/proposal/evaluation/portfolios/0/assessments/0/gross_inflow"
+              },
+              "gross_outflow": {
+                "availability": "AVAILABLE",
+                "canonical_value": "0.00",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/proposal/evaluation/portfolios/0/assessments/0/gross_outflow"
+              },
+              "month": {
+                "availability": "AVAILABLE",
+                "canonical_value": "2026-07",
+                "reason_codes": [],
+                "source_pointer": "/selection/months/0/month"
+              },
+              "numerator": {
+                "availability": "AVAILABLE",
+                "canonical_value": "100.00",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/proposal/evaluation/portfolios/0/assessments/0/numerator"
+              },
+              "outcome": {
+                "availability": "AVAILABLE",
+                "canonical_value": "FAIL",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/proposal/evaluation/portfolios/0/assessments/0/outcome"
+              },
+              "portfolio_id": {
+                "availability": "AVAILABLE",
+                "canonical_value": "excluded",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/proposal/evaluation/portfolios/0/portfolio_id"
+              },
+              "ratio": {
+                "availability": "AVAILABLE",
+                "canonical_value": "0.1",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/proposal/evaluation/portfolios/0/assessments/0/ratio"
+              },
+              "rule": {
+                "availability": "AVAILABLE",
+                "canonical_value": "SIGNIFICANT_FLOW",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/proposal/evaluation/portfolios/0/assessments/0/rule"
+              }
+            },
+            "row_id": "m0:p0:a0"
+          },
+          {
+            "cells": {
+              "admitted_flow_count": {
+                "availability": "NOT_APPLICABLE",
+                "canonical_value": null,
+                "reason_codes": [
+                  "RULE_FIELD_NOT_APPLICABLE"
+                ],
+                "source_pointer": "/source_months/0/proposal/evaluation/portfolios/0/assessments/1/admitted_flow_count"
+              },
+              "denominator": {
+                "availability": "UNAVAILABLE",
+                "canonical_value": null,
+                "reason_codes": [
+                  "SOURCE_VALUE_UNAVAILABLE"
+                ],
+                "source_pointer": "/source_months/0/proposal/evaluation/portfolios/0/assessments/1/denominator"
+              },
+              "gross_inflow": {
+                "availability": "NOT_APPLICABLE",
+                "canonical_value": null,
+                "reason_codes": [
+                  "RULE_FIELD_NOT_APPLICABLE"
+                ],
+                "source_pointer": "/source_months/0/proposal/evaluation/portfolios/0/assessments/1/gross_inflow"
+              },
+              "gross_outflow": {
+                "availability": "NOT_APPLICABLE",
+                "canonical_value": null,
+                "reason_codes": [
+                  "RULE_FIELD_NOT_APPLICABLE"
+                ],
+                "source_pointer": "/source_months/0/proposal/evaluation/portfolios/0/assessments/1/gross_outflow"
+              },
+              "month": {
+                "availability": "AVAILABLE",
+                "canonical_value": "2026-07",
+                "reason_codes": [],
+                "source_pointer": "/selection/months/0/month"
+              },
+              "numerator": {
+                "availability": "UNAVAILABLE",
+                "canonical_value": null,
+                "reason_codes": [
+                  "SOURCE_VALUE_UNAVAILABLE"
+                ],
+                "source_pointer": "/source_months/0/proposal/evaluation/portfolios/0/assessments/1/numerator"
+              },
+              "outcome": {
+                "availability": "AVAILABLE",
+                "canonical_value": "FAIL",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/proposal/evaluation/portfolios/0/assessments/1/outcome"
+              },
+              "portfolio_id": {
+                "availability": "AVAILABLE",
+                "canonical_value": "excluded",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/proposal/evaluation/portfolios/0/portfolio_id"
+              },
+              "ratio": {
+                "availability": "UNAVAILABLE",
+                "canonical_value": null,
+                "reason_codes": [
+                  "SOURCE_VALUE_UNAVAILABLE"
+                ],
+                "source_pointer": "/source_months/0/proposal/evaluation/portfolios/0/assessments/1/ratio"
+              },
+              "rule": {
+                "availability": "AVAILABLE",
+                "canonical_value": "CASH",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/proposal/evaluation/portfolios/0/assessments/1/rule"
+              }
+            },
+            "row_id": "m0:p0:a1"
+          },
+          {
+            "cells": {
+              "admitted_flow_count": {
+                "availability": "NOT_APPLICABLE",
+                "canonical_value": null,
+                "reason_codes": [
+                  "RULE_FIELD_NOT_APPLICABLE"
+                ],
+                "source_pointer": "/source_months/0/proposal/evaluation/portfolios/0/assessments/2/admitted_flow_count"
+              },
+              "denominator": {
+                "availability": "NOT_APPLICABLE",
+                "canonical_value": null,
+                "reason_codes": [
+                  "RULE_FIELD_NOT_APPLICABLE"
+                ],
+                "source_pointer": "/source_months/0/proposal/evaluation/portfolios/0/assessments/2/denominator"
+              },
+              "gross_inflow": {
+                "availability": "NOT_APPLICABLE",
+                "canonical_value": null,
+                "reason_codes": [
+                  "RULE_FIELD_NOT_APPLICABLE"
+                ],
+                "source_pointer": "/source_months/0/proposal/evaluation/portfolios/0/assessments/2/gross_inflow"
+              },
+              "gross_outflow": {
+                "availability": "NOT_APPLICABLE",
+                "canonical_value": null,
+                "reason_codes": [
+                  "RULE_FIELD_NOT_APPLICABLE"
+                ],
+                "source_pointer": "/source_months/0/proposal/evaluation/portfolios/0/assessments/2/gross_outflow"
+              },
+              "month": {
+                "availability": "AVAILABLE",
+                "canonical_value": "2026-07",
+                "reason_codes": [],
+                "source_pointer": "/selection/months/0/month"
+              },
+              "numerator": {
+                "availability": "NOT_APPLICABLE",
+                "canonical_value": null,
+                "reason_codes": [
+                  "RULE_FIELD_NOT_APPLICABLE"
+                ],
+                "source_pointer": "/source_months/0/proposal/evaluation/portfolios/0/assessments/2/numerator"
+              },
+              "outcome": {
+                "availability": "AVAILABLE",
+                "canonical_value": "FAIL",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/proposal/evaluation/portfolios/0/assessments/2/outcome"
+              },
+              "portfolio_id": {
+                "availability": "AVAILABLE",
+                "canonical_value": "excluded",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/proposal/evaluation/portfolios/0/portfolio_id"
+              },
+              "ratio": {
+                "availability": "NOT_APPLICABLE",
+                "canonical_value": null,
+                "reason_codes": [
+                  "RULE_FIELD_NOT_APPLICABLE"
+                ],
+                "source_pointer": "/source_months/0/proposal/evaluation/portfolios/0/assessments/2/ratio"
+              },
+              "rule": {
+                "availability": "AVAILABLE",
+                "canonical_value": "READINESS",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/proposal/evaluation/portfolios/0/assessments/2/rule"
+              }
+            },
+            "row_id": "m0:p0:a2"
+          },
+          {
+            "cells": {
+              "admitted_flow_count": {
+                "availability": "UNAVAILABLE",
+                "canonical_value": null,
+                "reason_codes": [
+                  "SOURCE_VALUE_UNAVAILABLE"
+                ],
+                "source_pointer": "/source_months/0/proposal/evaluation/portfolios/1/assessments/0/admitted_flow_count"
+              },
+              "denominator": {
+                "availability": "UNAVAILABLE",
+                "canonical_value": null,
+                "reason_codes": [
+                  "SOURCE_VALUE_UNAVAILABLE"
+                ],
+                "source_pointer": "/source_months/0/proposal/evaluation/portfolios/1/assessments/0/denominator"
+              },
+              "gross_inflow": {
+                "availability": "UNAVAILABLE",
+                "canonical_value": null,
+                "reason_codes": [
+                  "SOURCE_VALUE_UNAVAILABLE"
+                ],
+                "source_pointer": "/source_months/0/proposal/evaluation/portfolios/1/assessments/0/gross_inflow"
+              },
+              "gross_outflow": {
+                "availability": "UNAVAILABLE",
+                "canonical_value": null,
+                "reason_codes": [
+                  "SOURCE_VALUE_UNAVAILABLE"
+                ],
+                "source_pointer": "/source_months/0/proposal/evaluation/portfolios/1/assessments/0/gross_outflow"
+              },
+              "month": {
+                "availability": "AVAILABLE",
+                "canonical_value": "2026-07",
+                "reason_codes": [],
+                "source_pointer": "/selection/months/0/month"
+              },
+              "numerator": {
+                "availability": "UNAVAILABLE",
+                "canonical_value": null,
+                "reason_codes": [
+                  "SOURCE_VALUE_UNAVAILABLE"
+                ],
+                "source_pointer": "/source_months/0/proposal/evaluation/portfolios/1/assessments/0/numerator"
+              },
+              "outcome": {
+                "availability": "AVAILABLE",
+                "canonical_value": "UNKNOWN",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/proposal/evaluation/portfolios/1/assessments/0/outcome"
+              },
+              "portfolio_id": {
+                "availability": "AVAILABLE",
+                "canonical_value": "missing",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/proposal/evaluation/portfolios/1/portfolio_id"
+              },
+              "ratio": {
+                "availability": "UNAVAILABLE",
+                "canonical_value": null,
+                "reason_codes": [
+                  "SOURCE_VALUE_UNAVAILABLE"
+                ],
+                "source_pointer": "/source_months/0/proposal/evaluation/portfolios/1/assessments/0/ratio"
+              },
+              "rule": {
+                "availability": "AVAILABLE",
+                "canonical_value": "SIGNIFICANT_FLOW",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/proposal/evaluation/portfolios/1/assessments/0/rule"
+              }
+            },
+            "row_id": "m0:p1:a0"
+          },
+          {
+            "cells": {
+              "admitted_flow_count": {
+                "availability": "NOT_APPLICABLE",
+                "canonical_value": null,
+                "reason_codes": [
+                  "RULE_FIELD_NOT_APPLICABLE"
+                ],
+                "source_pointer": "/source_months/0/proposal/evaluation/portfolios/1/assessments/1/admitted_flow_count"
+              },
+              "denominator": {
+                "availability": "UNAVAILABLE",
+                "canonical_value": null,
+                "reason_codes": [
+                  "SOURCE_VALUE_UNAVAILABLE"
+                ],
+                "source_pointer": "/source_months/0/proposal/evaluation/portfolios/1/assessments/1/denominator"
+              },
+              "gross_inflow": {
+                "availability": "NOT_APPLICABLE",
+                "canonical_value": null,
+                "reason_codes": [
+                  "RULE_FIELD_NOT_APPLICABLE"
+                ],
+                "source_pointer": "/source_months/0/proposal/evaluation/portfolios/1/assessments/1/gross_inflow"
+              },
+              "gross_outflow": {
+                "availability": "NOT_APPLICABLE",
+                "canonical_value": null,
+                "reason_codes": [
+                  "RULE_FIELD_NOT_APPLICABLE"
+                ],
+                "source_pointer": "/source_months/0/proposal/evaluation/portfolios/1/assessments/1/gross_outflow"
+              },
+              "month": {
+                "availability": "AVAILABLE",
+                "canonical_value": "2026-07",
+                "reason_codes": [],
+                "source_pointer": "/selection/months/0/month"
+              },
+              "numerator": {
+                "availability": "UNAVAILABLE",
+                "canonical_value": null,
+                "reason_codes": [
+                  "SOURCE_VALUE_UNAVAILABLE"
+                ],
+                "source_pointer": "/source_months/0/proposal/evaluation/portfolios/1/assessments/1/numerator"
+              },
+              "outcome": {
+                "availability": "AVAILABLE",
+                "canonical_value": "UNKNOWN",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/proposal/evaluation/portfolios/1/assessments/1/outcome"
+              },
+              "portfolio_id": {
+                "availability": "AVAILABLE",
+                "canonical_value": "missing",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/proposal/evaluation/portfolios/1/portfolio_id"
+              },
+              "ratio": {
+                "availability": "UNAVAILABLE",
+                "canonical_value": null,
+                "reason_codes": [
+                  "SOURCE_VALUE_UNAVAILABLE"
+                ],
+                "source_pointer": "/source_months/0/proposal/evaluation/portfolios/1/assessments/1/ratio"
+              },
+              "rule": {
+                "availability": "AVAILABLE",
+                "canonical_value": "CASH",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/proposal/evaluation/portfolios/1/assessments/1/rule"
+              }
+            },
+            "row_id": "m0:p1:a1"
+          },
+          {
+            "cells": {
+              "admitted_flow_count": {
+                "availability": "NOT_APPLICABLE",
+                "canonical_value": null,
+                "reason_codes": [
+                  "RULE_FIELD_NOT_APPLICABLE"
+                ],
+                "source_pointer": "/source_months/0/proposal/evaluation/portfolios/1/assessments/2/admitted_flow_count"
+              },
+              "denominator": {
+                "availability": "NOT_APPLICABLE",
+                "canonical_value": null,
+                "reason_codes": [
+                  "RULE_FIELD_NOT_APPLICABLE"
+                ],
+                "source_pointer": "/source_months/0/proposal/evaluation/portfolios/1/assessments/2/denominator"
+              },
+              "gross_inflow": {
+                "availability": "NOT_APPLICABLE",
+                "canonical_value": null,
+                "reason_codes": [
+                  "RULE_FIELD_NOT_APPLICABLE"
+                ],
+                "source_pointer": "/source_months/0/proposal/evaluation/portfolios/1/assessments/2/gross_inflow"
+              },
+              "gross_outflow": {
+                "availability": "NOT_APPLICABLE",
+                "canonical_value": null,
+                "reason_codes": [
+                  "RULE_FIELD_NOT_APPLICABLE"
+                ],
+                "source_pointer": "/source_months/0/proposal/evaluation/portfolios/1/assessments/2/gross_outflow"
+              },
+              "month": {
+                "availability": "AVAILABLE",
+                "canonical_value": "2026-07",
+                "reason_codes": [],
+                "source_pointer": "/selection/months/0/month"
+              },
+              "numerator": {
+                "availability": "NOT_APPLICABLE",
+                "canonical_value": null,
+                "reason_codes": [
+                  "RULE_FIELD_NOT_APPLICABLE"
+                ],
+                "source_pointer": "/source_months/0/proposal/evaluation/portfolios/1/assessments/2/numerator"
+              },
+              "outcome": {
+                "availability": "AVAILABLE",
+                "canonical_value": "UNKNOWN",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/proposal/evaluation/portfolios/1/assessments/2/outcome"
+              },
+              "portfolio_id": {
+                "availability": "AVAILABLE",
+                "canonical_value": "missing",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/proposal/evaluation/portfolios/1/portfolio_id"
+              },
+              "ratio": {
+                "availability": "NOT_APPLICABLE",
+                "canonical_value": null,
+                "reason_codes": [
+                  "RULE_FIELD_NOT_APPLICABLE"
+                ],
+                "source_pointer": "/source_months/0/proposal/evaluation/portfolios/1/assessments/2/ratio"
+              },
+              "rule": {
+                "availability": "AVAILABLE",
+                "canonical_value": "READINESS",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/proposal/evaluation/portfolios/1/assessments/2/rule"
+              }
+            },
+            "row_id": "m0:p1:a2"
+          }
+        ],
+        "table_id": "EligibilityAssessments",
+        "title": "EligibilityAssessments"
+      },
+      {
+        "columns": [
+          {
+            "column_id": "month",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": null,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "TEXT",
+            "label": "month",
+            "scale": "1",
+            "unit": "TEXT",
+            "value_type": "TEXT"
+          },
+          {
+            "column_id": "portfolio_id",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": null,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "TEXT",
+            "label": "portfolio id",
+            "scale": "1",
+            "unit": "TEXT",
+            "value_type": "TEXT"
+          },
+          {
+            "column_id": "rule",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": null,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "TEXT",
+            "label": "rule",
+            "scale": "1",
+            "unit": "TEXT",
+            "value_type": "TEXT"
+          },
+          {
+            "column_id": "kind",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": null,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "TEXT",
+            "label": "kind",
+            "scale": "1",
+            "unit": "TEXT",
+            "value_type": "TEXT"
+          },
+          {
+            "column_id": "reason_code",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": null,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "TEXT",
+            "label": "reason code",
+            "scale": "1",
+            "unit": "TEXT",
+            "value_type": "TEXT"
+          }
+        ],
+        "rows": [
+          {
+            "cells": {
+              "kind": {
+                "availability": "AVAILABLE",
+                "canonical_value": "FAILURE",
+                "reason_codes": [],
+                "source_pointer": "/report_facts/reason_kinds/failure_reasons"
+              },
+              "month": {
+                "availability": "AVAILABLE",
+                "canonical_value": "2026-07",
+                "reason_codes": [],
+                "source_pointer": "/selection/months/0/month"
+              },
+              "portfolio_id": {
+                "availability": "AVAILABLE",
+                "canonical_value": "excluded",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/proposal/evaluation/portfolios/0/portfolio_id"
+              },
+              "reason_code": {
+                "availability": "AVAILABLE",
+                "canonical_value": "SIGNIFICANT_FLOW_THRESHOLD_BREACH",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/proposal/evaluation/portfolios/0/assessments/0/failure_reasons/0"
+              },
+              "rule": {
+                "availability": "AVAILABLE",
+                "canonical_value": "SIGNIFICANT_FLOW",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/proposal/evaluation/portfolios/0/assessments/0/rule"
+              }
+            },
+            "row_id": "m0:p0:a0:failure_reasons:0"
+          },
+          {
+            "cells": {
+              "kind": {
+                "availability": "AVAILABLE",
+                "canonical_value": "FAILURE",
+                "reason_codes": [],
+                "source_pointer": "/report_facts/reason_kinds/failure_reasons"
+              },
+              "month": {
+                "availability": "AVAILABLE",
+                "canonical_value": "2026-07",
+                "reason_codes": [],
+                "source_pointer": "/selection/months/0/month"
+              },
+              "portfolio_id": {
+                "availability": "AVAILABLE",
+                "canonical_value": "excluded",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/proposal/evaluation/portfolios/0/portfolio_id"
+              },
+              "reason_code": {
+                "availability": "AVAILABLE",
+                "canonical_value": "CASH_THRESHOLD_BREACH",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/proposal/evaluation/portfolios/0/assessments/1/failure_reasons/0"
+              },
+              "rule": {
+                "availability": "AVAILABLE",
+                "canonical_value": "CASH",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/proposal/evaluation/portfolios/0/assessments/1/rule"
+              }
+            },
+            "row_id": "m0:p0:a1:failure_reasons:0"
+          },
+          {
+            "cells": {
+              "kind": {
+                "availability": "AVAILABLE",
+                "canonical_value": "FAILURE",
+                "reason_codes": [],
+                "source_pointer": "/report_facts/reason_kinds/failure_reasons"
+              },
+              "month": {
+                "availability": "AVAILABLE",
+                "canonical_value": "2026-07",
+                "reason_codes": [],
+                "source_pointer": "/selection/months/0/month"
+              },
+              "portfolio_id": {
+                "availability": "AVAILABLE",
+                "canonical_value": "excluded",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/proposal/evaluation/portfolios/0/portfolio_id"
+              },
+              "reason_code": {
+                "availability": "AVAILABLE",
+                "canonical_value": "READINESS_FUNDED_FAILED",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/proposal/evaluation/portfolios/0/assessments/2/failure_reasons/0"
+              },
+              "rule": {
+                "availability": "AVAILABLE",
+                "canonical_value": "READINESS",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/proposal/evaluation/portfolios/0/assessments/2/rule"
+              }
+            },
+            "row_id": "m0:p0:a2:failure_reasons:0"
+          },
+          {
+            "cells": {
+              "kind": {
+                "availability": "AVAILABLE",
+                "canonical_value": "UNKNOWN",
+                "reason_codes": [],
+                "source_pointer": "/report_facts/reason_kinds/unknown_reasons"
+              },
+              "month": {
+                "availability": "AVAILABLE",
+                "canonical_value": "2026-07",
+                "reason_codes": [],
+                "source_pointer": "/selection/months/0/month"
+              },
+              "portfolio_id": {
+                "availability": "AVAILABLE",
+                "canonical_value": "excluded",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/proposal/evaluation/portfolios/0/portfolio_id"
+              },
+              "reason_code": {
+                "availability": "AVAILABLE",
+                "canonical_value": "READINESS_INVESTED_UNKNOWN",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/proposal/evaluation/portfolios/0/assessments/2/unknown_reasons/0"
+              },
+              "rule": {
+                "availability": "AVAILABLE",
+                "canonical_value": "READINESS",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/proposal/evaluation/portfolios/0/assessments/2/rule"
+              }
+            },
+            "row_id": "m0:p0:a2:unknown_reasons:0"
+          },
+          {
+            "cells": {
+              "kind": {
+                "availability": "AVAILABLE",
+                "canonical_value": "UNKNOWN",
+                "reason_codes": [],
+                "source_pointer": "/report_facts/reason_kinds/unknown_reasons"
+              },
+              "month": {
+                "availability": "AVAILABLE",
+                "canonical_value": "2026-07",
+                "reason_codes": [],
+                "source_pointer": "/selection/months/0/month"
+              },
+              "portfolio_id": {
+                "availability": "AVAILABLE",
+                "canonical_value": "missing",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/proposal/evaluation/portfolios/1/portfolio_id"
+              },
+              "reason_code": {
+                "availability": "AVAILABLE",
+                "canonical_value": "MISSING_EXPECTED_PORTFOLIO_OBSERVATIONS",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/proposal/evaluation/portfolios/1/assessments/0/unknown_reasons/0"
+              },
+              "rule": {
+                "availability": "AVAILABLE",
+                "canonical_value": "SIGNIFICANT_FLOW",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/proposal/evaluation/portfolios/1/assessments/0/rule"
+              }
+            },
+            "row_id": "m0:p1:a0:unknown_reasons:0"
+          },
+          {
+            "cells": {
+              "kind": {
+                "availability": "AVAILABLE",
+                "canonical_value": "UNKNOWN",
+                "reason_codes": [],
+                "source_pointer": "/report_facts/reason_kinds/unknown_reasons"
+              },
+              "month": {
+                "availability": "AVAILABLE",
+                "canonical_value": "2026-07",
+                "reason_codes": [],
+                "source_pointer": "/selection/months/0/month"
+              },
+              "portfolio_id": {
+                "availability": "AVAILABLE",
+                "canonical_value": "missing",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/proposal/evaluation/portfolios/1/portfolio_id"
+              },
+              "reason_code": {
+                "availability": "AVAILABLE",
+                "canonical_value": "MISSING_EXPECTED_PORTFOLIO_OBSERVATIONS",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/proposal/evaluation/portfolios/1/assessments/1/unknown_reasons/0"
+              },
+              "rule": {
+                "availability": "AVAILABLE",
+                "canonical_value": "CASH",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/proposal/evaluation/portfolios/1/assessments/1/rule"
+              }
+            },
+            "row_id": "m0:p1:a1:unknown_reasons:0"
+          },
+          {
+            "cells": {
+              "kind": {
+                "availability": "AVAILABLE",
+                "canonical_value": "UNKNOWN",
+                "reason_codes": [],
+                "source_pointer": "/report_facts/reason_kinds/unknown_reasons"
+              },
+              "month": {
+                "availability": "AVAILABLE",
+                "canonical_value": "2026-07",
+                "reason_codes": [],
+                "source_pointer": "/selection/months/0/month"
+              },
+              "portfolio_id": {
+                "availability": "AVAILABLE",
+                "canonical_value": "missing",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/proposal/evaluation/portfolios/1/portfolio_id"
+              },
+              "reason_code": {
+                "availability": "AVAILABLE",
+                "canonical_value": "MISSING_EXPECTED_PORTFOLIO_OBSERVATIONS",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/proposal/evaluation/portfolios/1/assessments/2/unknown_reasons/0"
+              },
+              "rule": {
+                "availability": "AVAILABLE",
+                "canonical_value": "READINESS",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/proposal/evaluation/portfolios/1/assessments/2/rule"
+              }
+            },
+            "row_id": "m0:p1:a2:unknown_reasons:0"
+          }
+        ],
+        "table_id": "EligibilityReasons",
+        "title": "EligibilityReasons"
+      },
+      {
+        "columns": [
+          {
+            "column_id": "month",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": null,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "TEXT",
+            "label": "month",
+            "scale": "1",
+            "unit": "TEXT",
+            "value_type": "TEXT"
+          },
+          {
+            "column_id": "membership_revision",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": null,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "TEXT",
+            "label": "membership revision",
+            "scale": "1",
+            "unit": "TEXT",
+            "value_type": "TEXT"
+          },
+          {
+            "column_id": "portfolio_id",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": null,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "TEXT",
+            "label": "portfolio id",
+            "scale": "1",
+            "unit": "TEXT",
+            "value_type": "TEXT"
+          },
+          {
+            "column_id": "effective_from",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": null,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "TEXT",
+            "label": "effective from",
+            "scale": "1",
+            "unit": "TEXT",
+            "value_type": "TEXT"
+          },
+          {
+            "column_id": "effective_to",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": null,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "TEXT",
+            "label": "effective to",
+            "scale": "1",
+            "unit": "TEXT",
+            "value_type": "TEXT"
+          },
+          {
+            "column_id": "status",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": null,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "TEXT",
+            "label": "status",
+            "scale": "1",
+            "unit": "TEXT",
+            "value_type": "TEXT"
+          },
+          {
+            "column_id": "reason_code",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": null,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "TEXT",
+            "label": "reason code",
+            "scale": "1",
+            "unit": "TEXT",
+            "value_type": "TEXT"
+          },
+          {
+            "column_id": "discretionary",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": null,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "BOOLEAN",
+            "label": "discretionary",
+            "scale": "1",
+            "unit": "BOOLEAN",
+            "value_type": "BOOLEAN"
+          },
+          {
+            "column_id": "approval_ref",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": null,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "TEXT",
+            "label": "approval ref",
+            "scale": "1",
+            "unit": "TEXT",
+            "value_type": "TEXT"
+          },
+          {
+            "column_id": "source_snapshot_id",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": null,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "TEXT",
+            "label": "source snapshot id",
+            "scale": "1",
+            "unit": "TEXT",
+            "value_type": "TEXT"
+          },
+          {
+            "column_id": "supersedes_membership_revision",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": null,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "TEXT",
+            "label": "supersedes membership revision",
+            "scale": "1",
+            "unit": "TEXT",
+            "value_type": "TEXT"
+          },
+          {
+            "column_id": "affected_from",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": null,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "TEXT",
+            "label": "affected from",
+            "scale": "1",
+            "unit": "TEXT",
+            "value_type": "TEXT"
+          },
+          {
+            "column_id": "affected_to",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": null,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "TEXT",
+            "label": "affected to",
+            "scale": "1",
+            "unit": "TEXT",
+            "value_type": "TEXT"
+          }
+        ],
+        "rows": [
+          {
+            "cells": {
+              "affected_from": {
+                "availability": "UNAVAILABLE",
+                "canonical_value": null,
+                "reason_codes": [
+                  "SOURCE_VALUE_UNAVAILABLE"
+                ],
+                "source_pointer": "/report_facts/unavailable"
+              },
+              "affected_to": {
+                "availability": "UNAVAILABLE",
+                "canonical_value": null,
+                "reason_codes": [
+                  "SOURCE_VALUE_UNAVAILABLE"
+                ],
+                "source_pointer": "/report_facts/unavailable"
+              },
+              "approval_ref": {
+                "availability": "UNAVAILABLE",
+                "canonical_value": null,
+                "reason_codes": [
+                  "SOURCE_VALUE_UNAVAILABLE"
+                ],
+                "source_pointer": "/report_facts/unavailable"
+              },
+              "discretionary": {
+                "availability": "UNAVAILABLE",
+                "canonical_value": null,
+                "reason_codes": [
+                  "SOURCE_VALUE_UNAVAILABLE"
+                ],
+                "source_pointer": "/report_facts/unavailable"
+              },
+              "effective_from": {
+                "availability": "UNAVAILABLE",
+                "canonical_value": null,
+                "reason_codes": [
+                  "SOURCE_VALUE_UNAVAILABLE"
+                ],
+                "source_pointer": "/report_facts/unavailable"
+              },
+              "effective_to": {
+                "availability": "UNAVAILABLE",
+                "canonical_value": null,
+                "reason_codes": [
+                  "SOURCE_VALUE_UNAVAILABLE"
+                ],
+                "source_pointer": "/report_facts/unavailable"
+              },
+              "membership_revision": {
+                "availability": "UNAVAILABLE",
+                "canonical_value": null,
+                "reason_codes": [
+                  "SOURCE_VALUE_UNAVAILABLE"
+                ],
+                "source_pointer": "/report_facts/unavailable"
+              },
+              "month": {
+                "availability": "AVAILABLE",
+                "canonical_value": "2026-07",
+                "reason_codes": [],
+                "source_pointer": "/selection/months/0/month"
+              },
+              "portfolio_id": {
+                "availability": "UNAVAILABLE",
+                "canonical_value": null,
+                "reason_codes": [
+                  "SOURCE_VALUE_UNAVAILABLE"
+                ],
+                "source_pointer": "/report_facts/unavailable"
+              },
+              "reason_code": {
+                "availability": "UNAVAILABLE",
+                "canonical_value": null,
+                "reason_codes": [
+                  "SOURCE_VALUE_UNAVAILABLE"
+                ],
+                "source_pointer": "/report_facts/unavailable"
+              },
+              "source_snapshot_id": {
+                "availability": "UNAVAILABLE",
+                "canonical_value": null,
+                "reason_codes": [
+                  "SOURCE_VALUE_UNAVAILABLE"
+                ],
+                "source_pointer": "/report_facts/unavailable"
+              },
+              "status": {
+                "availability": "UNAVAILABLE",
+                "canonical_value": null,
+                "reason_codes": [
+                  "SOURCE_VALUE_UNAVAILABLE"
+                ],
+                "source_pointer": "/report_facts/unavailable"
+              },
+              "supersedes_membership_revision": {
+                "availability": "UNAVAILABLE",
+                "canonical_value": null,
+                "reason_codes": [
+                  "SOURCE_VALUE_UNAVAILABLE"
+                ],
+                "source_pointer": "/report_facts/unavailable"
+              }
+            },
+            "row_id": "m0:unavailable"
+          }
+        ],
+        "table_id": "MembershipHistory",
+        "title": "MembershipHistory"
+      },
+      {
+        "columns": [
+          {
+            "column_id": "month",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": null,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "TEXT",
+            "label": "month",
+            "scale": "1",
+            "unit": "TEXT",
+            "value_type": "TEXT"
+          },
+          {
+            "column_id": "profile_kind",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": null,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "TEXT",
+            "label": "profile kind",
+            "scale": "1",
+            "unit": "TEXT",
+            "value_type": "TEXT"
+          },
+          {
+            "column_id": "flow_threshold",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": 12,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "DECIMAL_RATIO",
+            "label": "flow threshold",
+            "scale": "1",
+            "unit": "DECIMAL_RATIO",
+            "value_type": "DECIMAL_FACTOR"
+          },
+          {
+            "column_id": "cash_threshold",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": 12,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "DECIMAL_RATIO",
+            "label": "cash threshold",
+            "scale": "1",
+            "unit": "DECIMAL_RATIO",
+            "value_type": "DECIMAL_FACTOR"
+          },
+          {
+            "column_id": "flow_measure",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": null,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "TEXT",
+            "label": "flow measure",
+            "scale": "1",
+            "unit": "TEXT",
+            "value_type": "TEXT"
+          },
+          {
+            "column_id": "flow_breach_operator",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": null,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "TEXT",
+            "label": "flow breach operator",
+            "scale": "1",
+            "unit": "TEXT",
+            "value_type": "TEXT"
+          },
+          {
+            "column_id": "cash_breach_operator",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": null,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "TEXT",
+            "label": "cash breach operator",
+            "scale": "1",
+            "unit": "TEXT",
+            "value_type": "TEXT"
+          },
+          {
+            "column_id": "reentry",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": null,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "TEXT",
+            "label": "reentry",
+            "scale": "1",
+            "unit": "TEXT",
+            "value_type": "TEXT"
+          },
+          {
+            "column_id": "content_hash",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": null,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "TEXT",
+            "label": "content hash",
+            "scale": "1",
+            "unit": "TEXT",
+            "value_type": "TEXT"
+          }
+        ],
+        "rows": [
+          {
+            "cells": {
+              "cash_breach_operator": {
+                "availability": "AVAILABLE",
+                "canonical_value": "GREATER_THAN",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/proposal/evaluation/resolved_policy/cash_breach_operator"
+              },
+              "cash_threshold": {
+                "availability": "AVAILABLE",
+                "canonical_value": "0.05",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/proposal/evaluation/resolved_policy/cash_threshold"
+              },
+              "content_hash": {
+                "availability": "AVAILABLE",
+                "canonical_value": "sha256:16afbc965d1f720265715575ea0c96f119b2739af8aea0a759c9f438cc8d8db9",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/proposal/evaluation/resolved_policy/content_hash"
+              },
+              "flow_breach_operator": {
+                "availability": "AVAILABLE",
+                "canonical_value": "GREATER_THAN_OR_EQUAL",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/proposal/evaluation/resolved_policy/flow_breach_operator"
+              },
+              "flow_measure": {
+                "availability": "AVAILABLE",
+                "canonical_value": "ABS_NET",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/proposal/evaluation/resolved_policy/flow_measure"
+              },
+              "flow_threshold": {
+                "availability": "AVAILABLE",
+                "canonical_value": "0.10",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/proposal/evaluation/resolved_policy/flow_threshold"
+              },
+              "month": {
+                "availability": "AVAILABLE",
+                "canonical_value": "2026-07",
+                "reason_codes": [],
+                "source_pointer": "/selection/months/0/month"
+              },
+              "profile_kind": {
+                "availability": "AVAILABLE",
+                "canonical_value": "SYNTHETIC_MONTHLY_ABS_NET_CASH_READINESS",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/proposal/evaluation/resolved_policy/profile_kind"
+              },
+              "reentry": {
+                "availability": "AVAILABLE",
+                "canonical_value": "REEVALUATE_ALL_NEXT_MONTH_RULES",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/proposal/evaluation/resolved_policy/reentry"
+              }
+            },
+            "row_id": "m0"
+          }
+        ],
+        "table_id": "Methods",
+        "title": "Methods"
+      },
+      {
+        "columns": [
+          {
+            "column_id": "month",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": null,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "TEXT",
+            "label": "month",
+            "scale": "1",
+            "unit": "TEXT",
+            "value_type": "TEXT"
+          },
+          {
+            "column_id": "evidence_kind",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": null,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "TEXT",
+            "label": "evidence kind",
+            "scale": "1",
+            "unit": "TEXT",
+            "value_type": "TEXT"
+          },
+          {
+            "column_id": "product",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": null,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "TEXT",
+            "label": "product",
+            "scale": "1",
+            "unit": "TEXT",
+            "value_type": "TEXT"
+          },
+          {
+            "column_id": "revision",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": null,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "TEXT",
+            "label": "revision",
+            "scale": "1",
+            "unit": "TEXT",
+            "value_type": "TEXT"
+          },
+          {
+            "column_id": "content_hash",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": null,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "TEXT",
+            "label": "content hash",
+            "scale": "1",
+            "unit": "TEXT",
+            "value_type": "TEXT"
+          },
+          {
+            "column_id": "response_digest",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": null,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "TEXT",
+            "label": "response digest",
+            "scale": "1",
+            "unit": "TEXT",
+            "value_type": "TEXT"
+          }
+        ],
+        "rows": [
+          {
+            "cells": {
+              "content_hash": {
+                "availability": "AVAILABLE",
+                "canonical_value": "sha256:2096b58b63a8818a76fe6c2d4219d411f765f6260210be5f6454d9dc6e61d6fd",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/proposal/content_hash"
+              },
+              "evidence_kind": {
+                "availability": "AVAILABLE",
+                "canonical_value": "EVALUATED_ONLY",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/evidence_kind"
+              },
+              "month": {
+                "availability": "AVAILABLE",
+                "canonical_value": "2026-07",
+                "reason_codes": [],
+                "source_pointer": "/selection/months/0/month"
+              },
+              "product": {
+                "availability": "AVAILABLE",
+                "canonical_value": "CompositeMonthlyEvaluationProposal",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/proposal/product_name"
+              },
+              "response_digest": {
+                "availability": "AVAILABLE",
+                "canonical_value": "sha256:18d6f74c89bb244f2e03c25544efc9227d6273f40f5b6cbe1a9148522fb0d166",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/response_digests/proposal"
+              },
+              "revision": {
+                "availability": "AVAILABLE",
+                "canonical_value": "eval-2026-07",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/proposal/evaluation_revision"
+              }
+            },
+            "row_id": "m0:s0"
+          }
+        ],
+        "table_id": "Lineage",
+        "title": "Lineage"
+      },
+      {
+        "columns": [
+          {
+            "column_id": "code",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": null,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "TEXT",
+            "label": "code",
+            "scale": "1",
+            "unit": "TEXT",
+            "value_type": "TEXT"
+          },
+          {
+            "column_id": "text",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": null,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "TEXT",
+            "label": "text",
+            "scale": "1",
+            "unit": "TEXT",
+            "value_type": "TEXT"
+          }
+        ],
+        "rows": [
+          {
+            "cells": {
+              "code": {
+                "availability": "AVAILABLE",
+                "canonical_value": "CONTROLLED_SYNTHETIC_ONLY",
+                "reason_codes": [],
+                "source_pointer": "/report_facts/disclosures/0/code"
+              },
+              "text": {
+                "availability": "AVAILABLE",
+                "canonical_value": "Controlled synthetic source replay / NOT_ATTESTED. Population and published completeness are UNVERIFIED; official activation is UNAVAILABLE.",
+                "reason_codes": [],
+                "source_pointer": "/report_facts/disclosures/0/text"
+              }
+            },
+            "row_id": "d0"
+          },
+          {
+            "cells": {
+              "code": {
+                "availability": "AVAILABLE",
+                "canonical_value": "SOURCE_OWNED_DECISIONS",
+                "reason_codes": [],
+                "source_pointer": "/report_facts/disclosures/1/code"
+              },
+              "text": {
+                "availability": "AVAILABLE",
+                "canonical_value": "Manage owns eligibility and publication. Report preserves all three assessments and does not evaluate thresholds or manufacture approvals.",
+                "reason_codes": [],
+                "source_pointer": "/report_facts/disclosures/1/text"
+              }
+            },
+            "row_id": "d1"
+          },
+          {
+            "cells": {
+              "code": {
+                "availability": "AVAILABLE",
+                "canonical_value": "FIRST_REASON_LOSS_BOUNDARY",
+                "reason_codes": [],
+                "source_pointer": "/report_facts/disclosures/2/code"
+              },
+              "text": {
+                "availability": "AVAILABLE",
+                "canonical_value": "Membership reason_code is only the first reason. EligibilityReasons preserves every failure and unknown occurrence; occurrences are not unique excluded members.",
+                "reason_codes": [],
+                "source_pointer": "/report_facts/disclosures/2/text"
+              }
+            },
+            "row_id": "d2"
+          },
+          {
+            "cells": {
+              "code": {
+                "availability": "AVAILABLE",
+                "canonical_value": "EVALUATED_IS_NOT_PUBLISHED",
+                "reason_codes": [],
+                "source_pointer": "/report_facts/disclosures/3/code"
+              },
+              "text": {
+                "availability": "AVAILABLE",
+                "canonical_value": "EVALUATED_ONLY retains a proposal and missing-observation UNKNOWN cases. Approval, publication and membership history are unavailable for that variant; no receipt is inferred.",
+                "reason_codes": [],
+                "source_pointer": "/report_facts/disclosures/3/text"
+              }
+            },
+            "row_id": "d3"
+          },
+          {
+            "cells": {
+              "code": {
+                "availability": "AVAILABLE",
+                "canonical_value": "EXACT_HISTORY",
+                "reason_codes": [],
+                "source_pointer": "/report_facts/disclosures/4/code"
+              },
+              "text": {
+                "availability": "AVAILABLE",
+                "canonical_value": "History retains original inclusive revision intervals. Selected month gaps are not filled; same-month policy diffs are not cross-month history. Cleared cash alone does not imply re-entry.",
+                "reason_codes": [],
+                "source_pointer": "/report_facts/disclosures/4/text"
+              }
+            },
+            "row_id": "d4"
+          },
+          {
+            "cells": {
+              "code": {
+                "availability": "AVAILABLE",
+                "canonical_value": "SOURCE_UNITS",
+                "reason_codes": [],
+                "source_pointer": "/report_facts/disclosures/5/code"
+              },
+              "text": {
+                "availability": "AVAILABLE",
+                "canonical_value": "Ratios are source decimal ratios, not return percentages. Money, portfolio counts, event counts and booleans remain distinct. Raw decimal spelling and nulls remain retained.",
+                "reason_codes": [],
+                "source_pointer": "/report_facts/disclosures/5/text"
+              }
+            },
+            "row_id": "d5"
+          }
+        ],
+        "table_id": "Disclosures",
+        "title": "Disclosures"
+      }
+    ],
+    "tenant_id": "test-tenant"
+  },
+  "report_data_contract_version": "composite_review.v4",
+  "report_job_id": "rjob_46d21cf5b9b54a7fb35deae52f36beb5",
+  "report_type": "composite_review",
+  "requested_by": "actor-a",
+  "snapshot_id": "rsnap_b9603f89c5ae4811ae0bc846887448d2",
+  "template_id": "composite-review",
+  "template_version": "v4",
+  "trace_id": "f962d2cdc7e548a681f174ca22f61c9e"
+}

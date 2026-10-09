@@ -8,7 +8,7 @@ from typing import Any
 
 import pytest
 
-from app.contracts.composite_linked import LinkedColumn
+from app.contracts.composite_linked import CompositeLinkedContent, LinkedColumn
 from app.contracts.composite_review import CompositeCell, CompositeColumn
 from app.contracts.render_package import RenderPackage
 from app.domain.templates.registry import TemplateRegistryError
@@ -57,6 +57,7 @@ def test_optional_null_sequence_preserves_exact_absent_or_present_request_identi
     before = copy.deepcopy(data)
     content = validate_dataset(data)
     assert content.selection == before["selection"]
+    assert isinstance(content, CompositeLinkedContent)
     assert data == before
     assert ("restatement_sequence" in content.selection["source_request"]) == present
 

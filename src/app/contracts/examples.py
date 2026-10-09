@@ -31,6 +31,12 @@ def load_composite_linked_render_package_example() -> dict[str, Any]:
     )
 
 
+def load_composite_eligibility_render_package_example() -> dict[str, Any]:
+    return _load_example(
+        Path(__file__).resolve().parent / "examples" / "composite-review-render-package.v4.json"
+    )
+
+
 def _load_example(path: Path) -> dict[str, Any]:
     payload = json.loads(path.read_text(encoding="utf-8"))
     return cast(dict[str, Any], payload)

@@ -1,25 +1,27 @@
 # Composite review workbook
 
-Current scope: RPT01 XLSX v1, v2 captured calendar/trailing returns and v3 pinned linked analysis. Qualification is
-`EXPLICIT_RETAINED_CALCULATED_REPLAY`, publication `NOT_ATTESTED`, manifest `development`.
-Archive custody does not confer official or client-publication authority. Remaining report families
-and enterprise qualification stay open.
+Current scope: Composite XLSX presents controlled source evidence: v1 review, v2 calendar/trailing returns,
+v3 linked analysis and [v4 eligibility/history](#complete-eligibility-evidence-v4).
+All remain `NOT_ATTESTED` and `development`; enterprise qualification stays open.
 
-Use the version/pointer dictionary below, [R5 custody evidence](#controlled-r5-custody-qualification),
-[R6 linked-analysis evidence](#controlled-r6-linked-analysis-qualification), and
-[verification](#reproducible-verification) for checks
-and the separate fixture/profile boundaries.
+Use the version dictionary below, [R5 custody evidence](#controlled-r5-custody-qualification),
+[R6 linked evidence](#controlled-r6-linked-analysis-qualification) and
+[verification](#reproducible-verification) for each fixture and qualification boundary.
 
 ## Versioned calendar and trailing products
 
 The existing `render_package.v1` envelope, `POST /renders`, literal writer and Archive lifecycle
-serve both versions. Select the exact tuple advertised by `GET /system/templates`:
+serve every version. V1/v2/v3 qualification is `EXPLICIT_RETAINED_CALCULATED_REPLAY`.
+Archive custody does not confer official or client-publication authority.
+
+Select the exact tuple advertised by `GET /system/templates`:
 
 | Template | Outer and embedded report-data contract | Format |
 |---|---|---|
 | `composite-review v1` | `composite_review.v1` | `xlsx` |
 | `composite-review v2` | `composite_review.v2` | `xlsx` |
 | `composite-review v3` | `composite_review.v3` | `xlsx` |
+| `composite-review v4` | `composite_review.v4` | `xlsx` |
 
 Mixed versions fail closed. Retained v1 packages keep their original manifest/layout/digest and
 golden semantics; adding v2 never reinterprets their source snapshot. The named v2 OpenAPI example
@@ -84,6 +86,80 @@ Render performs no financial calculation or upstream request.
 Calendar-year cumulative **return** is distinct from annual member **dispersion**. A source
 `POLICY_BASIS_MISMATCH` refusal supplies no dispersion value and remains explicitly unavailable;
 capturing calendar returns confers no authority over that statistic or other uncaptured products.
+
+## Complete eligibility evidence v4
+
+V4 presents Manage-owned eligibility decisions and their complete captured evidence through the
+existing `render_package.v1`, `POST /renders`, literal XLSX writer and custody lifecycle.
+Qualification is `CONTROLLED_ELIGIBILITY_SOURCE_REPLAY`, publication `NOT_ATTESTED`, manifest
+`development`. Rendering does not approve a proposal, attest population completeness or establish
+bank authority. Authored Report unit emissions retain deliberate upstream Render503 provenance.
+Separate actual controlled Manage captures were replayed through Report's registered worker,
+also with deliberate Render503, and their exact emitted packages are retained. In-process Render
+consumer checks do not establish authenticated joined network or Archive acceptance. V1/v2/v3
+packages and goldens retain their original meaning and bytes.
+
+| Table | Complete source population |
+| --- | --- |
+| Summary | One row per selected month; source-stated counts and qualification |
+| Members | Every expected portfolio in source order, including missing observations |
+| EligibilityAssessments | SIGNIFICANT_FLOW, CASH and READINESS for every member |
+| EligibilityReasons | Every failure and unknown occurrence, including repeated reasons |
+| MembershipHistory | Every original interval in each selected parent/current revision |
+| Methods | Exact resolved source policy fields |
+| Lineage | Proposal plus captured membership, parent, universe and receipt identities |
+| Disclosures | Six Report-owned controlled-source statements in defined order |
+
+`PUBLISHED` requires a receipt, current and parent membership, universe and publication with exact
+whole-response pins. `EVALUATED_ONLY` retains the proposal and explicitly unavailable membership
+history. It cannot acquire approval or publication through an extra selector field. Membership's
+single reason_code is never used to replace the complete assessment reason vectors. Reason
+occurrences, unique portfolios and admitted flow events are separate measures. Historical interval
+rows preserve their original revision scope and inclusive dates; Render does not fill membership
+gaps, infer re-entry or manufacture cross-month history.
+
+The consumer independently reconstructs all table/row/column/cell identities and pointers from
+whole source products. Omitted, extra or duplicate populations, redirected pointers, relabeled
+units, altered precision, disclosure changes and inconsistent counts refuse. Root-only source
+content hashes and recursive membership/universe hashes use their producer-defined policies;
+whole-response hashes additionally bind nested hashes and retained metadata. The r3 interface
+clarifies that the selector cut binds observations/evaluation, while published products bind the
+input-universe cut. Distinct cuts remain distinct. These checks do not execute economic rules.
+
+Operational `DECIMAL_RATIO` fields display as ratios at twelve decimal places with HALF_UP and
+IDENTITY conversion. MONEY uses the selected reporting currency and two places; PORTFOLIO_COUNT
+and EVENT_COUNT use zero places; booleans remain lowercase true/false. Exact decimal spelling is
+retained in evidence even when its rounded display is shorter. Genuine source nulls use
+UNAVAILABLE / SOURCE_VALUE_UNAVAILABLE. Known empty reason vectors use NOT_APPLICABLE /
+NO_APPLICABLE_REASONS at `/report_facts/no_reasons/value`. Rule-defined unused numeric nulls use
+NOT_APPLICABLE / RULE_FIELD_NOT_APPLICABLE at their original source pointer. A present non-null
+value is retained; no null becomes zero.
+
+The logical canonical evidence remains CellEvidence, ColumnPolicy, ArtifactIdentity and PinnedData;
+there is no additional CanonicalData sheet. Preflight counts visible row identities, seven cells
+per semantic evidence row, twelve per column-policy row, every identity fragment, complete compact
+ASCII JSON chunks, and repeated partition headers. It enforces the existing 8 MiB request,
+30,000 data-row, 210,000 physical-cell, 16 MiB text, 64-sheet, 100-column and 32,767 UTF-16-unit
+cell ceilings. The actual output ZIP remains subject to the writer's unchanged 16 MiB guard.
+The selector's schema ceiling of 120 months does not imply that every 120-month population fits.
+
+Archive scope must remain composite-only with null portfolio_id, matching tenant/composite,
+period/as-of dates, revision and snapshot lineage. Existing Report-owned series/source/factual
+digests stay 64 lowercase hex without prefix. Selection pins retain their sha256: prefix. No
+Performance calculation_id or additional Archive currency field is introduced.
+
+The exact schema, selector and r3 pointer/policy matrix are retained in
+[`contracts/report-data/`](https://github.com/sgajbi/lotus-render/tree/main/contracts/report-data).
+Supplier package hashes and separate authored-unit/actual-controlled-offline provenance are recorded in
+[`tests/fixtures/composite-eligibility-v4/`](https://github.com/sgajbi/lotus-render/tree/main/tests/fixtures/composite-eligibility-v4).
+Owning unit tests independently parse every visible/canonical/policy/pinned/context cell; the
+registered HTTP tests verify idempotence, reopened SQLite reads, tenant isolation and absence of
+artifact or Archive calls on invalid evidence. The v4 client/OpenAPI example and golden retain the
+exact actual-source definition-v2 worker package. The two actual-source packages contain complete
+July–September evidence, independently reconciled across 460 semantic cells and 58 column policies
+per workbook. Their physical envelope is 601/602 rows, 4574/4576 cells, 255163/266382 UTF-8 text
+bytes and twelve sheets, with 177244/188461-byte requests. These measurements describe these
+packages rather than a guaranteed maximum population. These are consumer checks, not programme closure.
 
 ## Pinned linked analysis v3
 

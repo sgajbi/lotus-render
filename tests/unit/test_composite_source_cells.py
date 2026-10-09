@@ -7,7 +7,7 @@ from typing import Any
 
 import pytest
 
-from app.contracts.composite_review import CompositeCell, CompositeColumn
+from app.contracts.composite_review import CompositeCell, CompositeColumn, CompositeReviewContent
 from app.contracts.composite_selection import CompositePinnedSelection
 from app.services.composite_workbook.presentation import display_cell
 from app.services.composite_workbook.source_cells import validate_dataset
@@ -35,6 +35,7 @@ def _rehash(data: dict[str, Any]) -> None:
 def test_exact_report_producer_example_is_admitted_without_rewriting_source() -> None:
     data = _data()
     content = validate_dataset(data)
+    assert isinstance(content, CompositeReviewContent)
     assert content.source_response == data["source_response"]
     assert content.tables[0].rows[0].cells["return"].canonical_value == "0.030200000000"
 

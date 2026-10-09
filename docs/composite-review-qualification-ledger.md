@@ -221,3 +221,50 @@ attribute runtime evidence to its own commit. Completed v1/v2 acceptance and sea
 remain unchanged. Report #417, Platform #923, all twelve report products, institutional attestation,
 client publication, production authentication and enterprise performance/recovery certification
 remain open.
+
+## Complete eligibility v4 consumer increment (#352)
+
+The separate `composite_review.v4` / `composite-review v4` XLSX axis consumes Report's frozen
+r3 interface and unchanged r2 schemas. It presents eight complete eligibility/history tables
+through the existing literal writer and custody lifecycle. Source evaluation, Report revision
+calculation, approval and financial calculation remain outside Render. Qualification remains
+`CONTROLLED_ELIGIBILITY_SOURCE_REPLAY` / `NOT_ATTESTED` / development.
+
+Authored Report unit emissions cover both `PUBLISHED` and `EVALUATED_ONLY`, with their exact
+package bytes retained separately from actual controlled source evidence. The latter originates
+in the controlled Manage native TCP/PostgreSQL R2 capture (manifest SHA256
+`7ad3f141ac883bf631cffbc4db023e20b48ee2ed160f814464d75bb4fe77993c`) and Report's registered
+worker offline replay (receipt SHA256
+`ef92abea6141e09575684b23e2e680922323983da0c95b9405ca8201cee59186`). Deliberate Render503
+in that producer run separates producer admission from consumer rendering.
+
+Actual definition-v1 and definition-v2 worker package SHA256 values are respectively
+`2bec5a2d759201c7bd85bbe0d22d1f58855c755fc10e7d7996d3abfbbfac59bd` and
+`6658fbc94eff3a076292a54b41e1261709629ea54dd4aed2590327e8461a7f4a`.
+Lossless retained fixtures pin the original bytes. The unchanged v2 package is also the new client,
+OpenAPI and golden input; no legacy golden was regenerated.
+
+Native `992f40/0` admits both genuine producer envelopes through the registered in-process
+Render application with isolated SQLite stores and Archive disabled. Independent openpyxl checks
+reconcile every visible and canonical cell, all source pointers, policies, complete PinnedData,
+context and identity, with literal-only cells. Consumer receipt SHA256 is
+`ef830e0a2fe6f0c6165ae8d220c8d0d0223144e2dec1f3f38004f3ec2f88de79`.
+The resulting actual-source offline workbook SHA256 values are
+`1560df85278f14ec70c7b954da2a4279687fcc64c9831bb789387b7952a771a3` and
+`6539639ffc21f6bca621824e62b19eff6c701fb40a70329d36999c0dd638ecdc`.
+This evidence was produced by the uncommitted candidate based on
+`189ac9376ddedf2af7bd21faad41e9368f495e97`; it is not attributed to a later merge commit.
+
+Each actual workbook reconciles 460 semantic cells and 58 policies across twelve sheets.
+The definition-v1/v2 physical envelopes are 601/602 rows, 4574/4576 cells and
+255163/266382 UTF-8 text bytes; compact request sizes are 177244/188461 bytes. Complete preflight
+includes row identities, canonical evidence, policies, headers, identity fragments and pinned
+JSON. Existing capacity limits and the literal writer remain unchanged.
+
+Focused valid/refusal tests cover both source kinds, whole-response/content hash policies,
+distinct observation/input-universe cuts, population completeness, exact reason occurrences,
+revision-scoped history, availability and custody scope. Registered HTTP tests cover retries,
+reopened stores, foreign-tenant refusal and zero custody effects on invalid evidence. Authenticated
+Report-to-Manage composition, genuine correction/retained-original campaign inputs, joined
+Report→Render→Archive delivery and programme acceptance remain open. Offline replay and synthetic
+trusted ingress do not establish institutional authority or enterprise IAM.

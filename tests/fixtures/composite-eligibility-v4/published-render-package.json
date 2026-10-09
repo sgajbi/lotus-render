@@ -1,0 +1,2448 @@
+{
+  "brand_variant": "private_banking",
+  "correlation_id": "corr_fe038b01b1e3",
+  "disclosure_refs": [
+    "composite-review.standard-disclosures.v1"
+  ],
+  "lineage_refs": [
+    "rsnap_c5139e6146a447f8954d1221b4a505ff",
+    "rrv3_dfefdce567513480a9fa80a086bc0817869fd820de22460da7d0f6203ae04cd2"
+  ],
+  "locale": "en-SG",
+  "output_format": "xlsx",
+  "render_context": {
+    "archive": {
+      "as_of_date": "2026-07-31",
+      "classification": "confidential",
+      "composite_id": "test-composite",
+      "composite_report_identity": {
+        "contract_version": "composite_review.v4",
+        "factual_content_digest": "064d26997eb3ea32ff7767ff661a056ec51b367d0abbb4132864ffa2d998e76c",
+        "publication_state": "NOT_ATTESTED",
+        "qualification": "CONTROLLED_ELIGIBILITY_SOURCE_REPLAY",
+        "selection": {
+          "composite_id": "test-composite",
+          "definition_version": "d1",
+          "months": [
+            {
+              "approval_content_hash": "sha256:3623cb7dc2aa36b7aae3d663208e8c259285f8d8fa9917866240740cd4ebdfbb",
+              "attestation_version": "eval-2026-07",
+              "evaluation_revision": "eval-2026-07",
+              "evidence_kind": "PUBLISHED",
+              "membership_content_hash": "sha256:300fa7f3fb30e007259f52abfbe0d29ff28cc4543dadf16cba91ed6921b6cca5",
+              "membership_response_digest": "sha256:e09f011aedda6cbf32feac7a7f900166d046414e7cb6479aa565ba306e08a425",
+              "membership_revision": "member-2026-07",
+              "month": "2026-07",
+              "parent_membership_content_hash": "sha256:72a6d83145b355aec1d4a8bfe4f7b987ae4dc7e4d9e9c119844d5dfbd98722a4",
+              "parent_membership_revision": "parent-r1",
+              "parent_response_digest": "sha256:3f6772347b23c5b9edf94aaff3fe37d8e7de6b40d40fbd372ae3ab4e86ddfdd5",
+              "proposal_content_hash": "sha256:9e3d2cde28105ba45e466d90b01a644b13a60066c1f675adacdb9527b8fb5332",
+              "publication_response_digest": "sha256:bbdaae7e1e870126f561d6aa423efe74be68c709570b88f0ac4c0131e06aaf75",
+              "publication_sequence": 7,
+              "receipt_content_hash": "sha256:3049040f0968dfde374ead596b4e9fa4e297d4c1447104c1cb338688021fe153",
+              "receipt_response_digest": "sha256:d4baf66d7f59a97740474484b1146cacdc328a0b34dea4dac66fa488b14391f3",
+              "source_cut_id": "cut-1",
+              "universe_content_hash": "sha256:59bc9ef88f2f51739f5634368d3503411784296d22ebc9b9448db8023f69772d",
+              "universe_response_digest": "sha256:76a91810536d8117665973d1174a845089f718ef06d760fd093bf176097688e5"
+            }
+          ],
+          "period_end": "2026-07-31",
+          "period_start": "2026-07-01",
+          "reporting_currency": "USD",
+          "tenant_id": "test-tenant"
+        },
+        "series_digest": "ed78b8d323e181733401e94fd19d38152e911865b7c1a654e5cf1b6674443e77",
+        "source_revision_digest": "0dcfb317f7fbb0be7aacbba17c078a0b40cbc100265d1f698e952aaabfa26304"
+      },
+      "frequency": "ad_hoc",
+      "portfolio_id": null,
+      "portfolio_scope": "composite",
+      "region": "APAC",
+      "report_request_id": "rrq_ab0e7900e5d24ac5a6d35975597eaf4c",
+      "report_revision_id": "rrv3_dfefdce567513480a9fa80a086bc0817869fd820de22460da7d0f6203ae04cd2",
+      "reporting_period_end": "2026-07-31",
+      "reporting_period_start": "2026-07-01",
+      "retention_start_date": "2026-07-31",
+      "tenant_id": "test-tenant"
+    },
+    "document_reference": "rdoc_a764c204-2d06-5d78-bd80-14e8f3e78217",
+    "report_revision_id": "rrv3_dfefdce567513480a9fa80a086bc0817869fd820de22460da7d0f6203ae04cd2",
+    "timezone": "Asia/Singapore"
+  },
+  "render_job_id": "rdr_rjob_8d8a7d223a354b519c69edcfd84d78e8_xlsx",
+  "render_package_version": "render_package.v1",
+  "report_data": {
+    "contract_version": "composite_review.v4",
+    "publication_state": "NOT_ATTESTED",
+    "qualification": "CONTROLLED_ELIGIBILITY_SOURCE_REPLAY",
+    "report_facts": {
+      "disclosures": [
+        {
+          "code": "CONTROLLED_SYNTHETIC_ONLY",
+          "text": "Controlled synthetic source replay / NOT_ATTESTED. Population and published completeness are UNVERIFIED; official activation is UNAVAILABLE."
+        },
+        {
+          "code": "SOURCE_OWNED_DECISIONS",
+          "text": "Manage owns eligibility and publication. Report preserves all three assessments and does not evaluate thresholds or manufacture approvals."
+        },
+        {
+          "code": "FIRST_REASON_LOSS_BOUNDARY",
+          "text": "Membership reason_code is only the first reason. EligibilityReasons preserves every failure and unknown occurrence; occurrences are not unique excluded members."
+        },
+        {
+          "code": "EVALUATED_IS_NOT_PUBLISHED",
+          "text": "EVALUATED_ONLY retains a proposal and missing-observation UNKNOWN cases. Approval, publication and membership history are unavailable for that variant; no receipt is inferred."
+        },
+        {
+          "code": "EXACT_HISTORY",
+          "text": "History retains original inclusive revision intervals. Selected month gaps are not filled; same-month policy diffs are not cross-month history. Cleared cash alone does not imply re-entry."
+        },
+        {
+          "code": "SOURCE_UNITS",
+          "text": "Ratios are source decimal ratios, not return percentages. Money, portfolio counts, event counts and booleans remain distinct. Raw decimal spelling and nulls remain retained."
+        }
+      ],
+      "no_reasons": {
+        "statement": "All captured assessment reason arrays for this month are empty; no applicable reason occurrences.",
+        "value": null
+      },
+      "reason_kinds": {
+        "failure_reasons": "FAILURE",
+        "unknown_reasons": "UNKNOWN"
+      },
+      "unavailable": null
+    },
+    "selection": {
+      "composite_id": "test-composite",
+      "definition_version": "d1",
+      "months": [
+        {
+          "approval_content_hash": "sha256:3623cb7dc2aa36b7aae3d663208e8c259285f8d8fa9917866240740cd4ebdfbb",
+          "attestation_version": "eval-2026-07",
+          "evaluation_revision": "eval-2026-07",
+          "evidence_kind": "PUBLISHED",
+          "membership_content_hash": "sha256:300fa7f3fb30e007259f52abfbe0d29ff28cc4543dadf16cba91ed6921b6cca5",
+          "membership_response_digest": "sha256:e09f011aedda6cbf32feac7a7f900166d046414e7cb6479aa565ba306e08a425",
+          "membership_revision": "member-2026-07",
+          "month": "2026-07",
+          "parent_membership_content_hash": "sha256:72a6d83145b355aec1d4a8bfe4f7b987ae4dc7e4d9e9c119844d5dfbd98722a4",
+          "parent_membership_revision": "parent-r1",
+          "parent_response_digest": "sha256:3f6772347b23c5b9edf94aaff3fe37d8e7de6b40d40fbd372ae3ab4e86ddfdd5",
+          "proposal_content_hash": "sha256:9e3d2cde28105ba45e466d90b01a644b13a60066c1f675adacdb9527b8fb5332",
+          "publication_response_digest": "sha256:bbdaae7e1e870126f561d6aa423efe74be68c709570b88f0ac4c0131e06aaf75",
+          "publication_sequence": 7,
+          "receipt_content_hash": "sha256:3049040f0968dfde374ead596b4e9fa4e297d4c1447104c1cb338688021fe153",
+          "receipt_response_digest": "sha256:d4baf66d7f59a97740474484b1146cacdc328a0b34dea4dac66fa488b14391f3",
+          "source_cut_id": "cut-1",
+          "universe_content_hash": "sha256:59bc9ef88f2f51739f5634368d3503411784296d22ebc9b9448db8023f69772d",
+          "universe_response_digest": "sha256:76a91810536d8117665973d1174a845089f718ef06d760fd093bf176097688e5"
+        }
+      ],
+      "period_end": "2026-07-31",
+      "period_start": "2026-07-01",
+      "reporting_currency": "USD",
+      "tenant_id": "test-tenant"
+    },
+    "source_months": [
+      {
+        "evidence_kind": "PUBLISHED",
+        "membership": {
+          "affected_from": "2026-07-01",
+          "affected_to": "2026-07-31",
+          "composite_id": "test-composite",
+          "content_hash": "sha256:300fa7f3fb30e007259f52abfbe0d29ff28cc4543dadf16cba91ed6921b6cca5",
+          "correlation_id": "test-correlation",
+          "decided_at": "2026-06-01T00:00:00.000000Z",
+          "decided_by": "test-source",
+          "decisions": [
+            {
+              "approval_ref": null,
+              "discretionary": true,
+              "effective_from": "2026-01-01",
+              "effective_to": "2026-06-30",
+              "portfolio_id": "excluded",
+              "reason_code": null,
+              "source_snapshot_id": "prior-snapshot",
+              "status": "INCLUDED"
+            },
+            {
+              "approval_ref": "test-unapproved-ref",
+              "discretionary": true,
+              "effective_from": "2026-07-01",
+              "effective_to": "2026-07-31",
+              "portfolio_id": "excluded",
+              "reason_code": "SIGNIFICANT_FLOW_THRESHOLD_BREACH",
+              "source_snapshot_id": "test-snapshot",
+              "status": "EXCLUDED"
+            }
+          ],
+          "definition_version": "d1",
+          "membership_revision": "member-2026-07",
+          "policy_version": "p1",
+          "product_name": "CompositeMembership",
+          "product_version": "v1",
+          "source_cut_id": "cut-1",
+          "supersedes_membership_revision": "parent-r1",
+          "tenant_id": "test-tenant"
+        },
+        "parent_membership": {
+          "affected_from": null,
+          "affected_to": null,
+          "composite_id": "test-composite",
+          "content_hash": "sha256:72a6d83145b355aec1d4a8bfe4f7b987ae4dc7e4d9e9c119844d5dfbd98722a4",
+          "correlation_id": "test-correlation",
+          "decided_at": "2026-06-01T00:00:00.000000Z",
+          "decided_by": "test-source",
+          "decisions": [
+            {
+              "approval_ref": null,
+              "discretionary": true,
+              "effective_from": "2026-01-01",
+              "effective_to": "2026-06-30",
+              "portfolio_id": "excluded",
+              "reason_code": null,
+              "source_snapshot_id": "prior-snapshot",
+              "status": "INCLUDED"
+            }
+          ],
+          "definition_version": "d1",
+          "membership_revision": "parent-r1",
+          "policy_version": "p1",
+          "product_name": "CompositeMembership",
+          "product_version": "v1",
+          "source_cut_id": "prior-cut",
+          "supersedes_membership_revision": null,
+          "tenant_id": "test-tenant"
+        },
+        "publication": {
+          "affected_from": "2026-07-01",
+          "affected_to": "2026-07-31",
+          "completeness": "UNVERIFIED",
+          "composite_id": "test-composite",
+          "decided_at": "2026-06-01T00:00:00.000000Z",
+          "decision_count": 2,
+          "definition_version": "d1",
+          "membership_content_hash": "sha256:300fa7f3fb30e007259f52abfbe0d29ff28cc4543dadf16cba91ed6921b6cca5",
+          "membership_revision": "member-2026-07",
+          "policy_version": "p1",
+          "product_name": "CompositeMembershipPublication",
+          "product_version": "v1",
+          "published_at": "2026-10-02T00:00:00.000000Z",
+          "sequence": 7,
+          "source_cut_id": "cut-1",
+          "supersedes_membership_revision": "parent-r1",
+          "tenant_id": "test-tenant"
+        },
+        "receipt": {
+          "approval": {
+            "approved_at": "2026-10-02T00:00:00.000000Z",
+            "approved_by": "test-checker",
+            "claims_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "content_hash": "sha256:3623cb7dc2aa36b7aae3d663208e8c259285f8d8fa9917866240740cd4ebdfbb",
+            "evidence_kind": "SYNTHETIC_UNSIGNED",
+            "membership_content_hash": "sha256:300fa7f3fb30e007259f52abfbe0d29ff28cc4543dadf16cba91ed6921b6cca5",
+            "official_activation": "UNAVAILABLE",
+            "product_name": "CompositeMonthlyEvaluationApproval",
+            "product_version": "v1",
+            "proposal": {
+              "content_hash": "sha256:9e3d2cde28105ba45e466d90b01a644b13a60066c1f675adacdb9527b8fb5332",
+              "correlation_id": "test-correlation",
+              "evaluation": {
+                "composite_id": "test-composite",
+                "content_hash": "sha256:ad0f7d45048226fdcd4456e5662c2522aafb5da46fad609973de2e8d589102c5",
+                "declared_universe_coverage": "COMPLETE",
+                "definition_version": "d1",
+                "evaluated_at": "2026-10-01T00:00:00.000000Z",
+                "evidence_class": "SYNTHETIC_UNQUALIFIED",
+                "excluded_count": 1,
+                "expected_count": 1,
+                "included_count": 0,
+                "input_content_hash": "sha256:d7408aafc8f60ac1b7d5c8f1ec273be761756afafce229b641f87803e53b57f8",
+                "month": "2026-07",
+                "observed_count": 1,
+                "official_activation": "UNAVAILABLE",
+                "pending_review_count": 0,
+                "population_verification": "UNVERIFIED",
+                "portfolios": [
+                  {
+                    "assessments": [
+                      {
+                        "admitted_flow_count": 1,
+                        "denominator": "1000.00",
+                        "failure_reasons": [
+                          "SIGNIFICANT_FLOW_THRESHOLD_BREACH"
+                        ],
+                        "gross_inflow": "100.00",
+                        "gross_outflow": "0.00",
+                        "numerator": "100.00",
+                        "outcome": "FAIL",
+                        "ratio": "0.1",
+                        "rule": "SIGNIFICANT_FLOW",
+                        "unknown_reasons": []
+                      },
+                      {
+                        "admitted_flow_count": null,
+                        "denominator": null,
+                        "failure_reasons": [
+                          "CASH_THRESHOLD_BREACH"
+                        ],
+                        "gross_inflow": null,
+                        "gross_outflow": null,
+                        "numerator": null,
+                        "outcome": "FAIL",
+                        "ratio": null,
+                        "rule": "CASH",
+                        "unknown_reasons": []
+                      },
+                      {
+                        "admitted_flow_count": null,
+                        "denominator": null,
+                        "failure_reasons": [
+                          "READINESS_FUNDED_FAILED"
+                        ],
+                        "gross_inflow": null,
+                        "gross_outflow": null,
+                        "numerator": null,
+                        "outcome": "FAIL",
+                        "ratio": null,
+                        "rule": "READINESS",
+                        "unknown_reasons": [
+                          "READINESS_INVESTED_UNKNOWN"
+                        ]
+                      }
+                    ],
+                    "observations_present": true,
+                    "portfolio_id": "excluded",
+                    "status": "EXCLUDED"
+                  }
+                ],
+                "product_name": "CompositeMonthlyEligibilityEvaluation",
+                "product_version": "v1",
+                "resolved_policy": {
+                  "cash_breach_operator": "GREATER_THAN",
+                  "cash_denominator": "MONTH_END_NET_ASSETS",
+                  "cash_numerator": "SETTLED_UNENCUMBERED_CASH_ONLY",
+                  "cash_threshold": "0.05",
+                  "content_hash": "sha256:16afbc965d1f720265715575ea0c96f119b2739af8aea0a759c9f438cc8d8db9",
+                  "currency_treatment": "SOURCE_NORMALIZED_SINGLE_CURRENCY",
+                  "evaluation_timing": "AFTER_MONTH_END",
+                  "flow_breach_operator": "GREATER_THAN_OR_EQUAL",
+                  "flow_date_basis": "SOURCE_BUSINESS_DATE_UTC",
+                  "flow_denominator": "PRIOR_MONTH_END_NET_ASSETS",
+                  "flow_measure": "ABS_NET",
+                  "flow_threshold": "0.10",
+                  "holiday_treatment": "NO_DATE_SHIFT",
+                  "layers": [
+                    {
+                      "level": "PLATFORM",
+                      "policy_id": "test-policy",
+                      "revision": "r1"
+                    }
+                  ],
+                  "membership_frequency": "CALENDAR_MONTH",
+                  "missing_data": "REQUIRED_UNKNOWN",
+                  "month": "2026-07",
+                  "observation_window": "WHOLE_TARGET_MONTH",
+                  "official_activation": "UNAVAILABLE",
+                  "product_name": "CompositeMonthlyEligibilityPolicy",
+                  "product_version": "v1",
+                  "profile_kind": "SYNTHETIC_MONTHLY_ABS_NET_CASH_READINESS",
+                  "ratio_unit": "DECIMAL_FRACTION",
+                  "reentry": "REEVALUATE_ALL_NEXT_MONTH_RULES",
+                  "scope": {
+                    "composite_id": "test-composite",
+                    "definition_version": "d1",
+                    "run_id": null,
+                    "strategy_code": "BALANCED",
+                    "tenant_id": "test-tenant"
+                  },
+                  "source_cut_timing": "AFTER_MONTH_END"
+                },
+                "source_cut_id": "cut-1",
+                "source_revision": "obs-r1",
+                "tenant_id": "test-tenant",
+                "universe_content_hash": "sha256:e990e56c026aa86c1246e160016e4c0c897c58042669b3f854fcdfb337108c56"
+              },
+              "evaluation_revision": "eval-2026-07",
+              "observations": {
+                "composite_id": "test-composite",
+                "definition_version": "d1",
+                "evidence_class": "SYNTHETIC_UNQUALIFIED",
+                "expected_portfolio_ids": [
+                  "excluded"
+                ],
+                "month": "2026-07",
+                "portfolios": [
+                  {
+                    "cash_as_of": "2026-07-31",
+                    "currency": "USD",
+                    "discretionary": true,
+                    "flow_coverage_from": "2026-07-01",
+                    "flow_coverage_to": "2026-07-31",
+                    "flows": [],
+                    "funded": false,
+                    "invested": null,
+                    "month_end_assets": "1000.00",
+                    "portfolio_id": "excluded",
+                    "prior_assets_as_of": "2026-06-30",
+                    "prior_month_end_assets": "1000.00",
+                    "readiness_as_of": "2026-07-31",
+                    "settled_unencumbered_cash": "51.00"
+                  }
+                ],
+                "product_name": "CompositeMonthlyEligibilityObservations",
+                "product_version": "v1",
+                "reporting_currency": "USD",
+                "source_cut_id": "cut-1",
+                "source_generated_at": "2026-10-01T00:00:00.000000Z",
+                "source_revision": "obs-r1",
+                "tenant_id": "test-tenant"
+              },
+              "parent_membership_content_hash": "sha256:72a6d83145b355aec1d4a8bfe4f7b987ae4dc7e4d9e9c119844d5dfbd98722a4",
+              "parent_membership_revision": "parent-r1",
+              "policy_approval": {
+                "approved_at": "2026-06-02T00:00:00.000000Z",
+                "approved_by": "test-checker",
+                "content_hash": "sha256:3504badcf9c2374e0122894f8e593d59b120b8edf771703430fba577778ab7ef",
+                "evidence_kind": "SYNTHETIC_UNSIGNED",
+                "official_activation": "UNAVAILABLE",
+                "product_name": "CompositeMonthlyPolicyApproval",
+                "product_version": "v1",
+                "proposal": {
+                  "attachments": [],
+                  "content_hash": "sha256:3d93e5b3e6e39b7823e63b0b88df2c031691220212076ae2b808d21355a7d45e",
+                  "eligibility_policy_version": "p1",
+                  "policy": {
+                    "cash_breach_operator": "GREATER_THAN",
+                    "cash_denominator": "MONTH_END_NET_ASSETS",
+                    "cash_numerator": "SETTLED_UNENCUMBERED_CASH_ONLY",
+                    "cash_threshold": "0.05",
+                    "content_hash": "sha256:16afbc965d1f720265715575ea0c96f119b2739af8aea0a759c9f438cc8d8db9",
+                    "currency_treatment": "SOURCE_NORMALIZED_SINGLE_CURRENCY",
+                    "evaluation_timing": "AFTER_MONTH_END",
+                    "flow_breach_operator": "GREATER_THAN_OR_EQUAL",
+                    "flow_date_basis": "SOURCE_BUSINESS_DATE_UTC",
+                    "flow_denominator": "PRIOR_MONTH_END_NET_ASSETS",
+                    "flow_measure": "ABS_NET",
+                    "flow_threshold": "0.10",
+                    "holiday_treatment": "NO_DATE_SHIFT",
+                    "layers": [
+                      {
+                        "level": "PLATFORM",
+                        "policy_id": "test-policy",
+                        "revision": "r1"
+                      }
+                    ],
+                    "membership_frequency": "CALENDAR_MONTH",
+                    "missing_data": "REQUIRED_UNKNOWN",
+                    "month": "2026-07",
+                    "observation_window": "WHOLE_TARGET_MONTH",
+                    "official_activation": "UNAVAILABLE",
+                    "product_name": "CompositeMonthlyEligibilityPolicy",
+                    "product_version": "v1",
+                    "profile_kind": "SYNTHETIC_MONTHLY_ABS_NET_CASH_READINESS",
+                    "ratio_unit": "DECIMAL_FRACTION",
+                    "reentry": "REEVALUATE_ALL_NEXT_MONTH_RULES",
+                    "scope": {
+                      "composite_id": "test-composite",
+                      "definition_version": "d1",
+                      "run_id": null,
+                      "strategy_code": "BALANCED",
+                      "tenant_id": "test-tenant"
+                    },
+                    "source_cut_timing": "AFTER_MONTH_END"
+                  },
+                  "product_name": "CompositeMonthlyPolicyProposal",
+                  "product_version": "v1",
+                  "proposal_revision": "policy-r1",
+                  "proposed_at": "2026-06-01T00:00:00.000000Z",
+                  "proposed_by": "test-maker"
+                }
+              },
+              "product_name": "CompositeMonthlyEvaluationProposal",
+              "product_version": "v1",
+              "proposed_at": "2026-10-01T00:00:00.000000Z",
+              "proposed_by": "test-maker",
+              "publication_evidence_version": "v1",
+              "source_assembly_evidence": {
+                "test_only": "Unapproved unit transport example; not an accepted source assembly"
+              },
+              "target_membership_revision": "member-2026-07",
+              "universe": {
+                "attestation_version": "input-u1",
+                "attested_at": "2026-10-01T00:00:00.000000Z",
+                "attested_by": "test-source",
+                "composite_id": "test-composite",
+                "content_hash": "sha256:e990e56c026aa86c1246e160016e4c0c897c58042669b3f854fcdfb337108c56",
+                "correlation_id": "test-correlation",
+                "coverage_from": "2026-07-01",
+                "coverage_gap_portfolio_ids": [],
+                "coverage_to": "2026-07-31",
+                "definition_version": "d1",
+                "expected_portfolio_count": 1,
+                "expected_portfolio_ids": [
+                  "excluded"
+                ],
+                "membership_content_hash": "sha256:72a6d83145b355aec1d4a8bfe4f7b987ae4dc7e4d9e9c119844d5dfbd98722a4",
+                "membership_revision": "parent-r1",
+                "missing_portfolio_ids": [],
+                "observed_portfolio_count": 1,
+                "policy_version": "p1",
+                "posture": "COMPLETE",
+                "product_name": "CompositeUniverseAttestation",
+                "product_version": "v1",
+                "reason_code": "UNVERIFIED",
+                "source_cut_id": "cut-1",
+                "source_products": [
+                  {
+                    "authority_scope": "POLICY_INPUT",
+                    "content_hash": "sha256:d7408aafc8f60ac1b7d5c8f1ec273be761756afafce229b641f87803e53b57f8",
+                    "contract_version": "v1",
+                    "owner_service": "lotus-manage",
+                    "product_name": "CompositeMonthlyEligibilityObservations",
+                    "source_cut_id": "cut-1",
+                    "source_watermark": "obs-r1"
+                  }
+                ],
+                "tenant_id": "test-tenant",
+                "unexpected_portfolio_ids": []
+              }
+            },
+            "published_universe_content_hash": "sha256:59bc9ef88f2f51739f5634368d3503411784296d22ebc9b9448db8023f69772d"
+          },
+          "completeness": "UNVERIFIED",
+          "content_hash": "sha256:3049040f0968dfde374ead596b4e9fa4e297d4c1447104c1cb338688021fe153",
+          "definition": {
+            "composite_id": "test-composite",
+            "content_hash": "sha256:b28f213385cc335e4b0bc01572469257dd3cce42a69eb20ef72be602cd08d48f",
+            "definition_version": "d1",
+            "eligibility_policy_version": "p1",
+            "product_name": "CompositeDefinition",
+            "product_version": "v1",
+            "reporting_currency": "USD",
+            "strategy_code": "BALANCED",
+            "tenant_id": "test-tenant"
+          },
+          "membership_binding": {
+            "digest": "sha256:300fa7f3fb30e007259f52abfbe0d29ff28cc4543dadf16cba91ed6921b6cca5",
+            "product_name": "CompositeMembership",
+            "product_version": "v1",
+            "revision": "member-2026-07"
+          },
+          "product_name": "CompositeMonthlyEligibilityPublicationReceipt",
+          "product_version": "v1",
+          "publication_sequence": 7,
+          "source_cut_id": "cut-1",
+          "universe_binding": {
+            "digest": "sha256:59bc9ef88f2f51739f5634368d3503411784296d22ebc9b9448db8023f69772d",
+            "product_name": "CompositeUniverseAttestation",
+            "product_version": "v1",
+            "revision": "eval-2026-07"
+          }
+        },
+        "response_digests": {
+          "membership": "sha256:e09f011aedda6cbf32feac7a7f900166d046414e7cb6479aa565ba306e08a425",
+          "parent_membership": "sha256:3f6772347b23c5b9edf94aaff3fe37d8e7de6b40d40fbd372ae3ab4e86ddfdd5",
+          "publication": "sha256:bbdaae7e1e870126f561d6aa423efe74be68c709570b88f0ac4c0131e06aaf75",
+          "receipt": "sha256:d4baf66d7f59a97740474484b1146cacdc328a0b34dea4dac66fa488b14391f3",
+          "universe": "sha256:76a91810536d8117665973d1174a845089f718ef06d760fd093bf176097688e5"
+        },
+        "universe": {
+          "attestation_version": "eval-2026-07",
+          "attested_at": "2026-10-01T00:00:00.000000Z",
+          "attested_by": "test-source",
+          "composite_id": "test-composite",
+          "content_hash": "sha256:59bc9ef88f2f51739f5634368d3503411784296d22ebc9b9448db8023f69772d",
+          "correlation_id": "test-correlation",
+          "coverage_from": "2026-07-01",
+          "coverage_gap_portfolio_ids": [],
+          "coverage_to": "2026-07-31",
+          "definition_version": "d1",
+          "expected_portfolio_count": 1,
+          "expected_portfolio_ids": [
+            "excluded"
+          ],
+          "membership_content_hash": "sha256:300fa7f3fb30e007259f52abfbe0d29ff28cc4543dadf16cba91ed6921b6cca5",
+          "membership_revision": "member-2026-07",
+          "missing_portfolio_ids": [],
+          "observed_portfolio_count": 1,
+          "policy_version": "p1",
+          "posture": "COMPLETE",
+          "product_name": "CompositeUniverseAttestation",
+          "product_version": "v1",
+          "reason_code": "UNVERIFIED",
+          "source_cut_id": "cut-1",
+          "source_products": [
+            {
+              "authority_scope": "POLICY_INPUT",
+              "content_hash": "sha256:d7408aafc8f60ac1b7d5c8f1ec273be761756afafce229b641f87803e53b57f8",
+              "contract_version": "v1",
+              "owner_service": "lotus-manage",
+              "product_name": "CompositeMonthlyEligibilityObservations",
+              "source_cut_id": "cut-1",
+              "source_watermark": "obs-r1"
+            },
+            {
+              "authority_scope": "POLICY_INPUT",
+              "content_hash": "sha256:3623cb7dc2aa36b7aae3d663208e8c259285f8d8fa9917866240740cd4ebdfbb",
+              "contract_version": "v1",
+              "owner_service": "lotus-manage",
+              "product_name": "CompositeMonthlyEvaluationApproval",
+              "source_cut_id": "cut-1",
+              "source_watermark": "eval-2026-07"
+            }
+          ],
+          "tenant_id": "test-tenant",
+          "unexpected_portfolio_ids": []
+        }
+      }
+    ],
+    "tables": [
+      {
+        "columns": [
+          {
+            "column_id": "month",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": null,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "TEXT",
+            "label": "month",
+            "scale": "1",
+            "unit": "TEXT",
+            "value_type": "TEXT"
+          },
+          {
+            "column_id": "evidence_kind",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": null,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "TEXT",
+            "label": "evidence kind",
+            "scale": "1",
+            "unit": "TEXT",
+            "value_type": "TEXT"
+          },
+          {
+            "column_id": "expected_count",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": 0,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "PORTFOLIO_COUNT",
+            "label": "expected count",
+            "scale": "1",
+            "unit": "PORTFOLIO_COUNT",
+            "value_type": "COUNT"
+          },
+          {
+            "column_id": "observed_count",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": 0,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "PORTFOLIO_COUNT",
+            "label": "observed count",
+            "scale": "1",
+            "unit": "PORTFOLIO_COUNT",
+            "value_type": "COUNT"
+          },
+          {
+            "column_id": "included_count",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": 0,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "PORTFOLIO_COUNT",
+            "label": "included count",
+            "scale": "1",
+            "unit": "PORTFOLIO_COUNT",
+            "value_type": "COUNT"
+          },
+          {
+            "column_id": "excluded_count",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": 0,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "PORTFOLIO_COUNT",
+            "label": "excluded count",
+            "scale": "1",
+            "unit": "PORTFOLIO_COUNT",
+            "value_type": "COUNT"
+          },
+          {
+            "column_id": "pending_review_count",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": 0,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "PORTFOLIO_COUNT",
+            "label": "pending review count",
+            "scale": "1",
+            "unit": "PORTFOLIO_COUNT",
+            "value_type": "COUNT"
+          },
+          {
+            "column_id": "population_verification",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": null,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "TEXT",
+            "label": "population verification",
+            "scale": "1",
+            "unit": "TEXT",
+            "value_type": "TEXT"
+          },
+          {
+            "column_id": "official_activation",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": null,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "TEXT",
+            "label": "official activation",
+            "scale": "1",
+            "unit": "TEXT",
+            "value_type": "TEXT"
+          }
+        ],
+        "rows": [
+          {
+            "cells": {
+              "evidence_kind": {
+                "availability": "AVAILABLE",
+                "canonical_value": "PUBLISHED",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/evidence_kind"
+              },
+              "excluded_count": {
+                "availability": "AVAILABLE",
+                "canonical_value": "1",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/receipt/approval/proposal/evaluation/excluded_count"
+              },
+              "expected_count": {
+                "availability": "AVAILABLE",
+                "canonical_value": "1",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/receipt/approval/proposal/evaluation/expected_count"
+              },
+              "included_count": {
+                "availability": "AVAILABLE",
+                "canonical_value": "0",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/receipt/approval/proposal/evaluation/included_count"
+              },
+              "month": {
+                "availability": "AVAILABLE",
+                "canonical_value": "2026-07",
+                "reason_codes": [],
+                "source_pointer": "/selection/months/0/month"
+              },
+              "observed_count": {
+                "availability": "AVAILABLE",
+                "canonical_value": "1",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/receipt/approval/proposal/evaluation/observed_count"
+              },
+              "official_activation": {
+                "availability": "AVAILABLE",
+                "canonical_value": "UNAVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/receipt/approval/proposal/evaluation/official_activation"
+              },
+              "pending_review_count": {
+                "availability": "AVAILABLE",
+                "canonical_value": "0",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/receipt/approval/proposal/evaluation/pending_review_count"
+              },
+              "population_verification": {
+                "availability": "AVAILABLE",
+                "canonical_value": "UNVERIFIED",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/receipt/approval/proposal/evaluation/population_verification"
+              }
+            },
+            "row_id": "m0"
+          }
+        ],
+        "table_id": "Summary",
+        "title": "Summary"
+      },
+      {
+        "columns": [
+          {
+            "column_id": "month",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": null,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "TEXT",
+            "label": "month",
+            "scale": "1",
+            "unit": "TEXT",
+            "value_type": "TEXT"
+          },
+          {
+            "column_id": "portfolio_id",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": null,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "TEXT",
+            "label": "portfolio id",
+            "scale": "1",
+            "unit": "TEXT",
+            "value_type": "TEXT"
+          },
+          {
+            "column_id": "status",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": null,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "TEXT",
+            "label": "status",
+            "scale": "1",
+            "unit": "TEXT",
+            "value_type": "TEXT"
+          },
+          {
+            "column_id": "observations_present",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": null,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "BOOLEAN",
+            "label": "observations present",
+            "scale": "1",
+            "unit": "BOOLEAN",
+            "value_type": "BOOLEAN"
+          }
+        ],
+        "rows": [
+          {
+            "cells": {
+              "month": {
+                "availability": "AVAILABLE",
+                "canonical_value": "2026-07",
+                "reason_codes": [],
+                "source_pointer": "/selection/months/0/month"
+              },
+              "observations_present": {
+                "availability": "AVAILABLE",
+                "canonical_value": "true",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/receipt/approval/proposal/evaluation/portfolios/0/observations_present"
+              },
+              "portfolio_id": {
+                "availability": "AVAILABLE",
+                "canonical_value": "excluded",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/receipt/approval/proposal/evaluation/portfolios/0/portfolio_id"
+              },
+              "status": {
+                "availability": "AVAILABLE",
+                "canonical_value": "EXCLUDED",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/receipt/approval/proposal/evaluation/portfolios/0/status"
+              }
+            },
+            "row_id": "m0:p0"
+          }
+        ],
+        "table_id": "Members",
+        "title": "Members"
+      },
+      {
+        "columns": [
+          {
+            "column_id": "month",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": null,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "TEXT",
+            "label": "month",
+            "scale": "1",
+            "unit": "TEXT",
+            "value_type": "TEXT"
+          },
+          {
+            "column_id": "portfolio_id",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": null,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "TEXT",
+            "label": "portfolio id",
+            "scale": "1",
+            "unit": "TEXT",
+            "value_type": "TEXT"
+          },
+          {
+            "column_id": "rule",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": null,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "TEXT",
+            "label": "rule",
+            "scale": "1",
+            "unit": "TEXT",
+            "value_type": "TEXT"
+          },
+          {
+            "column_id": "outcome",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": null,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "TEXT",
+            "label": "outcome",
+            "scale": "1",
+            "unit": "TEXT",
+            "value_type": "TEXT"
+          },
+          {
+            "column_id": "numerator",
+            "currency": "USD",
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": 2,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "CURRENCY_UNITS",
+            "label": "numerator",
+            "scale": "1",
+            "unit": "CURRENCY_UNITS",
+            "value_type": "MONEY"
+          },
+          {
+            "column_id": "denominator",
+            "currency": "USD",
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": 2,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "CURRENCY_UNITS",
+            "label": "denominator",
+            "scale": "1",
+            "unit": "CURRENCY_UNITS",
+            "value_type": "MONEY"
+          },
+          {
+            "column_id": "ratio",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": 12,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "DECIMAL_RATIO",
+            "label": "ratio",
+            "scale": "1",
+            "unit": "DECIMAL_RATIO",
+            "value_type": "DECIMAL_FACTOR"
+          },
+          {
+            "column_id": "gross_inflow",
+            "currency": "USD",
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": 2,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "CURRENCY_UNITS",
+            "label": "gross inflow",
+            "scale": "1",
+            "unit": "CURRENCY_UNITS",
+            "value_type": "MONEY"
+          },
+          {
+            "column_id": "gross_outflow",
+            "currency": "USD",
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": 2,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "CURRENCY_UNITS",
+            "label": "gross outflow",
+            "scale": "1",
+            "unit": "CURRENCY_UNITS",
+            "value_type": "MONEY"
+          },
+          {
+            "column_id": "admitted_flow_count",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": 0,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "EVENT_COUNT",
+            "label": "admitted flow count",
+            "scale": "1",
+            "unit": "EVENT_COUNT",
+            "value_type": "COUNT"
+          }
+        ],
+        "rows": [
+          {
+            "cells": {
+              "admitted_flow_count": {
+                "availability": "AVAILABLE",
+                "canonical_value": "1",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/receipt/approval/proposal/evaluation/portfolios/0/assessments/0/admitted_flow_count"
+              },
+              "denominator": {
+                "availability": "AVAILABLE",
+                "canonical_value": "1000.00",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/receipt/approval/proposal/evaluation/portfolios/0/assessments/0/denominator"
+              },
+              "gross_inflow": {
+                "availability": "AVAILABLE",
+                "canonical_value": "100.00",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/receipt/approval/proposal/evaluation/portfolios/0/assessments/0/gross_inflow"
+              },
+              "gross_outflow": {
+                "availability": "AVAILABLE",
+                "canonical_value": "0.00",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/receipt/approval/proposal/evaluation/portfolios/0/assessments/0/gross_outflow"
+              },
+              "month": {
+                "availability": "AVAILABLE",
+                "canonical_value": "2026-07",
+                "reason_codes": [],
+                "source_pointer": "/selection/months/0/month"
+              },
+              "numerator": {
+                "availability": "AVAILABLE",
+                "canonical_value": "100.00",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/receipt/approval/proposal/evaluation/portfolios/0/assessments/0/numerator"
+              },
+              "outcome": {
+                "availability": "AVAILABLE",
+                "canonical_value": "FAIL",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/receipt/approval/proposal/evaluation/portfolios/0/assessments/0/outcome"
+              },
+              "portfolio_id": {
+                "availability": "AVAILABLE",
+                "canonical_value": "excluded",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/receipt/approval/proposal/evaluation/portfolios/0/portfolio_id"
+              },
+              "ratio": {
+                "availability": "AVAILABLE",
+                "canonical_value": "0.1",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/receipt/approval/proposal/evaluation/portfolios/0/assessments/0/ratio"
+              },
+              "rule": {
+                "availability": "AVAILABLE",
+                "canonical_value": "SIGNIFICANT_FLOW",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/receipt/approval/proposal/evaluation/portfolios/0/assessments/0/rule"
+              }
+            },
+            "row_id": "m0:p0:a0"
+          },
+          {
+            "cells": {
+              "admitted_flow_count": {
+                "availability": "NOT_APPLICABLE",
+                "canonical_value": null,
+                "reason_codes": [
+                  "RULE_FIELD_NOT_APPLICABLE"
+                ],
+                "source_pointer": "/source_months/0/receipt/approval/proposal/evaluation/portfolios/0/assessments/1/admitted_flow_count"
+              },
+              "denominator": {
+                "availability": "UNAVAILABLE",
+                "canonical_value": null,
+                "reason_codes": [
+                  "SOURCE_VALUE_UNAVAILABLE"
+                ],
+                "source_pointer": "/source_months/0/receipt/approval/proposal/evaluation/portfolios/0/assessments/1/denominator"
+              },
+              "gross_inflow": {
+                "availability": "NOT_APPLICABLE",
+                "canonical_value": null,
+                "reason_codes": [
+                  "RULE_FIELD_NOT_APPLICABLE"
+                ],
+                "source_pointer": "/source_months/0/receipt/approval/proposal/evaluation/portfolios/0/assessments/1/gross_inflow"
+              },
+              "gross_outflow": {
+                "availability": "NOT_APPLICABLE",
+                "canonical_value": null,
+                "reason_codes": [
+                  "RULE_FIELD_NOT_APPLICABLE"
+                ],
+                "source_pointer": "/source_months/0/receipt/approval/proposal/evaluation/portfolios/0/assessments/1/gross_outflow"
+              },
+              "month": {
+                "availability": "AVAILABLE",
+                "canonical_value": "2026-07",
+                "reason_codes": [],
+                "source_pointer": "/selection/months/0/month"
+              },
+              "numerator": {
+                "availability": "UNAVAILABLE",
+                "canonical_value": null,
+                "reason_codes": [
+                  "SOURCE_VALUE_UNAVAILABLE"
+                ],
+                "source_pointer": "/source_months/0/receipt/approval/proposal/evaluation/portfolios/0/assessments/1/numerator"
+              },
+              "outcome": {
+                "availability": "AVAILABLE",
+                "canonical_value": "FAIL",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/receipt/approval/proposal/evaluation/portfolios/0/assessments/1/outcome"
+              },
+              "portfolio_id": {
+                "availability": "AVAILABLE",
+                "canonical_value": "excluded",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/receipt/approval/proposal/evaluation/portfolios/0/portfolio_id"
+              },
+              "ratio": {
+                "availability": "UNAVAILABLE",
+                "canonical_value": null,
+                "reason_codes": [
+                  "SOURCE_VALUE_UNAVAILABLE"
+                ],
+                "source_pointer": "/source_months/0/receipt/approval/proposal/evaluation/portfolios/0/assessments/1/ratio"
+              },
+              "rule": {
+                "availability": "AVAILABLE",
+                "canonical_value": "CASH",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/receipt/approval/proposal/evaluation/portfolios/0/assessments/1/rule"
+              }
+            },
+            "row_id": "m0:p0:a1"
+          },
+          {
+            "cells": {
+              "admitted_flow_count": {
+                "availability": "NOT_APPLICABLE",
+                "canonical_value": null,
+                "reason_codes": [
+                  "RULE_FIELD_NOT_APPLICABLE"
+                ],
+                "source_pointer": "/source_months/0/receipt/approval/proposal/evaluation/portfolios/0/assessments/2/admitted_flow_count"
+              },
+              "denominator": {
+                "availability": "NOT_APPLICABLE",
+                "canonical_value": null,
+                "reason_codes": [
+                  "RULE_FIELD_NOT_APPLICABLE"
+                ],
+                "source_pointer": "/source_months/0/receipt/approval/proposal/evaluation/portfolios/0/assessments/2/denominator"
+              },
+              "gross_inflow": {
+                "availability": "NOT_APPLICABLE",
+                "canonical_value": null,
+                "reason_codes": [
+                  "RULE_FIELD_NOT_APPLICABLE"
+                ],
+                "source_pointer": "/source_months/0/receipt/approval/proposal/evaluation/portfolios/0/assessments/2/gross_inflow"
+              },
+              "gross_outflow": {
+                "availability": "NOT_APPLICABLE",
+                "canonical_value": null,
+                "reason_codes": [
+                  "RULE_FIELD_NOT_APPLICABLE"
+                ],
+                "source_pointer": "/source_months/0/receipt/approval/proposal/evaluation/portfolios/0/assessments/2/gross_outflow"
+              },
+              "month": {
+                "availability": "AVAILABLE",
+                "canonical_value": "2026-07",
+                "reason_codes": [],
+                "source_pointer": "/selection/months/0/month"
+              },
+              "numerator": {
+                "availability": "NOT_APPLICABLE",
+                "canonical_value": null,
+                "reason_codes": [
+                  "RULE_FIELD_NOT_APPLICABLE"
+                ],
+                "source_pointer": "/source_months/0/receipt/approval/proposal/evaluation/portfolios/0/assessments/2/numerator"
+              },
+              "outcome": {
+                "availability": "AVAILABLE",
+                "canonical_value": "FAIL",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/receipt/approval/proposal/evaluation/portfolios/0/assessments/2/outcome"
+              },
+              "portfolio_id": {
+                "availability": "AVAILABLE",
+                "canonical_value": "excluded",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/receipt/approval/proposal/evaluation/portfolios/0/portfolio_id"
+              },
+              "ratio": {
+                "availability": "NOT_APPLICABLE",
+                "canonical_value": null,
+                "reason_codes": [
+                  "RULE_FIELD_NOT_APPLICABLE"
+                ],
+                "source_pointer": "/source_months/0/receipt/approval/proposal/evaluation/portfolios/0/assessments/2/ratio"
+              },
+              "rule": {
+                "availability": "AVAILABLE",
+                "canonical_value": "READINESS",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/receipt/approval/proposal/evaluation/portfolios/0/assessments/2/rule"
+              }
+            },
+            "row_id": "m0:p0:a2"
+          }
+        ],
+        "table_id": "EligibilityAssessments",
+        "title": "EligibilityAssessments"
+      },
+      {
+        "columns": [
+          {
+            "column_id": "month",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": null,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "TEXT",
+            "label": "month",
+            "scale": "1",
+            "unit": "TEXT",
+            "value_type": "TEXT"
+          },
+          {
+            "column_id": "portfolio_id",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": null,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "TEXT",
+            "label": "portfolio id",
+            "scale": "1",
+            "unit": "TEXT",
+            "value_type": "TEXT"
+          },
+          {
+            "column_id": "rule",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": null,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "TEXT",
+            "label": "rule",
+            "scale": "1",
+            "unit": "TEXT",
+            "value_type": "TEXT"
+          },
+          {
+            "column_id": "kind",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": null,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "TEXT",
+            "label": "kind",
+            "scale": "1",
+            "unit": "TEXT",
+            "value_type": "TEXT"
+          },
+          {
+            "column_id": "reason_code",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": null,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "TEXT",
+            "label": "reason code",
+            "scale": "1",
+            "unit": "TEXT",
+            "value_type": "TEXT"
+          }
+        ],
+        "rows": [
+          {
+            "cells": {
+              "kind": {
+                "availability": "AVAILABLE",
+                "canonical_value": "FAILURE",
+                "reason_codes": [],
+                "source_pointer": "/report_facts/reason_kinds/failure_reasons"
+              },
+              "month": {
+                "availability": "AVAILABLE",
+                "canonical_value": "2026-07",
+                "reason_codes": [],
+                "source_pointer": "/selection/months/0/month"
+              },
+              "portfolio_id": {
+                "availability": "AVAILABLE",
+                "canonical_value": "excluded",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/receipt/approval/proposal/evaluation/portfolios/0/portfolio_id"
+              },
+              "reason_code": {
+                "availability": "AVAILABLE",
+                "canonical_value": "SIGNIFICANT_FLOW_THRESHOLD_BREACH",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/receipt/approval/proposal/evaluation/portfolios/0/assessments/0/failure_reasons/0"
+              },
+              "rule": {
+                "availability": "AVAILABLE",
+                "canonical_value": "SIGNIFICANT_FLOW",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/receipt/approval/proposal/evaluation/portfolios/0/assessments/0/rule"
+              }
+            },
+            "row_id": "m0:p0:a0:failure_reasons:0"
+          },
+          {
+            "cells": {
+              "kind": {
+                "availability": "AVAILABLE",
+                "canonical_value": "FAILURE",
+                "reason_codes": [],
+                "source_pointer": "/report_facts/reason_kinds/failure_reasons"
+              },
+              "month": {
+                "availability": "AVAILABLE",
+                "canonical_value": "2026-07",
+                "reason_codes": [],
+                "source_pointer": "/selection/months/0/month"
+              },
+              "portfolio_id": {
+                "availability": "AVAILABLE",
+                "canonical_value": "excluded",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/receipt/approval/proposal/evaluation/portfolios/0/portfolio_id"
+              },
+              "reason_code": {
+                "availability": "AVAILABLE",
+                "canonical_value": "CASH_THRESHOLD_BREACH",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/receipt/approval/proposal/evaluation/portfolios/0/assessments/1/failure_reasons/0"
+              },
+              "rule": {
+                "availability": "AVAILABLE",
+                "canonical_value": "CASH",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/receipt/approval/proposal/evaluation/portfolios/0/assessments/1/rule"
+              }
+            },
+            "row_id": "m0:p0:a1:failure_reasons:0"
+          },
+          {
+            "cells": {
+              "kind": {
+                "availability": "AVAILABLE",
+                "canonical_value": "FAILURE",
+                "reason_codes": [],
+                "source_pointer": "/report_facts/reason_kinds/failure_reasons"
+              },
+              "month": {
+                "availability": "AVAILABLE",
+                "canonical_value": "2026-07",
+                "reason_codes": [],
+                "source_pointer": "/selection/months/0/month"
+              },
+              "portfolio_id": {
+                "availability": "AVAILABLE",
+                "canonical_value": "excluded",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/receipt/approval/proposal/evaluation/portfolios/0/portfolio_id"
+              },
+              "reason_code": {
+                "availability": "AVAILABLE",
+                "canonical_value": "READINESS_FUNDED_FAILED",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/receipt/approval/proposal/evaluation/portfolios/0/assessments/2/failure_reasons/0"
+              },
+              "rule": {
+                "availability": "AVAILABLE",
+                "canonical_value": "READINESS",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/receipt/approval/proposal/evaluation/portfolios/0/assessments/2/rule"
+              }
+            },
+            "row_id": "m0:p0:a2:failure_reasons:0"
+          },
+          {
+            "cells": {
+              "kind": {
+                "availability": "AVAILABLE",
+                "canonical_value": "UNKNOWN",
+                "reason_codes": [],
+                "source_pointer": "/report_facts/reason_kinds/unknown_reasons"
+              },
+              "month": {
+                "availability": "AVAILABLE",
+                "canonical_value": "2026-07",
+                "reason_codes": [],
+                "source_pointer": "/selection/months/0/month"
+              },
+              "portfolio_id": {
+                "availability": "AVAILABLE",
+                "canonical_value": "excluded",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/receipt/approval/proposal/evaluation/portfolios/0/portfolio_id"
+              },
+              "reason_code": {
+                "availability": "AVAILABLE",
+                "canonical_value": "READINESS_INVESTED_UNKNOWN",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/receipt/approval/proposal/evaluation/portfolios/0/assessments/2/unknown_reasons/0"
+              },
+              "rule": {
+                "availability": "AVAILABLE",
+                "canonical_value": "READINESS",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/receipt/approval/proposal/evaluation/portfolios/0/assessments/2/rule"
+              }
+            },
+            "row_id": "m0:p0:a2:unknown_reasons:0"
+          }
+        ],
+        "table_id": "EligibilityReasons",
+        "title": "EligibilityReasons"
+      },
+      {
+        "columns": [
+          {
+            "column_id": "month",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": null,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "TEXT",
+            "label": "month",
+            "scale": "1",
+            "unit": "TEXT",
+            "value_type": "TEXT"
+          },
+          {
+            "column_id": "membership_revision",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": null,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "TEXT",
+            "label": "membership revision",
+            "scale": "1",
+            "unit": "TEXT",
+            "value_type": "TEXT"
+          },
+          {
+            "column_id": "portfolio_id",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": null,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "TEXT",
+            "label": "portfolio id",
+            "scale": "1",
+            "unit": "TEXT",
+            "value_type": "TEXT"
+          },
+          {
+            "column_id": "effective_from",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": null,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "TEXT",
+            "label": "effective from",
+            "scale": "1",
+            "unit": "TEXT",
+            "value_type": "TEXT"
+          },
+          {
+            "column_id": "effective_to",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": null,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "TEXT",
+            "label": "effective to",
+            "scale": "1",
+            "unit": "TEXT",
+            "value_type": "TEXT"
+          },
+          {
+            "column_id": "status",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": null,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "TEXT",
+            "label": "status",
+            "scale": "1",
+            "unit": "TEXT",
+            "value_type": "TEXT"
+          },
+          {
+            "column_id": "reason_code",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": null,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "TEXT",
+            "label": "reason code",
+            "scale": "1",
+            "unit": "TEXT",
+            "value_type": "TEXT"
+          },
+          {
+            "column_id": "discretionary",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": null,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "BOOLEAN",
+            "label": "discretionary",
+            "scale": "1",
+            "unit": "BOOLEAN",
+            "value_type": "BOOLEAN"
+          },
+          {
+            "column_id": "approval_ref",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": null,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "TEXT",
+            "label": "approval ref",
+            "scale": "1",
+            "unit": "TEXT",
+            "value_type": "TEXT"
+          },
+          {
+            "column_id": "source_snapshot_id",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": null,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "TEXT",
+            "label": "source snapshot id",
+            "scale": "1",
+            "unit": "TEXT",
+            "value_type": "TEXT"
+          },
+          {
+            "column_id": "supersedes_membership_revision",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": null,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "TEXT",
+            "label": "supersedes membership revision",
+            "scale": "1",
+            "unit": "TEXT",
+            "value_type": "TEXT"
+          },
+          {
+            "column_id": "affected_from",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": null,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "TEXT",
+            "label": "affected from",
+            "scale": "1",
+            "unit": "TEXT",
+            "value_type": "TEXT"
+          },
+          {
+            "column_id": "affected_to",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": null,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "TEXT",
+            "label": "affected to",
+            "scale": "1",
+            "unit": "TEXT",
+            "value_type": "TEXT"
+          }
+        ],
+        "rows": [
+          {
+            "cells": {
+              "affected_from": {
+                "availability": "UNAVAILABLE",
+                "canonical_value": null,
+                "reason_codes": [
+                  "SOURCE_VALUE_UNAVAILABLE"
+                ],
+                "source_pointer": "/source_months/0/parent_membership/affected_from"
+              },
+              "affected_to": {
+                "availability": "UNAVAILABLE",
+                "canonical_value": null,
+                "reason_codes": [
+                  "SOURCE_VALUE_UNAVAILABLE"
+                ],
+                "source_pointer": "/source_months/0/parent_membership/affected_to"
+              },
+              "approval_ref": {
+                "availability": "UNAVAILABLE",
+                "canonical_value": null,
+                "reason_codes": [
+                  "SOURCE_VALUE_UNAVAILABLE"
+                ],
+                "source_pointer": "/source_months/0/parent_membership/decisions/0/approval_ref"
+              },
+              "discretionary": {
+                "availability": "AVAILABLE",
+                "canonical_value": "true",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/parent_membership/decisions/0/discretionary"
+              },
+              "effective_from": {
+                "availability": "AVAILABLE",
+                "canonical_value": "2026-01-01",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/parent_membership/decisions/0/effective_from"
+              },
+              "effective_to": {
+                "availability": "AVAILABLE",
+                "canonical_value": "2026-06-30",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/parent_membership/decisions/0/effective_to"
+              },
+              "membership_revision": {
+                "availability": "AVAILABLE",
+                "canonical_value": "parent-r1",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/parent_membership/membership_revision"
+              },
+              "month": {
+                "availability": "AVAILABLE",
+                "canonical_value": "2026-07",
+                "reason_codes": [],
+                "source_pointer": "/selection/months/0/month"
+              },
+              "portfolio_id": {
+                "availability": "AVAILABLE",
+                "canonical_value": "excluded",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/parent_membership/decisions/0/portfolio_id"
+              },
+              "reason_code": {
+                "availability": "UNAVAILABLE",
+                "canonical_value": null,
+                "reason_codes": [
+                  "SOURCE_VALUE_UNAVAILABLE"
+                ],
+                "source_pointer": "/source_months/0/parent_membership/decisions/0/reason_code"
+              },
+              "source_snapshot_id": {
+                "availability": "AVAILABLE",
+                "canonical_value": "prior-snapshot",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/parent_membership/decisions/0/source_snapshot_id"
+              },
+              "status": {
+                "availability": "AVAILABLE",
+                "canonical_value": "INCLUDED",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/parent_membership/decisions/0/status"
+              },
+              "supersedes_membership_revision": {
+                "availability": "UNAVAILABLE",
+                "canonical_value": null,
+                "reason_codes": [
+                  "SOURCE_VALUE_UNAVAILABLE"
+                ],
+                "source_pointer": "/source_months/0/parent_membership/supersedes_membership_revision"
+              }
+            },
+            "row_id": "m0:parent_membership:d0"
+          },
+          {
+            "cells": {
+              "affected_from": {
+                "availability": "AVAILABLE",
+                "canonical_value": "2026-07-01",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/membership/affected_from"
+              },
+              "affected_to": {
+                "availability": "AVAILABLE",
+                "canonical_value": "2026-07-31",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/membership/affected_to"
+              },
+              "approval_ref": {
+                "availability": "UNAVAILABLE",
+                "canonical_value": null,
+                "reason_codes": [
+                  "SOURCE_VALUE_UNAVAILABLE"
+                ],
+                "source_pointer": "/source_months/0/membership/decisions/0/approval_ref"
+              },
+              "discretionary": {
+                "availability": "AVAILABLE",
+                "canonical_value": "true",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/membership/decisions/0/discretionary"
+              },
+              "effective_from": {
+                "availability": "AVAILABLE",
+                "canonical_value": "2026-01-01",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/membership/decisions/0/effective_from"
+              },
+              "effective_to": {
+                "availability": "AVAILABLE",
+                "canonical_value": "2026-06-30",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/membership/decisions/0/effective_to"
+              },
+              "membership_revision": {
+                "availability": "AVAILABLE",
+                "canonical_value": "member-2026-07",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/membership/membership_revision"
+              },
+              "month": {
+                "availability": "AVAILABLE",
+                "canonical_value": "2026-07",
+                "reason_codes": [],
+                "source_pointer": "/selection/months/0/month"
+              },
+              "portfolio_id": {
+                "availability": "AVAILABLE",
+                "canonical_value": "excluded",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/membership/decisions/0/portfolio_id"
+              },
+              "reason_code": {
+                "availability": "UNAVAILABLE",
+                "canonical_value": null,
+                "reason_codes": [
+                  "SOURCE_VALUE_UNAVAILABLE"
+                ],
+                "source_pointer": "/source_months/0/membership/decisions/0/reason_code"
+              },
+              "source_snapshot_id": {
+                "availability": "AVAILABLE",
+                "canonical_value": "prior-snapshot",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/membership/decisions/0/source_snapshot_id"
+              },
+              "status": {
+                "availability": "AVAILABLE",
+                "canonical_value": "INCLUDED",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/membership/decisions/0/status"
+              },
+              "supersedes_membership_revision": {
+                "availability": "AVAILABLE",
+                "canonical_value": "parent-r1",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/membership/supersedes_membership_revision"
+              }
+            },
+            "row_id": "m0:membership:d0"
+          },
+          {
+            "cells": {
+              "affected_from": {
+                "availability": "AVAILABLE",
+                "canonical_value": "2026-07-01",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/membership/affected_from"
+              },
+              "affected_to": {
+                "availability": "AVAILABLE",
+                "canonical_value": "2026-07-31",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/membership/affected_to"
+              },
+              "approval_ref": {
+                "availability": "AVAILABLE",
+                "canonical_value": "test-unapproved-ref",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/membership/decisions/1/approval_ref"
+              },
+              "discretionary": {
+                "availability": "AVAILABLE",
+                "canonical_value": "true",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/membership/decisions/1/discretionary"
+              },
+              "effective_from": {
+                "availability": "AVAILABLE",
+                "canonical_value": "2026-07-01",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/membership/decisions/1/effective_from"
+              },
+              "effective_to": {
+                "availability": "AVAILABLE",
+                "canonical_value": "2026-07-31",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/membership/decisions/1/effective_to"
+              },
+              "membership_revision": {
+                "availability": "AVAILABLE",
+                "canonical_value": "member-2026-07",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/membership/membership_revision"
+              },
+              "month": {
+                "availability": "AVAILABLE",
+                "canonical_value": "2026-07",
+                "reason_codes": [],
+                "source_pointer": "/selection/months/0/month"
+              },
+              "portfolio_id": {
+                "availability": "AVAILABLE",
+                "canonical_value": "excluded",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/membership/decisions/1/portfolio_id"
+              },
+              "reason_code": {
+                "availability": "AVAILABLE",
+                "canonical_value": "SIGNIFICANT_FLOW_THRESHOLD_BREACH",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/membership/decisions/1/reason_code"
+              },
+              "source_snapshot_id": {
+                "availability": "AVAILABLE",
+                "canonical_value": "test-snapshot",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/membership/decisions/1/source_snapshot_id"
+              },
+              "status": {
+                "availability": "AVAILABLE",
+                "canonical_value": "EXCLUDED",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/membership/decisions/1/status"
+              },
+              "supersedes_membership_revision": {
+                "availability": "AVAILABLE",
+                "canonical_value": "parent-r1",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/membership/supersedes_membership_revision"
+              }
+            },
+            "row_id": "m0:membership:d1"
+          }
+        ],
+        "table_id": "MembershipHistory",
+        "title": "MembershipHistory"
+      },
+      {
+        "columns": [
+          {
+            "column_id": "month",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": null,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "TEXT",
+            "label": "month",
+            "scale": "1",
+            "unit": "TEXT",
+            "value_type": "TEXT"
+          },
+          {
+            "column_id": "profile_kind",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": null,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "TEXT",
+            "label": "profile kind",
+            "scale": "1",
+            "unit": "TEXT",
+            "value_type": "TEXT"
+          },
+          {
+            "column_id": "flow_threshold",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": 12,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "DECIMAL_RATIO",
+            "label": "flow threshold",
+            "scale": "1",
+            "unit": "DECIMAL_RATIO",
+            "value_type": "DECIMAL_FACTOR"
+          },
+          {
+            "column_id": "cash_threshold",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": 12,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "DECIMAL_RATIO",
+            "label": "cash threshold",
+            "scale": "1",
+            "unit": "DECIMAL_RATIO",
+            "value_type": "DECIMAL_FACTOR"
+          },
+          {
+            "column_id": "flow_measure",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": null,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "TEXT",
+            "label": "flow measure",
+            "scale": "1",
+            "unit": "TEXT",
+            "value_type": "TEXT"
+          },
+          {
+            "column_id": "flow_breach_operator",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": null,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "TEXT",
+            "label": "flow breach operator",
+            "scale": "1",
+            "unit": "TEXT",
+            "value_type": "TEXT"
+          },
+          {
+            "column_id": "cash_breach_operator",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": null,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "TEXT",
+            "label": "cash breach operator",
+            "scale": "1",
+            "unit": "TEXT",
+            "value_type": "TEXT"
+          },
+          {
+            "column_id": "reentry",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": null,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "TEXT",
+            "label": "reentry",
+            "scale": "1",
+            "unit": "TEXT",
+            "value_type": "TEXT"
+          },
+          {
+            "column_id": "content_hash",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": null,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "TEXT",
+            "label": "content hash",
+            "scale": "1",
+            "unit": "TEXT",
+            "value_type": "TEXT"
+          }
+        ],
+        "rows": [
+          {
+            "cells": {
+              "cash_breach_operator": {
+                "availability": "AVAILABLE",
+                "canonical_value": "GREATER_THAN",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/receipt/approval/proposal/evaluation/resolved_policy/cash_breach_operator"
+              },
+              "cash_threshold": {
+                "availability": "AVAILABLE",
+                "canonical_value": "0.05",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/receipt/approval/proposal/evaluation/resolved_policy/cash_threshold"
+              },
+              "content_hash": {
+                "availability": "AVAILABLE",
+                "canonical_value": "sha256:16afbc965d1f720265715575ea0c96f119b2739af8aea0a759c9f438cc8d8db9",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/receipt/approval/proposal/evaluation/resolved_policy/content_hash"
+              },
+              "flow_breach_operator": {
+                "availability": "AVAILABLE",
+                "canonical_value": "GREATER_THAN_OR_EQUAL",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/receipt/approval/proposal/evaluation/resolved_policy/flow_breach_operator"
+              },
+              "flow_measure": {
+                "availability": "AVAILABLE",
+                "canonical_value": "ABS_NET",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/receipt/approval/proposal/evaluation/resolved_policy/flow_measure"
+              },
+              "flow_threshold": {
+                "availability": "AVAILABLE",
+                "canonical_value": "0.10",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/receipt/approval/proposal/evaluation/resolved_policy/flow_threshold"
+              },
+              "month": {
+                "availability": "AVAILABLE",
+                "canonical_value": "2026-07",
+                "reason_codes": [],
+                "source_pointer": "/selection/months/0/month"
+              },
+              "profile_kind": {
+                "availability": "AVAILABLE",
+                "canonical_value": "SYNTHETIC_MONTHLY_ABS_NET_CASH_READINESS",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/receipt/approval/proposal/evaluation/resolved_policy/profile_kind"
+              },
+              "reentry": {
+                "availability": "AVAILABLE",
+                "canonical_value": "REEVALUATE_ALL_NEXT_MONTH_RULES",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/receipt/approval/proposal/evaluation/resolved_policy/reentry"
+              }
+            },
+            "row_id": "m0"
+          }
+        ],
+        "table_id": "Methods",
+        "title": "Methods"
+      },
+      {
+        "columns": [
+          {
+            "column_id": "month",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": null,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "TEXT",
+            "label": "month",
+            "scale": "1",
+            "unit": "TEXT",
+            "value_type": "TEXT"
+          },
+          {
+            "column_id": "evidence_kind",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": null,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "TEXT",
+            "label": "evidence kind",
+            "scale": "1",
+            "unit": "TEXT",
+            "value_type": "TEXT"
+          },
+          {
+            "column_id": "product",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": null,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "TEXT",
+            "label": "product",
+            "scale": "1",
+            "unit": "TEXT",
+            "value_type": "TEXT"
+          },
+          {
+            "column_id": "revision",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": null,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "TEXT",
+            "label": "revision",
+            "scale": "1",
+            "unit": "TEXT",
+            "value_type": "TEXT"
+          },
+          {
+            "column_id": "content_hash",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": null,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "TEXT",
+            "label": "content hash",
+            "scale": "1",
+            "unit": "TEXT",
+            "value_type": "TEXT"
+          },
+          {
+            "column_id": "response_digest",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": null,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "TEXT",
+            "label": "response digest",
+            "scale": "1",
+            "unit": "TEXT",
+            "value_type": "TEXT"
+          }
+        ],
+        "rows": [
+          {
+            "cells": {
+              "content_hash": {
+                "availability": "AVAILABLE",
+                "canonical_value": "sha256:9e3d2cde28105ba45e466d90b01a644b13a60066c1f675adacdb9527b8fb5332",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/receipt/approval/proposal/content_hash"
+              },
+              "evidence_kind": {
+                "availability": "AVAILABLE",
+                "canonical_value": "PUBLISHED",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/evidence_kind"
+              },
+              "month": {
+                "availability": "AVAILABLE",
+                "canonical_value": "2026-07",
+                "reason_codes": [],
+                "source_pointer": "/selection/months/0/month"
+              },
+              "product": {
+                "availability": "AVAILABLE",
+                "canonical_value": "CompositeMonthlyEvaluationProposal",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/receipt/approval/proposal/product_name"
+              },
+              "response_digest": {
+                "availability": "AVAILABLE",
+                "canonical_value": "sha256:d4baf66d7f59a97740474484b1146cacdc328a0b34dea4dac66fa488b14391f3",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/response_digests/receipt"
+              },
+              "revision": {
+                "availability": "AVAILABLE",
+                "canonical_value": "eval-2026-07",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/receipt/approval/proposal/evaluation_revision"
+              }
+            },
+            "row_id": "m0:s0"
+          },
+          {
+            "cells": {
+              "content_hash": {
+                "availability": "AVAILABLE",
+                "canonical_value": "sha256:300fa7f3fb30e007259f52abfbe0d29ff28cc4543dadf16cba91ed6921b6cca5",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/membership/content_hash"
+              },
+              "evidence_kind": {
+                "availability": "AVAILABLE",
+                "canonical_value": "PUBLISHED",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/evidence_kind"
+              },
+              "month": {
+                "availability": "AVAILABLE",
+                "canonical_value": "2026-07",
+                "reason_codes": [],
+                "source_pointer": "/selection/months/0/month"
+              },
+              "product": {
+                "availability": "AVAILABLE",
+                "canonical_value": "CompositeMembership",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/membership/product_name"
+              },
+              "response_digest": {
+                "availability": "AVAILABLE",
+                "canonical_value": "sha256:e09f011aedda6cbf32feac7a7f900166d046414e7cb6479aa565ba306e08a425",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/response_digests/membership"
+              },
+              "revision": {
+                "availability": "AVAILABLE",
+                "canonical_value": "member-2026-07",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/membership/membership_revision"
+              }
+            },
+            "row_id": "m0:s1"
+          },
+          {
+            "cells": {
+              "content_hash": {
+                "availability": "AVAILABLE",
+                "canonical_value": "sha256:72a6d83145b355aec1d4a8bfe4f7b987ae4dc7e4d9e9c119844d5dfbd98722a4",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/parent_membership/content_hash"
+              },
+              "evidence_kind": {
+                "availability": "AVAILABLE",
+                "canonical_value": "PUBLISHED",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/evidence_kind"
+              },
+              "month": {
+                "availability": "AVAILABLE",
+                "canonical_value": "2026-07",
+                "reason_codes": [],
+                "source_pointer": "/selection/months/0/month"
+              },
+              "product": {
+                "availability": "AVAILABLE",
+                "canonical_value": "CompositeMembership",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/parent_membership/product_name"
+              },
+              "response_digest": {
+                "availability": "AVAILABLE",
+                "canonical_value": "sha256:3f6772347b23c5b9edf94aaff3fe37d8e7de6b40d40fbd372ae3ab4e86ddfdd5",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/response_digests/parent_membership"
+              },
+              "revision": {
+                "availability": "AVAILABLE",
+                "canonical_value": "parent-r1",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/parent_membership/membership_revision"
+              }
+            },
+            "row_id": "m0:s2"
+          },
+          {
+            "cells": {
+              "content_hash": {
+                "availability": "AVAILABLE",
+                "canonical_value": "sha256:59bc9ef88f2f51739f5634368d3503411784296d22ebc9b9448db8023f69772d",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/universe/content_hash"
+              },
+              "evidence_kind": {
+                "availability": "AVAILABLE",
+                "canonical_value": "PUBLISHED",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/evidence_kind"
+              },
+              "month": {
+                "availability": "AVAILABLE",
+                "canonical_value": "2026-07",
+                "reason_codes": [],
+                "source_pointer": "/selection/months/0/month"
+              },
+              "product": {
+                "availability": "AVAILABLE",
+                "canonical_value": "CompositeUniverseAttestation",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/universe/product_name"
+              },
+              "response_digest": {
+                "availability": "AVAILABLE",
+                "canonical_value": "sha256:76a91810536d8117665973d1174a845089f718ef06d760fd093bf176097688e5",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/response_digests/universe"
+              },
+              "revision": {
+                "availability": "AVAILABLE",
+                "canonical_value": "eval-2026-07",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/universe/attestation_version"
+              }
+            },
+            "row_id": "m0:s3"
+          },
+          {
+            "cells": {
+              "content_hash": {
+                "availability": "AVAILABLE",
+                "canonical_value": "sha256:3049040f0968dfde374ead596b4e9fa4e297d4c1447104c1cb338688021fe153",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/receipt/content_hash"
+              },
+              "evidence_kind": {
+                "availability": "AVAILABLE",
+                "canonical_value": "PUBLISHED",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/evidence_kind"
+              },
+              "month": {
+                "availability": "AVAILABLE",
+                "canonical_value": "2026-07",
+                "reason_codes": [],
+                "source_pointer": "/selection/months/0/month"
+              },
+              "product": {
+                "availability": "AVAILABLE",
+                "canonical_value": "CompositeMonthlyEligibilityPublicationReceipt",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/receipt/product_name"
+              },
+              "response_digest": {
+                "availability": "AVAILABLE",
+                "canonical_value": "sha256:d4baf66d7f59a97740474484b1146cacdc328a0b34dea4dac66fa488b14391f3",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/response_digests/receipt"
+              },
+              "revision": {
+                "availability": "AVAILABLE",
+                "canonical_value": "7",
+                "reason_codes": [],
+                "source_pointer": "/source_months/0/receipt/publication_sequence"
+              }
+            },
+            "row_id": "m0:s4"
+          }
+        ],
+        "table_id": "Lineage",
+        "title": "Lineage"
+      },
+      {
+        "columns": [
+          {
+            "column_id": "code",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": null,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "TEXT",
+            "label": "code",
+            "scale": "1",
+            "unit": "TEXT",
+            "value_type": "TEXT"
+          },
+          {
+            "column_id": "text",
+            "currency": null,
+            "display_conversion": "IDENTITY",
+            "display_decimal_places": null,
+            "display_rounding_mode": "HALF_UP",
+            "display_unit": "TEXT",
+            "label": "text",
+            "scale": "1",
+            "unit": "TEXT",
+            "value_type": "TEXT"
+          }
+        ],
+        "rows": [
+          {
+            "cells": {
+              "code": {
+                "availability": "AVAILABLE",
+                "canonical_value": "CONTROLLED_SYNTHETIC_ONLY",
+                "reason_codes": [],
+                "source_pointer": "/report_facts/disclosures/0/code"
+              },
+              "text": {
+                "availability": "AVAILABLE",
+                "canonical_value": "Controlled synthetic source replay / NOT_ATTESTED. Population and published completeness are UNVERIFIED; official activation is UNAVAILABLE.",
+                "reason_codes": [],
+                "source_pointer": "/report_facts/disclosures/0/text"
+              }
+            },
+            "row_id": "d0"
+          },
+          {
+            "cells": {
+              "code": {
+                "availability": "AVAILABLE",
+                "canonical_value": "SOURCE_OWNED_DECISIONS",
+                "reason_codes": [],
+                "source_pointer": "/report_facts/disclosures/1/code"
+              },
+              "text": {
+                "availability": "AVAILABLE",
+                "canonical_value": "Manage owns eligibility and publication. Report preserves all three assessments and does not evaluate thresholds or manufacture approvals.",
+                "reason_codes": [],
+                "source_pointer": "/report_facts/disclosures/1/text"
+              }
+            },
+            "row_id": "d1"
+          },
+          {
+            "cells": {
+              "code": {
+                "availability": "AVAILABLE",
+                "canonical_value": "FIRST_REASON_LOSS_BOUNDARY",
+                "reason_codes": [],
+                "source_pointer": "/report_facts/disclosures/2/code"
+              },
+              "text": {
+                "availability": "AVAILABLE",
+                "canonical_value": "Membership reason_code is only the first reason. EligibilityReasons preserves every failure and unknown occurrence; occurrences are not unique excluded members.",
+                "reason_codes": [],
+                "source_pointer": "/report_facts/disclosures/2/text"
+              }
+            },
+            "row_id": "d2"
+          },
+          {
+            "cells": {
+              "code": {
+                "availability": "AVAILABLE",
+                "canonical_value": "EVALUATED_IS_NOT_PUBLISHED",
+                "reason_codes": [],
+                "source_pointer": "/report_facts/disclosures/3/code"
+              },
+              "text": {
+                "availability": "AVAILABLE",
+                "canonical_value": "EVALUATED_ONLY retains a proposal and missing-observation UNKNOWN cases. Approval, publication and membership history are unavailable for that variant; no receipt is inferred.",
+                "reason_codes": [],
+                "source_pointer": "/report_facts/disclosures/3/text"
+              }
+            },
+            "row_id": "d3"
+          },
+          {
+            "cells": {
+              "code": {
+                "availability": "AVAILABLE",
+                "canonical_value": "EXACT_HISTORY",
+                "reason_codes": [],
+                "source_pointer": "/report_facts/disclosures/4/code"
+              },
+              "text": {
+                "availability": "AVAILABLE",
+                "canonical_value": "History retains original inclusive revision intervals. Selected month gaps are not filled; same-month policy diffs are not cross-month history. Cleared cash alone does not imply re-entry.",
+                "reason_codes": [],
+                "source_pointer": "/report_facts/disclosures/4/text"
+              }
+            },
+            "row_id": "d4"
+          },
+          {
+            "cells": {
+              "code": {
+                "availability": "AVAILABLE",
+                "canonical_value": "SOURCE_UNITS",
+                "reason_codes": [],
+                "source_pointer": "/report_facts/disclosures/5/code"
+              },
+              "text": {
+                "availability": "AVAILABLE",
+                "canonical_value": "Ratios are source decimal ratios, not return percentages. Money, portfolio counts, event counts and booleans remain distinct. Raw decimal spelling and nulls remain retained.",
+                "reason_codes": [],
+                "source_pointer": "/report_facts/disclosures/5/text"
+              }
+            },
+            "row_id": "d5"
+          }
+        ],
+        "table_id": "Disclosures",
+        "title": "Disclosures"
+      }
+    ],
+    "tenant_id": "test-tenant"
+  },
+  "report_data_contract_version": "composite_review.v4",
+  "report_job_id": "rjob_8d8a7d223a354b519c69edcfd84d78e8",
+  "report_type": "composite_review",
+  "requested_by": "actor-a",
+  "snapshot_id": "rsnap_c5139e6146a447f8954d1221b4a505ff",
+  "template_id": "composite-review",
+  "template_version": "v4",
+  "trace_id": "67d6cedbf91044b1bc88eb5cf4efd93f"
+}
