@@ -42,6 +42,19 @@ def test_exact_report_producer_example_is_admitted_without_rewriting_source() ->
     assert content.tables[0].rows[0].cells["return"].canonical_value == "0.030200000000"
 
 
+def test_contradictory_source_authority_qualification_never_reaches_pinned_evidence() -> None:
+    data = _data()
+    data["source_response"]["selection_manifest"]["qualification"] = "OFFICIAL_ATTESTED"
+    for table in data["tables"]:
+        for row in table["rows"]:
+            for cell in row["cells"].values():
+                if cell["source_pointer"] == "/source_response/selection_manifest/qualification":
+                    cell["canonical_value"] = "OFFICIAL_ATTESTED"
+    _rehash(data)
+    with pytest.raises(ValueError, match="source_qualification_conflict"):
+        validate_dataset(data)
+
+
 def test_exact_selection_wire_shape_preserves_all_pins() -> None:
     selection = _data()["selection"]
     model = CompositePinnedSelection.model_validate_json(json.dumps(selection))

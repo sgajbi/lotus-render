@@ -110,6 +110,8 @@ def validate_pinned_identity(content: CompositeReviewContent) -> None:
     selection, source = content.selection, content.source_response
     _require_equal_keys(source, selection, _SERIES_KEYS, "composite_series_pin_conflict")
     manifest = _mapping(source.get("selection_manifest"), "composite_source_manifest_missing")
+    if manifest.get("qualification") != content.qualification:
+        raise ValueError("composite_source_qualification_conflict")
     windows = _sequence(selection.get("windows"), "composite_source_manifest_missing")
     periods = _sequence(source.get("periods"), "composite_source_period_missing")
     if not windows:
