@@ -2,7 +2,7 @@
 
 Current scope: Composite XLSX presents controlled source evidence: v1 review, v2 calendar/trailing returns,
 v3 linked analysis, [v4 eligibility/history](#complete-eligibility-evidence-v4) and
-[v5 pooled analysis](#pooled-analysis-v5).
+[v5 pooled analysis](#pooled-analysis-v5) and [v6 source amendments](#monthly-eligibility-source-amendments-v6).
 All remain `NOT_ATTESTED` and `development`; enterprise qualification stays open.
 
 Use the version dictionary below, [R5 custody evidence](#controlled-r5-custody-qualification),
@@ -24,6 +24,28 @@ Select the exact tuple advertised by `GET /system/templates`:
 | `composite-review v3` | `composite_review.v3` | `xlsx` |
 | `composite-review v4` | `composite_review.v4` | `xlsx` |
 | `composite-review v5` | `composite_review.v5` | `xlsx` |
+| `composite-review v6` | `composite_review.v6` | `xlsx` |
+
+## Monthly eligibility source amendments v6
+
+V6 presents eligibility source-correction evidence only. It supplies no TWR, MWR, dispersion,
+contribution or model-fee calculation. Its nine tables preserve the existing eligibility views and
+an Amendments view of correction bindings, reasons, evidence and retained predecessor/original
+receipts. Full source products and extra approved metadata remain in PinnedData; CellEvidence
+retains each source pointer. Operational ratios remain ratios with no percentage conversion.
+
+The explicit selector requires `selection_version=v2`. Monthly proposal/approval/receipt source
+version v2 and definition product v1/v2 are independent. Ordered lineage must terminate at the
+original v1 receipt. The receiver verifies response digests, cross-product bindings, unchanged
+approved policy and expected population, and the published correction's pinned parent publication.
+It never evaluates eligibility or infers financial results.
+
+Qualification is `CONTROLLED_MONTHLY_SOURCE_AMENDMENT_REPLAY`, `NOT_ATTESTED`, development. The
+client/golden envelope is a Render-authored component fixture around frozen controlled Report
+datasets, with explicit unit custody identities. Actual emitted Report packages and joined Archive
+acceptance remain integration gates. See the
+[qualification ledger](https://github.com/sgajbi/lotus-render/blob/main/docs/composite-review-qualification-ledger.md)
+for hashes, evidence boundaries and the receiver-enablement dependency. Earlier v1-v5 assets stay fixed.
 
 ## Pooled analysis v5
 

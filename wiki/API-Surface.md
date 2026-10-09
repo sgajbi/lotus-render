@@ -2,7 +2,7 @@
 
 ## Current scope
 
-The existing render submission accepts registry-admitted `composite_review.v1` / `composite_review.v2` / `composite_review.v3` / `composite_review.v4` / `composite_review.v5`
+The existing render submission accepts registry-admitted `composite_review.v1` / `composite_review.v2` / `composite_review.v3` / `composite_review.v4` / `composite_review.v5` / `composite_review.v6`
 RPT01 XLSX combinations in addition to PDF. `/docs` retains `composite_review_xlsx_package` and adds
 `composite_products_xlsx_package` for captured return products and `composite_linked_xlsx_package`
 for pinned source-owned linked analysis. `composite_eligibility_xlsx_package` links to the exact
@@ -10,7 +10,13 @@ retained v4 eligibility/history client JSON through OpenAPI `externalValue`, pre
 nulls and source hashes. Each requires its exact template
 version and embedded contract; mixed axes refuse. All use `render_package.v1`, unchanged finite
 budgets and the existing artifact/custody API. See [Composite Review Workbook](Composite-Review-Workbook).
-No new route is required. MIME, job/runtime evidence, terminal replay and custody semantics apply
+No new route is required. V6 presents eligibility source-correction evidence. Its OpenAPI external example is explicitly a
+Render-authored component envelope around controlled Report datasets, not a Report-emitted worker
+package. V6 supplies no TWR, MWR, dispersion, contribution or model-fee calculation. Actual producer
+package emission and joined Archive acceptance remain separate integration gates. See
+[monthly source amendments](Composite-Review-Workbook#monthly-eligibility-source-amendments-v6).
+
+MIME, job/runtime evidence, terminal replay and custody semantics apply
 to both formats. The [Composite Review Workbook](Composite-Review-Workbook) page defines its
 literal decimal policy, source-pointer validation, refusal boundaries and explicit qualification.
 

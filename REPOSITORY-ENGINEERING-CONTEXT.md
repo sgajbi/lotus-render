@@ -1,5 +1,26 @@
 # Repository Engineering Context
 
+## Monthly source-amendment consumer practice (#352)
+
+`composite-review v6` admits only `composite_review.v6` with `selection_version=v2`.
+Source proposal/approval/receipt version v2 is independent of CompositeDefinition v1/v2.
+`composite_amendment.py` and `composite_workbook/amendment_*` own the additive consumer.
+Shared eligibility binding checks receive a projection of common selector pins; retained source
+products are never relabelled or rewritten. The ordered predecessor chain must terminate at the
+original v1 receipt. Current and retained corrections preserve the approved policy and expected
+population; published corrections bind the parent publication and its full response digest.
+Amendment row order follows the frozen DTO field order, not JSON insertion order, so sorted
+PinnedData reconstruction remains admissible. Whole retained products and extra approved source
+metadata remain in PinnedData under the existing physical limits and literal writer.
+
+V6 is eligibility evidence only: it supplies no TWR, MWR, dispersion, contribution or model-fee
+calculation and cannot inherit v5 financial authority. The golden/client envelope is explicitly
+Render-authored component data around hash-pinned controlled Report examples. Opaque unit custody
+digests are placeholders, not Report-produced revision identities. Actual emitted Report packages
+and joined Archive acceptance are separate integration gates. Preserve all v1-v5 asset blobs.
+Use `tests/unit/test_composite_amendment*.py` and the registered HTTP/SQLite component journey.
+See `docs/composite-review-qualification-ledger.md` for pinned provenance and authority limits.
+
 ## Pooled composite consumer practice
 
 Separate `composite-review v5` consumes only `composite_review.v5`. The `composite_pooled*`

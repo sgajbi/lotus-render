@@ -6,6 +6,36 @@ This ledger records bounded Render v2 and v3 supplier and custody qualification 
 captured Performance replay / NOT_ATTESTED. Report #417, Platform #923, all twelve products and
 enterprise qualification remain open. Completed v1 issues #338, #340 and #342 remain closed.
 
+## Monthly eligibility source-amendment v6 component increment (#352)
+
+The explicit `composite_review.v6` / `composite-review v6` consumer retains nine Report-owned
+eligibility tables, full source-v2 corrections, ordered predecessor/original receipts and pinned
+parent-publication response evidence. Definition product v1/v2 remains independent of source
+product v2. Its qualification is `CONTROLLED_MONTHLY_SOURCE_AMENDMENT_REPLAY`, `NOT_ATTESTED`,
+development. V6 supplies no TWR, MWR, dispersion, contribution or model-fee calculation.
+
+Frozen Report contract handoff JSON SHA256
+`904d0d2cfcc9403ad4e44530cf496475a3fe84fdd5648c1d129bbb4206aae194`, ZIP SHA256
+`52389e32326c0b5359e24367dfb49032277c94478fd84821b8e395de7c4e7a28`, and schema SHA256
+`a2f07d927c2c181ad29b58d705d62e4db4df165a8cad5cd26c13143dadc72b5d` bind the consumed contract.
+The four controlled in-memory Manage/Report dataset examples are retained as compact JSON under
+`tests/fixtures/composite-amendment-v6/`; compact encoding changes raw hashes while preserving
+parsed JSON, source scalars and all independently verified response digests. The supplier schema
+bytes remain exact. These inputs are `source_contract` evidence, not native producer execution.
+
+The additive golden and client example use a Render-authored test envelope around the published
+definition-v2 dataset. Its unit job/snapshot/revision identities and opaque digest placeholders
+are component fixtures, never claimed to be Report-emitted packages. Component workbook and
+registered HTTP/SQLite tests establish consumer behavior, refusal effects, replay and rerender.
+Actual Report API/PG/fresh-worker package emission, joined Render/Archive delivery/recovery,
+authenticated source authority and financial amendment qualification remain separate gates.
+Report currently declines v6 rendering until both receivers advertise support; this avoids an
+implementation dependency cycle without promoting fixture proof into runtime proof.
+
+V1-v5 layouts, manifests, producer examples and banked artifacts remain unchanged. Existing
+literal storage, request/physical workbook limits and support-safe diagnostics are reused.
+Wiki source changes with this increment and must be published after its normal protected merge.
+
 ## Pooled v5 consumer increment (#352)
 
 The separate `composite_review.v5` / `composite-review v5` axis consumes seven immutable Report

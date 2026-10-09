@@ -111,9 +111,14 @@ def _artifact_identity(package: RenderPackage, template_digest: str) -> LiteralT
         "disclosure_refs": package.disclosure_refs,
         "render_context": package.render_context,
     }
-    if package.template_version == "v4":
+    if package.template_version in {"v4", "v6"}:
         fields["display_rounding"] = (
             "Declared column decimal places; HALF_UP; source ratios remain ratios"
+        )
+    if package.template_version == "v6":
+        fields["calculation_boundary"] = (
+            "Source-correction eligibility evidence only; no TWR, MWR, dispersion, "
+            "contribution or model-fee calculation. CONTROLLED / NOT_ATTESTED."
         )
     return LiteralTable(
         "ArtifactIdentity",

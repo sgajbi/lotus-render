@@ -2,9 +2,9 @@
 
 ## Current scope
 
-Current scope: separate RPT01 `composite-review v1`, `v2`, `v3`, `v4` and `v5` XLSX suppliers use active development
-manifests, matching exact Report-owned `composite_review.v1` through `composite_review.v5` and XlsxWriter 3.2.9.
-Their source graphs are `templates/xlsx/composite-review/v1`, `v2`, `v3`, `v4` and `v5`, each with
+Current scope: separate RPT01 `composite-review v1`, `v2`, `v3`, `v4`, `v5` and `v6` XLSX suppliers use active development
+manifests, matching exact Report-owned `composite_review.v1` through `composite_review.v6` and XlsxWriter 3.2.9.
+Their source graphs are `templates/xlsx/composite-review/v1`, `v2`, `v3`, `v4`, `v5` and `v6`, each with
 `shared_design_version=none`; digest validation covers each complete graph. V1 bytes and retained
 semantics stay fixed. V2 adds captured calendar/trailing return tables with strict source-product
 authority. V3 adds seven complete source-owned linked-analysis tables, distinct factor/count units
