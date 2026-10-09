@@ -10,8 +10,9 @@ products are never relabelled or rewritten. The ordered predecessor chain must t
 original v1 receipt. Current and retained corrections preserve the approved policy and expected
 population; published corrections bind the parent publication and its full response digest.
 Amendment row order follows the frozen DTO field order, not JSON insertion order, so sorted
-PinnedData reconstruction remains admissible. Whole retained products and extra approved source
-metadata remain in PinnedData under the existing physical limits and literal writer.
+PinnedData reconstruction remains admissible. Row IDs retain the month index and the global
+Amendments table row ordinal; the ordinal continues across months. Whole retained products and
+extra approved source metadata remain in PinnedData under the existing physical limits and literal writer.
 
 V6 is eligibility evidence only: it supplies no TWR, MWR, dispersion, contribution or model-fee
 calculation and cannot inherit v5 financial authority. The golden/client envelope is explicitly

@@ -15,10 +15,12 @@ def amendment_data(version: str = "v2", kind: str = "published") -> dict[str, An
     return data
 
 
-def unit_amendment_package(version: str = "v2", kind: str = "published") -> dict[str, Any]:
+def unit_amendment_package(
+    version: str = "v2", kind: str = "published", *, dataset: dict[str, Any] | None = None
+) -> dict[str, Any]:
     """Artificial Render test envelope, never an emitted Report package."""
     package = producer_package()
-    data = amendment_data(version, kind)
+    data = amendment_data(version, kind) if dataset is None else dataset
     package.update(
         template_version="v6", report_data_contract_version="composite_review.v6", report_data=data
     )

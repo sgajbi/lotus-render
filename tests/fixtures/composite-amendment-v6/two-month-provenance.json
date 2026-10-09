@@ -1,0 +1,17 @@
+{
+  "evidence_class": "retained_report_dataset",
+  "classification": "REGISTERED_REPORT_IN_PROCESS_ASGI_WORKER_SQLITE_WITH_CONTROLLED_IN_MEMORY_MANAGE_DOMAIN_SOURCE",
+  "report_main": "d4e237028c0320cc0afa2991211152d6b1dba4d5",
+  "manage_main": "545269b3d356630680da7c692d90613a5c28f99c",
+  "supplier_proof_sha256": "1ca5d70e7c6b016dc3e8762f7211828a901bb6f28de8c1b29b691fd2af17a039",
+  "supplier_dataset_sha256": "51dfc5998461d313781416e921d7c8095b27ed1b4b4ffb1faec35c3da16d940e",
+  "supplier_request_sha256": "5dbcee61968e34dcb2547ff95df04190873ec4b04bb43d3f9fcbb452f9e33a29",
+  "supplier_api_response_sha256": "1a5061700400a19017bd9c593a1e16a444e867f3226edb6c92ee3b51dc00bb29",
+  "file": "two-month-retained-report-dataset.json",
+  "compact_fixture_sha256": "9f51222e0c84f5b51b34cc9bc5f4e78918f379b56257d73d478c0732da49dca0",
+  "encoding": "compact_json_semantically_equal_to_supplier_dataset",
+  "months": ["2026-09", "2026-10"],
+  "amendment_month_first_row_ids": ["m0:a0", "m1:a34"],
+  "amendment_month_row_counts": [34, 34],
+  "limits": "Controlled Manage domain source; no source TCP, PostgreSQL, actual Report-emitted XLSX package, native producer campaign or joined custody qualification. Render test envelope is artificial."
+}

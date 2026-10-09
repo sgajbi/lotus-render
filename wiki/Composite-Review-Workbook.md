@@ -33,6 +33,8 @@ contribution or model-fee calculation. Its nine tables preserve the existing eli
 an Amendments view of correction bindings, reasons, evidence and retained predecessor/original
 receipts. Full source products and extra approved metadata remain in PinnedData; CellEvidence
 retains each source pointer. Operational ratios remain ratios with no percentage conversion.
+Amendment row IDs combine the month index with a table-wide ordinal that continues across months;
+typed source field order and source array order remain stable during pinned JSON replay.
 
 The explicit selector requires `selection_version=v2`. Monthly proposal/approval/receipt source
 version v2 and definition product v1/v2 are independent. Ordered lineage must terminate at the

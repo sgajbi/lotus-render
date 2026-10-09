@@ -23,6 +23,17 @@ The four controlled in-memory Manage/Report dataset examples are retained as com
 parsed JSON, source scalars and all independently verified response digests. The supplier schema
 bytes remain exact. These inputs are `source_contract` evidence, not native producer execution.
 
+The two-month regression retains a separate Report dataset from main
+`d4e237028c0320cc0afa2991211152d6b1dba4d5`: registered in-process ASGI submission, worker/SQLite
+retention and retrieval, using controlled Manage domain sources. Supplier dataset SHA256 is
+`51dfc5998461d313781416e921d7c8095b27ed1b4b4ffb1faec35c3da16d940e`; proof SHA256 is
+`1ca5d70e7c6b016dc3e8762f7211828a901bb6f28de8c1b29b691fd2af17a039`.
+`two-month-provenance.json` records compact fixture and request/response pins. September and October
+each have 34 Amendments rows; the second month starts at `m1:a34`, continuing the table-wide ordinal.
+Consumer tests prove complete admission, refusal of month-local IDs, workbook evidence and sorted
+JSON reconstruction. This adds no source TCP, PostgreSQL, emitted Report package or joined custody
+claim; the workbook envelope remains Render-authored component data.
+
 The additive golden and client example use a Render-authored test envelope around the published
 definition-v2 dataset. Its unit job/snapshot/revision identities and opaque digest placeholders
 are component fixtures, never claimed to be Report-emitted packages. Component workbook and
