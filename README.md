@@ -8,7 +8,7 @@ made it.
 It holds no client, portfolio or advisory data of its own, and fetches none. The package is the
 whole input.
 
-Composite XLSX has exact v1/v2/v3/v4/v5 template and data-contract axes. V3 presents pinned source-owned
+Composite XLSX has exact v1/v2/v3/v4/v5/v6 template and data-contract axes. V3 presents pinned source-owned
 linked contributions and factors without recalculation, with complete source and custody identity.
 Its seven tables preserve canonical decimal text and distinguish factors, returns, money and counts.
 V2 presents supplied captured
@@ -24,6 +24,12 @@ V5 presents retained Performance-owned pooled analysis, including unavailable ou
 elected fallback and complete correction predecessor evidence. It preserves supplied results and
 diagnostics without solving returns. Seven frozen Report worker packages support independent XLSX
 and registered HTTP/SQLite consumer checks; live source and Archive acceptance remain open.
+V6 separately presents monthly eligibility source-correction evidence, retaining predecessor and
+original receipts and the pinned parent publication. It supplies no TWR, MWR, dispersion,
+contribution or model-fee calculation. Its golden uses a Render-authored component envelope around
+frozen controlled Report datasets; actual Report package emission and joined Archive acceptance
+remain integration gates. Qualification is `CONTROLLED_MONTHLY_SOURCE_AMENDMENT_REPLAY`,
+`NOT_ATTESTED`, development.
 The recorded [R5 custody qualification](https://github.com/sgajbi/lotus-render/wiki/Composite-Review-Workbook#controlled-r5-custody-qualification)
 covers actual original/correction/retained-original HTTP delivery and independent restart reads;
 its frozen source replay and development publication boundary remain explicit.

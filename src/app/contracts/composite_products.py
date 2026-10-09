@@ -4,6 +4,7 @@ from typing import Annotated, Any, Literal
 
 from pydantic import Field
 
+from app.contracts.composite_amendment import CompositeAmendmentContent
 from app.contracts.composite_eligibility import CompositeEligibilityContent, EligibilityTable
 from app.contracts.composite_linked import CompositeLinkedContent, LinkedTable
 from app.contracts.composite_pooled import CompositePooledReportData, PooledTable
@@ -69,5 +70,6 @@ CompositeContent = (
     | CompositeLinkedContent
     | CompositeEligibilityContent
     | CompositePooledReportData
+    | CompositeAmendmentContent
 )
 CompositeOutputTable = CompositeTable | ProductTable | LinkedTable | EligibilityTable | PooledTable

@@ -148,6 +148,21 @@ INVALID_TENANT_RESPONSE = _error_response(
                                 "src/app/contracts/examples/composite-review-render-package.v5.json"
                             ),
                         },
+                        "composite_amendment_xlsx_package": {
+                            "summary": (
+                                "Controlled v6 eligibility source correction; component fixture"
+                            ),
+                            "description": (
+                                "Eligibility evidence only; supplies no TWR, MWR, dispersion, "
+                                "contribution or model-fee calculation. This controlled component "
+                                "example is not a Report-emitted worker package "
+                                "or joined custody proof."
+                            ),
+                            "externalValue": (
+                                "https://raw.githubusercontent.com/sgajbi/lotus-render/main/"
+                                "src/app/contracts/examples/composite-review-render-package.v6.json"
+                            ),
+                        },
                         "composite_eligibility_xlsx_package": {
                             "summary": (
                                 "Controlled v4 eligibility and revision history; "

@@ -5,6 +5,7 @@ import re
 from collections.abc import Mapping
 from typing import Any
 
+from app.contracts.composite_amendment import CompositeAmendmentContent
 from app.contracts.composite_eligibility import CompositeEligibilityContent
 from app.contracts.composite_linked import CompositeLinkedContent
 from app.contracts.composite_pooled import CompositePooledReportData
@@ -20,6 +21,8 @@ from app.contracts.composite_review import (
     CompositeTable,
 )
 from app.contracts.composite_selection import CompositePinnedSelection
+from app.services.composite_workbook.amendment_source import validate_amendment_source
+from app.services.composite_workbook.amendment_tables import validate_amendment_tables
 from app.services.composite_workbook.eligibility_source import validate_eligibility_source
 from app.services.composite_workbook.eligibility_tables import validate_eligibility_tables
 from app.services.composite_workbook.linked_source import validate_linked_source
@@ -148,6 +151,13 @@ def _validate_row(
 
 
 def validate_dataset(dataset: dict[str, Any]) -> CompositeContent:
+    if dataset.get("contract_version") == "composite_review.v6":
+        amendment = CompositeAmendmentContent.model_validate_json(
+            json.dumps(dataset, allow_nan=False)
+        )
+        validate_amendment_source(amendment, dataset)
+        validate_amendment_tables(amendment, dataset)
+        return amendment
     if dataset.get("contract_version") == "composite_review.v5":
         return CompositePooledReportData.model_validate_json(json.dumps(dataset, allow_nan=False))
     if dataset.get("contract_version") == "composite_review.v4":

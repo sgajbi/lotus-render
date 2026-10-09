@@ -1,0 +1,25 @@
+{
+  "evidence_class": "source_contract",
+  "source_handoff_sha256": "904d0d2cfcc9403ad4e44530cf496475a3fe84fdd5648c1d129bbb4206aae194",
+  "source_zip_sha256": "52389e32326c0b5359e24367dfb49032277c94478fd84821b8e395de7c4e7a28",
+  "encoding": "compact_json_semantically_equal_to_pinned_supplier_examples",
+  "qualification": "Controlled in-memory Manage/Report examples; not native API/PG/fresh-worker or joined runtime proof",
+  "entries": [
+    {
+      "file": "composite-review.v6.definition-v1.evaluated.expected.json",
+      "compact_fixture_sha256": "09b3241c5f2e9bea3cd99460785a35dbf74045c6369f067af733f207a2d973f1"
+    },
+    {
+      "file": "composite-review.v6.definition-v1.published.expected.json",
+      "compact_fixture_sha256": "e565bbca62669812a42cc785cd66b14073939cb0605f20c62b7cf4378d1c73e8"
+    },
+    {
+      "file": "composite-review.v6.definition-v2.evaluated.expected.json",
+      "compact_fixture_sha256": "cab5a99921a713aecbe7cebe602af773116164cfb04876147809d6e399cfee79"
+    },
+    {
+      "file": "composite-review.v6.definition-v2.published.expected.json",
+      "compact_fixture_sha256": "a1ce83bdede45e2a7e53b03e9c2c73899b9bfce9e04ee3fb2aee4169de4c70d2"
+    }
+  ]
+}
