@@ -14,6 +14,7 @@ from app.domain.rendering.models import RenderDiagnostic, RenderResult
 from app.domain.templates.digest import template_digest
 from app.domain.templates.registry import TemplateRegistryError, template_source_directories
 from app.services.composite_workbook import literal_writer
+from app.services.composite_workbook.fingerprint import workbook_content_fingerprint
 from app.services.composite_workbook.literal_writer import write_literal_workbook
 from app.services.composite_workbook.projection import workbook_tables
 from app.services.composite_workbook.source_cells import validate_dataset
@@ -105,11 +106,12 @@ class CompositeWorkbookRenderService:
             status="rendered",
             determinism_mode="bounded",
             determinism_statement=(
-                "Exact XLSX bytes for the same package, approved layout and pinned XlsxWriter "
-                "runtime. Fixed 2000-01-01 metadata; canonical source and display cells "
-                "are literal text."
+                "Exact package-member names and payloads under composite-xlsx-members/v1 "
+                "for the same package, layout and pinned XlsxWriter. ZIP container metadata "
+                "and compression may vary by host; raw artifact SHA names actual custody bytes. "
+                "Fixed 2000-01-01 workbook metadata; literal canonical and display text."
             ),
-            bounded_determinism_fingerprint=sha256,
+            bounded_determinism_fingerprint=workbook_content_fingerprint(artifact),
             template_digest=digest,
             template_publication=manifest.publication.value,
             artifact_sha256=sha256,

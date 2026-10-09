@@ -141,6 +141,9 @@ def write_literal_workbook(
                 # literal OOXML escape-shaped identifiers. Aggregate text/cell
                 # limits bound the in-memory dictionary, not just the final ZIP.
                 "constant_memory": False,
+                # StringIO serialization emits identical XML line endings on
+                # Windows and Linux. The same aggregate bounds cover these buffers.
+                "in_memory": True,
                 "strings_to_formulas": False,
                 "strings_to_urls": False,
                 "strings_to_numbers": False,

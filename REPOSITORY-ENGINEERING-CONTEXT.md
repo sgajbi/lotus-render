@@ -31,6 +31,10 @@ workbook parsing and source/canonical/display reconciliation, rather than PDF im
 Qualification remains `EXPLICIT_RETAINED_CALCULATED_REPLAY`, `NOT_ATTESTED`; active/development
 does not imply client publication. Archive's existing handoff receives exact bytes and exclusive
 composite scope; Archive owns custody and download validation.
+XLSX bounded determinism uses the versioned `composite-xlsx-members/v1` domain and unambiguous
+sorted member-name/payload length framing. Raw ZIP SHA/size remains truthful custody identity;
+container host metadata/compression may differ across platforms. The writer uses bounded in-memory
+XML serialization to avoid platform line-ending drift without normalizing any source/cell content.
 
 `lotus-render` implements the RFC-0102 render-service side for the first-wave portfolio review PDF
 flow. The repository contains the dedicated render-service runtime baseline, explicit render-attempt
