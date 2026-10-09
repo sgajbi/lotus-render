@@ -1,7 +1,8 @@
 # Composite review qualification ledger
 
-This ledger records the bounded Render v2 supplier and custody qualification owned by
-[issue #344](https://github.com/sgajbi/lotus-render/issues/344). Its scope is controlled genuine
+This ledger records bounded Render v2 and v3 supplier and custody qualification owned by
+[issue #344](https://github.com/sgajbi/lotus-render/issues/344) and
+[issue #347](https://github.com/sgajbi/lotus-render/issues/347). Its scope is controlled genuine
 captured Performance replay / NOT_ATTESTED. Report #417, Platform #923, all twelve products and
 enterprise qualification remain open. Completed v1 issues #338, #340 and #342 remain closed.
 
@@ -98,7 +99,125 @@ Independent rerender reproduces the retained original byte-for-byte. The origina
 fingerprint is `974ed8bdf7d645faf3087ad3a01cc825f9461cb8282e81b09e0f7ac27ea477fa`.
 
 This is genuine producer-fixture evidence under controlled v3 capability and Render503 producer
-boundary. Actual joined HTTP custody and qualified merged-main evidence remain separate pending
-work. It neither changes the sealed R5 campaign above nor confers official source attestation,
+boundary. At fixture capture, actual joined HTTP custody and qualified merged-main evidence were
+pending; the separate R6 evidence below records their later qualification. This fixture evidence
+neither changes the sealed R5 campaign above nor confers official source attestation,
 client publication or enterprise certification. The source/custody schema copies and client example
 retain their exact packet bytes. Wiki changes cover the new version, dictionary and qualification.
+
+## Controlled R6 linked-analysis qualification
+
+Phase `composite-linked-http-20261009-r6` exercises the existing registered Report PostgreSQL
+producer, Render API and Archive HTTP custody over the frozen accepted Performance original and
+corrected source pair. The financial source manifest remains
+`d397d25d1884940fe2cbfdeb363d74083a8221c73d49b9da18c72d326c78b391`; no new financial capture or
+investment calculation occurs in Render. Qualification remains controlled calculated replay,
+`NOT_ATTESTED`, with local trusted headers and development template publication.
+
+| Owner | Actual qualified runtime main |
+|---|---|
+| Report | `7fc0dbc6ce3a81fedb9bcf3d9b6e5ec22cd03648` |
+| Render | `535d0d5f87fd2f8bd701ba8707b343022060d030` |
+| Archive | `f75adf60873b06ae4cea90fff8ebf4ac21cb5faa` |
+
+Render's tested tree is `d08c395c4f288ac67e02858d5f2623ba712f87df`, matching signed source
+`05d527f85a2385aab08484d26580b7a38eb5f467` (`G`, GitHub verified). Its normal protected rebase main
+is unsigned (`N`). [PR #348](https://github.com/sgajbi/lotus-render/pull/348) delivers the v3
+consumer; [PR #349](https://github.com/sgajbi/lotus-render/pull/349) makes declared scale and rounding
+policy mandatory, matching the sealed Report schema. Omitted-policy controls failed before the fix
+and passed afterwards; valid v1/v2/v3 workbook bytes remain unchanged. Natural dispatcher
+`37921416407` qualified the exact tested main in all eight jobs of release run `37921433994`.
+
+Archive started under the preceding Render cohort and retained that startup history. An appended
+replacement-cohort binding, independently intaken before Render allocation, authorizes future
+producer intake against `535d0d5`; it does not rewrite which Render revision existed at Archive
+startup. Render reserved its fresh SQLite path and loopback process lease before first database
+use. No R5 resources or evidence were reused.
+
+The sealed producer collector contains 52 files; manifest SHA256 is
+`25a991954fcaed28a76f82daace59471cc362855a84e4a9b4b4b26662009d2bb`. Every raw file hash and the
+complete inventory were independently checked. Its three packages match actual persisted
+`rendered` / `archived_verified` Render jobs and Archive document identities. The resumed original
+uses its retained Report PostgreSQL snapshot without another source call or Render submission;
+the complete chain records two source calls and three Render submissions.
+
+| Artifact | Bytes | Raw SHA256 |
+|---|---:|---|
+| Original | 26,513 | `4becf3da6d37f11aac6c103c7589f374be04eec153ea1d5a0b203e3d2082ee25` |
+| Financial correction | 26,160 | `4f35b62ca59228fef7a7bf8c803059fcdf2efaaa34c1c517bfa991ed033fbd69` |
+| Retained-original rerender | 26,537 | `b5670f0dbb29eb527c17990a3b69a8783fadc94c07e571e2218dff3afe3ac31e` |
+
+Native Render reconciliation `f05d42/0`, receipt SHA256
+`78708bef6f1e040d0769c4b007680cfc5d30ce96b17a08c0d23cf911168430f6`, independently checks all 115
+canonical cells, 115 display cells and 40 column policies in each workbook, the entire pinned
+dataset and exact job/snapshot/revision/lineage/disclosure/context identity. There are no formulas
+or hyperlinks. The source-controlled display controls are original 3.02%, correction 4.04% and
+retained original 3.02%. The retained rerender preserves original facts and revision; its new
+technical render identity gives it a distinct truthful artifact hash.
+
+Root's independent raw OOXML reader and adversarial workbook controls also accepted all three
+artifacts. Native live acceptance `4dd41e/0`, receipt SHA256
+`fa1e344096e6fdc0aac094b0caa724bfac7a7e77323608016cfce8b32c322822`, includes all file vectors,
+fresh Report PostgreSQL reads of all 14 public tables, two retained source calls and 15 actual
+Archive HTTP reads. Financial and relationship rows stayed unchanged; authorized access audit
+rows appended as expected. Archive current identity follows explicit O-to-T-to-C correction
+relationships, without timestamp promotion or revision reissue.
+The [public producer evidence](https://github.com/sgajbi/lotus-report/issues/417#issuecomment-6080034790)
+records the actual three-artifact chain. Existing hash-bound client/OpenAPI/golden examples retain
+their original producer-fixture provenance; this later campaign does not relabel those examples
+as its runtime inputs or replace their retained bytes.
+
+### Render isolated restore
+
+Native `024edb/0` creates an integrity-checked consistent SQLite backup of the three terminal jobs,
+SHA256 `e58736fe90186599470ed72612e625b85e09e2148beb84e67849f25531b885e1`. After Root live acceptance,
+a fresh process restores it into a separate SQLite file and opens the normal registered application.
+Native `c2b526/0`, receipt SHA256
+`495974036a550118a5fc7508335db5e0bd6f34b4fda7afdab47c6596951e2490`, verifies integrity, three
+authorized status/hash/identity and artifact-metadata readbacks, and three foreign-tenant 404s.
+Archive calls and external connection attempts are zero; the exact live Render process is retained.
+The primary database and WAL hashes remain unchanged. No live SQLite overwrite or Render process
+restart is claimed.
+
+Fresh read-only comparison `87924d/0`, receipt SHA256
+`40cc4e7e79f641e84a432ef8841f2897a3d5fe8c9799f897160abaf609374943`, verifies the complete SQLite
+schema and every value in all 37 columns of all three restored rows against the backup after the
+registered reads. The logical-store SHA256 is
+`4970f54babc66fd7d538522b45ed5fa94c753d80586a50397a3d2aa2b5371d1c`.
+
+The first isolated attempt stopped before API checks because its network guard also blocked the
+Windows asyncio control socket. That failed copy is preserved and excluded from acceptance. The
+corrected guard allows only the exact standard-library fallback socket-pair loopback connection.
+Native `f195e0/0`, receipt SHA256
+`a9bbca4730c82f5d7c6d3fdb5a9b060914cf086d497077b613fa2ddb63379cee`, proves a deliberate Archive-port
+connection refuses before OS I/O, while the successful restore records its permitted asyncio
+control connection. No financial or restore campaign is repeated for this premise control.
+
+### Independent restore acceptance and owned Render retirement
+
+Root post-restore acceptance `f6f8eb/0`, receipt SHA256
+`373a5aa3f8acc99ff5751a5b50fea7232dade84cfb63c18e53d0f16bab65dffc`, independently reopens the
+Render backup/restored SQLite read-only, checks integrity, the complete schema and all 37 columns
+of all three rows, and confirms the live primary bytes stayed unchanged. It also accepts the
+Report fourteen-table restore and Archive restored PostgreSQL/copy-object bytes. These are isolated
+support-evidence rehearsals; no production authentication, bank authority or recovery-time
+certificate is implied.
+
+After the exact owned-process retirement release, native `24c730/0` rechecks clean tested source,
+recorded process generations, zero in-flight jobs and all three actual HTTP status/hash readbacks.
+It takes a final consistent SQLite backup, integrity `ok`, SHA256
+`e58736fe90186599470ed72612e625b85e09e2148beb84e67849f25531b885e1`, identical to the earlier backup.
+Retirement receipt SHA256 is
+`1463f031671c044bd8057d215f013f4e528bab9cbce0cc43fae365c3f2ac8634`.
+Only Render's recorded listener `39788`, wrapper `122816` and owned console `126776` are stopped;
+all are absent and loopback listener `55888` is absent. Final logs, both consistent backups,
+isolated restored copies, failed diagnostics, three actual workbooks/packages and all acceptance
+receipts are retained. No Render process restart, foreign resource modification or R5 cleanup
+occurred. Native `ebb62a/0` proves false retirement authorization and a foreign PID scope refuse
+before backup or stopping a process.
+
+This section records the tested runtime revision. A documentation successor does not retroactively
+attribute runtime evidence to its own commit. Completed v1/v2 acceptance and sealed R5 evidence
+remain unchanged. Report #417, Platform #923, all twelve report products, institutional attestation,
+client publication, production authentication and enterprise performance/recovery certification
+remain open.

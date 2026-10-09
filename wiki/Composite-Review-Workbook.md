@@ -5,8 +5,9 @@ Current scope: RPT01 XLSX v1, v2 captured calendar/trailing returns and v3 pinne
 Archive custody does not confer official or client-publication authority. Remaining report families
 and enterprise qualification stay open.
 
-Use the version/pointer dictionary below, [R5 custody evidence](#controlled-r5-custody-qualification)
-for independent restart/retirement proof, and [verification](#reproducible-verification) for checks
+Use the version/pointer dictionary below, [R5 custody evidence](#controlled-r5-custody-qualification),
+[R6 linked-analysis evidence](#controlled-r6-linked-analysis-qualification), and
+[verification](#reproducible-verification) for checks
 and the separate fixture/profile boundaries.
 
 ## Versioned calendar and trailing products
@@ -128,6 +129,51 @@ controlled synthetic source, v3 capability and captured Render503 boundary are e
 proof. Registered Render API tests independently reconcile both workbooks and reproduce the retained
 original byte-for-byte; this fixture evidence does not claim actual joined HTTP or institutional
 qualification. Existing R5 evidence below remains the separate v1/v2 campaign.
+
+## Controlled R6 linked-analysis qualification
+
+Phase `composite-linked-http-20261009-r6` uses the registered Report PostgreSQL producer and actual
+Render/Archive HTTP clients with the accepted frozen Performance original/corrected pair. Render
+runtime main `535d0d5f87fd2f8bd701ba8707b343022060d030` passed all eight natural release jobs in
+run `37921433994`. Its committed tree matches signed source `05d527f85a2385aab08484d26580b7a38eb5f467`;
+normal protected rebase main remains unsigned. The exact runtime and receipt identities are in the
+[qualification ledger](https://github.com/sgajbi/lotus-render/blob/main/docs/composite-review-qualification-ledger.md#controlled-r6-linked-analysis-qualification).
+
+The 52-file producer collector and all three actual workbook/package pairs are sealed by raw hash.
+Each original, financial-correction and retained-original workbook independently reconciles all
+115 canonical cells, 115 display cells, 40 column policies, full pinned source and exact
+job/snapshot/revision/lineage/disclosure/context identity. No formulas or hyperlinks occur. The
+original and retained display 3.02%; the correction displays 4.04%. Retained-original facts and
+revision remain equal to the original; its new technical render identity yields a distinct artifact
+hash. These actual HTTP artifacts are separate from the earlier Render503 producer fixtures.
+
+Root's independent raw OOXML checks and actual Archive metadata/download/foreign-tenant reads
+accept the three artifacts and explicit original-to-technical-to-financial correction chain.
+Authorized reads append access audit while retained financial and relationship rows stay fixed.
+Native live acceptance is `4dd41e/0`, receipt SHA256
+`fa1e344096e6fdc0aac094b0caa724bfac7a7e77323608016cfce8b32c322822`.
+The [public producer evidence](https://github.com/sgajbi/lotus-report/issues/417#issuecomment-6080034790)
+records the actual chain. Existing client/OpenAPI/golden examples keep their hash-bound fixture
+provenance and bytes; this campaign does not relabel them as its actual HTTP inputs.
+
+Render's consistent SQLite backup has integrity `ok`. A fresh process restores it into a separate
+file and the registered app reads all three status/hash identities and artifact metadata, with three
+foreign-tenant 404s and zero Archive connections. Every value in all 37 persisted columns and the
+full schema match the backup after those reads. Primary database/WAL hashes and the live Render
+process remain unchanged; no live Render restart or overwrite is claimed. The ledger records the
+isolated restore, full-store comparison and network-guard premise receipts.
+Root post-restore acceptance `f6f8eb/0`, receipt SHA256
+`373a5aa3f8acc99ff5751a5b50fea7232dade84cfb63c18e53d0f16bab65dffc`, independently accepts the
+isolated retained-store comparisons. Following its exact owned-process retirement release,
+Render takes a final integrity-checked backup and stops only recorded PIDs `39788`, `122816`,
+`126776`; all are absent and port `55888` has no listener. Native `24c730/0` retains the three
+actual artifacts/packages, backup/restore copies, logs and failed diagnostics. No foreign or R5
+resources change; full receipts and hashes are in the ledger.
+
+Qualification remains calculated replay, `NOT_ATTESTED`, development template publication and
+local trusted headers. The documentation successor is distinct from the tested runtime. No new
+financial capture, source calculation, bank authority, enterprise authentication, RTO certification
+or full Report #417 / Platform #923 closure is conferred. Existing R5 and v1/v2 evidence stays fixed.
 
 ## Admission and ownership
 

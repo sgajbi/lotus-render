@@ -18,6 +18,10 @@ supplier slices. See [Composite Review Workbook](https://github.com/sgajbi/lotus
 The recorded [R5 custody qualification](https://github.com/sgajbi/lotus-render/wiki/Composite-Review-Workbook#controlled-r5-custody-qualification)
 covers actual original/correction/retained-original HTTP delivery and independent restart reads;
 its frozen source replay and development publication boundary remain explicit.
+The separate [R6 linked-analysis qualification](https://github.com/sgajbi/lotus-render/wiki/Composite-Review-Workbook#controlled-r6-linked-analysis-qualification)
+records three actual v3 artifacts, full source/canonical/display reconciliation and a fresh isolated
+Render SQLite restore with the primary store unchanged. Controlled replay and `NOT_ATTESTED`
+remain explicit; broader Report and enterprise acceptance remain open.
 
 Producers discover each version's registry-owned `supported_output_formats` through the existing
 `GET /system/templates`, then also check `/metadata` runtime capability and supportability.
