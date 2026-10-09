@@ -363,6 +363,19 @@
       "producer_source_paths": ["src/app/composite_reporting/eligibility_tables.py", "src/app/composite_reporting/render_package.py"],
       "provenance": "Exact registered Report API/worker/SQLite package SHA2566658fbc94eff3a076292a54b41e1261709629ea54dd4aed2590327e8461a7f4a, receipt ef92abea6141e09575684b23e2e680922323983da0c95b9405ca8201cee59186. Actual controlled captured Manage795 native TCP/PostgreSQL bodies replayed through 15 controlled transport reads; genuine definition v2 and three monthly published receipts/history. Report deliberately returns Render503. Consumer artifact independently reconciles all460 semantic cells/58 policies/full pinned data/context. Synthetic unsigned/trusted-ingress source, offline consumer proof only; no authenticated joined source network, Archive, clean-main runtime or bank authority claim. Existing legacy fixtures remain unchanged.",
       "bounded_determinism_fingerprint": "9ef5b3ed6a9535b857438bc0949d99505459ef293a079a318749b9f199383bb3"
+    },
+    {
+      "template_id": "composite-review",
+      "template_version": "v5",
+      "golden_sample_id": "golden-composite-review-en-SG-private-banking-v5",
+      "report_data_contract_version": "composite_review.v5",
+      "output_format": "xlsx",
+      "package_path": "tests/golden/composite-review/v5/render-package.json",
+      "expected_artifact_path": "tests/golden/composite-review/v5/expected.xlsx",
+      "producer_repository": "sgajbi/lotus-report",
+      "producer_source_paths": ["src/app/composite_reporting/pooled_contract.py", "src/app/composite_reporting/pooled_tables.py"],
+      "provenance": "Exact Report worker package 13516687f3c283cadffefb6bf4a330448767ed281875dc3b16c3d6e92ac265c7 from immutable candidate de686fd67e3582934c851cd371e28c7c8c68d88d, packet 67a5da54d746051b5318cf8d856f804b4e8d3daa05cd3418e2e5aff0ee4cd87f. Report production implementation subsequently merged at 4af947726dab91adec94b098fa9985d5bd6f15f6. Recorded Performance source replay via Report API/native worker/SQLite and declining Render503; no live source principal, Archive acceptance or institutional authority claim. Seven original producer packages retained separately; existing fixtures unchanged.",
+      "bounded_determinism_fingerprint": "0d14622e0d9552813b37764e70932f801c4c85b42767e27716934160a7feae58"
     }
   ]
 }

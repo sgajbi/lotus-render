@@ -1,5 +1,20 @@
 # Repository Engineering Context
 
+## Pooled composite consumer practice
+
+Separate `composite-review v5` consumes only `composite_review.v5`. The `composite_pooled*`
+contracts and `pooled_*` workbook modules independently validate retained source selection,
+population, raw bodies, outcomes, exact table recipe and correction predecessor. They never run
+XIRR, Modified Dietz, fee or amendment calculations. Full source evidence includes additive JSON
+leaves. `capacity.py`, `custody.py` and `numeric_display.py` are shared with v4 after their second
+consumer; the literal writer, finite resource limits and v1-v4 assets remain fixed.
+
+Seven immutable producer packages under `tests/fixtures/composite-pooled-v5/` preserve candidate
+`de686fd67e3582934c851cd371e28c7c8c68d88d`, qualified packet and byte provenance. Report implementation
+merged at `4af947726dab91adec94b098fa9985d5bd6f15f6`; that does not repin historical fixtures.
+Use `tests/unit/test_composite_pooled*.py` and `tests/e2e/test_composite_pooled_journey.py` for bounded
+consumer proof. See `docs/composite-review-qualification-ledger.md` for authority limits.
+
 ## Repository Role
 
 `lotus-render` is the Lotus document rendering service. It owns deterministic report rendering from

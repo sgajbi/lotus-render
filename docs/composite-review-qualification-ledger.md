@@ -6,6 +6,41 @@ This ledger records bounded Render v2 and v3 supplier and custody qualification 
 captured Performance replay / NOT_ATTESTED. Report #417, Platform #923, all twelve products and
 enterprise qualification remain open. Completed v1 issues #338, #340 and #342 remain closed.
 
+## Pooled v5 consumer increment (#352)
+
+The separate `composite_review.v5` / `composite-review v5` axis consumes seven immutable Report
+worker packages: original and corrected AVAILABLE, ambiguous NOT_CALCULABLE, elected
+FALLBACK_ANALYSIS, one-sided NOT_CALCULABLE, work-limit NOT_CALCULABLE and zero NOT_CALCULABLE.
+Exact package hashes and byte counts are retained in
+`tests/fixtures/composite-pooled-v5/provenance.json`; gzip encodings preserve original raw bytes.
+The original package is also the client/OpenAPI and additive golden input. Existing v1-v4
+manifests, layouts, package and expected-artifact assets are unchanged.
+
+Producer candidate `de686fd67e3582934c851cd371e28c7c8c68d88d` and packet SHA256
+`67a5da54d746051b5318cf8d856f804b4e8d3daa05cd3418e2e5aff0ee4cd87f` remain immutable.
+Report PR431 merged implementation at `4af947726dab91adec94b098fa9985d5bd6f15f6`, independently
+qualified against natural CI run `37960050194`. The recorded Performance source revision is
+`98a4befee87905fe202b72f62ceb5169a081dab7`. The committed LF schema SHA256 is
+`d067fd9b356a882c0ea24b4c9ba2738f7f179883bc0e7afd4c76f950ed0944ce`; checkout CRLF schema SHA256 is
+`b9e8033b3637bc8799acfba972346f007aa1c31ff042e8b875b38dfdbcf8974d`. Decoded JSON equality is
+qualified separately from raw-byte identity.
+
+Consumer proof independently reconciles all visible cells, canonical evidence, policies, pointers,
+complete pinned source and custody identity with openpyxl. Physical capacity accounting is compared
+against every emitted workbook cell and repeated partition header; exact measured limits pass and
+one-below limits fail. Semantic refusals recompute transport digests to reach scope, population,
+raw-body, outcome, solver disposition, fallback, predecessor and table guards. Registered
+in-process HTTP/SQLite tests cover all seven outcomes, retry, reopened lookup, foreign tenant and
+no artifact/Archive effects on invalid evidence. Shared v4/v5 capacity, custody and decimal display
+preserve existing v4 checks and source spelling; Render does not solve financial returns.
+
+Qualification remains `EXPLICIT_RETAINED_CALCULATED_REPLAY`, `NOT_ATTESTED`, development. Producer
+evidence used recorded Performance bodies, Report API/native worker/SQLite and declining Render503.
+This increment establishes bounded consumer behavior, not live Performance principal/PostgreSQL,
+joined Archive acceptance, institutional authority, enterprise IAM or monthly amendment closure.
+Issue #352 remains open for broader acceptance. No new runtime campaign or R7 rerun is part of this
+increment. Wiki source changes accompany this implementation and require publication after merge.
+
 ## Tested implementation and documentation successor
 
 The tested Render runtime is `383126231bb7744d6b4f3f60436ded86da5f0085`, committed tree

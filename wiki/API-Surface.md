@@ -2,7 +2,7 @@
 
 ## Current scope
 
-The existing render submission accepts registry-admitted `composite_review.v1` / `composite_review.v2` / `composite_review.v3` / `composite_review.v4`
+The existing render submission accepts registry-admitted `composite_review.v1` / `composite_review.v2` / `composite_review.v3` / `composite_review.v4` / `composite_review.v5`
 RPT01 XLSX combinations in addition to PDF. `/docs` retains `composite_review_xlsx_package` and adds
 `composite_products_xlsx_package` for captured return products and `composite_linked_xlsx_package`
 for pinned source-owned linked analysis. `composite_eligibility_xlsx_package` links to the exact
@@ -47,7 +47,11 @@ are operational.
 
 Each `/system/templates` entry carries the required, nonempty `supported_output_formats` list
 from that exact registry manifest. `portfolio-review v1` declares `["pdf"]`;
-`composite-review v1`, `v2`, `v3` and `v4` each declare `["xlsx"]`. A version never inherits another template's list or
+`composite_pooled_xlsx_package` links to the retained v5 original producer package using OpenAPI
+`externalValue`, preserving exact source nulls and correction selector fields. Its seven-case
+consumer proof remains controlled replay and `NOT_ATTESTED`.
+
+`composite-review v1`, `v2`, `v3`, `v4` and `v5` each declare `["xlsx"]`. A version never inherits another template's list or
 the runtime's global format list. Registry order and all existing identity, lifecycle,
 publication and report-contract fields remain unchanged.
 

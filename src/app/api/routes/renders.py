@@ -141,6 +141,13 @@ INVALID_TENANT_RESPONSE = _error_response(
                             "summary": "Pinned v3 source-owned linked analysis, no recalculation",
                             "value": load_composite_linked_render_package_example(),
                         },
+                        "composite_pooled_xlsx_package": {
+                            "summary": "Retained v5 pooled source outcomes, NOT_ATTESTED",
+                            "externalValue": (
+                                "https://raw.githubusercontent.com/sgajbi/lotus-render/main/"
+                                "src/app/contracts/examples/composite-review-render-package.v5.json"
+                            ),
+                        },
                         "composite_eligibility_xlsx_package": {
                             "summary": (
                                 "Controlled v4 eligibility and revision history; "

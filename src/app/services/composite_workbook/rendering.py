@@ -14,7 +14,7 @@ from app.domain.rendering.models import RenderDiagnostic, RenderResult
 from app.domain.templates.digest import template_digest
 from app.domain.templates.registry import TemplateRegistryError, template_source_directories
 from app.services.composite_workbook import literal_writer
-from app.services.composite_workbook.eligibility_capacity import preflight_eligibility_workbook
+from app.services.composite_workbook.capacity import preflight_workbook
 from app.services.composite_workbook.eligibility_custody import validate_eligibility_custody
 from app.services.composite_workbook.eligibility_policy import validate_eligibility_table_set
 from app.services.composite_workbook.fingerprint import workbook_content_fingerprint
@@ -22,6 +22,8 @@ from app.services.composite_workbook.identity import IDENTITY_STORAGE
 from app.services.composite_workbook.linked_custody import validate_linked_custody
 from app.services.composite_workbook.linked_tables import LINKED_TABLE_COLUMNS
 from app.services.composite_workbook.literal_writer import write_literal_workbook
+from app.services.composite_workbook.pooled_custody import validate_pooled_custody
+from app.services.composite_workbook.pooled_policy import validate_pooled_table_set
 from app.services.composite_workbook.projection import workbook_tables
 from app.services.composite_workbook.source_cells import validate_dataset
 from app.services.render_intake import RenderIntakeService
@@ -34,7 +36,7 @@ def _validate_contract_axes(package: RenderPackage) -> None:
     expected = f"composite_review.{package.template_version}"
     if (
         package.template_id != "composite-review"
-        or package.template_version not in {"v1", "v2", "v3", "v4"}
+        or package.template_version not in {"v1", "v2", "v3", "v4", "v5"}
         or package.report_data_contract_version != expected
         or package.report_data.get("contract_version") != expected
     ):
@@ -67,6 +69,9 @@ def _validate_layout(layout: dict[str, Any], table_names: set[str], *, version: 
 
 
 def _validate_table_set(layout: dict[str, Any], table_names: set[str], version: str) -> None:
+    if version == "v5":
+        validate_pooled_table_set(layout, table_names)
+        return
     if version == "v4":
         validate_eligibility_table_set(layout, table_names)
         return
@@ -98,6 +103,16 @@ def _validate_return_table_set(layout: dict[str, Any], table_names: set[str], ve
         raise ValueError("composite_workbook_table_set_invalid")
 
 
+def _validate_custody(package: RenderPackage) -> None:
+    validate = {
+        "v3": validate_linked_custody,
+        "v4": validate_eligibility_custody,
+        "v5": validate_pooled_custody,
+    }.get(package.template_version)
+    if validate is not None:
+        validate(package)
+
+
 class CompositeWorkbookRenderService:
     def __init__(self, intake: RenderIntakeService, *, timeout_seconds: float = 60) -> None:
         self._intake = intake
@@ -120,10 +135,7 @@ class CompositeWorkbookRenderService:
         try:
             _validate_contract_axes(render_package)
             content = validate_dataset(render_package.report_data)
-            if render_package.template_version == "v3":
-                validate_linked_custody(render_package)
-            if render_package.template_version == "v4":
-                validate_eligibility_custody(render_package)
+            _validate_custody(render_package)
             _validate_layout(
                 layout,
                 {table.table_id for table in content.tables},
@@ -143,8 +155,8 @@ class CompositeWorkbookRenderService:
         attempt.mark_validating_package()
         attempt.mark_rendering()
         tables = workbook_tables(render_package, content, digest)
-        if render_package.template_version == "v4":
-            retained, _ = preflight_eligibility_workbook(render_package, tables)
+        if render_package.template_version in {"v4", "v5"}:
+            retained, _ = preflight_workbook(render_package, tables)
             tables = iter(retained)
         artifact = write_literal_workbook(
             tables,

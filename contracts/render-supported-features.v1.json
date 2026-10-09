@@ -225,6 +225,17 @@
       "output_formats": ["xlsx"],
       "status": "active",
       "scope": "Controlled NOT_ATTESTED Manage eligibility evidence presentation; complete assessments, reason occurrences and revision-scoped history; no source evaluator, institutional authority or joined custody qualification"
+    },
+    {
+      "template_id": "composite-review",
+      "template_version": "v5",
+      "report_types": ["composite_review"],
+      "report_data_contract_versions": ["composite_review.v5"],
+      "locales": ["en-SG"],
+      "brand_variants": ["private_banking"],
+      "output_formats": ["xlsx"],
+      "status": "active",
+      "scope": "Controlled NOT_ATTESTED retained pooled analysis presentation; source-owned available, unavailable and elected-fallback outcomes with full correction predecessor; no financial solver, institutional authority or joined custody qualification"
     }
   ],
   "non_goals": [

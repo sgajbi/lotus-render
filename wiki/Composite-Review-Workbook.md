@@ -1,7 +1,8 @@
 # Composite review workbook
 
 Current scope: Composite XLSX presents controlled source evidence: v1 review, v2 calendar/trailing returns,
-v3 linked analysis and [v4 eligibility/history](#complete-eligibility-evidence-v4).
+v3 linked analysis, [v4 eligibility/history](#complete-eligibility-evidence-v4) and
+[v5 pooled analysis](#pooled-analysis-v5).
 All remain `NOT_ATTESTED` and `development`; enterprise qualification stays open.
 
 Use the version dictionary below, [R5 custody evidence](#controlled-r5-custody-qualification),
@@ -22,6 +23,38 @@ Select the exact tuple advertised by `GET /system/templates`:
 | `composite-review v2` | `composite_review.v2` | `xlsx` |
 | `composite-review v3` | `composite_review.v3` | `xlsx` |
 | `composite-review v4` | `composite_review.v4` | `xlsx` |
+| `composite-review v5` | `composite_review.v5` | `xlsx` |
+
+## Pooled analysis v5
+
+V5 presents Performance-owned pooled outcomes through the existing Render lifecycle. Original and
+corrected available results, ambiguous roots, elected fallback, one-sided cash flows, work-limit and
+zero-value outcomes retain their supplied status, reasons and diagnostics. Unavailable returns
+remain null in canonical evidence and visibly unavailable. Ratio-to-percent display is declared
+once; canonical decimals and money retain exact spelling. Render performs no return solving or
+financial amendment arithmetic.
+
+Required tables are Summary, Outcome, MonetaryObservation, Policy, Disclosures and SourceEvidence.
+InvestorCashFlows, Valuations, PortfolioFlows, MemberControls, SourcePins and Membership appear when
+their retained collections exist. A correction additionally presents complete PredecessorEvidence.
+Every JSON leaf, including additive diagnostics, boolean, null and empty collection values, remains
+in source evidence. PinnedData and artifact identity preserve complete raw data and custody context.
+Strict source scope, population, pin/body digests, solver disposition, elected fallback, predecessor
+and exact table recipe checks precede compilation. Invalid evidence creates no artifact or Archive
+call. Shared physical preflight counts all cells, identity fragments and repeated partition headers.
+
+The [seven frozen producer packages](https://github.com/sgajbi/lotus-render/tree/main/tests/fixtures/composite-pooled-v5)
+come from Report API/native worker/SQLite using recorded Performance bodies and a declining Render503
+transport. Their immutable candidate is `de686fd67e3582934c851cd371e28c7c8c68d88d`; Report implementation
+subsequently merged at `4af947726dab91adec94b098fa9985d5bd6f15f6`. Independent openpyxl reconciliation
+and registered in-process HTTP/SQLite tests establish consumer behavior, retry and restored lookup.
+The client/OpenAPI example and additive golden retain the original package bytes.
+
+Qualification is `EXPLICIT_RETAINED_CALCULATED_REPLAY`, `NOT_ATTESTED`, development. This increment
+does not establish live Performance principal/PostgreSQL access, joined Archive acceptance,
+institutional authority, enterprise IAM or monthly financial amendment closure. Existing v1-v4
+assets remain unchanged. See the [qualification ledger](https://github.com/sgajbi/lotus-render/blob/main/docs/composite-review-qualification-ledger.md)
+for packet, schema and producer provenance.
 
 Mixed versions fail closed. Retained v1 packages keep their original manifest/layout/digest and
 golden semantics; adding v2 never reinterprets their source snapshot. The named v2 OpenAPI example

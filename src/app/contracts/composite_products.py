@@ -6,6 +6,7 @@ from pydantic import Field
 
 from app.contracts.composite_eligibility import CompositeEligibilityContent, EligibilityTable
 from app.contracts.composite_linked import CompositeLinkedContent, LinkedTable
+from app.contracts.composite_pooled import CompositePooledReportData, PooledTable
 from app.contracts.composite_review import (
     CompositeCell,
     CompositeColumn,
@@ -67,5 +68,6 @@ CompositeContent = (
     | CompositeProductsContent
     | CompositeLinkedContent
     | CompositeEligibilityContent
+    | CompositePooledReportData
 )
-CompositeOutputTable = CompositeTable | ProductTable | LinkedTable | EligibilityTable
+CompositeOutputTable = CompositeTable | ProductTable | LinkedTable | EligibilityTable | PooledTable

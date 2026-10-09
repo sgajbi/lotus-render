@@ -7,6 +7,7 @@ from typing import Any
 
 from app.contracts.composite_eligibility import CompositeEligibilityContent
 from app.contracts.composite_linked import CompositeLinkedContent
+from app.contracts.composite_pooled import CompositePooledReportData
 from app.contracts.composite_products import (
     CompositeContent,
     CompositeProductsContent,
@@ -147,6 +148,8 @@ def _validate_row(
 
 
 def validate_dataset(dataset: dict[str, Any]) -> CompositeContent:
+    if dataset.get("contract_version") == "composite_review.v5":
+        return CompositePooledReportData.model_validate_json(json.dumps(dataset, allow_nan=False))
     if dataset.get("contract_version") == "composite_review.v4":
         eligibility = CompositeEligibilityContent.model_validate_json(json.dumps(dataset))
         validate_eligibility_source(eligibility, dataset)

@@ -2,9 +2,9 @@
 
 ## Current scope
 
-Current scope: separate RPT01 `composite-review v1`, `v2`, `v3` and `v4` XLSX suppliers use active development
-manifests, matching exact Report-owned `composite_review.v1` through `composite_review.v4` and XlsxWriter 3.2.9.
-Their source graphs are `templates/xlsx/composite-review/v1`, `v2`, `v3` and `v4`, each with
+Current scope: separate RPT01 `composite-review v1`, `v2`, `v3`, `v4` and `v5` XLSX suppliers use active development
+manifests, matching exact Report-owned `composite_review.v1` through `composite_review.v5` and XlsxWriter 3.2.9.
+Their source graphs are `templates/xlsx/composite-review/v1`, `v2`, `v3`, `v4` and `v5`, each with
 `shared_design_version=none`; digest validation covers each complete graph. V1 bytes and retained
 semantics stay fixed. V2 adds captured calendar/trailing return tables with strict source-product
 authority. V3 adds seven complete source-owned linked-analysis tables, distinct factor/count units
@@ -12,7 +12,10 @@ and strict selector/custody bindings without recalculation. V4 adds eight comple
 tables with operational ratios and whole-source evidence; qualification remains controlled source
 replay, `NOT_ATTESTED`, development. Each golden artifact is `expected.xlsx`. See
 [Composite Review Workbook](Composite-Review-Workbook) for the dictionary, qualification,
-precision policy and bounds. The PDF family details below retain their Typst source graphs.
+precision policy and bounds. V5 adds pooled source outcomes and complete correction predecessor
+evidence without solving financial results. Seven frozen Report packages support bounded consumer
+proof; live source, Archive and institutional acceptance remain open. The PDF family details below
+retain their Typst source graphs.
 
 | Reader | Start here |
 |---|---|
