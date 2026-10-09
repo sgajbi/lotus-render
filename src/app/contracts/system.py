@@ -243,6 +243,17 @@ class TemplateProjectionEntry(BaseModel):
         description="Report data contract versions this version accepts.",
         examples=[["portfolio_review.v1"]],
     )
+    supported_output_formats: list[str] = Field(
+        ...,
+        min_length=1,
+        description=(
+            "Output formats declared by this exact registered template version. "
+            "A producer must also require the requested format in /metadata's "
+            "supportedOutputFormats and respect lifecycle and contract compatibility; "
+            "this list does not grant publication or distribution authority."
+        ),
+        examples=[["pdf"], ["xlsx"], ["pdf", "xlsx"]],
+    )
 
 
 class TemplatesProjectionResponse(BaseModel):

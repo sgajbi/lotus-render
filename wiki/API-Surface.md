@@ -35,7 +35,46 @@ are operational.
 | `GET /version` | which build is serving: commit, branch, repository, build timestamp, pipeline and image digest |
 | `GET /metadata` | service identity, runtime posture, supportability state, aggregate stale posture |
 | `GET /metrics` | Prometheus exposition |
-| `GET /system/templates` | which template versions this runtime can render, and their posture |
+| `GET /system/templates` | registered template versions, declared formats, lifecycle and publication posture |
+
+### Version format capability
+
+Each `/system/templates` entry carries the required, nonempty `supported_output_formats` list
+from that exact registry manifest. `portfolio-review v1` declares `["pdf"]`;
+`composite-review v1` declares `["xlsx"]`. A version never inherits another template's list or
+the runtime's global format list. Registry order and all existing identity, lifecycle,
+publication and report-contract fields remain unchanged.
+
+Example entry from the registered composite-review supplier:
+
+```json
+{
+  "template_id": "composite-review",
+  "template_version": "v1",
+  "status": "active",
+  "template_publication": "development",
+  "published_at": null,
+  "published_by": null,
+  "supported_report_types": ["composite_review"],
+  "supported_report_data_contract_versions": ["composite_review.v1"],
+  "supported_output_formats": ["xlsx"]
+}
+```
+
+A producer requires the requested format in both the selected version's
+`supported_output_formats` and `/metadata`'s `supportedOutputFormats`, plus usable runtime
+supportability and compatible lifecycle/report type/data contract. Missing, malformed or
+unlisted format evidence must leave the owning Report catalogue unavailable; it must not infer
+XLSX support from global capability or a family name. Render-time compatibility and lifecycle
+refusals remain authoritative. Template publication and client distribution approval are
+separate governance facts.
+
+This is an additive response field on the existing endpoint. PDF request contracts and route
+names are unchanged. Consumers that enforce an exact response-key set must update their typed
+projection model to accept this required list; consumers must not supply a default from
+`/metadata` when integrating with an older server that omits it. `/docs` includes PDF, XLSX and
+mixed-list schema examples; the list is not an enum so future registered formats can be stated
+without a hardcoded family branch, while actual runtime support still gates execution.
 
 Every rendered document asserts bounded determinism "within the governed lotus-render
 runtime envelope". `GET /version` is where that runtime is identified, so an artifact can

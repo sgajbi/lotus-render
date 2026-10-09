@@ -8,6 +8,11 @@ made it.
 It holds no client, portfolio or advisory data of its own, and fetches none. The package is the
 whole input.
 
+Producers discover each version's registry-owned `supported_output_formats` through the existing
+`GET /system/templates`, then also check `/metadata` runtime capability and supportability.
+The [API Surface](https://github.com/sgajbi/lotus-render/wiki/API-Surface#version-format-capability)
+documents the additive list, compatibility guidance and publication boundary.
+
 **Documentation lives in the [wiki](https://github.com/sgajbi/lotus-render/wiki)**, authored in
 [`wiki/`](wiki/):
 

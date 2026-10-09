@@ -18,6 +18,14 @@ precision policy and bounds. The PDF family details below retain their Typst sou
 `lotus-render` keeps template compatibility and lifecycle truth in repo-authored manifest files under
 `templates/registry/`.
 
+The existing `GET /system/templates` projection exposes each exact version's
+`supported_output_formats` directly from its manifest, alongside report types/data contracts
+and lifecycle/publication facts. Global runtime formats remain in `/metadata`; producers check
+both lists and runtime/lifecycle readiness before ordering a render. A PDF-only template cannot
+inherit XLSX from an XLSX-capable runtime. Published bytes or an active version do not grant
+client distribution approval. See [API Surface](API-Surface#version-format-capability) for the
+additive response shape and compatibility guidance.
+
 ## Current rules
 
 - template selection is explicit by `template_id` and `template_version`

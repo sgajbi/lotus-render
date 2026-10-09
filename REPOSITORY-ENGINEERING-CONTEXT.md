@@ -121,6 +121,13 @@ Template lifecycle, report-data contract versions, and disclosure fragments are 
 `templates/registry/` and documented in `wiki/Template-Registry.md`. Keep this inventory aligned
 whenever a template is added, deprecated, blocked, or moved across ownership boundaries.
 
+`GET /system/templates` projects the exact manifest's nonempty `supported_output_formats`
+alongside version identity, report types/data contracts and lifecycle/publication posture.
+The projection copies the registry list and never inherits runtime or another version's formats.
+Producers also require `/metadata` runtime capability/supportability and normal contract/lifecycle
+admission; publication/distribution authority remains separate. Keep the response model, route,
+OpenAPI examples and authored `wiki/API-Surface.md` consistent when this additive shape changes.
+
 | Template | Version | Report data contract | Upstream package owner | Render boundary |
 | --- | --- | --- | --- | --- |
 | `portfolio-review` | `v1` (published 2026-09-04) | `portfolio_review.v1` | `lotus-report` | Client/advisor portfolio review presentation only. |
