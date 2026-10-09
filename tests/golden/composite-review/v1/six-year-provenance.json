@@ -1,0 +1,14 @@
+{
+  "issue": "sgajbi/lotus-render#342",
+  "qualification": "CONTROLLED_REGISTERED_SOURCE_NOT_ATTESTED",
+  "package_sha256": "a66e8cb356ccb1dba335e874494cb584e827b086316f3684a26114da50d1355a",
+  "compressed_sha256": "c165360f212c6a6165c86d4ca888206a2f9bebd3783d36e03d26f468dddd2da5",
+  "report_source_sha": "bbc1d65f64357e2267002fff0b1db76505a14317",
+  "performance_original_calculation_id": "c0cf88fd-e673-47a3-9a90-03acf1fd6c9c",
+  "period": "2020-01 through 2025-12",
+  "months": 72,
+  "members_per_month": 28,
+  "semantic_cells": 24604,
+  "producer_boundary": "Actual normal Report PostgreSQL/application worker and RenderClient emitted this package. Unmodified Render main162016d rejected its HTTP POST with413 before admitting any job or executing the writer.",
+  "fixture_boundary": "Deterministic gzip retains the exact supplied JSON file. Regression execution proves registered Render writer support only; it does not prove live HTTP delivery, Archive custody, protected provider identity, attestation or institutional publication."
+}

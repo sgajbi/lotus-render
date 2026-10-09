@@ -1,6 +1,7 @@
 """Actual registered engine execution, durable lifecycle and independent workbook reconciliation."""
 
 import base64
+import gzip
 import hashlib
 import io
 import json
@@ -17,6 +18,46 @@ from app.main import create_app
 
 FIXTURE = Path("tests/golden/composite-review/v1/render-package.json")
 XLSX_MIME = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+
+
+def test_six_year_http_envelope_reaches_registered_writer_and_survives_restart(
+    tmp_path: Path,
+) -> None:
+    payload = json.loads(
+        gzip.decompress(
+            Path("tests/golden/composite-review/v1/six-year-render-package.json.gz").read_bytes()
+        )
+    )
+    wire = json.dumps(payload, ensure_ascii=False, separators=(",", ":"), allow_nan=False).encode()
+    assert len(wire) == 6_893_642
+    settings = Settings(render_store_path=str(tmp_path / "six-year.sqlite3"), archive_base_url=None)
+    headers = {
+        "X-Tenant-Id": payload["report_data"]["tenant_id"],
+        "Content-Type": "application/json",
+    }
+    with TestClient(create_app(settings), headers=headers) as client:
+        response = client.post("/renders", content=wire)
+        assert response.status_code == 201, response.text
+        body = response.json()
+        assert body["status"] == "rendered"
+        assert body["runtime_engine"] == "xlsxwriter"
+        artifact = base64.b64decode(body["artifact_base64"])
+        assert body["artifact_sha256"] == "sha256:" + hashlib.sha256(artifact).hexdigest()
+        assert body["output_size_bytes"] == len(artifact)
+        retry = client.post("/renders", content=wire)
+        assert retry.status_code == 200
+        assert retry.json()["artifact_base64"] is None
+        assert retry.json()["artifact_sha256"] == body["artifact_sha256"]
+    with TestClient(create_app(settings), headers=headers) as client:
+        restored = client.get(f"/renders/{payload['render_job_id']}")
+        assert restored.status_code == 200
+        assert restored.json()["artifact_sha256"] == body["artifact_sha256"]
+        assert (
+            client.get(
+                f"/renders/{payload['render_job_id']}", headers={"X-Tenant-Id": "foreign"}
+            ).status_code
+            == 404
+        )
 
 
 def _payload() -> dict[str, Any]:

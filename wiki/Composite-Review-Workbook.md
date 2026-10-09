@@ -76,12 +76,46 @@ checks the required Typst runtime as well as the local store; XLSX execution its
 | Bound | Limit |
 |---|---:|
 | data rows per sheet partition | 1,000 |
-| aggregate data rows including evidence/dictionary | 20,000 |
-| aggregate cells including headers | 200,000 |
+| aggregate data rows including evidence/dictionary | 30,000 |
+| aggregate cells including headers | 210,000 |
 | aggregate UTF-8 text including headers | 16 MiB |
 | sheets / columns per sheet | 64 / 100 |
 | literal cell size | 32,767 UTF-16 units |
 | final XLSX bytes | 16 MiB |
+
+The default HTTP envelope limit is 8 MiB and applies to all submitted render packages. PDF remains
+the required default with its existing template, execution and output controls. These workbook
+budgets admit the controlled 72-month, 28-member source package, including its 24,604 semantic cells
+and every evidence, policy, identity and pinned-data row. The expanded fixture has 27,939 data rows,
+201,586 cells including headers and 43 sheets. Workbook budgets remain independent: fitting the
+HTTP envelope alone does not establish that a package fits the writer.
+
+### Large identity JSON
+
+Layout policy `identity_storage=ordered_json_text_v1` preserves the two-column `ArtifactIdentity`
+schema. Ordinary values remain a field name and exact ASCII-escaped, sorted-key JSON value. When
+that canonical JSON exceeds 32,767 characters, the base field row is replaced by a descriptor row
+`<field>__chunks`, immediately followed by `<field>__chunk_000000` through the last zero-based chunk.
+Each chunk cell contains a JSON **string**, whose decoded value is at most 16,000 ASCII characters
+of the original canonical JSON. This bounds even maximally escaped physical cells below Excel's
+32,767 UTF-16-unit limit. Only identity metadata uses this encoding; financial cells are never split.
+Caller keys inside `render_context` remain intact; top-level identity field names belong to Render
+and reserve the `__chunks` and `__chunk_` suffix namespaces.
+
+The descriptor has exactly four members: `encoding` (`ordered_json_text_v1`), `count` (positive
+integer), `utf8_bytes` (original canonical JSON byte length), and `sha256` (lowercase unprefixed
+SHA-256 of those exact bytes). A consumer must validate the exact schema and version before decoding.
+Reject Boolean/noninteger counts or lengths, unknown members, and lengths above the 16 MiB text
+budget. Require `count=ceil(utf8_bytes/16000)`, at most 1,049 chunks and no more than the remaining
+worksheet rows before allocating or consuming fragments. Preserve worksheet order; do not sort
+chunks into an apparently valid sequence. Require consecutive exact names, unique fields, absence
+of the logical base row, JSON-string values, ASCII fragment text, exactly 16,000 characters in every
+nonfinal chunk and the declared remainder in the last chunk. Reject missing, duplicate, reordered,
+noncontiguous, extra or orphan reserved rows and conflicting base/descriptor fields. Join the decoded
+strings, check the exact byte length and SHA-256, then parse the reconstructed JSON as the logical
+field value. Reject malformed descriptors and fragments; do not fall back to trusting marker-shaped
+data. Small values need no reconstruction, while consumers of large contexts must implement this
+additive storage policy to retain complete source identity.
 
 Bounds apply to the expanded workbook, not just input tables. Refusal preserves truthful failed
 job status without an artifact. The configured compile deadline is checked while writing and after
@@ -133,6 +167,11 @@ Report lifecycle/package production stops at a captured Render503. It proves no 
 admission or Archive custody. The agreed semantic example is retained separately as report-data.json.
 End-to-end tests execute the registered API and actual writer, reconcile source/canonical
 cells with an independent workbook reader, and test refusal, tenant isolation, restart and replay.
+The separate deterministic-gzip six-year fixture retains the actual normal Report worker package
+that Render initially refused with HTTP413 before job admission. `six-year-provenance.json` records
+its exact hashes and controlled source boundary. `tests/unit/test_composite_capacity.py` exercises
+the registered writer and independently recovers every evidence cell, full pinned data and large
+context on each CI host. This fixture proves writer support, without claiming HTTP or Archive custody.
 Producer/consumer acceptance additionally requires actual Report-produced packages and real Archive
 ingestion/download evidence with exact SHA reconciliation; those lifecycle and source boundaries
 must remain explicit in delivery evidence.

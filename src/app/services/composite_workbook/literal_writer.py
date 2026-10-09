@@ -16,8 +16,8 @@ from app.domain.render_attempts.models import RenderFailureCategory
 from app.services.render_ports import RenderCompileFailedError, RenderEngineTimeoutError
 
 MAX_ROWS_PER_SHEET = 1_000
-MAX_TOTAL_ROWS = 20_000
-MAX_TOTAL_CELLS = 200_000
+MAX_TOTAL_ROWS = 30_000
+MAX_TOTAL_CELLS = 210_000
 MAX_TOTAL_TEXT_BYTES = 16_777_216
 MAX_SHEETS = 64
 MAX_COLUMNS = 100

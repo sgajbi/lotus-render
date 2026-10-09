@@ -317,7 +317,7 @@
         "src/app/composite_reporting/table_builder.py"
       ],
       "provenance": "Exact registered Report PostgreSQL worker/composer package SHA256 036beb4e84c76c047ce1c0c847a54d3bbc3505110f00f3753c7a25f024729ff5, boundary CONTROLLED_PERFORMANCE_CANDIDATE_ADMISSION_REAL_REPORT_PRODUCER: synthetic Performance source and explicit test-only candidate XLSX admission, real retained snapshot/lifecycle/package composition; captured Render503 leaves Report retry_failed. No production family admission, attestation, custody or enterprise completion claim. Report-owned semantic example SHA256 721dd103f3cd0e14bfe161209ca11d59791556e8c807be5f0f3d6715825dacf4 is retained separately as report-data.json.",
-      "bounded_determinism_fingerprint": "86e8adbd0eb3b9fa9ef47163725452d4225cea8f84c4bf73e70d21557017ad6f"
+      "bounded_determinism_fingerprint": "ec778da82b06dc9d80765f92a773ddffcecc38bdb05dcf00c561a735a99ac3cb"
     }
   ]
 }

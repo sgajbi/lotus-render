@@ -29,6 +29,7 @@ def test_declared_layout_policy_and_bounds_match_the_actual_adapter() -> None:
         "financial_storage",
         "display_rounding_mode",
         "metadata_created",
+        "identity_storage",
         "max_total_rows",
         "max_total_cells",
         "max_total_text_bytes",
@@ -40,4 +41,12 @@ def test_unimplemented_or_mismatched_layout_policy_refuses(field: str) -> None:
     names = set(layout["required_tables"]) | {"MonthlyReturns"}
     layout[field] = "different"
     with pytest.raises(TemplateRegistryError):
+        _validate_layout(layout, names)
+
+
+def test_missing_identity_encoding_policy_refuses() -> None:
+    layout = _layout()
+    names = set(layout["required_tables"]) | {"MonthlyReturns"}
+    del layout["identity_storage"]
+    with pytest.raises(TemplateRegistryError, match="composite_workbook_layout_policy_mismatch"):
         _validate_layout(layout, names)

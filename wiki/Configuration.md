@@ -104,7 +104,7 @@ healthy work as stuck.
 |---|---|
 | `LOTUS_RENDER_ALLOWED_HOSTS` | `localhost`, `127.0.0.1`, `testserver`, `lotus-render`, `render.dev.lotus`, `host.docker.internal` |
 | `LOTUS_RENDER_CORS_ALLOWED_ORIGINS` | `()` — empty, no cross-origin callers |
-| `LOTUS_RENDER_MAX_REQUEST_BODY_BYTES` | `5242880` (5 MiB) |
+| `LOTUS_RENDER_MAX_REQUEST_BODY_BYTES` | `8388608` (8 MiB) |
 
 `allowed_hosts` is a blast-radius boundary, not authentication — see
 [Security and Controls](Security-and-Controls) for what actually authenticates a caller. The

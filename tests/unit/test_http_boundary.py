@@ -10,6 +10,7 @@ from fastapi import Request, Response
 from starlette.responses import JSONResponse
 from starlette.types import Receive, Scope, Send
 
+from app.core.settings import Settings
 from app.middleware.http_boundary import RequestBodySizeLimitMiddleware
 
 
@@ -59,6 +60,29 @@ def _middleware(max_bytes: int) -> RequestBodySizeLimitMiddleware:
 def _detail(response: Response) -> dict[str, object]:
     payload = cast(dict[str, object], json.loads(bytes(response.body)))
     return cast(dict[str, object], payload["detail"])
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("extra", [0, 1])
+async def test_default_eight_mib_stream_boundary_accepts_exact_and_refuses_next_byte(
+    extra: int,
+) -> None:
+    maximum = Settings().max_request_body_bytes
+    assert maximum == 8_388_608
+    request = _request(chunks=(b"a" * maximum, b"b" * extra))
+    seen: list[bytes] = []
+
+    async def call_next(request: Request) -> Response:
+        seen.append(await request.body())
+        return JSONResponse({"accepted": True})
+
+    response = await _middleware(maximum).dispatch(request, call_next)
+    assert response.status_code == (413 if extra else 200)
+    assert len(seen) == (0 if extra else 1)
+    if extra:
+        assert _detail(response)["code"] == "request_body_too_large"
+    else:
+        assert seen == [b"a" * maximum]
 
 
 @pytest.mark.asyncio

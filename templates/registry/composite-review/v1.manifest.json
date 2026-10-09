@@ -30,7 +30,7 @@
     "golden-composite-review-en-SG-private-banking-v1"
   ],
   "shared_design_version": "none",
-  "template_digest": "sha256:fefe00721719b42f10cccc972c8c150c9ef92d42c2f679bbb925a833e90a0898",
+  "template_digest": "sha256:119dee00fd1e70b45e72cdb104698c5f3f50453e4424d167b981dbb22e3275ac",
   "runtime_engine": "xlsxwriter",
   "runtime_engine_version": "3.2.9"
 }

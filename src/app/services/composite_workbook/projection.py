@@ -6,6 +6,7 @@ from typing import Any
 
 from app.contracts.composite_review import CompositeReviewContent, CompositeTable
 from app.contracts.render_package import RenderPackage
+from app.services.composite_workbook.identity import JSON_CHUNK_CHARACTERS, identity_rows
 from app.services.composite_workbook.literal_writer import LiteralTable
 from app.services.composite_workbook.presentation import display_cell
 
@@ -113,10 +114,7 @@ def _artifact_identity(package: RenderPackage, template_digest: str) -> LiteralT
     return LiteralTable(
         "ArtifactIdentity",
         ("Field", "Exact JSON value"),
-        (
-            (key, json.dumps(value, ensure_ascii=True, sort_keys=True))
-            for key, value in fields.items()
-        ),
+        identity_rows(fields),
     )
 
 
@@ -137,7 +135,7 @@ def workbook_tables(
         "PinnedData",
         ("Chunk", "Canonical pinned dataset JSON"),
         (
-            (str(index // 16_000), canonical[index : index + 16_000])
-            for index in range(0, len(canonical), 16_000)
+            (str(index // JSON_CHUNK_CHARACTERS), canonical[index : index + JSON_CHUNK_CHARACTERS])
+            for index in range(0, len(canonical), JSON_CHUNK_CHARACTERS)
         ),
     )
