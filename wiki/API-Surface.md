@@ -132,7 +132,7 @@ already recorded would make the render job id useless as evidence.
 
 ### Tenant admission
 
-Every render operation admits an `X-Tenant-Id` header, and the tenant is transport truth — never
+Every render operation admits exactly one raw `X-Tenant-Id` header, and the tenant is transport truth — never
 read from the package. On `POST /renders` it is bound to the job at creation; on every read it
 scopes the lookup, so a job another tenant created is `404 render_job_not_found`, exactly like a
 job that does not exist. The Archive custody handoff carries the admitted tenant, not the tenant
@@ -144,6 +144,7 @@ the package's `render_context.archive` block claims.
 | header and custody block name different tenants | `422 tenant_scope_contradiction`, refused before the job is created, claimed, compiled or handed to Archive |
 | same `render_job_id` submitted by a different tenant | `409 render_job_conflict` — the same signal as a package mismatch; the row keeps its owner |
 | no or empty header | `401 MISSING_TENANT_AUTHORITY`, refused before any effect |
+| repeated header, including identical values or different header-name casing | `400 INVALID_TENANT_AUTHORITY`, refused before job persistence, store reads, rendering or Archive handoff |
 | whitespace-only/control/overlong header | `400 INVALID_TENANT_AUTHORITY`, refused before any effect |
 | pre-admission `NULL`-tenant row | `404 render_job_not_found` on tenant-scoped reads; replay is `409 render_job_conflict`, never adoption |
 
@@ -155,7 +156,7 @@ threading. Admitting the header is not authenticating the caller — see [Securi
 | status | code | when |
 |---|---|---|
 | `400` | `invalid_content_length` | `Content-Length` is malformed or negative |
-| `400` | `INVALID_TENANT_AUTHORITY` | `X-Tenant-Id` is malformed, whitespace-only, or overlong |
+| `400` | `INVALID_TENANT_AUTHORITY` | `X-Tenant-Id` is repeated, malformed, whitespace-only, or overlong |
 | `401` | `MISSING_TENANT_AUTHORITY` | `X-Tenant-Id` is absent or empty |
 | `404` | `render_job_not_found` | unknown `render_job_id` on any read |
 | `409` | `render_job_conflict` | `render_job_id` reused with a different package, or already owned by another admitted tenant |

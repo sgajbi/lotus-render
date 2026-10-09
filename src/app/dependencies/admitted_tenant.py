@@ -13,7 +13,7 @@ from __future__ import annotations
 
 from typing import Annotated, NoReturn
 
-from fastapi import Depends, Header, HTTPException, status
+from fastapi import Depends, Header, HTTPException, Request, status
 
 TENANT_HEADER = "X-Tenant-Id"
 
@@ -22,7 +22,15 @@ def _refuse_tenant_authority(status_code: int, code: str, message: str) -> NoRet
     raise HTTPException(status_code=status_code, detail={"code": code, "message": message})
 
 
+def _has_duplicate_tenant_headers(request: Request) -> bool:
+    # Count raw fields before scalar Header binding can discard duplicates. Header
+    # names are case-insensitive; repeated equal values are still ambiguous authority.
+    raw_headers: list[tuple[bytes, bytes]] = request.scope["headers"]
+    return sum(name.lower() == b"x-tenant-id" for name, _ in raw_headers) > 1
+
+
 def get_admitted_tenant(
+    request: Request,
     x_tenant_id: Annotated[
         str | None,
         Header(
@@ -36,6 +44,12 @@ def get_admitted_tenant(
     ] = None,
 ) -> str:
     """Require one bounded, non-blank transport tenant before route-side I/O."""
+    if _has_duplicate_tenant_headers(request):
+        _refuse_tenant_authority(
+            status.HTTP_400_BAD_REQUEST,
+            "INVALID_TENANT_AUTHORITY",
+            "X-Tenant-Id must be supplied exactly once.",
+        )
     if x_tenant_id is None:
         _refuse_tenant_authority(
             status.HTTP_401_UNAUTHORIZED,
