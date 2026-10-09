@@ -3,9 +3,18 @@
 What `lotus-render` is, how a render actually executes, and what it deliberately does not do.
 Measured against `main`; where something is a limitation rather than a design goal, it says so.
 
+Current scope covers synchronous PDF and bounded RPT01 XLSX execution with local lifecycle state.
+
+| Reader | Evidence and decision |
+|---|---|
+| Integration engineer | package admission, dispatch and custody flow below |
+| Operator | local store, bounded execution and readiness constraints below |
+| Workbook consumer | [Composite Review Workbook](Composite-Review-Workbook) |
+
 ## What this service is
 
-`lotus-render` turns a governed template plus caller-supplied data into a **PDF**. It is a
+`lotus-render` turns a governed template plus caller-supplied data into a **PDF** or the bounded
+composite-review **XLSX**. It is a
 single-purpose rendering service with a deliberately small surface: **9 published operations**, of
 which four are the render contract and five are operational.
 
@@ -54,7 +63,9 @@ flowchart LR
   API --> SUB["RenderSubmissionService"]
   SUB --> STORE[("render store<br/>local SQLite")]
   SUB --> POOL["bounded threadpool<br/>concurrency limit 2"]
-  POOL --> ENGINE["Typst 0.14.2<br/>via docker or typst on PATH"]
+  POOL --> DISPATCH["FormatRenderService<br/>registry admission first"]
+  DISPATCH --> ENGINE["PDF: Typst 0.14.2<br/>via docker or typst on PATH"]
+  DISPATCH --> XLSX["RPT01 XLSX: XlsxWriter 3.2.9<br/>literal cells and source reconciliation"]
   SUB --> REG["template registry<br/>templates/registry"]
   SUB -- "custody-bearing output" --> ARC["lotus-archive<br/>one custody authority"]
 ```

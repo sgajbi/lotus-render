@@ -9,6 +9,7 @@
 
 - [API Surface](API-Surface)
 - [Template Registry](Template-Registry)
+- [Composite Review Workbook](Composite-Review-Workbook)
 
 ## Run and operate
 

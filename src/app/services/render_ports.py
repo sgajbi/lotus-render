@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Protocol
+from typing import Protocol, runtime_checkable
 
 from app.contracts.render_package import RenderPackage
 from app.contracts.renders import RenderFailureCategory
@@ -81,6 +81,20 @@ class RenderEnginePort(Protocol):
     def runtime_metadata(self) -> RenderRuntimeMetadata: ...
 
     def render(self, render_package: RenderPackage) -> RenderResult: ...
+
+
+@runtime_checkable
+class FormatAwareRenderEnginePort(Protocol):
+    def runtime_metadata_for(self, render_package: RenderPackage) -> RenderRuntimeMetadata: ...
+
+
+def package_runtime_metadata(
+    engine: RenderEnginePort, render_package: RenderPackage
+) -> RenderRuntimeMetadata:
+    """Select per-package provenance while preserving existing single-engine adapters."""
+    if isinstance(engine, FormatAwareRenderEnginePort):
+        return engine.runtime_metadata_for(render_package)
+    return engine.runtime_metadata
 
 
 class RenderCompileFailedError(RuntimeError):

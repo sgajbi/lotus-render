@@ -15,6 +15,7 @@ into the second.
 from __future__ import annotations
 
 import io
+import json
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -99,7 +100,11 @@ def _collisions(page: pypdf.PageObject, image_bytes: bytes) -> list[str]:
 
 
 def _packages() -> list[Path]:
-    return sorted(GOLDEN_ROOT.rglob("render-package.json"))
+    return [
+        path
+        for path in sorted(GOLDEN_ROOT.rglob("render-package.json"))
+        if json.loads(path.read_text(encoding="utf-8")).get("output_format", "pdf") == "pdf"
+    ]
 
 
 @pytest.fixture(scope="module")

@@ -30,6 +30,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 from app.contracts.render_package import RenderPackage  # noqa: E402
 from app.core.settings import Settings  # noqa: E402
 from app.domain.templates.registry import TemplateRegistry  # noqa: E402
+from app.services.composite_workbook.rendering import CompositeWorkbookRenderService  # noqa: E402
 from app.services.render_intake import RenderIntakeService  # noqa: E402
 from app.services.typst_rendering import (  # noqa: E402
     TypstRenderService,
@@ -63,29 +64,42 @@ def main() -> int:
         action="store_true",
         help="rewrite expected.pdf and the banked fingerprints instead of only reporting",
     )
+    parser.add_argument(
+        "--format", choices=("pdf", "xlsx"), help="Regenerate only one output family"
+    )
     arguments = parser.parse_args()
 
     # Reporting drift from any host is useful. Banking it is a claim about what the
     # service emits, so it may only be made from a runtime that renders what the
     # shipped image renders.
     reason = ungoverned_runtime_reason()
-    if arguments.write and reason is not None:
+    if arguments.write and arguments.format != "xlsx" and reason is not None:
         print(f"refusing to re-bank: {reason}")
         return 1
 
     service = _build_service()
+    workbook_service = CompositeWorkbookRenderService(
+        RenderIntakeService(
+            TemplateRegistry.load_from_directory(Path(Settings().template_registry_path))
+        )
+    )
     manifest = json.loads(FIXTURES_PATH.read_text(encoding="utf-8"))
     drifted: list[str] = []
 
     for fixture in manifest["fixtures"]:
+        output_format = fixture.get("output_format", "pdf")
+        if arguments.format is not None and output_format != arguments.format:
+            continue
         package = RenderPackage.model_validate_json(
             Path(fixture["package_path"]).read_text(encoding="utf-8")
         )
-        result = service.render(package)
+        result = (
+            workbook_service.render(package) if output_format == "xlsx" else service.render(package)
+        )
         fingerprint = result.diagnostic.bounded_determinism_fingerprint
         banked = fixture.get("bounded_determinism_fingerprint")
         sample_id = fixture["golden_sample_id"]
-        page_hashes = page_image_hashes(service, package)
+        page_hashes = None if output_format == "xlsx" else page_image_hashes(service, package)
         banked_pages = fixture.get("page_image_hashes")
 
         if fingerprint == banked and page_hashes == banked_pages:
@@ -93,19 +107,27 @@ def main() -> int:
             continue
 
         drifted.append(sample_id)
-        moved = _moved_pages(banked_pages, page_hashes)
+        moved = (
+            "not applicable (workbook)"
+            if page_hashes is None
+            else _moved_pages(banked_pages, page_hashes)
+        )
         if arguments.write:
             # Only rewrite the artifact when the document actually changed. Raw PDF bytes
             # differ on every render -- timestamps and ids the fingerprint strips -- so
             # rewriting unconditionally would put a binary diff in the pull request for a
             # document nobody altered, and hide the ones that matter among them.
             if fingerprint != banked:
-                Path(fixture["expected_pdf_path"]).write_bytes(result.artifact_bytes)
+                artifact_field = (
+                    "expected_artifact_path" if output_format == "xlsx" else "expected_pdf_path"
+                )
+                Path(fixture[artifact_field]).write_bytes(result.artifact_bytes)
                 fixture["bounded_determinism_fingerprint"] = fingerprint
                 print(f"re-banked  {sample_id}\n           {banked} -> {fingerprint}")
             else:
                 print(f"re-banked  {sample_id} (pages only; the document is unchanged)")
-            fixture["page_image_hashes"] = page_hashes
+            if page_hashes is not None:
+                fixture["page_image_hashes"] = page_hashes
             print(f"           pages changed: {moved}")
         else:
             print(f"DRIFTED    {sample_id}")

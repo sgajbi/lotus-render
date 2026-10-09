@@ -26,11 +26,12 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from app.domain.templates.digest import template_digest  # noqa: E402
+from app.domain.templates.models import TemplateManifest  # noqa: E402
 from app.domain.templates.registry import (  # noqa: E402
     DEFAULT_TEMPLATE_SOURCE_ROOT,
     TemplateRegistry,
     TemplateRegistryError,
-    shared_design_directory,
+    template_source_directories,
 )
 
 REGISTRY_ROOT = Path("templates/registry")
@@ -53,8 +54,9 @@ def _rerecord_digests(
     refused: list[str] = []
     for manifest_path in sorted(registry_root.rglob("*.json")):
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        directory = source_root / manifest["template_id"] / manifest["template_version"]
-        shared = shared_design_directory(manifest["shared_design_version"], source_root)
+        directory, shared = template_source_directories(
+            TemplateManifest.model_validate(manifest), source_root
+        )
         measured = template_digest(directory, shared_directory=shared)
         if manifest.get("template_digest") == measured:
             continue

@@ -14,6 +14,7 @@ context dictionary rather than the document. This one reads the documents.
 from __future__ import annotations
 
 import io
+import json
 import re
 from pathlib import Path
 
@@ -54,7 +55,11 @@ CALL_SYNTAX = re.compile(r"\b[a-z][a-z0-9]*(?:-[a-z0-9]+)+\(\[")
 
 
 def _packages() -> list[Path]:
-    return sorted(GOLDEN_ROOT.rglob("render-package.json"))
+    return [
+        path
+        for path in sorted(GOLDEN_ROOT.rglob("render-package.json"))
+        if json.loads(path.read_text(encoding="utf-8")).get("output_format", "pdf") == "pdf"
+    ]
 
 
 @pytest.fixture(scope="module")

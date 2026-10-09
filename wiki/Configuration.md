@@ -13,11 +13,12 @@ load — the service does not start in a degraded mode.
 Four facts are worth knowing before changing anything, because each is a property of the service
 rather than of one setting:
 
-1. **Output is PDF only.** `supported_output_formats` defaults to `("pdf",)`, and a settings
-   validator rejects any configuration that omits `pdf` outright — `"pdf output support is required
-   for lotus-render"`. Another format is not a configuration change.
-2. **Rendering is Typst.** `runtime_engine` defaults to `typst` at version `0.14.2`. The runtime
-   probe looks for `docker` or `typst` on `PATH`; without one of them the service cannot compile.
+1. **PDF is the default; bounded RPT01 XLSX is supported.** `supported_output_formats` defaults
+   to `("pdf", "xlsx")`, requires `pdf`, and rejects formats without an implemented engine.
+   Configure `("pdf",)` to disable XLSX admission.
+2. **PDF rendering uses Typst.** `runtime_engine` defaults to `typst` at version `0.14.2`. The
+   required PDF runtime probe looks for `docker` or `typst` on `PATH`. Composite XLSX selects the
+   pinned Python XlsxWriter 3.2.9 adapter; individual render evidence reports its actual engine.
 3. **State is a local SQLite file** at `data/render-store.sqlite3`, not a shared database. That
    makes a render job's lifecycle local to the instance that accepted it.
 4. **Persistence is required outside development.** Whenever `environment` is anything other than
@@ -48,7 +49,7 @@ Service name, version and rounding-policy version are published through `/metada
 | `LOTUS_RENDER_RUNTIME_ENGINE` | `typst` | |
 | `LOTUS_RENDER_RUNTIME_ENGINE_VERSION` | `0.14.2` | reported in metadata; pin deliberately — it bounds the determinism claim |
 | `LOTUS_RENDER_DEFAULT_OUTPUT_FORMAT` | `pdf` | must appear in the supported list |
-| `LOTUS_RENDER_SUPPORTED_OUTPUT_FORMATS` | `("pdf",)` | must contain `pdf` |
+| `LOTUS_RENDER_SUPPORTED_OUTPUT_FORMATS` | `("pdf", "xlsx")` | must contain `pdf`; only `pdf` and `xlsx` are implemented |
 | `LOTUS_RENDER_TEMPLATE_REGISTRY_PATH` | `templates/registry` | see [Template Registry](Template-Registry) |
 
 Both output settings are cross-checked at startup: `default_output_format` must be one of
@@ -69,7 +70,7 @@ whose schema is behind the code reports not-ready rather than serving against it
 
 | variable | default | notes |
 |---|---|---|
-| `LOTUS_RENDER_ARCHIVE_BASE_URL` | unset | Archive service base URL; local Compose defaults it to `http://host.docker.internal:8150` |
+| `LOTUS_RENDER_ARCHIVE_BASE_URL` | unset | Archive service base URL; local Compose defaults it to [the host Archive endpoint](http://host.docker.internal:8150) |
 | `LOTUS_RENDER_ARCHIVE_TIMEOUT_SECONDS` | `10.0` | deadline for one Archive request |
 | `LOTUS_RENDER_ARCHIVE_MAX_ATTEMPTS` | `3` | bounded attempts for safe-to-retry outcomes |
 | `LOTUS_RENDER_ARCHIVE_RETRY_BACKOFF_SECONDS` | `0.5` | base delay between safe retries |
@@ -125,7 +126,7 @@ differs from the bare defaults in three explicit ways:
 |---|---|---|
 | `LOTUS_RENDER_RENDER_STORE_PATH` | `/var/lib/lotus-render/render-store.sqlite3` | on the named `lotus-render-data` volume, so job state survives container replacement |
 | `LOTUS_RENDER_REQUIRE_PERSISTENT_RENDER_STORE` | `true` | makes an in-memory store a startup error rather than a silent risk |
-| `LOTUS_RENDER_ARCHIVE_BASE_URL` | `http://host.docker.internal:8150` | routes custody-bearing renders to the canonical local Archive service; Compose maps this name through `host-gateway` for Linux portability; override explicitly for another environment |
+| `LOTUS_RENDER_ARCHIVE_BASE_URL` | [host Archive endpoint](http://host.docker.internal:8150) | routes custody-bearing renders to the canonical local Archive service; Compose maps this name through `host-gateway` for Linux portability; override explicitly for another environment |
 
 The container healthcheck polls `/health/ready`, so a container whose render store or Typst runtime
 is unavailable is reported unhealthy rather than being sent traffic.

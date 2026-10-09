@@ -14,7 +14,7 @@ class Settings(BaseSettings):
     default_output_format: str = Field(default="pdf")
     runtime_engine: str = Field(default="typst")
     runtime_engine_version: str = Field(default="0.14.2")
-    supported_output_formats: tuple[str, ...] = Field(default=("pdf",))
+    supported_output_formats: tuple[str, ...] = Field(default=("pdf", "xlsx"))
     template_registry_path: str = Field(default="templates/registry")
     render_store_path: str = Field(default="data/render-store.sqlite3")
     allowed_hosts: tuple[str, ...] = Field(
@@ -93,6 +93,8 @@ class Settings(BaseSettings):
             raise ValueError("default_output_format must be included in supported_output_formats")
         if "pdf" not in self.supported_output_formats:
             raise ValueError("pdf output support is required for lotus-render")
+        if set(self.supported_output_formats) - {"pdf", "xlsx"}:
+            raise ValueError("unsupported render output format configured")
         if self.persistent_render_store_required and self.render_store_path == ":memory:":
             raise ValueError(
                 "render_store_path=':memory:' loses accepted render jobs on restart and is "

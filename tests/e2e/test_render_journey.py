@@ -41,7 +41,8 @@ def test_submit_renders_the_banked_document_end_to_end(
     payload = Path(fixture["package_path"]).read_text(encoding="utf-8")
     app = create_app(Settings(render_store_path=str(tmp_path / "render-store.sqlite3")))
 
-    with TestClient(app, headers={"X-Tenant-Id": "tenant-e2e-golden"}) as client:
+    tenant = json.loads(payload)["report_data"].get("tenant_id", "tenant-e2e-golden")
+    with TestClient(app, headers={"X-Tenant-Id": tenant}) as client:
         submit = client.post(
             "/renders", content=payload, headers={"Content-Type": "application/json"}
         )
@@ -51,7 +52,7 @@ def test_submit_renders_the_banked_document_end_to_end(
         assert body["status"] == "rendered"
 
         artifact = base64.b64decode(body["artifact_base64"])
-        assert artifact.startswith(b"%PDF")
+        assert artifact.startswith(b"PK" if body["output_format"] == "xlsx" else b"%PDF")
         # The contract prefixes the digest with its algorithm.
         assert body["artifact_sha256"] == f"sha256:{hashlib.sha256(artifact).hexdigest()}"
         # The banked fingerprint is the independent oracle: only a render that reproduced

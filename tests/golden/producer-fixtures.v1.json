@@ -302,6 +302,22 @@
         "9cf0fa7c9e2530229a105eb5b08ceb18af2015ea15f25e6d37d62d514ac10353",
         "0793c226515eff6afe366de6441c172cd976f502e6eba03e462ef30a642eab09"
       ]
+    },
+    {
+      "template_id": "composite-review",
+      "template_version": "v1",
+      "golden_sample_id": "golden-composite-review-en-SG-private-banking-v1",
+      "report_data_contract_version": "composite_review.v1",
+      "output_format": "xlsx",
+      "package_path": "tests/golden/composite-review/v1/render-package.json",
+      "expected_artifact_path": "tests/golden/composite-review/v1/expected.xlsx",
+      "producer_repository": "sgajbi/lotus-report",
+      "producer_source_paths": [
+        "contracts/examples/composite-review.v1.json",
+        "src/app/composite_reporting/table_builder.py"
+      ],
+      "provenance": "Exact registered Report PostgreSQL worker/composer package SHA256 036beb4e84c76c047ce1c0c847a54d3bbc3505110f00f3753c7a25f024729ff5, boundary CONTROLLED_PERFORMANCE_CANDIDATE_ADMISSION_REAL_REPORT_PRODUCER: synthetic Performance source and explicit test-only candidate XLSX admission, real retained snapshot/lifecycle/package composition; captured Render503 leaves Report retry_failed. No production family admission, attestation, custody or enterprise completion claim. Report-owned semantic example SHA256 721dd103f3cd0e14bfe161209ca11d59791556e8c807be5f0f3d6715825dacf4 is retained separately as report-data.json.",
+      "bounded_determinism_fingerprint": "a58464d5f45f6bb4432cf8245947a0a71e644dd86e445cd0bc0ddcdf8f8e28e2"
     }
   ]
 }

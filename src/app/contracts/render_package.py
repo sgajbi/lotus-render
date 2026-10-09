@@ -118,8 +118,8 @@ class RenderPackage(BaseModel):
     )
     output_format: str = Field(
         ...,
-        description="Requested render artifact format.",
-        examples=["pdf"],
+        description="Requested render artifact format; exact template compatibility applies.",
+        examples=["pdf", "xlsx"],
     )
     render_context: dict[str, Any] = Field(
         ...,

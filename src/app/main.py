@@ -27,6 +27,8 @@ from app.middleware.metrics_posture import MetricsPostureMiddleware
 from app.middleware.request_logging import RequestLoggingMiddleware
 from app.observability.render_metrics import validate_render_metric_contracts
 from app.services.archive_handoff import ArchiveHandoff, StdlibArchiveTransport
+from app.services.composite_workbook.rendering import CompositeWorkbookRenderService
+from app.services.render_dispatch import FormatRenderService
 from app.services.render_execution import RenderExecutionLimiter
 from app.services.render_foundation import RenderFoundationService
 from app.services.render_intake import RenderIntakeService
@@ -76,9 +78,18 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 rendering_stale_seconds=configured_settings.stale_rendering_seconds,
                 execution_limiter=execution_limiter,
                 archive_handoff=_archive_handoff(configured_settings),
-                render_engine=TypstRenderService(
-                    configured_settings,
+                render_engine=FormatRenderService(
                     RenderIntakeService(template_registry),
+                    {
+                        "pdf": TypstRenderService(
+                            configured_settings, RenderIntakeService(template_registry)
+                        ),
+                        "xlsx": CompositeWorkbookRenderService(
+                            RenderIntakeService(template_registry),
+                            timeout_seconds=configured_settings.render_compile_timeout_seconds,
+                        ),
+                    },
+                    configured_settings.supported_output_formats,
                 ),
             ),
             render_runtime_probe=RenderRuntimeProbe(),

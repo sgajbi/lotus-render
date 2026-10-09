@@ -1,5 +1,13 @@
 # API Surface
 
+## Current scope
+
+The existing render submission accepts the registry-admitted `composite_review.v1` RPT01 XLSX
+combination in addition to PDF. `/docs` includes the named `composite_review_xlsx_package` example.
+No new route is required. MIME, job/runtime evidence, terminal replay and custody semantics apply
+to both formats. The [Composite Review Workbook](Composite-Review-Workbook) page defines its
+literal decimal policy, source-pointer validation, refusal boundaries and explicit qualification.
+
 Every operation `lotus-render` publishes, taken from the generated OpenAPI document on `main`.
 There are **eleven**, and there is no undocumented twelfth: four form the render contract and seven
 are operational.

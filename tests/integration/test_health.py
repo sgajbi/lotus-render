@@ -257,7 +257,7 @@ def test_metadata_endpoint_reports_foundation_posture(tmp_path: Path) -> None:
             "runtimeEngine": "typst",
             "runtimeEngineVersion": "0.14.2",
             "defaultOutputFormat": "pdf",
-            "supportedOutputFormats": ["pdf"],
+            "supportedOutputFormats": ["pdf", "xlsx"],
             "renderStoreReady": True,
             "templateRegistryReady": True,
             "runtimeAvailable": True,

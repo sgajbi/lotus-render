@@ -16,6 +16,7 @@ dependencies = [
   "prometheus-client==0.25.0",
   "prometheus-fastapi-instrumentator==8.1.0",
   "starlette==1.6.0",
+  "XlsxWriter==3.2.9",
 ]
 
 [project.optional-dependencies]
@@ -36,6 +37,8 @@ dev = [
   "deptry==0.25.1",
   "pillow==12.3.0",
   "pypdf==6.19.0",
+  "openpyxl==3.1.5",
+  "types-openpyxl==3.1.5.20260827",
 ]
 
 [tool.ruff]

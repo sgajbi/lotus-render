@@ -83,7 +83,8 @@ class TemplateManifest(BaseModel):
         ...,
         min_length=1,
         description=(
-            "The shared design module version (templates/typst/_shared/<version>) this "
+            "The shared design module version (templates/typst/_shared/<version>), or none "
+            "for the independent XLSX source graph, that this "
             "template version compiles against. Together with template_id and "
             "template_version it names the complete source dependency graph the digest "
             "attests to. Render-internal provenance: producers never see or choose it, "
