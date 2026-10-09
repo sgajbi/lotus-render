@@ -93,8 +93,14 @@ No claim is made that every input under the byte limit fits every deployment's d
 
 The response retains the existing MIME/hash/runtime/attempt contract. XLSX MIME is
 `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`; SHA-256 covers the exact ZIP
-bytes. Fixed workbook creation metadata supports byte equality within the pinned engine/source
-envelope. A duplicate terminal submission returns existing evidence and no inline bytes. Render's
+bytes. `bounded_determinism_fingerprint` uses `composite-xlsx-members/v1`: a SHA-256 domain marker,
+member count and sorted UTF-8 member names and exact payloads, each framed by an eight-byte big-endian
+length. XML payloads are serialized consistently on Windows and Linux; no XML content is normalized
+or omitted. ZIP container ordering, compression, permissions and host attributes are excluded from
+this content fingerprint. Any member name, membership, value, formula, pin or XML byte change moves
+it. Raw artifact checksums and sizes remain the actual ZIP bytes used for transport and custody;
+they may differ across hosts. Same-runtime byte equality is tested separately. A duplicate terminal
+submission returns existing evidence and no inline bytes. Render's
 local SQLite persists lifecycle and custody evidence, not the workbook; Archive owns retrieval.
 
 Report supplies `render_context.archive` with `portfolio_scope=composite`, null `portfolio_id`,
