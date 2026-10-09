@@ -62,6 +62,15 @@ products and context remain reconstructible with the existing strict identity co
 
 The exact Report-owned schema and frozen shared table agreement are copied to
 `contracts/report-data/composite_review.v2.schema.json` and `composite_review.v2.layout.json`.
+The consumed schema artifact SHA256 is
+`f7b25c9f7054c20e568a451ee193ec16c5123b36d474409c648461689394f2de`.
+The separately reviewed Report PR #423 revision `6f6380e5ba7bf3b0087fa416d93bdbb608eea458`
+commits schema bytes with SHA256 `0239fca6616e43c63b209071fbdd5c919a13e5c062b78c2cbf71a6f484de2269`.
+Their parsed JSON is exactly equal; their raw bytes differ. The source-contract inventory records
+both provenances. The agreed artifact hash identifies the retained supplier artifact and does not
+claim byte equality with the producer commit or qualification of its eventual merged main.
+Narrow Git attributes preserve the hash-bound supplier files across host checkouts.
+
 Consumer limits remain 32 tables, 32 columns, 10,000 rows per logical table, table IDs of 31
 characters, row IDs/titles/labels of 256, column IDs of 128 and 32 reason codes. Existing structural,
 physical, tenant, literal and execution controls below remain unchanged. Raw financial authority
