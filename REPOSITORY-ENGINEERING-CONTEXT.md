@@ -42,6 +42,26 @@ revision-identity calculator is introduced. Exact sealed Report r4 PostgreSQL or
 packages drive API/store/restart and full independent workbook reconciliation; the retained original
 reproduces exact bytes. These controlled synthetic fixtures retain their Render503 producer boundary
 and do not claim joined HTTP or institutional qualification. V1/v2 bytes and semantics stay fixed.
+Separate R6 actual joined evidence uses Render runtime main
+`535d0d5f87fd2f8bd701ba8707b343022060d030`, qualified in all eight natural release jobs, with the
+registered Report PostgreSQL producer and actual Render/Archive HTTP clients. All three original,
+financial-correction and retained-original workbooks independently reconcile 115 canonical cells,
+115 display cells, 40 column policies, complete pinned datasets and job/snapshot/revision identity.
+The retained original preserves original facts and revision while its new technical render identity
+produces a distinct truthful artifact hash. Root independently accepts the three artifacts and
+explicit O-to-T-to-C custody relationships. A fresh process restores an integrity-checked SQLite
+backup into an isolated file, verifies all three jobs through the registered app and rejects foreign
+tenants; every value in all 37 persisted columns and the complete schema match the backup.
+The live database/WAL and recorded Render process remain unchanged. No live Render restart is
+claimed. The qualification ledger records exact source, artifact and acceptance receipt hashes;
+closure documentation is a successor to the tested runtime. Controlled frozen source replay,
+`NOT_ATTESTED`, development publication and local trusted headers confer no institutional,
+production authentication, RTO or enterprise certificate. Sealed R5/v1/v2 evidence stays fixed.
+After Root independently accepts all restored-store comparisons and releases owned retirement,
+Render retains a final integrity-checked consistent backup and all three actual artifacts/packages,
+then stops only its recorded phase processes and verifies listener 55888 is absent. R5 and foreign
+resources are untouched. The ledger distinguishes this resource disposition from the earlier
+fixture and live acceptance receipts.
 Separate `composite-review v2` admits only `composite_review.v2`, with 1–8 captured calendar/trailing
 TWR source products, complete monthly selectors and exact primary-subvector pins. Typed product
 shapes live in `contracts/composite_products.py`; `services/composite_workbook/source_products.py`
