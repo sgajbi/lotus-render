@@ -1,19 +1,30 @@
 """Verify source-bound semantic cells, never derive missing financial facts."""
 
-import hashlib
 import json
 import re
+from collections.abc import Mapping
 from decimal import Decimal, InvalidOperation
 from typing import Any
 
+from app.contracts.composite_products import (
+    CompositeContent,
+    CompositeOutputTable,
+    CompositeProductsContent,
+)
 from app.contracts.composite_review import (
     CompositeCell,
     CompositeColumn,
     CompositeReviewContent,
-    CompositeTable,
 )
 from app.contracts.composite_selection import CompositePinnedSelection
 from app.services.composite_workbook.pinned_identity import validate_pinned_identity
+from app.services.composite_workbook.product_tables import validate_product_tables
+from app.services.composite_workbook.source_products import (
+    PRODUCT_RETURN_POINTER,
+    validate_product_pointer,
+    validate_response_digest,
+    validate_source_products,
+)
 
 FINANCIAL_FIELDS = {
     "return_value": ("DECIMAL_RETURN", "PERCENT"),
@@ -95,19 +106,32 @@ def _validate_availability(cell: CompositeCell) -> None:
 
 def validate_cell(dataset: dict[str, Any], column: CompositeColumn, cell: CompositeCell) -> None:
     _validate_availability(cell)
+    if dataset.get("contract_version") == "composite_review.v2":
+        validate_product_pointer(cell.source_pointer, column.value_type)
     source = resolve_pointer(dataset, cell.source_pointer)
     if isinstance(source, bool) or not (source is None or isinstance(source, (str, int))):
         raise ValueError("composite_cell_source_invalid")
     if cell.canonical_value != (None if source is None else str(source)):
         raise ValueError("composite_cell_source_value_conflict")
     _validate_financial_cell(column, cell)
+    if dataset.get("contract_version") == "composite_review.v2":
+        _validate_financial_basename(cell)
+
+
+def _validate_financial_basename(cell: CompositeCell) -> None:
+    field = cell.source_pointer.rsplit("/", 1)[-1]
+    if field in FINANCIAL_FIELDS and not (
+        _FINANCIAL_POINTER.fullmatch(cell.source_pointer)
+        or PRODUCT_RETURN_POINTER.fullmatch(cell.source_pointer)
+    ):
+        raise ValueError("composite_cell_financial_path_not_authorized")
 
 
 def _validate_financial_cell(column: CompositeColumn, cell: CompositeCell) -> None:
     field = cell.source_pointer.rsplit("/", 1)[-1]
     financial_field = (
         _FINANCIAL_POINTER.fullmatch(cell.source_pointer) is not None and field in FINANCIAL_FIELDS
-    )
+    ) or PRODUCT_RETURN_POINTER.fullmatch(cell.source_pointer) is not None
     if column.value_type == "TEXT":
         if financial_field:
             raise ValueError("composite_cell_source_unit_conflict")
@@ -127,7 +151,7 @@ def _validate_financial_number(column: CompositeColumn, cell: CompositeCell) -> 
             raise ValueError("composite_cell_count_invalid")
 
 
-def validate_table(dataset: dict[str, Any], table: CompositeTable) -> None:
+def validate_table(dataset: dict[str, Any], table: CompositeOutputTable) -> None:
     keys = [column.column_id for column in table.columns]
     if len(keys) != len(set(keys)) or len({row.row_id for row in table.rows}) != len(table.rows):
         raise ValueError("composite_table_identity_duplicated")
@@ -138,7 +162,7 @@ def validate_table(dataset: dict[str, Any], table: CompositeTable) -> None:
 
 
 def _validate_row(
-    dataset: dict[str, Any], table: CompositeTable, cells: dict[str, CompositeCell]
+    dataset: dict[str, Any], table: CompositeOutputTable, cells: Mapping[str, CompositeCell]
 ) -> None:
     if set(cells) != {column.column_id for column in table.columns}:
         raise ValueError("composite_table_row_incomplete")
@@ -146,28 +170,27 @@ def _validate_row(
         validate_cell(dataset, column, cells[column.column_id])
 
 
-def validate_dataset(dataset: dict[str, Any]) -> CompositeReviewContent:
-    content = CompositeReviewContent.model_validate(dataset)
+def validate_dataset(dataset: dict[str, Any]) -> CompositeContent:
+    content: CompositeContent
+    if dataset.get("contract_version") == "composite_review.v2":
+        content = CompositeProductsContent.model_validate(dataset)
+    else:
+        content = CompositeReviewContent.model_validate(dataset)
     # Strict JSON admits ISO date/UUID wire strings while preserving the original
     # retained mapping; it does not coerce numeric strings or rewrite source text.
     CompositePinnedSelection.model_validate_json(json.dumps(content.selection))
-    digest = (
-        "sha256:"
-        + hashlib.sha256(
-            json.dumps(content.source_response, sort_keys=True, separators=(",", ":")).encode(
-                "utf-8"
-            )
-        ).hexdigest()
+    validate_response_digest(
+        content.selection, content.source_response, content.source_response_digest
     )
-    if digest != content.source_response_digest or digest != content.selection.get(
-        "response_digest"
-    ):
-        raise ValueError("composite_source_digest_conflict")
     if content.tenant_id != content.selection.get("tenant_id"):
         raise ValueError("composite_source_tenant_conflict")
     validate_pinned_identity(content)
+    if isinstance(content, CompositeProductsContent):
+        validate_source_products(content)
     if len({table.table_id for table in content.tables}) != len(content.tables):
         raise ValueError("composite_table_identity_duplicated")
     for table in content.tables:
         validate_table(dataset, table)
+    if isinstance(content, CompositeProductsContent):
+        validate_product_tables(content)
     return content

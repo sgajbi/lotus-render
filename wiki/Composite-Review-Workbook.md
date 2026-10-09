@@ -1,10 +1,76 @@
 # Composite review workbook
 
-Current scope: `composite-review v1` renders the first RPT01 XLSX supplier slice from Report-owned
-`composite_review.v1`. The package qualification must be `EXPLICIT_RETAINED_CALCULATED_REPLAY`
+Current scope: `composite-review v1` retains the first RPT01 XLSX supplier slice from Report-owned
+`composite_review.v1`; separate `composite-review v2` admits `composite_review.v2` with captured
+calendar/trailing cumulative returns. The package qualification must be `EXPLICIT_RETAINED_CALCULATED_REPLAY`
 and publication state `NOT_ATTESTED`. The manifest is `development`: a successful render or
 verified Archive record does not confer official, attested or client publication authority.
 This slice does not implement the remaining report families or complete the enterprise programme.
+
+## Versioned calendar and trailing products
+
+The existing `render_package.v1` envelope, `POST /renders`, literal writer and Archive lifecycle
+serve both versions. Select the exact tuple advertised by `GET /system/templates`:
+
+| Template | Outer and embedded report-data contract | Format |
+|---|---|---|
+| `composite-review v1` | `composite_review.v1` | `xlsx` |
+| `composite-review v2` | `composite_review.v2` | `xlsx` |
+
+Mixed versions fail closed. Retained v1 packages keep their original manifest/layout/digest and
+golden semantics; adding v2 never reinterprets their source snapshot. The named v2 OpenAPI example
+`composite_products_xlsx_package` is an exact small registered Report producer package using a full
+retained two-month source response and trailing-two response. Its controlled replay and Render503
+profile boundary is recorded in the golden producer proof; the example is not custody evidence.
+
+V2 requires 1–8 uniquely keyed `source_products`. Each contains a strict calendar-year or trailing
+month selector, fixed `POST /composites/twr` provenance, the full raw captured source response and
+its canonical SHA256. The response digest must match both capture and selector; tenant, composite,
+fee view, currency and methodology match the primary capture. Source-stated calculation, engine,
+fingerprint, statuses and complete monthly windows are reconciled. Product windows must be an
+ordered, deep-equal subvector of this version's primary pins. Calendar selections cover exactly
+January–December of the declared year; trailing selections contain exactly the declared months and
+end at the primary as-of date. A recomputed digest cannot excuse changed or stale pins.
+
+`AnnualReturns` is always present: selected calendar products replace its old unavailable row with
+source-backed return rows. With no calendar products its unchanged three-column unavailable
+section remains. `TrailingReturns` exists only when trailing products are selected. All legacy
+table identities remain; no `CalendarReturns` alias is supported. Rows are exactly the matching
+product keys in source-array order, retaining their original array indexes. Both return tables use
+the agreed eleven columns and pointers below; each prefix is `/source_products/<canonical-index>/`.
+
+| Column | Exact relative source pointer | Type |
+|---|---|---|
+| `product` | `pin/product_key` | TEXT |
+| `kind` | `pin/kind` | TEXT |
+| `period_start`, `period_end` | `pin/selection/period_start`, `pin/selection/period_end` | TEXT |
+| `return_view` | `pin/selection/return_view` | TEXT |
+| `currency` | `pin/selection/reporting_currency` | TEXT |
+| `return` | `source_response/cumulative_return` | DECIMAL_RETURN / DECIMAL_RATIO / PERCENT |
+| `status` | `source_response/status` | TEXT |
+| `methodology` | `source_response/methodology` | TEXT |
+| `engine_version` | `pin/selection/engine_version` | TEXT |
+| `response_digest` | `source_response_digest` | TEXT |
+
+The only new financial path is the exact admitted-index cumulative return. It remains literal
+canonical source text and displays ratio-to-percent once at two decimal places with HALF_UP.
+Product period/member/additive financial paths, noncanonical indexes, TEXT relabelling, financial
+facts placed in `report_facts`, mismatched product rows and fabricated availability/reasons refuse.
+The ten named text paths form an explicit allowlist. Extra raw source fields are retained in
+`PinnedData`; retention does not grant table authority. Full CellEvidence, ColumnPolicy, source
+products and context remain reconstructible with the existing strict identity codec.
+
+The exact Report-owned schema and frozen shared table agreement are copied to
+`contracts/report-data/composite_review.v2.schema.json` and `composite_review.v2.layout.json`.
+Consumer limits remain 32 tables, 32 columns, 10,000 rows per logical table, table IDs of 31
+characters, row IDs/titles/labels of 256, column IDs of 128 and 32 reason codes. Existing structural,
+physical, tenant, literal and execution controls below remain unchanged. Raw financial authority
+belongs to Performance; Report owns capture/revision vectors and immutable rerender identity.
+Render performs no financial calculation or upstream request.
+
+Calendar-year cumulative **return** is distinct from annual member **dispersion**. A source
+`POLICY_BASIS_MISMATCH` refusal supplies no dispersion value and remains explicitly unavailable;
+capturing calendar returns confers no authority over that statistic or other uncaptured products.
 
 ## Admission and ownership
 
@@ -37,7 +103,9 @@ pointers, nonfinite values, fabricated authority and unavailable values represen
 | `MonthlyReturns` or `PeriodReturns` | exactly one supplied period series; monthly naming is Report's decision |
 | `Contribution` | supplied member result, weighting and contribution |
 | `Methods`, `Lineage`, `Disclosures` | supplied method, retained provenance and qualification |
-| `AnnualReturns`, `Risk`, `Members`, `EligibilityReasons`, `MembershipHistory`, `Attribution`, `Restatement` | explicit unavailable sections for facts absent from this source contract |
+| `AnnualReturns` | v1 unavailable; v2 selected captured calendar returns or unchanged unavailable section |
+| `TrailingReturns` | v2 selected captured trailing cumulative returns only |
+| `Risk`, `Members`, `EligibilityReasons`, `MembershipHistory`, `Attribution`, `Restatement` | explicit unavailable sections for facts absent from this source contract |
 | `CellEvidence` | every table/row/column identity, exact canonical JSON scalar, availability, reasons and source pointer |
 | `ColumnPolicy` | type, canonical unit, display unit/conversion, decimal places, HALF_UP mode, currency, scale and literal storage |
 | `ArtifactIdentity` | job/snapshot/template, source selection, lineage/disclosures and render context |
@@ -151,12 +219,12 @@ Run from the `lotus-render` repository root after `make install`. The commands w
 and POSIX shells; use the respective interpreter path below:
 
 ```powershell
-.venv/Scripts/python.exe -m pytest tests/unit/test_literal_workbook.py tests/unit/test_composite_source_cells.py tests/e2e/test_composite_workbook_journey.py
+.venv/Scripts/python.exe -m pytest tests/unit/test_literal_workbook.py tests/unit/test_composite_source_cells.py tests/unit/test_composite_products.py tests/unit/test_composite_capacity.py tests/e2e/test_composite_workbook_journey.py
 .venv/Scripts/python.exe scripts/regenerate_golden_fixtures.py --format xlsx
 ```
 
 ```bash
-.venv/bin/python -m pytest tests/unit/test_literal_workbook.py tests/unit/test_composite_source_cells.py tests/e2e/test_composite_workbook_journey.py
+.venv/bin/python -m pytest tests/unit/test_literal_workbook.py tests/unit/test_composite_source_cells.py tests/unit/test_composite_products.py tests/unit/test_composite_capacity.py tests/e2e/test_composite_workbook_journey.py
 .venv/bin/python scripts/regenerate_golden_fixtures.py --format xlsx
 ```
 
@@ -175,6 +243,17 @@ context on each CI host. This fixture proves writer support, without claiming HT
 Producer/consumer acceptance additionally requires actual Report-produced packages and real Archive
 ingestion/download evidence with exact SHA reconciliation; those lifecycle and source boundaries
 must remain explicit in delivery evidence.
+
+Separate v2 original/corrected deterministic-gzip fixtures retain full genuine 72-month primary
+responses plus Root-accepted calendar-2020 and trailing-12 captures through the registered Report
+worker. Their provenance names the exact shared manifest, raw package hashes and controlled
+Render503 profile boundary. Each expands to 28,020 data rows, 202,071 physical cells and 44 sheets;
+serialized request measurements are 7,565,462 / 7,566,158 bytes and UTF8 workbook text is below
+11.41 MB. These measurements establish this selected cohort, not every eight-product combination.
+Operators must measure the complete actual package against every current limit, including full raw
+products and identity context. Refuse excess; never discard raw data or mandatory evidence to fit.
+Writer profiles, snapshots and local registered tests do not substitute for actual HTTP custody,
+current-main qualification or enterprise scale/SLO evidence.
 
 See [Template Registry](Template-Registry), [API Surface](API-Surface),
 [Configuration](Configuration) and [Operations](Operations) for the shared contracts.

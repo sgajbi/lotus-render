@@ -43,8 +43,9 @@ class CompositeTable(CompositeModel):
     rows: list[CompositeRow] = Field(min_length=1, max_length=10_000)
 
 
-class CompositeReviewContent(CompositeModel):
-    contract_version: Literal["composite_review.v1"]
+class CompositeReviewIdentity(CompositeModel):
+    """Common retained identity; each version owns its table and selector shape."""
+
     qualification: Literal["EXPLICIT_RETAINED_CALCULATED_REPLAY"]
     publication_state: Literal["NOT_ATTESTED"]
     tenant_id: str = Field(min_length=1, max_length=128)
@@ -52,4 +53,8 @@ class CompositeReviewContent(CompositeModel):
     source_response_digest: str = Field(pattern=r"^sha256:[0-9a-f]{64}$")
     source_response: dict[str, Any]
     report_facts: dict[str, Any]
+
+
+class CompositeReviewContent(CompositeReviewIdentity):
+    contract_version: Literal["composite_review.v1"]
     tables: list[CompositeTable] = Field(min_length=1, max_length=32)

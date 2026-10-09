@@ -25,9 +25,20 @@ from app.services.render_ports import RenderRuntimeMetadata
 XLSX_MIME_TYPE = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 
 
-def _validate_layout(layout: dict[str, Any], table_names: set[str]) -> None:
+def _validate_contract_axes(package: RenderPackage) -> None:
+    expected = f"composite_review.{package.template_version}"
+    if (
+        package.template_id != "composite-review"
+        or package.template_version not in {"v1", "v2"}
+        or package.report_data_contract_version != expected
+        or package.report_data.get("contract_version") != expected
+    ):
+        raise ValueError("composite_workbook_contract_axes_conflict")
+
+
+def _validate_layout(layout: dict[str, Any], table_names: set[str], *, version: str = "v1") -> None:
     for name, expected in (
-        ("layout_version", "composite_workbook.v1"),
+        ("layout_version", f"composite_workbook.{version}"),
         ("financial_storage", "literal_text_with_exact_canonical_companion"),
         ("display_rounding_mode", "HALF_UP"),
         ("metadata_created", "2000-01-01T00:00:00"),
@@ -47,10 +58,17 @@ def _validate_layout(layout: dict[str, Any], table_names: set[str]) -> None:
     ):
         if layout.get(name) != getattr(literal_writer, name.upper()):
             raise TemplateRegistryError("composite_workbook_layout_limit_mismatch")
+    _validate_table_set(layout, table_names, version)
+
+
+def _validate_table_set(layout: dict[str, Any], table_names: set[str], version: str) -> None:
     required = set(layout["required_tables"])
     periods = set(layout["period_tables"])
     selected = table_names & periods
-    if len(selected) != 1 or table_names != required | selected:
+    optional = {"TrailingReturns"} if version == "v2" else set()
+    if version == "v2" and layout.get("optional_tables") != ["TrailingReturns"]:
+        raise TemplateRegistryError("composite_workbook_layout_policy_mismatch")
+    if len(selected) != 1 or table_names != required | selected | (table_names & optional):
         raise ValueError("composite_workbook_table_set_invalid")
 
 
@@ -74,8 +92,13 @@ class CompositeWorkbookRenderService:
             raise TemplateRegistryError("composite_workbook_template_changed")
         layout = json.loads((directory / "layout.json").read_text(encoding="utf-8"))
         try:
+            _validate_contract_axes(render_package)
             content = validate_dataset(render_package.report_data)
-            _validate_layout(layout, {table.table_id for table in content.tables})
+            _validate_layout(
+                layout,
+                {table.table_id for table in content.tables},
+                version=render_package.template_version,
+            )
         except (ValidationError, ValueError, TypeError, KeyError) as exc:
             # Product diagnostics must not echo source content or arbitrary parser text.
             raise ValueError("composite_review_content_invalid") from exc

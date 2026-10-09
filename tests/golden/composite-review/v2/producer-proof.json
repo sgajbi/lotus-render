@@ -1,0 +1,11 @@
+{
+  "qualification": "REGISTERED_REPORT_SQLITE_RETAINED_R2_SOURCE_REPLAY_CONTROLLED_RENDER503_PROFILE_ONLY",
+  "original_source_package_sha256": "4695380a6ce36359d0e15b22545a792a0f1c7d5bb0d9910c0cb7bfcf20a8b940",
+  "source_response_digest": "sha256:9ed0be022ac38f8841b6d30d9f52b2c1b5456ccd70bc439c391917a1bf16cb00",
+  "source_cumulative_return": "0.030200000000",
+  "retained_windows": 2,
+  "retained_source_replay_calls": 2,
+  "live_producer_calls": 0,
+  "financial_values_manufactured": false,
+  "actual_render_archive_http": false
+}

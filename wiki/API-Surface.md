@@ -2,8 +2,11 @@
 
 ## Current scope
 
-The existing render submission accepts the registry-admitted `composite_review.v1` RPT01 XLSX
-combination in addition to PDF. `/docs` includes the named `composite_review_xlsx_package` example.
+The existing render submission accepts registry-admitted `composite_review.v1` / `composite_review.v2`
+RPT01 XLSX combinations in addition to PDF. `/docs` retains `composite_review_xlsx_package` and adds
+`composite_products_xlsx_package` for captured return products. Each requires its exact template
+version and embedded contract; mixed axes refuse. Both use `render_package.v1`, unchanged finite
+budgets and the existing artifact/custody API. See [Composite Review Workbook](Composite-Review-Workbook).
 No new route is required. MIME, job/runtime evidence, terminal replay and custody semantics apply
 to both formats. The [Composite Review Workbook](Composite-Review-Workbook) page defines its
 literal decimal policy, source-pointer validation, refusal boundaries and explicit qualification.
@@ -41,7 +44,7 @@ are operational.
 
 Each `/system/templates` entry carries the required, nonempty `supported_output_formats` list
 from that exact registry manifest. `portfolio-review v1` declares `["pdf"]`;
-`composite-review v1` declares `["xlsx"]`. A version never inherits another template's list or
+`composite-review v1` and `v2` each declare `["xlsx"]`. A version never inherits another template's list or
 the runtime's global format list. Registry order and all existing identity, lifecycle,
 publication and report-contract fields remain unchanged.
 

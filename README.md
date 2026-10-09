@@ -8,6 +8,11 @@ made it.
 It holds no client, portfolio or advisory data of its own, and fetches none. The package is the
 whole input.
 
+Composite XLSX has exact v1/v2 template and data-contract axes. V2 presents supplied captured
+calendar/trailing cumulative returns through the same literal writer and complete evidence;
+retained v1 semantics and finite resource limits stay fixed. Both remain controlled `NOT_ATTESTED`
+supplier slices. See [Composite Review Workbook](https://github.com/sgajbi/lotus-render/wiki/Composite-Review-Workbook).
+
 Producers discover each version's registry-owned `supported_output_formats` through the existing
 `GET /system/templates`, then also check `/metadata` runtime capability and supportability.
 The [API Surface](https://github.com/sgajbi/lotus-render/wiki/API-Surface#version-format-capability)

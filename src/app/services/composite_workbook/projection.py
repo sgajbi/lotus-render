@@ -4,14 +4,14 @@ import json
 from collections.abc import Iterator
 from typing import Any
 
-from app.contracts.composite_review import CompositeReviewContent, CompositeTable
+from app.contracts.composite_products import CompositeContent, CompositeOutputTable
 from app.contracts.render_package import RenderPackage
 from app.services.composite_workbook.identity import JSON_CHUNK_CHARACTERS, identity_rows
 from app.services.composite_workbook.literal_writer import LiteralTable
 from app.services.composite_workbook.presentation import display_cell
 
 
-def _visible_table(table: CompositeTable) -> LiteralTable:
+def _visible_table(table: CompositeOutputTable) -> LiteralTable:
     return LiteralTable(
         table.table_id,
         ("Report row identity", *(column.label for column in table.columns)),
@@ -25,7 +25,7 @@ def _visible_table(table: CompositeTable) -> LiteralTable:
     )
 
 
-def _cell_evidence(content: CompositeReviewContent) -> LiteralTable:
+def _cell_evidence(content: CompositeContent) -> LiteralTable:
     rows = (
         (
             table.table_id,
@@ -55,7 +55,7 @@ def _cell_evidence(content: CompositeReviewContent) -> LiteralTable:
     )
 
 
-def _column_policy(content: CompositeReviewContent) -> LiteralTable:
+def _column_policy(content: CompositeContent) -> LiteralTable:
     return LiteralTable(
         "ColumnPolicy",
         (
@@ -119,7 +119,7 @@ def _artifact_identity(package: RenderPackage, template_digest: str) -> LiteralT
 
 
 def workbook_tables(
-    package: RenderPackage, content: CompositeReviewContent, template_digest: str
+    package: RenderPackage, content: CompositeContent, template_digest: str
 ) -> Iterator[LiteralTable]:
     for table in content.tables:
         yield _visible_table(table)

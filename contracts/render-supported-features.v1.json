@@ -192,6 +192,17 @@
       ],
       "status": "active",
       "scope": "RPT01 calculated replay presentation only; uncaptured products remain explicitly unavailable"
+    },
+    {
+      "template_id": "composite-review",
+      "template_version": "v2",
+      "report_types": ["composite_review"],
+      "report_data_contract_versions": ["composite_review.v2"],
+      "locales": ["en-SG"],
+      "brand_variants": ["private_banking"],
+      "output_formats": ["xlsx"],
+      "status": "active",
+      "scope": "RPT01 controlled NOT_ATTESTED primary plus captured calendar/trailing cumulative-return presentation; other products and institutional authority remain unavailable"
     }
   ],
   "non_goals": [
