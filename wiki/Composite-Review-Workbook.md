@@ -1,11 +1,13 @@
 # Composite review workbook
 
-Current scope: `composite-review v1` retains the first RPT01 XLSX supplier slice from Report-owned
-`composite_review.v1`; separate `composite-review v2` admits `composite_review.v2` with captured
-calendar/trailing cumulative returns. The package qualification must be `EXPLICIT_RETAINED_CALCULATED_REPLAY`
-and publication state `NOT_ATTESTED`. The manifest is `development`: a successful render or
-verified Archive record does not confer official, attested or client publication authority.
-This slice does not implement the remaining report families or complete the enterprise programme.
+Current scope: RPT01 XLSX v1 and separate v2 captured calendar/trailing returns. Qualification is
+`EXPLICIT_RETAINED_CALCULATED_REPLAY`, publication `NOT_ATTESTED`, manifest `development`.
+Archive custody does not confer official or client-publication authority. Remaining report families
+and enterprise qualification stay open.
+
+Use the version/pointer dictionary below, [R5 custody evidence](#controlled-r5-custody-qualification)
+for independent restart/retirement proof, and [verification](#reproducible-verification) for checks
+and the separate fixture/profile boundaries.
 
 ## Versioned calendar and trailing products
 
@@ -221,6 +223,61 @@ job, snapshot, byte SHA, MIME, runtime and template provenance, then delivers th
 Archive's single ingestion authority. Archive independently verifies checksum and exclusive scope.
 `archive_pending`, `archive_failed`, `archived_verified` and template publication are distinct facts.
 A prepared custody request proves no delivery or download.
+
+## Controlled R5 custody qualification
+
+Phase `composite-source-products-http-20261009-r5` completed actual registered HTTP custody for
+original, financial correction and retained-original rerender artifacts on 2026-10-09. Source
+and resource disposition are recorded in the
+[qualification ledger](https://github.com/sgajbi/lotus-render/blob/main/docs/composite-review-qualification-ledger.md).
+Runtime heads were Report `89b4fa0dfae10b26ae20f16727dccff36a069a49`, Render
+`383126231bb7744d6b4f3f60436ded86da5f0085` and Archive
+`280f6d8d8b0ea47be3e35cbcb25b4347280c5920`. Report used its normal PostgreSQL worker and the
+unmodified Render/Archive HTTP clients. Performance inputs were frozen accepted `75f` genuine
+captures replayed through the registered source boundary: controlled calculated replay,
+**NOT_ATTESTED**, with no institutional or client-publication authority.
+
+Root independently checked all 24,623 canonical/display semantic cells, 81 column policies,
+complete raw source products/pins/context/identity and unavailable reasons in each downloaded
+workbook. Each contains 44 sheets, 28,020 data rows and 202,071 physical cells under unchanged
+limits. Retained-original rerender preserved the original dataset without a source refetch; its
+new render identity contributes to its own artifact hash.
+
+| Actual artifact | Bytes | SHA256 |
+|---|---:|---|
+| Original | 1,318,499 | `e6d552ff1c3c61a66db0058f2ec35d188be210dd13d4ba1bbdde1a5e5b9a6a7f` |
+| Financial correction | 1,319,433 | `1efcaf0b5e1faf5b0d4dcce83d7df4bfc9b9407c924335e9e46092983cc2d686` |
+| Retained original rerender | 1,318,533 | `33f88c9e229351594ff79ecb098813e519c65d3bd6c43c852baaf2241572936c` |
+
+Ten independent reads before and after Archive's HTTP restart preserved full metadata and exact
+download bytes, foreign-download refusal with 403 and the current financial-correction chain.
+The same PostgreSQL container and object storage were reopened by a new HTTP process. Root's
+pre-restart receipt SHA256 is
+`61996f8de6788bedd058a862ba4dbfcee173f9416652ea2d6aa803e54e729797`;
+post-restart receipt SHA256 is
+`bb63dc7c82a4b6d3b4ac2cfc080ab392ada0badd2fc75ff812261c99eab1b515`.
+
+After reader release, Render's SQLite backup API sealed all three terminal `rendered` /
+`archived_verified` jobs into a 24,576-byte backup with integrity `ok`, SHA256
+`288d17a58e27132c167fad8de9d5489b3e93dcd35c99c6022b1b359d0ee95692`.
+All actual workbooks, row bindings, logs and acceptance receipts were retained before the exact
+owned Render processes and listener were retired. Foreign resources and retired R4 evidence were
+untouched. [The issue evidence](https://github.com/sgajbi/lotus-render/issues/344#issuecomment-6077310252)
+records producing native commands and source/receipt bindings.
+
+Root's final custody/retirement acceptance independently rehashed Archive and Report PostgreSQL
+dumps, the Render SQLite backup and all retained object/workbook copies; the sealed 28-file
+producer manifest remained unchanged. Both owned containers/volumes, all seven recorded HTTP/
+wrapper/console processes and all four reserved ports were absent or closed. Final receipt SHA256:
+`f1ac36ca73ed66a8d24062c0d8c79f6718353a9c9b20dfc9b3868b399c8b68d5`.
+Dump contents were listed; no full restore rehearsal or enterprise certificate was claimed.
+
+This closure documentation succeeds the tested Render runtime commit named above; subsequent
+documentation-main checks do not constitute another live producer campaign. Runtime, template,
+contract and finite-limit blobs retain that implementation. Calendar return remains distinct
+from the refused annual member dispersion statistic. This evidence closes only the bounded Render
+v2 seam after final issue reconciliation; Report #417, Platform #923, all twelve products and
+enterprise qualification remain open.
 
 ## Reproducible verification
 
