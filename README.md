@@ -1,7 +1,7 @@
 # lotus-render
 
 Deterministic document rendering for the Lotus platform. Given a governed template and a complete
-package of already-approved data, `lotus-render` produces a PDF and returns evidence of what it
+package of already-approved data, `lotus-render` produces a PDF or the bounded composite-review XLSX and returns evidence of what it
 produced — a truthful artifact hash, a bounded determinism fingerprint, and the engine version that
 made it.
 
@@ -16,7 +16,8 @@ whole input.
 | [Home](https://github.com/sgajbi/lotus-render/wiki/Home) | what the service is for, what it produces today, what it does not own |
 | [Architecture](https://github.com/sgajbi/lotus-render/wiki/Architecture) | how a submission becomes a PDF, and why job state is instance-local |
 | [API Surface](https://github.com/sgajbi/lotus-render/wiki/API-Surface) | the eleven operations, the package contract, idempotency and errors |
-| [Template Registry](https://github.com/sgajbi/lotus-render/wiki/Template-Registry) | the four active templates and their contract shapes |
+| [Template Registry](https://github.com/sgajbi/lotus-render/wiki/Template-Registry) | governed PDF families and the RPT01 XLSX supplier contract |
+| [Composite Review Workbook](https://github.com/sgajbi/lotus-render/wiki/Composite-Review-Workbook) | RPT01 calculated replay, exact financial text, availability, limits and custody |
 | [Configuration](https://github.com/sgajbi/lotus-render/wiki/Configuration) | every `LOTUS_RENDER_` setting, deployment and secrets |
 | [Security and Controls](https://github.com/sgajbi/lotus-render/wiki/Security-and-Controls) | what protects the service, and what a deployment must provide |
 | [Operations](https://github.com/sgajbi/lotus-render/wiki/Operations) | readiness, diagnostics, metrics, incidents |

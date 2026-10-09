@@ -37,6 +37,17 @@ def test_settings_requires_pdf_output_support() -> None:
         Settings(default_output_format="html", supported_output_formats=("html",))
 
 
+def test_settings_support_xlsx_and_preserve_pdf_default() -> None:
+    assert Settings().default_output_format == "pdf"
+    assert Settings().supported_output_formats == ("pdf", "xlsx")
+    assert Settings(default_output_format="xlsx").default_output_format == "xlsx"
+
+
+def test_settings_refuse_unimplemented_output_engines() -> None:
+    with pytest.raises(ValidationError, match="unsupported render output format configured"):
+        Settings(supported_output_formats=("pdf", "html"))
+
+
 def test_settings_rejects_memory_store_when_persistence_required() -> None:
     with pytest.raises(ValidationError, match="loses accepted render jobs on restart"):
         Settings(require_persistent_render_store=True, render_store_path=":memory:")

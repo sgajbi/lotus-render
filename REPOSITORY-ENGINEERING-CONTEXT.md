@@ -15,6 +15,23 @@ operator workflows beyond the render-stage contract defined by RFC-0102.
 
 ## Current-State Summary
 
+RPT01 composite-review XLSX is an additional bounded supplier slice: `composite_review.v1`
+is the Report-owned immutable dataset, `composite-review v1` is an active development template,
+and the registered `FormatRenderService` dispatches XLSX to pinned XlsxWriter 3.2.9 after exact
+registry admission. PDF remains the required default and its Typst runtime governs readiness.
+`src/app/services/composite_workbook/` separates retained identity/source reconciliation, exact
+decimal display, evidence projection and literal XLSX writing. No investment calculation occurs
+in Render. The authoritative consumer dictionary and limits are authored in
+`wiki/Composite-Review-Workbook.md`; schema and exact source ownership are recorded in the source
+contracts. The golden retains the exact registered Report PostgreSQL worker/composer package
+with controlled synthetic source and test-only candidate family admission; Report's original
+Render503 boundary remains explicit. It must not be described as production family admission
+or custody proof. XLSX requires actual independent
+workbook parsing and source/canonical/display reconciliation, rather than PDF image checks.
+Qualification remains `EXPLICIT_RETAINED_CALCULATED_REPLAY`, `NOT_ATTESTED`; active/development
+does not imply client publication. Archive's existing handoff receives exact bytes and exclusive
+composite scope; Archive owns custody and download validation.
+
 `lotus-render` implements the RFC-0102 render-service side for the first-wave portfolio review PDF
 flow. The repository contains the dedicated render-service runtime baseline, explicit render-attempt
 domain models, structured request logging, support-safe system metadata, versioned render package

@@ -21,7 +21,7 @@ def test_metadata_endpoint(tmp_path: Path) -> None:
         assert response.status_code == 200
         payload = response.json()
         assert payload["service"].startswith("lotus-")
-        assert payload["supportedOutputFormats"] == ["pdf"]
+        assert payload["supportedOutputFormats"] == ["pdf", "xlsx"]
         assert payload["renderAttemptStatuses"] == [
             "accepted",
             "validating_package",

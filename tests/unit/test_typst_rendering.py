@@ -93,6 +93,7 @@ def _load_golden_fixture_packages() -> list[tuple[dict[str, str], RenderPackage]
             ),
         )
         for fixture in manifest["fixtures"]
+        if fixture.get("output_format", "pdf") == "pdf"
     ]
 
 

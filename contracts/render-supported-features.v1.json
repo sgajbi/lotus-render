@@ -8,7 +8,9 @@
     "src/app/contracts/system.py",
     "src/app/services/render_content.py",
     "src/app/services/template_context.py",
-    "docs/operations/rendering-observability-metrics.md"
+    "docs/operations/rendering-observability-metrics.md",
+    "src/app/contracts/composite_review.py",
+    "src/app/services/composite_workbook"
   ],
   "api_paths": [
     "/health",
@@ -169,6 +171,27 @@
         "pdf"
       ],
       "status": "active"
+    },
+    {
+      "template_id": "composite-review",
+      "template_version": "v1",
+      "report_types": [
+        "composite_review"
+      ],
+      "report_data_contract_versions": [
+        "composite_review.v1"
+      ],
+      "locales": [
+        "en-SG"
+      ],
+      "brand_variants": [
+        "private_banking"
+      ],
+      "output_formats": [
+        "xlsx"
+      ],
+      "status": "active",
+      "scope": "RPT01 calculated replay presentation only; uncaptured products remain explicitly unavailable"
     }
   ],
   "non_goals": [

@@ -45,6 +45,17 @@
       "compatibility_policy": "exact-version",
       "status": "active",
       "effective_from": "2026-04-23"
+    },
+    {
+      "report_data_contract_version": "composite_review.v1",
+      "source_owner": "lotus-report",
+      "source_repository": "sgajbi/lotus-report",
+      "source_path": "contracts/composite_review.v1.schema.json",
+      "compatibility_policy": "exact-version",
+      "status": "active",
+      "effective_from": "2026-10-09",
+      "consumer_schema_path": "contracts/report-data/composite_review.v1.schema.json",
+      "agreed_schema_sha256": "bced7ccdfe75c773ce944d21023644672bb704734c7d6fe2af88dd623679598b"
     }
   ]
 }

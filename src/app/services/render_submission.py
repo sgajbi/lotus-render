@@ -45,6 +45,7 @@ from app.services.render_ports import (
     RenderEnginePort,
     RenderEngineTimeoutError,
     RenderJobStorePort,
+    package_runtime_metadata,
 )
 from app.services.render_recovery import diagnostic_recovery
 from app.services.section_selection import section_selection_refusal
@@ -98,6 +99,9 @@ class RenderSubmissionService:
         (C6-REN-02 step a) and leaves the job unattributed.
         """
         started_at = perf_counter()
+        if render_package.report_type == "composite_review":
+            if render_package.report_data.get("tenant_id") != admitted_tenant:
+                raise RenderPackageInvalidError("composite_tenant_scope_contradiction")
         package_hash = hashlib.sha256(
             json.dumps(
                 render_package.model_dump(mode="json"),
@@ -105,7 +109,7 @@ class RenderSubmissionService:
                 separators=(",", ":"),
             ).encode("utf-8")
         ).hexdigest()
-        runtime_metadata = self._render_engine.runtime_metadata
+        runtime_metadata = package_runtime_metadata(self._render_engine, render_package)
         try:
             create_result = self._render_store.create_or_get_with_outcome(
                 render_job_id=render_package.render_job_id,

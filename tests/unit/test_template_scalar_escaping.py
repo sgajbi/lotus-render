@@ -84,7 +84,7 @@ def test_every_scalar_placeholder_sits_in_string_literal_context() -> None:
 def _golden_fixtures() -> list[dict[str, str]]:
     manifest = json.loads(GOLDEN_PRODUCER_FIXTURES.read_text(encoding="utf-8"))
     fixtures: list[dict[str, str]] = manifest["fixtures"]
-    return fixtures
+    return [fixture for fixture in fixtures if fixture.get("output_format", "pdf") == "pdf"]
 
 
 @pytest.mark.parametrize(

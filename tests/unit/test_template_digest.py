@@ -70,6 +70,7 @@ def test_the_registry_refuses_a_template_that_no_longer_matches_its_manifest(
 
     source = tmp_path / "typst"
     shutil.copytree("templates/typst", source)
+    shutil.copytree("templates/xlsx", tmp_path / "xlsx")
     theme = source / "portfolio-review" / "v1" / "_theme.typ"
     theme.write_text(theme.read_text(encoding="utf-8") + "\n// unreviewed edit\n", encoding="utf-8")
 

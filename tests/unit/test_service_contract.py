@@ -163,7 +163,7 @@ def test_render_foundation_metadata_exposes_supported_statuses() -> None:
     metadata = service.metadata()
 
     assert metadata["runtimeEngine"] == "typst"
-    assert metadata["supportedOutputFormats"] == ["pdf"]
+    assert metadata["supportedOutputFormats"] == ["pdf", "xlsx"]
     assert metadata["renderAttemptStatuses"] == [
         "accepted",
         "validating_package",

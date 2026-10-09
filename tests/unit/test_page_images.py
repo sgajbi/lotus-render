@@ -41,7 +41,9 @@ def _fixtures() -> list[dict[str, object]]:
     manifest: dict[str, list[dict[str, object]]] = json.loads(
         FIXTURES_PATH.read_text(encoding="utf-8")
     )
-    return manifest["fixtures"]
+    return [
+        fixture for fixture in manifest["fixtures"] if fixture.get("output_format", "pdf") == "pdf"
+    ]
 
 
 def _service() -> TypstRenderService:

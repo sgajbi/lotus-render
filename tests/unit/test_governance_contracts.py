@@ -80,19 +80,24 @@ def test_golden_samples_resolve_to_committed_packages_and_artifacts() -> None:
             advertised_samples.add(key)
             fixture = fixtures[key]
             package_path = Path(cast(str, fixture["package_path"]))
-            expected_pdf_path = Path(cast(str, fixture["expected_pdf_path"]))
+            output_format = fixture.get("output_format", "pdf")
+            artifact_field = (
+                "expected_artifact_path" if output_format == "xlsx" else "expected_pdf_path"
+            )
+            expected_pdf_path = Path(cast(str, fixture[artifact_field]))
 
             sample_root = Path("tests/golden") / template_id / template_version
             assert package_path.is_relative_to(sample_root)
             assert expected_pdf_path.is_relative_to(sample_root)
             assert package_path.name == "render-package.json"
-            assert expected_pdf_path.name == "expected.pdf"
+            assert expected_pdf_path.name == f"expected.{output_format}"
             assert package_path.exists()
             assert expected_pdf_path.exists()
             assert (
                 json.loads(package_path.read_text(encoding="utf-8"))["template_id"] == template_id
             )
-            assert expected_pdf_path.read_bytes().startswith(b"%PDF")
+            magic = b"PK" if output_format == "xlsx" else b"%PDF"
+            assert expected_pdf_path.read_bytes().startswith(magic)
 
     assert set(fixtures) == advertised_samples
 

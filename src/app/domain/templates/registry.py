@@ -162,14 +162,13 @@ def shared_design_directory(
 
 
 def _verify_template_digest(manifest: TemplateManifest, source_root: Path) -> None:
-    directory = source_root / manifest.template_id / manifest.template_version
+    directory, shared = template_source_directories(manifest, source_root)
     if not directory.is_dir():
         raise TemplateRegistryError(
             f"template source missing for {manifest.template_id} "
             f"{manifest.template_version} at {directory}"
         )
-    shared = shared_design_directory(manifest.shared_design_version, source_root)
-    if not shared.is_dir():
+    if shared is not None and not shared.is_dir():
         raise TemplateRegistryError(
             f"shared design module missing at {shared} (pinned by {manifest.template_id} "
             f"{manifest.template_version})"
@@ -182,3 +181,17 @@ def _verify_template_digest(manifest: TemplateManifest, source_root: Path) -> No
             f"directory measures {measured}. A published template changed without its "
             "manifest being updated; re-approve it and record the new digest."
         )
+
+
+def template_source_directories(
+    manifest: TemplateManifest, source_root: Path = DEFAULT_TEMPLATE_SOURCE_ROOT
+) -> tuple[Path, Path | None]:
+    """Resolve the approved source graph by engine, retaining the PDF graph unchanged."""
+    if manifest.runtime_engine == "typst":
+        return (
+            source_root / manifest.template_id / manifest.template_version,
+            shared_design_directory(manifest.shared_design_version, source_root),
+        )
+    if manifest.runtime_engine == "xlsxwriter" and manifest.shared_design_version == "none":
+        return source_root.parent / "xlsx" / manifest.template_id / manifest.template_version, None
+    raise TemplateRegistryError("unsupported_template_source_engine")

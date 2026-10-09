@@ -1,5 +1,20 @@
 # Template Registry
 
+## Current scope
+
+Current scope: the RPT01 `composite-review v1` XLSX supplier uses an active development manifest, Report-owned
+`composite_review.v1`, and XlsxWriter 3.2.9. Its source graph is
+`templates/xlsx/composite-review/v1` with `shared_design_version=none`; digest validation covers
+that complete graph. Its golden artifact is `expected.xlsx`. See
+[Composite Review Workbook](Composite-Review-Workbook) for the dictionary, qualification,
+precision policy and bounds. The PDF family details below retain their Typst source graphs.
+
+| Reader | Start here |
+|---|---|
+| PDF integration engineer | family contract shapes below |
+| XLSX integration engineer | [Composite Review Workbook](Composite-Review-Workbook) |
+| Template owner | lifecycle and digest controls below |
+
 `lotus-render` keeps template compatibility and lifecycle truth in repo-authored manifest files under
 `templates/registry/`.
 

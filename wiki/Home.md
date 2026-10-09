@@ -1,8 +1,10 @@
 # lotus-render
 
 The Lotus platform's document production service. Given a governed template and a complete package
-of already-approved data, it produces a **PDF** — deterministically, with evidence of what it
+of already-approved data, it produces a **PDF** or a bounded composite-review **XLSX**, with evidence of what it
 produced and from what.
+
+Current scope includes the governed PDF families and the RPT01 retained calculated XLSX supplier.
 
 ## Why it exists
 
@@ -52,6 +54,11 @@ Four governed templates, all `active`, all PDF, all `en-SG` / `private_banking`:
 | `proof-pack v1` | pre-trade proof pack | `dpm_proof_pack_report_input.v1` | `lotus-manage`, `lotus-idea` |
 | `rebalance-wave v1` | rebalance wave evidence | `dpm_wave_report_input.v1` | `lotus-manage` |
 
+The additional `composite-review v1` template consumes Report-owned `composite_review.v1`
+and produces XLSX for RPT01 retained calculated replay. Its publication posture is `development`;
+it grants no official, attested or client publication authority. See
+[Composite Review Workbook](Composite-Review-Workbook) for its precise scope and evidence limits.
+
 `portfolio-review v1` renders the full client report by default and supports a caller-selected
 subset of sections. It can also render an optional reviewed advisory narrative or advisor proposal
 memo when `lotus-report` includes an approved advisor-use package from `lotus-advise` — presentation
@@ -92,7 +99,7 @@ Not implemented today — recorded so that absence is not mistaken for capabilit
 
 | gap | consequence | tracked |
 |---|---|---|
-| output formats other than PDF | a settings validator requires `pdf`; another format is a code change | — |
+| formats beyond PDF and RPT01 composite XLSX | no engine or governed template admission | — |
 | shared job state | the store is a local file, so one instance cannot report on another's jobs | — |
 | enforced durability by default | `REQUIRE_PERSISTENT_RENDER_STORE` is `false`; Docker Compose sets it `true`, bare deployments must too | [#83](https://github.com/sgajbi/lotus-render/issues/83) |
 
