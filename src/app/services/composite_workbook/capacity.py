@@ -1,4 +1,4 @@
-"""Preflight every physical v4 cell, partition header and retained JSON fragment."""
+"""Preflight physical composite cells, partition headers and retained JSON fragments."""
 
 import json
 from collections.abc import Iterable, Sequence
@@ -20,7 +20,7 @@ def _refuse() -> None:
 
 
 @dataclass
-class EligibilityCapacity:
+class WorkbookCapacity:
     request_body_bytes: int
     total_rows: int = 0
     total_cells: int = 0
@@ -45,20 +45,20 @@ class EligibilityCapacity:
         self.add_values(headers)
 
 
-def preflight_eligibility_workbook(
+def preflight_workbook(
     package: RenderPackage, tables: Iterable[LiteralTable]
-) -> tuple[list[LiteralTable], EligibilityCapacity]:
+) -> tuple[list[LiteralTable], WorkbookCapacity]:
     wire = json.dumps(
         package.model_dump(mode="json"), ensure_ascii=False, separators=(",", ":"), allow_nan=False
     ).encode("utf-8")
-    capacity = EligibilityCapacity(request_body_bytes=len(wire))
+    capacity = WorkbookCapacity(request_body_bytes=len(wire))
     if capacity.request_body_bytes > MAX_REQUEST_BODY_BYTES:
         _refuse()
     retained = [_retain_table(table, capacity) for table in tables]
     return retained, capacity
 
 
-def _retain_table(table: LiteralTable, capacity: EligibilityCapacity) -> LiteralTable:
+def _retain_table(table: LiteralTable, capacity: WorkbookCapacity) -> LiteralTable:
     if not table.headers or len(table.headers) > limits.MAX_COLUMNS:
         _refuse()
     capacity.add_sheet(table.headers)

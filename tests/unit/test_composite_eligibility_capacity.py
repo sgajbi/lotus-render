@@ -6,8 +6,8 @@ import pytest
 from eligibility_fixtures import producer_package
 
 from app.contracts.render_package import RenderPackage
-from app.services.composite_workbook import eligibility_capacity, literal_writer
-from app.services.composite_workbook.eligibility_capacity import preflight_eligibility_workbook
+from app.services.composite_workbook import capacity, literal_writer
+from app.services.composite_workbook.capacity import preflight_workbook
 from app.services.composite_workbook.literal_writer import LiteralTable
 from app.services.composite_workbook.projection import workbook_tables
 from app.services.composite_workbook.source_cells import validate_dataset
@@ -25,7 +25,7 @@ DIGEST = "sha256:ad67662bd2ce9d3d2f65ec88f9db3c326c729c7c0b8d98c5c4284de8fb37413
 )
 def test_exact_complete_fixture_capacity(kind: str, wire_bytes: int, cells: int, text: int) -> None:
     package = RenderPackage.model_validate(producer_package(kind))
-    tables, capacity = preflight_eligibility_workbook(
+    tables, capacity = preflight_workbook(
         package, workbook_tables(package, validate_dataset(package.report_data), DIGEST)
     )
     assert asdict(capacity) == dict(
@@ -41,7 +41,7 @@ def test_exact_complete_fixture_capacity(kind: str, wire_bytes: int, cells: int,
 def test_partition_overhead_counts_each_repeated_header() -> None:
     package = RenderPackage.model_validate(producer_package())
     table = LiteralTable("Evidence", ("Header",), [("value",)] * 1001)
-    _, capacity = preflight_eligibility_workbook(package, [table])
+    _, capacity = preflight_workbook(package, [table])
     assert capacity.total_rows == 1001
     assert capacity.total_cells == 1003
     assert capacity.sheets == 2
@@ -65,19 +65,19 @@ def test_every_physical_guard_accepts_exact_boundary_and_refuses_one_below(
     package = RenderPackage.model_validate(producer_package())
     content = validate_dataset(package.report_data)
     monkeypatch.setattr(literal_writer, bound, measured)
-    preflight_eligibility_workbook(package, workbook_tables(package, content, DIGEST))
+    preflight_workbook(package, workbook_tables(package, content, DIGEST))
     monkeypatch.setattr(literal_writer, bound, measured - 1)
     with pytest.raises(RenderCompileFailedError, match="resource_limit_exceeded"):
-        preflight_eligibility_workbook(package, workbook_tables(package, content, DIGEST))
+        preflight_workbook(package, workbook_tables(package, content, DIGEST))
 
 
 def test_complete_serialized_request_guard(monkeypatch: pytest.MonkeyPatch) -> None:
     package = RenderPackage.model_validate(producer_package())
-    monkeypatch.setattr(eligibility_capacity, "MAX_REQUEST_BODY_BYTES", 55423)
-    preflight_eligibility_workbook(package, [])
-    monkeypatch.setattr(eligibility_capacity, "MAX_REQUEST_BODY_BYTES", 55422)
+    monkeypatch.setattr(capacity, "MAX_REQUEST_BODY_BYTES", 55423)
+    preflight_workbook(package, [])
+    monkeypatch.setattr(capacity, "MAX_REQUEST_BODY_BYTES", 55422)
     with pytest.raises(RenderCompileFailedError, match="resource_limit_exceeded"):
-        preflight_eligibility_workbook(package, [])
+        preflight_workbook(package, [])
 
 
 @pytest.mark.parametrize(
@@ -109,7 +109,7 @@ def test_actual_controlled_source_package_measured_envelope(
     kind: str, expected: dict[str, int]
 ) -> None:
     package = RenderPackage.model_validate(producer_package(kind))
-    _, capacity = preflight_eligibility_workbook(
+    _, capacity = preflight_workbook(
         package, workbook_tables(package, validate_dataset(package.report_data), DIGEST)
     )
     assert asdict(capacity) == expected

@@ -102,6 +102,22 @@
       "agreed_interface_path": "contracts/report-data/composite_review.v4.interface.json",
       "agreed_interface_sha256": "348259b5add5a3a8bec679a1b6036c5ac80285392156e534df30cd0f7b9559aa",
       "reviewed_schema_equivalence": "exact_frozen_r3_bytes_r2_schema_unchanged"
+    },
+    {
+      "report_data_contract_version": "composite_review.v5",
+      "source_owner": "lotus-report",
+      "source_repository": "sgajbi/lotus-report",
+      "source_path": "contracts/composite_review.v5.schema.json",
+      "upstream_domain_owner": "lotus-performance",
+      "compatibility_policy": "exact-version",
+      "status": "active",
+      "effective_from": "2026-10-10",
+      "consumer_schema_path": "contracts/report-data/composite_review.v5.schema.json",
+      "agreed_schema_sha256": "d067fd9b356a882c0ea24b4c9ba2738f7f179883bc0e7afd4c76f950ed0944ce",
+      "reviewed_producer_revision": "de686fd67e3582934c851cd371e28c7c8c68d88d",
+      "reviewed_packet_manifest_sha256": "67a5da54d746051b5318cf8d856f804b4e8d3daa05cd3418e2e5aff0ee4cd87f",
+      "reviewed_producer_checkout_schema_sha256": "b9e8033b3637bc8799acfba972346f007aa1c31ff042e8b875b38dfdbcf8974d",
+      "reviewed_schema_equivalence": "committed_lf_bytes_exact_checkout_crlf_parsed_json_equal"
     }
   ]
 }
