@@ -35,6 +35,13 @@ XLSX bounded determinism uses the versioned `composite-xlsx-members/v1` domain a
 sorted member-name/payload length framing. Raw ZIP SHA/size remains truthful custody identity;
 container host metadata/compression may differ across platforms. The writer uses bounded in-memory
 XML serialization to avoid platform line-ending drift without normalizing any source/cell content.
+The default request envelope is bounded at 8 MiB. The XLSX writer permits 30,000 aggregate data
+rows and 210,000 physical cells including partition headers; the independent 16 MiB text/output,
+64-sheet, 1,000-row partition, 32,767 UTF-16-unit cell and execution controls remain enforced.
+Oversized identity JSON uses `ordered_json_text_v1` descriptor and ordered JSON-string fragments;
+ordinary identity cells and financial cells retain their literal representation. The wiki specifies
+strict external reconstruction. A compressed genuine controlled 72-month Report package exercises
+all 24,604 semantic cells and complete context/pins through the registered writer on CI hosts.
 
 `lotus-render` implements the RFC-0102 render-service side for the first-wave portfolio review PDF
 flow. The repository contains the dedicated render-service runtime baseline, explicit render-attempt

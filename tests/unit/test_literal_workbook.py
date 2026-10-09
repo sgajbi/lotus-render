@@ -98,6 +98,25 @@ def test_resource_guards_refuse_without_partial_artifact(
     assert refusal.value.failure_category.value == "resource_limit_exceeded"
 
 
+@pytest.mark.parametrize("columns,rows", [(1, 30_000), (7, 29_970)])
+def test_real_aggregate_boundaries_accept_exact_budget_and_refuse_next_row(
+    columns: int, rows: int
+) -> None:
+    # 29,970 seven-cell rows plus 30 seven-cell partition headers = 210,000 cells.
+    def tables(count: int) -> list[LiteralTable]:
+        return [
+            LiteralTable("Summary", ("value",) * columns, (("0",) * columns for _ in range(count)))
+        ]
+
+    artifact = write_literal_workbook(tables(rows))
+    workbook = openpyxl.load_workbook(io.BytesIO(artifact), read_only=True)
+    assert sum(sheet.max_row - 1 for sheet in workbook) == rows
+    workbook.close()
+    with pytest.raises(RenderCompileFailedError) as refusal:
+        write_literal_workbook(tables(rows + 1))
+    assert refusal.value.failure_category.value == "resource_limit_exceeded"
+
+
 def test_excess_columns_and_incomplete_rows_refuse() -> None:
     for table in (
         LiteralTable("Summary", ("column",) * (writer.MAX_COLUMNS + 1), []),

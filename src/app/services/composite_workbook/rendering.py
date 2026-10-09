@@ -15,6 +15,7 @@ from app.domain.templates.digest import template_digest
 from app.domain.templates.registry import TemplateRegistryError, template_source_directories
 from app.services.composite_workbook import literal_writer
 from app.services.composite_workbook.fingerprint import workbook_content_fingerprint
+from app.services.composite_workbook.identity import IDENTITY_STORAGE
 from app.services.composite_workbook.literal_writer import write_literal_workbook
 from app.services.composite_workbook.projection import workbook_tables
 from app.services.composite_workbook.source_cells import validate_dataset
@@ -30,6 +31,7 @@ def _validate_layout(layout: dict[str, Any], table_names: set[str]) -> None:
         ("financial_storage", "literal_text_with_exact_canonical_companion"),
         ("display_rounding_mode", "HALF_UP"),
         ("metadata_created", "2000-01-01T00:00:00"),
+        ("identity_storage", IDENTITY_STORAGE),
     ):
         if layout.get(name) != expected:
             raise TemplateRegistryError("composite_workbook_layout_policy_mismatch")
