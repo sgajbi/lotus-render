@@ -26,6 +26,14 @@ missing/empty values return `401 MISSING_TENANT_AUTHORITY`, malformed values ret
 reads and never adopted by replay. Admitting the header is not authenticating the caller — ingress
 still decides who may assert a tenant at all.
 
+The receiver counts raw tenant header fields before accepting FastAPI's scalar value. Repeated
+fields return `400 INVALID_TENANT_AUTHORITY`, even when values agree, order is reversed, a value
+is empty, or header names use different casing. Registered HTTP tests cover submission, status,
+diagnostics and artifact metadata with isolated SQLite, no new row, no store read, no engine call
+and no Archive handoff. Error bodies and logs do not echo tenant values. This receiver proof does
+not establish how an authenticated ingress handles duplicate fields: a deployment must separately
+prove its trusted caller contract and preserve or reject duplicates before forwarding authority.
+
 Two consequences follow, and both are deployment obligations rather than service behaviour:
 
 1. **Anything that can reach the port still relies on ingress for authentication.** At this service

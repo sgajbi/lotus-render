@@ -229,6 +229,11 @@ OpenAPI examples and authored `wiki/API-Surface.md` consistent when this additiv
      never taken from the package's custody block, which is a claim that may only agree with it.
      Header absence/blankness now refuses before I/O; an unattributed legacy job is quarantined
      from tenant-scoped reads and is never backfilled or adopted on replay.
+     The receiver counts raw ASGI tenant fields case-insensitively before scalar value admission:
+     duplicates, including equal values, return `400 INVALID_TENANT_AUTHORITY` on all four render
+     routes before job/store/engine/Archive effects. Single-header semantics remain unchanged.
+     Registered HTTP/SQLite tests prove receiver admission; authenticated ingress forwarding
+     remains a separate platform-owned qualification requirement.
 
 ## Repo-Native Commands
 

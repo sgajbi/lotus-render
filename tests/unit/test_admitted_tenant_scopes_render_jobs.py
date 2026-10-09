@@ -26,7 +26,7 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-from fastapi import HTTPException
+from fastapi import HTTPException, Request
 from fastapi.testclient import TestClient
 
 from app.contracts.examples import PORTFOLIO_REVIEW_RENDER_PACKAGE_EXAMPLE_PATH
@@ -150,14 +150,16 @@ def _service(
 
 
 @contextmanager
-def _client(store_path: Path) -> Iterator[tuple[TestClient, _ScriptedEngine]]:
+def _client(
+    store_path: Path, *, transport: _RecordingTransport | None = None
+) -> Iterator[tuple[TestClient, _ScriptedEngine]]:
     """The registered routes over the real store, with only the engine scripted.
 
     Entered as a context so the app lifespan runs: that is where the container the
     routes depend on is installed, exactly as in production.
     """
     app = create_app(Settings(render_store_path=str(store_path)))
-    service, engine = _service(store_path)
+    service, engine = _service(store_path, transport=transport)
     app.dependency_overrides[get_render_submission_service] = lambda: service
     with TestClient(app) as client:
         yield client, engine
@@ -169,6 +171,59 @@ def _tenant(tenant: str | None) -> dict[str, str]:
 
 def _row_tenant(store_path: Path, render_job_id: str) -> str | None:
     return RenderStore(store_path).get(render_job_id, tenant_id=None).tenant_id
+
+
+@pytest.mark.parametrize("suffix", [None, "", "/diagnostics", "/artifact-metadata"])
+@pytest.mark.parametrize(
+    "headers",
+    [
+        [("X-Tenant-Id", ALPHA), ("X-Tenant-Id", ALPHA)],
+        [("X-Tenant-Id", ALPHA), ("X-Tenant-Id", BETA)],
+        [("X-Tenant-Id", BETA), ("X-Tenant-Id", ALPHA)],
+        [("x-tenant-id", ALPHA), ("X-TENANT-ID", BETA)],
+        [("X-Tenant-Id", ""), ("X-Tenant-Id", ALPHA)],
+    ],
+    ids=["identical", "conflicting", "reversed", "mixed-case", "empty-first"],
+)
+def test_duplicate_tenant_headers_refused_on_every_route_before_effects(
+    tmp_path: Path,
+    headers: list[tuple[str, str]],
+    suffix: str | None,
+    caplog: pytest.LogCaptureFixture,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    caplog.set_level("DEBUG")
+    store_path = tmp_path / "duplicate-tenant.sqlite3"
+    transport = _RecordingTransport()
+    with _client(store_path, transport=transport) as (client, engine):
+        store_reads: list[str] = []
+        original_get = RenderStore.get
+
+        def record_store_read(store: RenderStore, job: str, **kwargs: Any) -> Any:
+            store_reads.append(job)
+            return original_get(store, job, **kwargs)
+
+        monkeypatch.setattr(RenderStore, "get", record_store_read)
+        if suffix is None:
+            response = client.post(
+                "/renders",
+                json=_payload("duplicate-tenant-job", custody_tenant=None),
+                headers=headers,
+            )
+        else:
+            response = client.get(f"/renders/absent-job{suffix}", headers=headers)
+        assert response.status_code == 400, response.text
+        assert response.json()["detail"] == {
+            "code": "INVALID_TENANT_AUTHORITY",
+            "message": "X-Tenant-Id must be supplied exactly once.",
+        }
+        assert engine.calls == 0
+        assert transport.headers == []
+        assert store_reads == []
+        with closing(sqlite3.connect(store_path)) as connection:
+            assert connection.execute("SELECT COUNT(*) FROM render_job").fetchone() == (0,)
+    assert ALPHA not in caplog.text
+    assert BETA not in caplog.text
 
 
 def test_a_job_is_bound_to_the_admitted_tenant_and_invisible_to_another(
@@ -280,7 +335,10 @@ def test_non_printable_tenant_authority_is_refused_without_normalization() -> No
     """Controls are malformed authority, never a tenant spelling to clean up."""
 
     with pytest.raises(HTTPException) as error:
-        get_admitted_tenant("tenant-alpha\x7f")
+        get_admitted_tenant(
+            Request({"type": "http", "headers": [(b"x-tenant-id", b"tenant-alpha\x7f")]}),
+            "tenant-alpha\x7f",
+        )
 
     refusal = error.value
     assert refusal.status_code == 400
