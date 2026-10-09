@@ -4,7 +4,9 @@ The Lotus platform's document production service. Given a governed template and 
 of already-approved data, it produces a **PDF** or a bounded composite-review **XLSX**, with evidence of what it
 produced and from what.
 
-Current scope includes the governed PDF families and the RPT01 retained calculated XLSX supplier.
+Current scope includes the governed PDF families and versioned RPT01 retained calculated XLSX
+suppliers: v1 primary evidence and v2 primary plus explicitly captured calendar/trailing returns.
+Both remain controlled `NOT_ATTESTED` development templates.
 
 ## Why it exists
 

@@ -20,16 +20,24 @@ FIXTURE = Path("tests/golden/composite-review/v1/render-package.json")
 XLSX_MIME = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 
 
+@pytest.mark.parametrize(
+    "fixture,wire_bytes",
+    [
+        ("v1/six-year-render-package.json.gz", 6_893_642),
+        ("v2/original-six-year-render-package.json.gz", 7_565_462),
+        ("v2/financial-correction-six-year-render-package.json.gz", 7_566_158),
+    ],
+)
 def test_six_year_http_envelope_reaches_registered_writer_and_survives_restart(
     tmp_path: Path,
+    fixture: str,
+    wire_bytes: int,
 ) -> None:
     payload = json.loads(
-        gzip.decompress(
-            Path("tests/golden/composite-review/v1/six-year-render-package.json.gz").read_bytes()
-        )
+        gzip.decompress((Path("tests/golden/composite-review") / fixture).read_bytes())
     )
     wire = json.dumps(payload, ensure_ascii=False, separators=(",", ":"), allow_nan=False).encode()
-    assert len(wire) == 6_893_642
+    assert len(wire) == wire_bytes
     settings = Settings(render_store_path=str(tmp_path / "six-year.sqlite3"), archive_base_url=None)
     headers = {
         "X-Tenant-Id": payload["report_data"]["tenant_id"],
@@ -151,6 +159,25 @@ def reconcile_workbook(artifact: bytes, payload: dict[str, Any]) -> None:
         for column in table["columns"]
     ]
     assert list(workbook["ColumnPolicy_1"].values)[1:] == expected_policy
+    if data["contract_version"] == "composite_review.v1":
+        _assert_v1_oracles(workbook)
+    identity = {
+        row[0]: json.loads(_text(row[1])) for row in list(workbook["ArtifactIdentity_1"].values)[1:]
+    }
+    assert identity["snapshot_id"] == payload["snapshot_id"]
+    assert identity["report_job_id"] == payload["report_job_id"]
+    assert identity["render_context"] == payload["render_context"]
+    assert identity["template_id"] == "composite-review"
+    assert identity["template_version"] == payload["template_version"]
+    assert identity["report_data_contract_version"] == payload["report_data_contract_version"]
+    for parsed_sheet in workbook:
+        assert all(
+            cell.data_type != "f" and cell.hyperlink is None for row in parsed_sheet for cell in row
+        )
+    workbook.close()
+
+
+def _assert_v1_oracles(workbook: openpyxl.Workbook) -> None:
     # Independently specified OR-01/OR-02 displayed oracles, no investment math.
     monthly = list(workbook["MonthlyReturns_1"].values)
     assert monthly[1][4:6] == ("1.00%", "1.00%")
@@ -161,24 +188,18 @@ def reconcile_workbook(artifact: bytes, payload: dict[str, Any]) -> None:
     assert contribution[1][4:8] == ("10.00%", "100.00 USD", "25.00%", "2.50 pp")
     assert contribution[2][4:8] == ("-2.00%", "300.00 USD", "75.00%", "-1.50 pp")
     assert _text(monthly[1][10]).startswith("UNAVAILABLE:")
-    identity = {
-        row[0]: json.loads(_text(row[1])) for row in list(workbook["ArtifactIdentity_1"].values)[1:]
-    }
-    assert identity["snapshot_id"] == payload["snapshot_id"]
-    assert identity["report_job_id"] == payload["report_job_id"]
-    assert identity["render_context"] == payload["render_context"]
-    assert identity["template_id"] == "composite-review"
-    for parsed_sheet in workbook:
-        assert all(
-            cell.data_type != "f" and cell.hyperlink is None for row in parsed_sheet for cell in row
-        )
-    workbook.close()
 
 
-def test_registered_submit_executes_xlsx_and_reconciles_every_source_cell(tmp_path: Path) -> None:
+@pytest.mark.parametrize("version", ["v1", "v2"])
+def test_registered_submit_executes_xlsx_and_reconciles_every_source_cell(
+    tmp_path: Path, version: str
+) -> None:
     settings = Settings(render_store_path=str(tmp_path / "render.sqlite3"))
-    payload = _payload()
-    with TestClient(create_app(settings), headers={"X-Tenant-Id": "tenant-a"}) as client:
+    payload = json.loads(
+        Path(f"tests/golden/composite-review/{version}/render-package.json").read_text()
+    )
+    tenant = payload["report_data"]["tenant_id"]
+    with TestClient(create_app(settings), headers={"X-Tenant-Id": tenant}) as client:
         response = client.post("/renders", json=payload)
         assert response.status_code == 201, response.text
         body = response.json()
@@ -200,7 +221,7 @@ def test_registered_submit_executes_xlsx_and_reconciles_every_source_cell(tmp_pa
         assert replay.json()["artifact_base64"] is None
         assert replay.json()["artifact_sha256"] == body["artifact_sha256"]
     # Real persistence restart adopts terminal truth instead of rerendering.
-    with TestClient(create_app(settings), headers={"X-Tenant-Id": "tenant-a"}) as client:
+    with TestClient(create_app(settings), headers={"X-Tenant-Id": tenant}) as client:
         assert (
             client.get(f"/renders/{payload['render_job_id']}").json()["artifact_sha256"]
             == body["artifact_sha256"]

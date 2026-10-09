@@ -5,7 +5,10 @@ from typing import Any
 from fastapi import APIRouter, HTTPException, Response, status
 from starlette.concurrency import run_in_threadpool
 
-from app.contracts.examples import load_composite_review_render_package_example
+from app.contracts.examples import (
+    load_composite_products_render_package_example,
+    load_composite_review_render_package_example,
+)
 from app.contracts.render_evidence import (
     RenderArtifactMetadataResponse,
     RenderJobDiagnosticsResponse,
@@ -128,6 +131,10 @@ INVALID_TENANT_RESPONSE = _error_response(
                         "composite_review_xlsx_package": {
                             "summary": "Pinned RPT01 calculated composite review XLSX",
                             "value": load_composite_review_render_package_example(),
+                        },
+                        "composite_products_xlsx_package": {
+                            "summary": "Pinned v2 composite review with captured return products",
+                            "value": load_composite_products_render_package_example(),
                         },
                     },
                 }

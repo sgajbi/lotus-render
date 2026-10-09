@@ -2,7 +2,7 @@
 
 from typing import Any
 
-from app.contracts.composite_review import CompositeReviewContent
+from app.contracts.composite_review import CompositeReviewIdentity
 
 _SERIES_KEYS = ("calculation_id", "composite_id", "period_start", "period_end", "methodology")
 _PIN_KEYS = (
@@ -106,11 +106,18 @@ def _require_window(period: Any, window: Any, selection: dict[str, Any]) -> None
     _require_financial_context(period, selection)
 
 
-def validate_pinned_identity(content: CompositeReviewContent) -> None:
-    selection, source = content.selection, content.source_response
+def validate_pinned_identity(content: CompositeReviewIdentity) -> None:
+    validate_source_identity(content.selection, content.source_response, content.qualification)
+    _require_unattested_authority(content)
+
+
+def validate_source_identity(
+    selection: dict[str, Any], source: dict[str, Any], qualification: str
+) -> None:
+    """Reconcile one captured source response to its exact selector, without arithmetic."""
     _require_equal_keys(source, selection, _SERIES_KEYS, "composite_series_pin_conflict")
     manifest = _mapping(source.get("selection_manifest"), "composite_source_manifest_missing")
-    if manifest.get("qualification") != content.qualification:
+    if manifest.get("qualification") != qualification:
         raise ValueError("composite_source_qualification_conflict")
     windows = _sequence(selection.get("windows"), "composite_source_manifest_missing")
     periods = _sequence(source.get("periods"), "composite_source_period_missing")
@@ -129,7 +136,6 @@ def validate_pinned_identity(content: CompositeReviewContent) -> None:
     for period, window in zip(periods, windows, strict=True):
         _require_window(period, window, selection)
     _require_series_status(source, periods)
-    _require_unattested_authority(content)
 
 
 def _require_series_status(source: dict[str, Any], periods: list[Any]) -> None:
@@ -141,7 +147,7 @@ def _require_series_status(source: dict[str, Any], periods: list[Any]) -> None:
         raise ValueError("composite_blocked_financial_value")
 
 
-def _require_unattested_authority(content: CompositeReviewContent) -> None:
+def _require_unattested_authority(content: CompositeReviewIdentity) -> None:
     if content.report_facts.get("authority") != {
         "receipt": None,
         "control_revision": None,

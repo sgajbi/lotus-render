@@ -1,0 +1,23 @@
+{
+  "source": "sgajbi/lotus-report #417 shared-contract-r2",
+  "source_manifest_sha256": "f0b3c41d829857605a7731faa6a0258d7f6ee4a39b661374a438612025eb99c4",
+  "root_accepted_source_bundle_sha256": "6c2da4e0ef2b7bab9a0687983150b91f83c9fdb9fa85494dc3ec41cd145152a8",
+  "qualification": "REGISTERED_REPORT_SQLITE_CAPTURE_CONTROLLED_RENDER503_PROFILE_ONLY; controlled genuine calculated Performance replay; NOT_ATTESTED",
+  "source_calls_per_version": 3,
+  "actual_render_archive_http": false,
+  "annual_dispersion": "REFUSED_POLICY_BASIS_MISMATCH_NO_VALUE",
+  "packages": {
+    "original": {
+      "raw_sha256": "2285991971739d839c9ca1cf7f6a1e439fac571266d8ed27b498a3ab1c255d77",
+      "raw_bytes": 11765274,
+      "gzip_sha256": "0ad956165b0446717befbc22a5238f6bea8e21c7dd42db43a90e94fcbc55a61e",
+      "gzip_bytes": 322401
+    },
+    "financial-correction": {
+      "raw_sha256": "5c029414d124f8d58ee566632d5bd5373abace93f5635aff28f3d83c365d5f84",
+      "raw_bytes": 11765970,
+      "gzip_sha256": "585dc23e1b5b686ddff9ed5e4a3a2e3bc4978856ba85de9698eba927995dd77b",
+      "gzip_bytes": 322444
+    }
+  }
+}

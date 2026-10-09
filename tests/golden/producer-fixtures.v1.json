@@ -318,6 +318,22 @@
       ],
       "provenance": "Exact registered Report PostgreSQL worker/composer package SHA256 036beb4e84c76c047ce1c0c847a54d3bbc3505110f00f3753c7a25f024729ff5, boundary CONTROLLED_PERFORMANCE_CANDIDATE_ADMISSION_REAL_REPORT_PRODUCER: synthetic Performance source and explicit test-only candidate XLSX admission, real retained snapshot/lifecycle/package composition; captured Render503 leaves Report retry_failed. No production family admission, attestation, custody or enterprise completion claim. Report-owned semantic example SHA256 721dd103f3cd0e14bfe161209ca11d59791556e8c807be5f0f3d6715825dacf4 is retained separately as report-data.json.",
       "bounded_determinism_fingerprint": "ec778da82b06dc9d80765f92a773ddffcecc38bdb05dcf00c561a735a99ac3cb"
+    },
+    {
+      "template_id": "composite-review",
+      "template_version": "v2",
+      "golden_sample_id": "golden-composite-review-en-SG-private-banking-v2",
+      "report_data_contract_version": "composite_review.v2",
+      "output_format": "xlsx",
+      "package_path": "tests/golden/composite-review/v2/render-package.json",
+      "expected_artifact_path": "tests/golden/composite-review/v2/expected.xlsx",
+      "producer_repository": "sgajbi/lotus-report",
+      "producer_source_paths": [
+        "src/app/composite_reporting/product_tables.py",
+        "src/app/composite_reporting/render_package.py"
+      ],
+      "provenance": "Exact registered Report SQLite worker/composer package SHA256 0fdda487da8db5bd651526761da2157b2adfdb1d539d1b347741a647219813b8; full retained two-month R2 source replay and trailing-two capture, controlled Render503 profile only. No truncation, source refetch, manufactured financial values, actual Render/Archive HTTP or attestation claim. Producer proof retained as producer-proof.json. Full genuine original/corrected 72-month calendar/trailing packages are separately retained as deterministic-gzip regression fixtures with explicit provenance.",
+      "bounded_determinism_fingerprint": "d622f540e8c35d40e23fc3b40a496ee3f506e867b1254a25eb3098ace76650f6"
     }
   ]
 }

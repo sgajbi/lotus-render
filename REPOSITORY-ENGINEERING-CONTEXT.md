@@ -31,6 +31,18 @@ workbook parsing and source/canonical/display reconciliation, rather than PDF im
 Qualification remains `EXPLICIT_RETAINED_CALCULATED_REPLAY`, `NOT_ATTESTED`; active/development
 does not imply client publication. Archive's existing handoff receives exact bytes and exclusive
 composite scope; Archive owns custody and download validation.
+Separate `composite-review v2` admits only `composite_review.v2`, with 1–8 captured calendar/trailing
+TWR source products, complete monthly selectors and exact primary-subvector pins. Typed product
+shapes live in `contracts/composite_products.py`; `services/composite_workbook/source_products.py`
+reuses existing digest/source-pin validation, while `product_tables.py` enforces the frozen eleven
+column pointer/row matrix. Only product cumulative return gains financial table authority.
+AnnualReturns always remains present (calendar source rows or its legacy uncaptured row), and
+TrailingReturns is conditional on selected trailing products. Full raw products use existing
+PinnedData/evidence/identity projection; there is no second renderer, serializer, calculator or
+source client. Outer/embedded contract and template versions must agree. V1 manifest/layout/digest
+and golden bytes stay unchanged. The copied v2 schema/layout agreement and genuine compressed
+original/corrected six-year regression fixtures record exact Report provenance. Existing schema,
+structural and physical limits remain fixed; additional raw products consume current headroom.
 XLSX bounded determinism uses the versioned `composite-xlsx-members/v1` domain and unambiguous
 sorted member-name/payload length framing. Raw ZIP SHA/size remains truthful custody identity;
 container host metadata/compression may differ across platforms. The writer uses bounded in-memory
