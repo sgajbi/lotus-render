@@ -4,6 +4,7 @@ from typing import Annotated, Any, Literal
 
 from pydantic import Field
 
+from app.contracts.composite_linked import CompositeLinkedContent, LinkedTable
 from app.contracts.composite_review import (
     CompositeCell,
     CompositeColumn,
@@ -60,5 +61,5 @@ class CompositeProductsContent(CompositeReviewIdentity):
     tables: list[ProductTable] = Field(min_length=1, max_length=32)
 
 
-CompositeContent = CompositeReviewContent | CompositeProductsContent
-CompositeOutputTable = CompositeTable | ProductTable
+CompositeContent = CompositeReviewContent | CompositeProductsContent | CompositeLinkedContent
+CompositeOutputTable = CompositeTable | ProductTable | LinkedTable

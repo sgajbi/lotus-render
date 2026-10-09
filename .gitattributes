@@ -15,3 +15,7 @@ contracts/report-data/composite_review.v2.layout.json -text whitespace=cr-at-eol
 src/app/contracts/examples/composite-review-render-package.v2.json -text whitespace=cr-at-eol
 tests/golden/composite-review/v2/render-package.json -text whitespace=cr-at-eol
 tests/golden/composite-review/v2/producer-proof.json -text whitespace=cr-at-eol
+contracts/report-data/composite_review.v3.schema.json -text whitespace=cr-at-eol
+contracts/report-data/composite_review.v3.custody.schema.json -text whitespace=cr-at-eol
+src/app/contracts/examples/composite-review-render-package.v3.json -text whitespace=cr-at-eol
+tests/golden/composite-review/v3/*.json -text whitespace=cr-at-eol

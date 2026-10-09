@@ -83,3 +83,22 @@ not certified. This final custody acceptance preserves the controlled replay/NOT
 Calendar-year cumulative return does not authorize annual member dispersion. Its source
 `POLICY_BASIS_MISMATCH` refusal still supplies no value. No institutional authority, client
 publication, expanded product catalogue or enterprise certificate is conferred by this ledger.
+
+## Linked-analysis v3 fixture qualification
+
+Render #347 consumes the new sealed Report r4 candidate packet manifest
+`036a775cdc0ac6dcc1533211fa80b6a9d6f2413f2397be2a931cbf9cb17a6c72`; all 33 files were rehashed.
+Original package `094b5d39608ceb000141d8a2982bbd02ee12f2daed905d2cea542349a6ed173c` and corrected
+package `1dc48914ad30484a71af6568ef9c9bfbbdb40ababd86d51a599dc8f281fe0b22` come from actual registered
+Report PostgreSQL jobs `rjob_151fa6d5e3ee49518ba8437c28f22b05` and
+`rjob_d408832216674923a1f49c649084db46`. Their controlled source original/corrected return controls
+are 3.02% and 4.04%; Report's retained-original package bytes equal the original. Registered Render
+API tests reconcile every canonical/display cell, persist/restart status and reject foreign access.
+Independent rerender reproduces the retained original byte-for-byte. The original bounded workbook
+fingerprint is `974ed8bdf7d645faf3087ad3a01cc825f9461cb8282e81b09e0f7ac27ea477fa`.
+
+This is genuine producer-fixture evidence under controlled v3 capability and Render503 producer
+boundary. Actual joined HTTP custody and qualified merged-main evidence remain separate pending
+work. It neither changes the sealed R5 campaign above nor confers official source attestation,
+client publication or enterprise certification. The source/custody schema copies and client example
+retain their exact packet bytes. Wiki changes cover the new version, dictionary and qualification.

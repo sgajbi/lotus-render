@@ -203,6 +203,17 @@
       "output_formats": ["xlsx"],
       "status": "active",
       "scope": "RPT01 controlled NOT_ATTESTED primary plus captured calendar/trailing cumulative-return presentation; other products and institutional authority remain unavailable"
+    },
+    {
+      "template_id": "composite-review",
+      "template_version": "v3",
+      "report_types": ["composite_review"],
+      "report_data_contract_versions": ["composite_review.v3"],
+      "locales": ["en-SG"],
+      "brand_variants": ["private_banking"],
+      "output_formats": ["xlsx"],
+      "status": "active",
+      "scope": "RPT01 controlled NOT_ATTESTED source-owned linked contribution and factor presentation only; no linking calculation, institutional authority or uncaptured products"
     }
   ],
   "non_goals": [

@@ -190,7 +190,7 @@ def _assert_v1_oracles(workbook: openpyxl.Workbook) -> None:
     assert _text(monthly[1][10]).startswith("UNAVAILABLE:")
 
 
-@pytest.mark.parametrize("version", ["v1", "v2"])
+@pytest.mark.parametrize("version", ["v1", "v2", "v3"])
 def test_registered_submit_executes_xlsx_and_reconciles_every_source_cell(
     tmp_path: Path, version: str
 ) -> None:
@@ -244,6 +244,30 @@ def test_tenant_contradiction_refuses_before_creating_a_job(tmp_path: Path) -> N
         response = client.post("/renders", json=payload)
         assert response.status_code == 422
         assert client.get(f"/renders/{payload['render_job_id']}").status_code == 404
+
+
+def test_linked_financial_revision_and_retained_original_reproduce_without_recalculation(
+    tmp_path: Path,
+) -> None:
+    artifacts = []
+    for index, name in enumerate(("render-package", "corrected-render-package", "render-package")):
+        payload = json.loads(Path(f"tests/golden/composite-review/v3/{name}.json").read_bytes())
+        settings = Settings(render_store_path=str(tmp_path / f"linked-{index}.sqlite3"))
+        with TestClient(
+            create_app(settings), headers={"X-Tenant-Id": payload["report_data"]["tenant_id"]}
+        ) as client:
+            response = client.post("/renders", json=payload)
+            assert response.status_code == 201, response.text
+            artifact = base64.b64decode(response.json()["artifact_base64"])
+            reconcile_workbook(artifact, payload)
+            workbook = openpyxl.load_workbook(io.BytesIO(artifact))
+            summary = list(workbook["Summary_1"].values)
+            # Independent source-owned financial controls; Render does not derive either return.
+            assert summary[1][10] == ("4.04%" if index == 1 else "3.02%")
+            workbook.close()
+            artifacts.append(artifact)
+    assert artifacts[0] == artifacts[2]
+    assert artifacts[0] != artifacts[1]
 
 
 @pytest.mark.parametrize(

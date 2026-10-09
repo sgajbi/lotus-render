@@ -3,20 +3,23 @@
 import json
 import re
 from collections.abc import Mapping
-from decimal import Decimal, InvalidOperation
 from typing import Any
 
+from app.contracts.composite_linked import CompositeLinkedContent
 from app.contracts.composite_products import (
     CompositeContent,
-    CompositeOutputTable,
     CompositeProductsContent,
+    ProductTable,
 )
 from app.contracts.composite_review import (
     CompositeCell,
     CompositeColumn,
     CompositeReviewContent,
+    CompositeTable,
 )
 from app.contracts.composite_selection import CompositePinnedSelection
+from app.services.composite_workbook.linked_source import validate_linked_source
+from app.services.composite_workbook.linked_tables import validate_linked_tables
 from app.services.composite_workbook.pinned_identity import validate_pinned_identity
 from app.services.composite_workbook.product_tables import validate_product_tables
 from app.services.composite_workbook.source_products import (
@@ -25,6 +28,7 @@ from app.services.composite_workbook.source_products import (
     validate_response_digest,
     validate_source_products,
 )
+from app.services.composite_workbook.source_values import decimal_value, resolve_pointer
 
 FINANCIAL_FIELDS = {
     "return_value": ("DECIMAL_RETURN", "PERCENT"),
@@ -37,43 +41,10 @@ FINANCIAL_FIELDS = {
     "member_count": ("COUNT", "PORTFOLIO_COUNT"),
     "excluded_member_count": ("COUNT", "PORTFOLIO_COUNT"),
 }
-_DECIMAL_TEXT = re.compile(r"^[+-]?\d+(?:\.\d+)?(?:[eE][+-]?\d{1,4})?$")
 _FINANCIAL_POINTER = re.compile(
     r"^/source_response/(?:cumulative_return|periods/(?:0|[1-9]\d*)/"
     r"(?:[a-z_]+|member_contributions/(?:0|[1-9]\d*)/[a-z_]+))$"
 )
-
-
-def resolve_pointer(dataset: dict[str, Any], pointer: str) -> Any:
-    current: Any = dataset
-    try:
-        for token in pointer.split("/")[1:]:
-            if re.search(r"~(?![01])", token):
-                raise ValueError("invalid JSON pointer escape")
-            key = token.replace("~1", "/").replace("~0", "~")
-            if isinstance(current, list):
-                if not re.fullmatch(r"0|[1-9]\d*", key):
-                    raise ValueError("invalid array index")
-                current = current[int(key)]
-            elif isinstance(current, dict):
-                current = current[key]
-            else:
-                raise ValueError("pointer does not name a scalar")
-    except (KeyError, IndexError, ValueError) as exc:
-        raise ValueError("composite_cell_pointer_invalid") from exc
-    return current
-
-
-def decimal_value(value: str) -> Decimal:
-    if len(value) > 256 or not _DECIMAL_TEXT.fullmatch(value):
-        raise ValueError("composite_cell_number_invalid")
-    try:
-        number = Decimal(value)
-    except InvalidOperation as exc:
-        raise ValueError("composite_cell_number_invalid") from exc
-    if not number.is_finite() or abs(number.adjusted()) > 1_000:
-        raise ValueError("composite_cell_number_invalid")
-    return number
 
 
 def validate_column(column: CompositeColumn, currency: object) -> None:
@@ -151,7 +122,7 @@ def _validate_financial_number(column: CompositeColumn, cell: CompositeCell) -> 
             raise ValueError("composite_cell_count_invalid")
 
 
-def validate_table(dataset: dict[str, Any], table: CompositeOutputTable) -> None:
+def validate_table(dataset: dict[str, Any], table: CompositeTable | ProductTable) -> None:
     keys = [column.column_id for column in table.columns]
     if len(keys) != len(set(keys)) or len({row.row_id for row in table.rows}) != len(table.rows):
         raise ValueError("composite_table_identity_duplicated")
@@ -162,7 +133,9 @@ def validate_table(dataset: dict[str, Any], table: CompositeOutputTable) -> None
 
 
 def _validate_row(
-    dataset: dict[str, Any], table: CompositeOutputTable, cells: Mapping[str, CompositeCell]
+    dataset: dict[str, Any],
+    table: CompositeTable | ProductTable,
+    cells: Mapping[str, CompositeCell],
 ) -> None:
     if set(cells) != {column.column_id for column in table.columns}:
         raise ValueError("composite_table_row_incomplete")
@@ -171,7 +144,18 @@ def _validate_row(
 
 
 def validate_dataset(dataset: dict[str, Any]) -> CompositeContent:
-    content: CompositeContent
+    if dataset.get("contract_version") == "composite_review.v3":
+        linked = CompositeLinkedContent.model_validate(dataset)
+        validate_linked_source(linked)
+        validate_linked_tables(linked)
+        return linked
+    return _validate_return_dataset(dataset)
+
+
+def _validate_return_dataset(
+    dataset: dict[str, Any],
+) -> CompositeReviewContent | CompositeProductsContent:
+    content: CompositeReviewContent | CompositeProductsContent
     if dataset.get("contract_version") == "composite_review.v2":
         content = CompositeProductsContent.model_validate(dataset)
     else:

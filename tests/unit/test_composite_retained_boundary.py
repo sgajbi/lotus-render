@@ -11,10 +11,10 @@ from app.contracts.composite_selection import CompositePinnedSelection
 from app.services.composite_workbook.pinned_identity import validate_pinned_identity
 from app.services.composite_workbook.presentation import display_cell
 from app.services.composite_workbook.source_cells import (
-    resolve_pointer,
     validate_cell,
     validate_column,
 )
+from app.services.composite_workbook.source_values import resolve_pointer
 
 
 def _data() -> dict[str, Any]:

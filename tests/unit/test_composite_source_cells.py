@@ -10,11 +10,8 @@ import pytest
 from app.contracts.composite_review import CompositeCell, CompositeColumn
 from app.contracts.composite_selection import CompositePinnedSelection
 from app.services.composite_workbook.presentation import display_cell
-from app.services.composite_workbook.source_cells import (
-    decimal_value,
-    resolve_pointer,
-    validate_dataset,
-)
+from app.services.composite_workbook.source_cells import validate_dataset
+from app.services.composite_workbook.source_values import decimal_value, resolve_pointer
 
 
 def _data() -> dict[str, Any]:

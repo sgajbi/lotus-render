@@ -16,6 +16,8 @@ from app.domain.templates.registry import TemplateRegistryError, template_source
 from app.services.composite_workbook import literal_writer
 from app.services.composite_workbook.fingerprint import workbook_content_fingerprint
 from app.services.composite_workbook.identity import IDENTITY_STORAGE
+from app.services.composite_workbook.linked_custody import validate_linked_custody
+from app.services.composite_workbook.linked_tables import LINKED_TABLE_COLUMNS
 from app.services.composite_workbook.literal_writer import write_literal_workbook
 from app.services.composite_workbook.projection import workbook_tables
 from app.services.composite_workbook.source_cells import validate_dataset
@@ -29,7 +31,7 @@ def _validate_contract_axes(package: RenderPackage) -> None:
     expected = f"composite_review.{package.template_version}"
     if (
         package.template_id != "composite-review"
-        or package.template_version not in {"v1", "v2"}
+        or package.template_version not in {"v1", "v2", "v3"}
         or package.report_data_contract_version != expected
         or package.report_data.get("contract_version") != expected
     ):
@@ -62,6 +64,24 @@ def _validate_layout(layout: dict[str, Any], table_names: set[str], *, version: 
 
 
 def _validate_table_set(layout: dict[str, Any], table_names: set[str], version: str) -> None:
+    if version == "v3":
+        _validate_linked_table_set(layout, table_names)
+        return
+    _validate_return_table_set(layout, table_names, version)
+
+
+def _validate_linked_table_set(layout: dict[str, Any], table_names: set[str]) -> None:
+    if (
+        layout.get("required_tables") != list(LINKED_TABLE_COLUMNS)
+        or layout.get("period_tables") != []
+        or layout.get("optional_tables") != []
+    ):
+        raise TemplateRegistryError("composite_workbook_layout_policy_mismatch")
+    if table_names != set(LINKED_TABLE_COLUMNS):
+        raise ValueError("composite_workbook_table_set_invalid")
+
+
+def _validate_return_table_set(layout: dict[str, Any], table_names: set[str], version: str) -> None:
     required = set(layout["required_tables"])
     periods = set(layout["period_tables"])
     selected = table_names & periods
@@ -94,6 +114,8 @@ class CompositeWorkbookRenderService:
         try:
             _validate_contract_axes(render_package)
             content = validate_dataset(render_package.report_data)
+            if render_package.template_version == "v3":
+                validate_linked_custody(render_package)
             _validate_layout(
                 layout,
                 {table.table_id for table in content.tables},
