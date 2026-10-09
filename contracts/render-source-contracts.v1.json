@@ -68,7 +68,10 @@
       "consumer_schema_path": "contracts/report-data/composite_review.v2.schema.json",
       "agreed_schema_sha256": "f7b25c9f7054c20e568a451ee193ec16c5123b36d474409c648461689394f2de",
       "agreed_layout_path": "contracts/report-data/composite_review.v2.layout.json",
-      "agreed_layout_sha256": "d0c102a24031a5db82acedb7fdb00fb330f8ad72692d1408c399c30104bfc3ca"
+      "agreed_layout_sha256": "d0c102a24031a5db82acedb7fdb00fb330f8ad72692d1408c399c30104bfc3ca",
+      "reviewed_producer_revision": "6f6380e5ba7bf3b0087fa416d93bdbb608eea458",
+      "reviewed_producer_committed_schema_sha256": "0239fca6616e43c63b209071fbdd5c919a13e5c062b78c2cbf71a6f484de2269",
+      "reviewed_schema_equivalence": "parsed_json_equal_raw_bytes_different"
     }
   ]
 }
