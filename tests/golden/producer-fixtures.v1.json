@@ -350,6 +350,19 @@
       ],
       "provenance": "Exact registered Report PostgreSQL persisted-worker package SHA256 094b5d39608ceb000141d8a2982bbd02ee12f2daed905d2cea542349a6ed173c from sealed r4 packet manifest 036a775cdc0ac6dcc1533211fa80b6a9d6f2413f2397be2a931cbf9cb17a6c72. Controlled synthetic current-source original/corrected pair, explicit v3 capability and Render503 boundary. Retained-original package bytes equal original; fresh-process reads do not refetch. Actual Render/Archive HTTP, clean-main qualification and institutional attestation are separate evidence. No financial values manufactured or recalculated by Render.",
       "bounded_determinism_fingerprint": "974ed8bdf7d645faf3087ad3a01cc825f9461cb8282e81b09e0f7ac27ea477fa"
+    },
+    {
+      "template_id": "composite-review",
+      "template_version": "v4",
+      "golden_sample_id": "golden-composite-review-en-SG-private-banking-v4",
+      "report_data_contract_version": "composite_review.v4",
+      "output_format": "xlsx",
+      "package_path": "tests/golden/composite-review/v4/render-package.json",
+      "expected_artifact_path": "tests/golden/composite-review/v4/expected.xlsx",
+      "producer_repository": "sgajbi/lotus-report",
+      "producer_source_paths": ["src/app/composite_reporting/eligibility_tables.py", "src/app/composite_reporting/render_package.py"],
+      "provenance": "Exact registered Report API/worker/SQLite package SHA2566658fbc94eff3a076292a54b41e1261709629ea54dd4aed2590327e8461a7f4a, receipt ef92abea6141e09575684b23e2e680922323983da0c95b9405ca8201cee59186. Actual controlled captured Manage795 native TCP/PostgreSQL bodies replayed through 15 controlled transport reads; genuine definition v2 and three monthly published receipts/history. Report deliberately returns Render503. Consumer artifact independently reconciles all460 semantic cells/58 policies/full pinned data/context. Synthetic unsigned/trusted-ingress source, offline consumer proof only; no authenticated joined source network, Archive, clean-main runtime or bank authority claim. Existing legacy fixtures remain unchanged.",
+      "bounded_determinism_fingerprint": "9ef5b3ed6a9535b857438bc0949d99505459ef293a079a318749b9f199383bb3"
     }
   ]
 }

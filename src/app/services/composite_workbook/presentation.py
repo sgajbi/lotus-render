@@ -2,12 +2,19 @@
 
 from decimal import ROUND_HALF_UP, Decimal, localcontext
 
+from app.contracts.composite_eligibility import EligibilityCell, EligibilityColumn
 from app.contracts.composite_linked import LinkedColumn
 from app.contracts.composite_review import CompositeCell, CompositeColumn
+from app.services.composite_workbook.eligibility_display import display_eligibility_cell
 from app.services.composite_workbook.source_values import decimal_value
 
 
-def display_cell(column: CompositeColumn | LinkedColumn, cell: CompositeCell) -> str:
+def display_cell(
+    column: CompositeColumn | LinkedColumn | EligibilityColumn,
+    cell: CompositeCell | EligibilityCell,
+) -> str:
+    if isinstance(column, EligibilityColumn) and isinstance(cell, EligibilityCell):
+        return display_eligibility_cell(column, cell)
     if cell.canonical_value is None:
         return f"{cell.availability}: {', '.join(cell.reason_codes)}"
     if column.value_type == "TEXT":

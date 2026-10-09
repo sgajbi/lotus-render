@@ -5,6 +5,7 @@ import re
 from collections.abc import Mapping
 from typing import Any
 
+from app.contracts.composite_eligibility import CompositeEligibilityContent
 from app.contracts.composite_linked import CompositeLinkedContent
 from app.contracts.composite_products import (
     CompositeContent,
@@ -18,6 +19,8 @@ from app.contracts.composite_review import (
     CompositeTable,
 )
 from app.contracts.composite_selection import CompositePinnedSelection
+from app.services.composite_workbook.eligibility_source import validate_eligibility_source
+from app.services.composite_workbook.eligibility_tables import validate_eligibility_tables
 from app.services.composite_workbook.linked_source import validate_linked_source
 from app.services.composite_workbook.linked_tables import validate_linked_tables
 from app.services.composite_workbook.pinned_identity import validate_pinned_identity
@@ -144,6 +147,11 @@ def _validate_row(
 
 
 def validate_dataset(dataset: dict[str, Any]) -> CompositeContent:
+    if dataset.get("contract_version") == "composite_review.v4":
+        eligibility = CompositeEligibilityContent.model_validate_json(json.dumps(dataset))
+        validate_eligibility_source(eligibility, dataset)
+        validate_eligibility_tables(eligibility, dataset)
+        return eligibility
     if dataset.get("contract_version") == "composite_review.v3":
         linked = CompositeLinkedContent.model_validate(dataset)
         validate_linked_source(linked)

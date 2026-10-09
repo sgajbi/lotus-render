@@ -15,6 +15,33 @@ operator workflows beyond the render-stage contract defined by RFC-0102.
 
 ## Current-State Summary
 
+Separate `composite-review v4` consumes only `composite_review.v4` through the same registered
+XLSX engine and existing Render/Archive lifecycle. Its eight exact tables retain complete monthly
+eligibility members, three ordered assessments, all failure/unknown reason occurrences, original
+parent/current membership intervals, policy, lineage and six controlled Report disclosures.
+`composite_eligibility*` contracts and adjacent `eligibility_*` workbook modules independently
+validate the frozen producer schema, hash policies, population, pointers, cells and custody scope.
+R3 keeps the r2 schemas unchanged and corrects cut semantics: selector source_cut_id binds
+observations/evaluation; published receipt/membership/universe/publication bind the input-universe
+cut. Other retained source locators are not rewritten. No eligibility evaluator, Report revision
+calculator, new API, runtime split or Archive store is introduced. Operational ratios use IDENTITY
+and twelve places; money, portfolio/event counts and booleans have distinct exact policies.
+Known empty reasons and rule-unused null fields remain NOT_APPLICABLE; genuinely missing source
+values remain UNAVAILABLE. No null becomes zero. The existing literal writer stays unchanged.
+V4 preflight measures complete physical output including every row identity, CellEvidence,
+ColumnPolicy, partition header, ArtifactIdentity fragment and compact ASCII PinnedData chunk;
+all original limits remain fixed. Frozen authored Report r2 unit packages exercise registered
+HTTP/SQLite idempotence and reopened-store reads plus independent complete Excel reconciliation.
+Those authored inputs are UNIT_FIXTURE_NOT_SOURCE_CAPTURE. Separate actual controlled Manage
+captures, emitted through Report's registered worker with offline replay transport, cover both
+definition products and complete three-month source history. Their unchanged packages back the
+v4 client/OpenAPI example and additive golden. Registered in-process Render/SQLite consumer proof
+and complete independent Excel reconciliation do not establish authenticated joined network or
+Archive acceptance. Measured actual packages use 601/602 physical data rows, 4574/4576 cells,
+255163/266382 UTF-8 text bytes and twelve sheets; request sizes are 177244/188461 bytes.
+Qualification remains CONTROLLED_ELIGIBILITY_SOURCE_REPLAY / NOT_ATTESTED / development.
+Existing v1/v2/v3 schemas, layouts, manifests, retained bytes and qualification evidence stay fixed.
+
 RPT01 composite-review XLSX is an additional bounded supplier slice: `composite_review.v1`
 is the Report-owned immutable dataset, `composite-review v1` is an active development template,
 and the registered `FormatRenderService` dispatches XLSX to pinned XlsxWriter 3.2.9 after exact
