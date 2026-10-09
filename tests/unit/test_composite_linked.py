@@ -37,6 +37,14 @@ def test_linked_candidate_admits_without_rewriting_any_source_text() -> None:
     assert data["source_response"]["reconciliation_difference"] == "0E-81"
 
 
+@pytest.mark.parametrize("field", ["scale", "display_rounding_mode"])
+def test_source_required_column_policy_cannot_be_defaulted(field: str) -> None:
+    data = linked_data()
+    del data["tables"][0]["columns"][0][field]
+    with pytest.raises(ValueError):
+        validate_dataset(data)
+
+
 @pytest.mark.parametrize("present", [False, True])
 def test_optional_null_sequence_preserves_exact_absent_or_present_request_identity(
     present: bool,

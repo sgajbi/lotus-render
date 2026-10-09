@@ -111,9 +111,9 @@ class LinkedColumn(CompositeModel):
     ]
     display_conversion: Literal["IDENTITY", "RATIO_TO_PERCENT_DISPLAY"]
     display_decimal_places: int | None = Field(ge=0, le=12)
-    display_rounding_mode: Literal["HALF_UP"] = "HALF_UP"
+    display_rounding_mode: Literal["HALF_UP"]
     currency: str | None = Field(pattern=r"^[A-Z]{3}$")
-    scale: Literal["1"] = "1"
+    scale: Literal["1"]
 
 
 class LinkedRow(CompositeModel):
