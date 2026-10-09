@@ -55,6 +55,19 @@ ordinary identity cells and financial cells retain their literal representation.
 strict external reconstruction. A compressed genuine controlled 72-month Report package exercises
 all 24,604 semantic cells and complete context/pins through the registered writer on CI hosts.
 
+Controlled R5 v2 custody was exercised through the normal Report PostgreSQL worker and actual
+Render/Archive HTTP clients at Render runtime main `383126231bb7744d6b4f3f60436ded86da5f0085`.
+Root independently reconciled every 24,623 semantic canonical/display cells and 81 policies in
+each original/correction/retained-original artifact, complete products/pins/context and current
+correction chain, then repeated actual metadata/download/foreign-tenant reads after Archive
+reopened the same PostgreSQL/object store in a new HTTP process. Render sealed three terminal
+archived jobs into a consistent integrity-checked SQLite backup and retired only its recorded
+processes/listener. The wiki records exact runtime heads, artifact hashes and acceptance receipts.
+Closure documentation is a successor to the tested runtime commit; its validation must not be
+represented as a new live source campaign. Source remains frozen accepted Performance capture
+replay, controlled/NOT_ATTESTED. V1 semantics, finite limits, PDF behavior and runtime blobs remain
+unchanged; annual member dispersion refusal and broader Report/enterprise gaps remain open.
+
 `lotus-render` implements the RFC-0102 render-service side for the first-wave portfolio review PDF
 flow. The repository contains the dedicated render-service runtime baseline, explicit render-attempt
 domain models, structured request logging, support-safe system metadata, versioned render package

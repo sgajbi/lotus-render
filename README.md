@@ -12,6 +12,9 @@ Composite XLSX has exact v1/v2 template and data-contract axes. V2 presents supp
 calendar/trailing cumulative returns through the same literal writer and complete evidence;
 retained v1 semantics and finite resource limits stay fixed. Both remain controlled `NOT_ATTESTED`
 supplier slices. See [Composite Review Workbook](https://github.com/sgajbi/lotus-render/wiki/Composite-Review-Workbook).
+The recorded [R5 custody qualification](https://github.com/sgajbi/lotus-render/wiki/Composite-Review-Workbook#controlled-r5-custody-qualification)
+covers actual original/correction/retained-original HTTP delivery and independent restart reads;
+its frozen source replay and development publication boundary remain explicit.
 
 Producers discover each version's registry-owned `supported_output_formats` through the existing
 `GET /system/templates`, then also check `/metadata` runtime capability and supportability.
