@@ -1,0 +1,12 @@
+{
+  "qualification": "UNCOMMITTED_REPORT_PG_REGISTERED_ASGI_CONTROLLED_SOURCE_REPLAY",
+  "producer_pid": 99884,
+  "source_calls": 2,
+  "actual_postgres": true,
+  "controlled_v3_supportability": true,
+  "controlled_render_503": true,
+  "actual_render_or_archive_completion": false,
+  "institutional_attestation": false,
+  "retained_original_rebuild_exact": true,
+  "tenant_foreign_404": true
+}

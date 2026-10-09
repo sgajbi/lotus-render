@@ -8,9 +8,12 @@ made it.
 It holds no client, portfolio or advisory data of its own, and fetches none. The package is the
 whole input.
 
-Composite XLSX has exact v1/v2 template and data-contract axes. V2 presents supplied captured
+Composite XLSX has exact v1/v2/v3 template and data-contract axes. V3 presents pinned source-owned
+linked contributions and factors without recalculation, with complete source and custody identity.
+Its seven tables preserve canonical decimal text and distinguish factors, returns, money and counts.
+V2 presents supplied captured
 calendar/trailing cumulative returns through the same literal writer and complete evidence;
-retained v1 semantics and finite resource limits stay fixed. Both remain controlled `NOT_ATTESTED`
+retained v1/v2 semantics and finite resource limits stay fixed. All remain controlled `NOT_ATTESTED`
 supplier slices. See [Composite Review Workbook](https://github.com/sgajbi/lotus-render/wiki/Composite-Review-Workbook).
 The recorded [R5 custody qualification](https://github.com/sgajbi/lotus-render/wiki/Composite-Review-Workbook#controlled-r5-custody-qualification)
 covers actual original/correction/retained-original HTTP delivery and independent restart reads;

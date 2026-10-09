@@ -31,6 +31,17 @@ workbook parsing and source/canonical/display reconciliation, rather than PDF im
 Qualification remains `EXPLICIT_RETAINED_CALCULATED_REPLAY`, `NOT_ATTESTED`; active/development
 does not imply client publication. Archive's existing handoff receives exact bytes and exclusive
 composite scope; Archive owns custody and download validation.
+Separate `composite-review v3` admits only `composite_review.v3`, with the linked-only CARINO:v1
+selector and exact seven-table matrix. `contracts/composite_linked.py`, `linked_source.py`,
+`linked_tables.py` and `linked_custody.py` enforce typed source authority, complete populations,
+canonical pointers, distinct DECIMAL_FACTOR/PERIOD_COUNT units and package/custody bindings.
+Raw selected request identity preserves absent versus present-null restatement_sequence; all
+non-null request sequences refuse. Uncaptured values retain SOURCE_PRODUCT_NOT_CAPTURED while
+nullable source calculation IDs retain SOURCE_IDENTITY_NOT_PROVIDED. No financial linking or
+revision-identity calculator is introduced. Exact sealed Report r4 PostgreSQL original/corrected
+packages drive API/store/restart and full independent workbook reconciliation; the retained original
+reproduces exact bytes. These controlled synthetic fixtures retain their Render503 producer boundary
+and do not claim joined HTTP or institutional qualification. V1/v2 bytes and semantics stay fixed.
 Separate `composite-review v2` admits only `composite_review.v2`, with 1–8 captured calendar/trailing
 TWR source products, complete monthly selectors and exact primary-subvector pins. Typed product
 shapes live in `contracts/composite_products.py`; `services/composite_workbook/source_products.py`

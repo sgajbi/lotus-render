@@ -1,6 +1,6 @@
 # Composite review workbook
 
-Current scope: RPT01 XLSX v1 and separate v2 captured calendar/trailing returns. Qualification is
+Current scope: RPT01 XLSX v1, v2 captured calendar/trailing returns and v3 pinned linked analysis. Qualification is
 `EXPLICIT_RETAINED_CALCULATED_REPLAY`, publication `NOT_ATTESTED`, manifest `development`.
 Archive custody does not confer official or client-publication authority. Remaining report families
 and enterprise qualification stay open.
@@ -18,6 +18,7 @@ serve both versions. Select the exact tuple advertised by `GET /system/templates
 |---|---|---|
 | `composite-review v1` | `composite_review.v1` | `xlsx` |
 | `composite-review v2` | `composite_review.v2` | `xlsx` |
+| `composite-review v3` | `composite_review.v3` | `xlsx` |
 
 Mixed versions fail closed. Retained v1 packages keep their original manifest/layout/digest and
 golden semantics; adding v2 never reinterprets their source snapshot. The named v2 OpenAPI example
@@ -82,6 +83,51 @@ Render performs no financial calculation or upstream request.
 Calendar-year cumulative **return** is distinct from annual member **dispersion**. A source
 `POLICY_BASIS_MISMATCH` refusal supplies no dispersion value and remains explicitly unavailable;
 capturing calendar returns confers no authority over that statistic or other uncaptured products.
+
+## Pinned linked analysis v3
+
+V3 uses the same package, registered API, literal writer, persistence and custody pipeline. Its
+exclusive selector supplies `LINKED_MEMBER_CONTRIBUTION`, `CARINO:v1`, exact materialization UUIDs,
+ordered contiguous windows, full nested method/authority pins, engine, calculation fingerprint and
+canonical response digest. The optional request `restatement_sequence` is null-only; absent and
+present-null requests retain their original identity. V1/v2 selectors and captured products cannot
+be mixed into v3. Render checks every member, participating-period count and selected window,
+including source values not selected for display. It never derives a Carino factor, contribution,
+return, sum or reconciliation residual.
+
+The complete table set is `Summary`, `LinkedContribution`, `LinkedPeriods`, `Methods`, `Lineage`,
+`Disclosures`, `UncapturedProducts`. Exact ordered columns, rows and canonical pointers are
+mandatory. Removing a row or column fails even when surviving cells are valid. `PinnedData` retains
+the complete response, nested source authorities and raw decimal text, including scientific zeros
+and negative values; `CellEvidence`, `ColumnPolicy` and `ArtifactIdentity` remain reconstructible.
+
+| Source value | Canonical unit | Presentation |
+|---|---|---|
+| Return, weight | DECIMAL_RATIO | Percent, ratio converted once |
+| Contribution | DECIMAL_RATIO | Percentage points, ratio converted once |
+| Linking factor | DECIMAL_RATIO | Decimal factor, identity conversion |
+| Beginning market value | CURRENCY_UNITS | Supplied currency, identity conversion |
+| Participating periods | PERIOD_COUNT | Integer count, identity conversion |
+
+Finite decimal strings retain their spelling and use declared HALF_UP display precision. Every
+financial value remains literal text; formulas and automatic hyperlinks are disabled. Uncaptured
+products carry null value, `UNAVAILABLE` and `SOURCE_PRODUCT_NOT_CAPTURED`; null source calculation
+IDs carry the distinct `SOURCE_IDENTITY_NOT_PROVIDED` reason. Neither becomes zero.
+
+The v3 custody identity must match the raw dataset selector and its qualification. Archive tenant,
+composite and horizon must match the selected request; the context and Archive revision and exact
+snapshot/revision lineage must agree. Report owns revision digest derivation. Render validates and
+preserves those digests without inventing an independent revision calculator.
+
+The copied Report schema SHA256 is
+`c81dce9accd3721931663f40d160b282eafcf039191d2d649be9698e7a9c4237`, from sealed candidate r4
+manifest `036a775cdc0ac6dcc1533211fa80b6a9d6f2413f2397be2a931cbf9cb17a6c72`.
+The named `composite_linked_xlsx_package` OpenAPI example and v3 golden preserve the exact registered
+Report PostgreSQL original package; the corrected package comes from the same lifecycle. Their
+controlled synthetic source, v3 capability and captured Render503 boundary are explicit in producer
+proof. Registered Render API tests independently reconcile both workbooks and reproduce the retained
+original byte-for-byte; this fixture evidence does not claim actual joined HTTP or institutional
+qualification. Existing R5 evidence below remains the separate v1/v2 campaign.
 
 ## Admission and ownership
 

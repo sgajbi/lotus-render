@@ -1,0 +1,1763 @@
+{
+  "render_package_version": "render_package.v1",
+  "render_job_id": "rdr_rjob_d408832216674923a1f49c649084db46_xlsx",
+  "report_job_id": "rjob_d408832216674923a1f49c649084db46",
+  "snapshot_id": "rsnap_9bef46a34fb942279db2365331fb491b",
+  "report_type": "composite_review",
+  "report_data_contract_version": "composite_review.v3",
+  "template_id": "composite-review",
+  "template_version": "v3",
+  "locale": "en-SG",
+  "brand_variant": "private_banking",
+  "output_format": "xlsx",
+  "render_context": {
+    "timezone": "Asia/Singapore",
+    "report_revision_id": "rrv3_cb23797a2938b03b6a0624c56f7d4d41eadc4beef9681ae1eb7609354fcf3a05",
+    "document_reference": "rdoc_0195142b-764b-56b8-a338-c7e412fe94b2",
+    "archive": {
+      "report_request_id": "rrq_a9053b10fe424ebd9a403ac927d9fa2d",
+      "portfolio_scope": "composite",
+      "portfolio_id": null,
+      "composite_id": "SYNTHETIC_LINKED_USD",
+      "as_of_date": "2026-02-28",
+      "reporting_period_start": "2026-01-01",
+      "reporting_period_end": "2026-02-28",
+      "frequency": "ad_hoc",
+      "classification": "confidential",
+      "region": "APAC",
+      "tenant_id": "synthetic-tenant-a",
+      "retention_start_date": "2026-02-28",
+      "report_revision_id": "rrv3_cb23797a2938b03b6a0624c56f7d4d41eadc4beef9681ae1eb7609354fcf3a05",
+      "composite_report_identity": {
+        "contract_version": "composite_review.v3",
+        "qualification": "EXPLICIT_RETAINED_CALCULATED_REPLAY",
+        "publication_state": "NOT_ATTESTED",
+        "selection": {
+          "tenant_id": "synthetic-tenant-a",
+          "source_request": {
+            "metric_id": "LINKED_MEMBER_CONTRIBUTION",
+            "method": "CARINO:v1",
+            "composite_id": "SYNTHETIC_LINKED_USD",
+            "calculation_id": "06310000-0000-4000-8000-000000000001",
+            "period_start": "2026-01-01",
+            "period_end": "2026-02-28",
+            "return_view": "GROSS",
+            "reporting_currency": "USD",
+            "materialization_ids": [
+              "d84ff312-36ec-5b48-9c72-33d4d8d2bfbc",
+              "a4eca033-cecf-5989-8393-3df1e7975367"
+            ],
+            "restatement_sequence": null
+          },
+          "windows": [
+            {
+              "materialization_id": "d84ff312-36ec-5b48-9c72-33d4d8d2bfbc",
+              "period_start": "2026-01-01",
+              "period_end": "2026-01-31",
+              "restatement_sequence": 3,
+              "definition_content_hash": "sha256:96136cf01b80386644997d7f7dc3704e68fc89805281df72e93edda4e6233c03",
+              "membership_content_hash": "sha256:f1f6fd4cc75af14240ef1c7a4e8dc70cd108b3a45405d228e13a9dea8c9e2e89",
+              "attestation_content_hash": "sha256:59b3d16e2d9d8e987a74db3cb95a8c17f1f8f86c08373efd455c347ab86eb24c",
+              "source_cut_id": "synthetic-cut-original",
+              "method_binding": {
+                "digest": "sha256:56fc8f8777176e6d0697036c9100c8bebb780d924bc1a689526777a61e7ac80e",
+                "revision": "synthetic.method.r1",
+                "product_name": "SyntheticReturnMethodProfile",
+                "product_version": "v1"
+              },
+              "retained_receipt_fingerprint": "sha256:a414ab63565ad576d0ec4e477d32aad502cc0195dbe6f5e88d57ee552729cc8a"
+            },
+            {
+              "materialization_id": "a4eca033-cecf-5989-8393-3df1e7975367",
+              "period_start": "2026-02-01",
+              "period_end": "2026-02-28",
+              "restatement_sequence": 2,
+              "definition_content_hash": "sha256:b86fa0c11057a08e0cc2f9f57efd863c5a5c71b7eb52c14c2cc63bfdadc38f0b",
+              "membership_content_hash": "sha256:25d930507f65b0c41a773dafeef9f468faf58342fd0c8eb3808f844461a8afd3",
+              "attestation_content_hash": "sha256:94290d0fcdb69c1b291d06593d2d7d1380c92a64e020d4086f0ccbb9cfc6e27b",
+              "source_cut_id": "synthetic-cut-original",
+              "method_binding": {
+                "digest": "sha256:56fc8f8777176e6d0697036c9100c8bebb780d924bc1a689526777a61e7ac80e",
+                "revision": "synthetic.method.r1",
+                "product_name": "SyntheticReturnMethodProfile",
+                "product_version": "v1"
+              },
+              "retained_receipt_fingerprint": "sha256:06cf2b52111219051bf734f351013da0e83fd3a1325caa1f9aff65e58decaf2b"
+            }
+          ],
+          "engine_version": "lotus-performance-calculation-engine.v16",
+          "calculation_fingerprint": "sha256:8325622ea341987096b891f560ef7966f8b5b638313969f7fbc0fde499a0b769",
+          "response_digest": "sha256:06325f43336c6bea42114acdf7b38561b85521348efe4f39d64a0d359516e7c9"
+        },
+        "series_digest": "b010eaff0c559c612573d5ef9b5cf2b8e8a1c4120fb5c3534d2279a290e0e00d",
+        "source_revision_digest": "a2e495907b419500cb5e4db115f4b8e939258fdba48d2c84bb2b7c8d627e8047",
+        "factual_content_digest": "5f8bf48b644dc467596ed0b0ba1a4f5df30ba4cf5bd47955dae2c48a1f7fe94d"
+      }
+    }
+  },
+  "report_data": {
+    "tables": [
+      {
+        "rows": [
+          {
+            "cells": {
+              "method": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/source_response/method",
+                "canonical_value": "CARINO:v1"
+              },
+              "status": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/source_response/status",
+                "canonical_value": "CALCULATED_ANALYSIS"
+              },
+              "metric_id": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/source_response/metric_id",
+                "canonical_value": "LINKED_MEMBER_CONTRIBUTION"
+              },
+              "period_end": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/source_response/period_end",
+                "canonical_value": "2026-02-28"
+              },
+              "return_view": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/source_response/return_view",
+                "canonical_value": "GROSS"
+              },
+              "period_start": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/source_response/period_start",
+                "canonical_value": "2026-01-01"
+              },
+              "qualification": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/source_response/qualification",
+                "canonical_value": "RETAINED_SOURCE_ATTESTATION_NOT_LIVE_QUALIFIED"
+              },
+              "cumulative_return": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/source_response/cumulative_return",
+                "canonical_value": "0.04040"
+              },
+              "reporting_currency": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/source_response/reporting_currency",
+                "canonical_value": "USD"
+              },
+              "constituent_decomposition": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/source_response/constituent_decomposition",
+                "canonical_value": "AVAILABLE"
+              },
+              "reconciliation_difference": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/source_response/reconciliation_difference",
+                "canonical_value": "0E-81"
+              },
+              "total_linked_contribution": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/source_response/total_linked_contribution",
+                "canonical_value": "0.040400000000000000000000000000000000000000000000000000000000000000000000000000000"
+              },
+              "display_rounding_difference": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/source_response/display_rounding_difference",
+                "canonical_value": "0E-12"
+              }
+            },
+            "row_id": "linked-summary"
+          }
+        ],
+        "title": "Summary",
+        "columns": [
+          {
+            "unit": "TEXT",
+            "label": "metric id",
+            "scale": "1",
+            "currency": null,
+            "column_id": "metric_id",
+            "value_type": "TEXT",
+            "display_unit": "TEXT",
+            "display_conversion": "IDENTITY",
+            "display_rounding_mode": "HALF_UP",
+            "display_decimal_places": null
+          },
+          {
+            "unit": "TEXT",
+            "label": "method",
+            "scale": "1",
+            "currency": null,
+            "column_id": "method",
+            "value_type": "TEXT",
+            "display_unit": "TEXT",
+            "display_conversion": "IDENTITY",
+            "display_rounding_mode": "HALF_UP",
+            "display_decimal_places": null
+          },
+          {
+            "unit": "TEXT",
+            "label": "status",
+            "scale": "1",
+            "currency": null,
+            "column_id": "status",
+            "value_type": "TEXT",
+            "display_unit": "TEXT",
+            "display_conversion": "IDENTITY",
+            "display_rounding_mode": "HALF_UP",
+            "display_decimal_places": null
+          },
+          {
+            "unit": "TEXT",
+            "label": "qualification",
+            "scale": "1",
+            "currency": null,
+            "column_id": "qualification",
+            "value_type": "TEXT",
+            "display_unit": "TEXT",
+            "display_conversion": "IDENTITY",
+            "display_rounding_mode": "HALF_UP",
+            "display_decimal_places": null
+          },
+          {
+            "unit": "TEXT",
+            "label": "constituent decomposition",
+            "scale": "1",
+            "currency": null,
+            "column_id": "constituent_decomposition",
+            "value_type": "TEXT",
+            "display_unit": "TEXT",
+            "display_conversion": "IDENTITY",
+            "display_rounding_mode": "HALF_UP",
+            "display_decimal_places": null
+          },
+          {
+            "unit": "TEXT",
+            "label": "period start",
+            "scale": "1",
+            "currency": null,
+            "column_id": "period_start",
+            "value_type": "TEXT",
+            "display_unit": "TEXT",
+            "display_conversion": "IDENTITY",
+            "display_rounding_mode": "HALF_UP",
+            "display_decimal_places": null
+          },
+          {
+            "unit": "TEXT",
+            "label": "period end",
+            "scale": "1",
+            "currency": null,
+            "column_id": "period_end",
+            "value_type": "TEXT",
+            "display_unit": "TEXT",
+            "display_conversion": "IDENTITY",
+            "display_rounding_mode": "HALF_UP",
+            "display_decimal_places": null
+          },
+          {
+            "unit": "TEXT",
+            "label": "return view",
+            "scale": "1",
+            "currency": null,
+            "column_id": "return_view",
+            "value_type": "TEXT",
+            "display_unit": "TEXT",
+            "display_conversion": "IDENTITY",
+            "display_rounding_mode": "HALF_UP",
+            "display_decimal_places": null
+          },
+          {
+            "unit": "TEXT",
+            "label": "reporting currency",
+            "scale": "1",
+            "currency": null,
+            "column_id": "reporting_currency",
+            "value_type": "TEXT",
+            "display_unit": "TEXT",
+            "display_conversion": "IDENTITY",
+            "display_rounding_mode": "HALF_UP",
+            "display_decimal_places": null
+          },
+          {
+            "unit": "DECIMAL_RATIO",
+            "label": "cumulative return",
+            "scale": "1",
+            "currency": null,
+            "column_id": "cumulative_return",
+            "value_type": "DECIMAL_RETURN",
+            "display_unit": "PERCENT",
+            "display_conversion": "RATIO_TO_PERCENT_DISPLAY",
+            "display_rounding_mode": "HALF_UP",
+            "display_decimal_places": 2
+          },
+          {
+            "unit": "DECIMAL_RATIO",
+            "label": "total linked contribution",
+            "scale": "1",
+            "currency": null,
+            "column_id": "total_linked_contribution",
+            "value_type": "DECIMAL_RETURN",
+            "display_unit": "PERCENTAGE_POINTS",
+            "display_conversion": "RATIO_TO_PERCENT_DISPLAY",
+            "display_rounding_mode": "HALF_UP",
+            "display_decimal_places": 2
+          },
+          {
+            "unit": "DECIMAL_RATIO",
+            "label": "reconciliation difference",
+            "scale": "1",
+            "currency": null,
+            "column_id": "reconciliation_difference",
+            "value_type": "DECIMAL_RETURN",
+            "display_unit": "PERCENTAGE_POINTS",
+            "display_conversion": "RATIO_TO_PERCENT_DISPLAY",
+            "display_rounding_mode": "HALF_UP",
+            "display_decimal_places": 12
+          },
+          {
+            "unit": "DECIMAL_RATIO",
+            "label": "display rounding difference",
+            "scale": "1",
+            "currency": null,
+            "column_id": "display_rounding_difference",
+            "value_type": "DECIMAL_RETURN",
+            "display_unit": "PERCENTAGE_POINTS",
+            "display_conversion": "RATIO_TO_PERCENT_DISPLAY",
+            "display_rounding_mode": "HALF_UP",
+            "display_decimal_places": 12
+          }
+        ],
+        "table_id": "Summary"
+      },
+      {
+        "rows": [
+          {
+            "cells": {
+              "portfolio_id": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/source_response/members/0/portfolio_id",
+                "canonical_value": "external-member-a"
+              },
+              "linked_contribution": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/source_response/members/0/linked_contribution",
+                "canonical_value": "0.035350000000000000000000000000000000000000000000000000000000000000000000000000000"
+              },
+              "participating_period_count": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/source_response/members/0/participating_period_count",
+                "canonical_value": "2"
+              }
+            },
+            "row_id": "0"
+          },
+          {
+            "cells": {
+              "portfolio_id": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/source_response/members/1/portfolio_id",
+                "canonical_value": "external-member-b"
+              },
+              "linked_contribution": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/source_response/members/1/linked_contribution",
+                "canonical_value": "0.005050000000000000000000000000000000000000000000000000000000000000000000000000000"
+              },
+              "participating_period_count": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/source_response/members/1/participating_period_count",
+                "canonical_value": "2"
+              }
+            },
+            "row_id": "1"
+          }
+        ],
+        "title": "LinkedContribution",
+        "columns": [
+          {
+            "unit": "TEXT",
+            "label": "portfolio id",
+            "scale": "1",
+            "currency": null,
+            "column_id": "portfolio_id",
+            "value_type": "TEXT",
+            "display_unit": "TEXT",
+            "display_conversion": "IDENTITY",
+            "display_rounding_mode": "HALF_UP",
+            "display_decimal_places": null
+          },
+          {
+            "unit": "DECIMAL_RATIO",
+            "label": "linked contribution",
+            "scale": "1",
+            "currency": null,
+            "column_id": "linked_contribution",
+            "value_type": "DECIMAL_RETURN",
+            "display_unit": "PERCENTAGE_POINTS",
+            "display_conversion": "RATIO_TO_PERCENT_DISPLAY",
+            "display_rounding_mode": "HALF_UP",
+            "display_decimal_places": 2
+          },
+          {
+            "unit": "PERIOD_COUNT",
+            "label": "participating period count",
+            "scale": "1",
+            "currency": null,
+            "column_id": "participating_period_count",
+            "value_type": "COUNT",
+            "display_unit": "PERIOD_COUNT",
+            "display_conversion": "IDENTITY",
+            "display_rounding_mode": "HALF_UP",
+            "display_decimal_places": 0
+          }
+        ],
+        "table_id": "LinkedContribution"
+      },
+      {
+        "rows": [
+          {
+            "cells": {
+              "weight": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/source_response/periods/0/weight",
+                "canonical_value": "0.5"
+              },
+              "period_end": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/source_response/periods/0/period_end",
+                "canonical_value": "2026-01-31"
+              },
+              "contribution": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/source_response/periods/0/contribution",
+                "canonical_value": "0.03"
+              },
+              "period_start": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/source_response/periods/0/period_start",
+                "canonical_value": "2026-01-01"
+              },
+              "portfolio_id": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/source_response/periods/0/portfolio_id",
+                "canonical_value": "external-member-a"
+              },
+              "return_value": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/source_response/periods/0/return_value",
+                "canonical_value": "0.06"
+              },
+              "calculation_id": {
+                "availability": "UNAVAILABLE",
+                "reason_codes": [
+                  "SOURCE_IDENTITY_NOT_PROVIDED"
+                ],
+                "source_pointer": "/source_response/periods/0/calculation_id",
+                "canonical_value": null
+              },
+              "linking_factor": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/source_response/periods/0/linking_factor",
+                "canonical_value": "1.0100000000000000000000000000000000000000000000000000000000000000000000000000000"
+              },
+              "source_fingerprint": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/source_response/periods/0/source_fingerprint",
+                "canonical_value": "sha256:92502c425468d2ac920ca27638f9c0133f92c4d9facd7f62279d24266f776ffe"
+              },
+              "source_snapshot_id": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/source_response/periods/0/source_snapshot_id",
+                "canonical_value": "sha256:92502c425468d2ac920ca27638f9c0133f92c4d9facd7f62279d24266f776ffe"
+              },
+              "linked_contribution": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/source_response/periods/0/linked_contribution",
+                "canonical_value": "0.030300000000000000000000000000000000000000000000000000000000000000000000000000000"
+              },
+              "restatement_version": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/source_response/periods/0/restatement_version",
+                "canonical_value": "d84ff312-36ec-5b48-9c72-33d4d8d2bfbc"
+              },
+              "restatement_sequence": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/source_response/periods/0/restatement_sequence",
+                "canonical_value": "3"
+              },
+              "beginning_market_value": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/source_response/periods/0/beginning_market_value",
+                "canonical_value": "100"
+              }
+            },
+            "row_id": "0"
+          },
+          {
+            "cells": {
+              "weight": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/source_response/periods/1/weight",
+                "canonical_value": "0.5"
+              },
+              "period_end": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/source_response/periods/1/period_end",
+                "canonical_value": "2026-01-31"
+              },
+              "contribution": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/source_response/periods/1/contribution",
+                "canonical_value": "-0.01"
+              },
+              "period_start": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/source_response/periods/1/period_start",
+                "canonical_value": "2026-01-01"
+              },
+              "portfolio_id": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/source_response/periods/1/portfolio_id",
+                "canonical_value": "external-member-b"
+              },
+              "return_value": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/source_response/periods/1/return_value",
+                "canonical_value": "-0.02"
+              },
+              "calculation_id": {
+                "availability": "UNAVAILABLE",
+                "reason_codes": [
+                  "SOURCE_IDENTITY_NOT_PROVIDED"
+                ],
+                "source_pointer": "/source_response/periods/1/calculation_id",
+                "canonical_value": null
+              },
+              "linking_factor": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/source_response/periods/1/linking_factor",
+                "canonical_value": "1.0100000000000000000000000000000000000000000000000000000000000000000000000000000"
+              },
+              "source_fingerprint": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/source_response/periods/1/source_fingerprint",
+                "canonical_value": "sha256:92502c425468d2ac920ca27638f9c0133f92c4d9facd7f62279d24266f776ffe"
+              },
+              "source_snapshot_id": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/source_response/periods/1/source_snapshot_id",
+                "canonical_value": "sha256:92502c425468d2ac920ca27638f9c0133f92c4d9facd7f62279d24266f776ffe"
+              },
+              "linked_contribution": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/source_response/periods/1/linked_contribution",
+                "canonical_value": "-0.010100000000000000000000000000000000000000000000000000000000000000000000000000000"
+              },
+              "restatement_version": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/source_response/periods/1/restatement_version",
+                "canonical_value": "d84ff312-36ec-5b48-9c72-33d4d8d2bfbc"
+              },
+              "restatement_sequence": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/source_response/periods/1/restatement_sequence",
+                "canonical_value": "3"
+              },
+              "beginning_market_value": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/source_response/periods/1/beginning_market_value",
+                "canonical_value": "100"
+              }
+            },
+            "row_id": "1"
+          },
+          {
+            "cells": {
+              "weight": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/source_response/periods/2/weight",
+                "canonical_value": "0.5"
+              },
+              "period_end": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/source_response/periods/2/period_end",
+                "canonical_value": "2026-02-28"
+              },
+              "contribution": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/source_response/periods/2/contribution",
+                "canonical_value": "0.005"
+              },
+              "period_start": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/source_response/periods/2/period_start",
+                "canonical_value": "2026-02-01"
+              },
+              "portfolio_id": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/source_response/periods/2/portfolio_id",
+                "canonical_value": "external-member-a"
+              },
+              "return_value": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/source_response/periods/2/return_value",
+                "canonical_value": "0.01"
+              },
+              "calculation_id": {
+                "availability": "UNAVAILABLE",
+                "reason_codes": [
+                  "SOURCE_IDENTITY_NOT_PROVIDED"
+                ],
+                "source_pointer": "/source_response/periods/2/calculation_id",
+                "canonical_value": null
+              },
+              "linking_factor": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/source_response/periods/2/linking_factor",
+                "canonical_value": "1.0100000000000000000000000000000000000000000000000000000000000000000000000000000"
+              },
+              "source_fingerprint": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/source_response/periods/2/source_fingerprint",
+                "canonical_value": "sha256:2b6df555c4fe9a606a0638e7fd1e097aaafac64179c5651436b70b3762805b6d"
+              },
+              "source_snapshot_id": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/source_response/periods/2/source_snapshot_id",
+                "canonical_value": "sha256:2b6df555c4fe9a606a0638e7fd1e097aaafac64179c5651436b70b3762805b6d"
+              },
+              "linked_contribution": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/source_response/periods/2/linked_contribution",
+                "canonical_value": "0.0050500000000000000000000000000000000000000000000000000000000000000000000000000000"
+              },
+              "restatement_version": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/source_response/periods/2/restatement_version",
+                "canonical_value": "a4eca033-cecf-5989-8393-3df1e7975367"
+              },
+              "restatement_sequence": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/source_response/periods/2/restatement_sequence",
+                "canonical_value": "2"
+              },
+              "beginning_market_value": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/source_response/periods/2/beginning_market_value",
+                "canonical_value": "100"
+              }
+            },
+            "row_id": "2"
+          },
+          {
+            "cells": {
+              "weight": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/source_response/periods/3/weight",
+                "canonical_value": "0.5"
+              },
+              "period_end": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/source_response/periods/3/period_end",
+                "canonical_value": "2026-02-28"
+              },
+              "contribution": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/source_response/periods/3/contribution",
+                "canonical_value": "0.015"
+              },
+              "period_start": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/source_response/periods/3/period_start",
+                "canonical_value": "2026-02-01"
+              },
+              "portfolio_id": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/source_response/periods/3/portfolio_id",
+                "canonical_value": "external-member-b"
+              },
+              "return_value": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/source_response/periods/3/return_value",
+                "canonical_value": "0.03"
+              },
+              "calculation_id": {
+                "availability": "UNAVAILABLE",
+                "reason_codes": [
+                  "SOURCE_IDENTITY_NOT_PROVIDED"
+                ],
+                "source_pointer": "/source_response/periods/3/calculation_id",
+                "canonical_value": null
+              },
+              "linking_factor": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/source_response/periods/3/linking_factor",
+                "canonical_value": "1.0100000000000000000000000000000000000000000000000000000000000000000000000000000"
+              },
+              "source_fingerprint": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/source_response/periods/3/source_fingerprint",
+                "canonical_value": "sha256:2b6df555c4fe9a606a0638e7fd1e097aaafac64179c5651436b70b3762805b6d"
+              },
+              "source_snapshot_id": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/source_response/periods/3/source_snapshot_id",
+                "canonical_value": "sha256:2b6df555c4fe9a606a0638e7fd1e097aaafac64179c5651436b70b3762805b6d"
+              },
+              "linked_contribution": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/source_response/periods/3/linked_contribution",
+                "canonical_value": "0.015150000000000000000000000000000000000000000000000000000000000000000000000000000"
+              },
+              "restatement_version": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/source_response/periods/3/restatement_version",
+                "canonical_value": "a4eca033-cecf-5989-8393-3df1e7975367"
+              },
+              "restatement_sequence": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/source_response/periods/3/restatement_sequence",
+                "canonical_value": "2"
+              },
+              "beginning_market_value": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/source_response/periods/3/beginning_market_value",
+                "canonical_value": "100"
+              }
+            },
+            "row_id": "3"
+          }
+        ],
+        "title": "LinkedPeriods",
+        "columns": [
+          {
+            "unit": "TEXT",
+            "label": "portfolio id",
+            "scale": "1",
+            "currency": null,
+            "column_id": "portfolio_id",
+            "value_type": "TEXT",
+            "display_unit": "TEXT",
+            "display_conversion": "IDENTITY",
+            "display_rounding_mode": "HALF_UP",
+            "display_decimal_places": null
+          },
+          {
+            "unit": "TEXT",
+            "label": "period start",
+            "scale": "1",
+            "currency": null,
+            "column_id": "period_start",
+            "value_type": "TEXT",
+            "display_unit": "TEXT",
+            "display_conversion": "IDENTITY",
+            "display_rounding_mode": "HALF_UP",
+            "display_decimal_places": null
+          },
+          {
+            "unit": "TEXT",
+            "label": "period end",
+            "scale": "1",
+            "currency": null,
+            "column_id": "period_end",
+            "value_type": "TEXT",
+            "display_unit": "TEXT",
+            "display_conversion": "IDENTITY",
+            "display_rounding_mode": "HALF_UP",
+            "display_decimal_places": null
+          },
+          {
+            "unit": "DECIMAL_RATIO",
+            "label": "return value",
+            "scale": "1",
+            "currency": null,
+            "column_id": "return_value",
+            "value_type": "DECIMAL_RETURN",
+            "display_unit": "PERCENT",
+            "display_conversion": "RATIO_TO_PERCENT_DISPLAY",
+            "display_rounding_mode": "HALF_UP",
+            "display_decimal_places": 2
+          },
+          {
+            "unit": "CURRENCY_UNITS",
+            "label": "beginning market value",
+            "scale": "1",
+            "currency": "USD",
+            "column_id": "beginning_market_value",
+            "value_type": "MONEY",
+            "display_unit": "CURRENCY_UNITS",
+            "display_conversion": "IDENTITY",
+            "display_rounding_mode": "HALF_UP",
+            "display_decimal_places": 2
+          },
+          {
+            "unit": "DECIMAL_RATIO",
+            "label": "weight",
+            "scale": "1",
+            "currency": null,
+            "column_id": "weight",
+            "value_type": "DECIMAL_RETURN",
+            "display_unit": "PERCENT",
+            "display_conversion": "RATIO_TO_PERCENT_DISPLAY",
+            "display_rounding_mode": "HALF_UP",
+            "display_decimal_places": 2
+          },
+          {
+            "unit": "DECIMAL_RATIO",
+            "label": "contribution",
+            "scale": "1",
+            "currency": null,
+            "column_id": "contribution",
+            "value_type": "DECIMAL_RETURN",
+            "display_unit": "PERCENTAGE_POINTS",
+            "display_conversion": "RATIO_TO_PERCENT_DISPLAY",
+            "display_rounding_mode": "HALF_UP",
+            "display_decimal_places": 2
+          },
+          {
+            "unit": "DECIMAL_RATIO",
+            "label": "linking factor",
+            "scale": "1",
+            "currency": null,
+            "column_id": "linking_factor",
+            "value_type": "DECIMAL_FACTOR",
+            "display_unit": "DECIMAL_RATIO",
+            "display_conversion": "IDENTITY",
+            "display_rounding_mode": "HALF_UP",
+            "display_decimal_places": 12
+          },
+          {
+            "unit": "DECIMAL_RATIO",
+            "label": "linked contribution",
+            "scale": "1",
+            "currency": null,
+            "column_id": "linked_contribution",
+            "value_type": "DECIMAL_RETURN",
+            "display_unit": "PERCENTAGE_POINTS",
+            "display_conversion": "RATIO_TO_PERCENT_DISPLAY",
+            "display_rounding_mode": "HALF_UP",
+            "display_decimal_places": 2
+          },
+          {
+            "unit": "TEXT",
+            "label": "source snapshot id",
+            "scale": "1",
+            "currency": null,
+            "column_id": "source_snapshot_id",
+            "value_type": "TEXT",
+            "display_unit": "TEXT",
+            "display_conversion": "IDENTITY",
+            "display_rounding_mode": "HALF_UP",
+            "display_decimal_places": null
+          },
+          {
+            "unit": "TEXT",
+            "label": "source fingerprint",
+            "scale": "1",
+            "currency": null,
+            "column_id": "source_fingerprint",
+            "value_type": "TEXT",
+            "display_unit": "TEXT",
+            "display_conversion": "IDENTITY",
+            "display_rounding_mode": "HALF_UP",
+            "display_decimal_places": null
+          },
+          {
+            "unit": "TEXT",
+            "label": "calculation id",
+            "scale": "1",
+            "currency": null,
+            "column_id": "calculation_id",
+            "value_type": "TEXT",
+            "display_unit": "TEXT",
+            "display_conversion": "IDENTITY",
+            "display_rounding_mode": "HALF_UP",
+            "display_decimal_places": null
+          },
+          {
+            "unit": "TEXT",
+            "label": "restatement version",
+            "scale": "1",
+            "currency": null,
+            "column_id": "restatement_version",
+            "value_type": "TEXT",
+            "display_unit": "TEXT",
+            "display_conversion": "IDENTITY",
+            "display_rounding_mode": "HALF_UP",
+            "display_decimal_places": null
+          },
+          {
+            "unit": "TEXT",
+            "label": "restatement sequence",
+            "scale": "1",
+            "currency": null,
+            "column_id": "restatement_sequence",
+            "value_type": "TEXT",
+            "display_unit": "TEXT",
+            "display_conversion": "IDENTITY",
+            "display_rounding_mode": "HALF_UP",
+            "display_decimal_places": null
+          }
+        ],
+        "table_id": "LinkedPeriods"
+      },
+      {
+        "rows": [
+          {
+            "cells": {
+              "units": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/source_response/units",
+                "canonical_value": "DECIMAL_RETURN"
+              },
+              "method": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/source_response/method",
+                "canonical_value": "CARINO:v1"
+              }
+            },
+            "row_id": "source-method"
+          }
+        ],
+        "title": "Methods",
+        "columns": [
+          {
+            "unit": "TEXT",
+            "label": "method",
+            "scale": "1",
+            "currency": null,
+            "column_id": "method",
+            "value_type": "TEXT",
+            "display_unit": "TEXT",
+            "display_conversion": "IDENTITY",
+            "display_rounding_mode": "HALF_UP",
+            "display_decimal_places": null
+          },
+          {
+            "unit": "TEXT",
+            "label": "units",
+            "scale": "1",
+            "currency": null,
+            "column_id": "units",
+            "value_type": "TEXT",
+            "display_unit": "TEXT",
+            "display_conversion": "IDENTITY",
+            "display_rounding_mode": "HALF_UP",
+            "display_decimal_places": null
+          }
+        ],
+        "table_id": "Methods"
+      },
+      {
+        "rows": [
+          {
+            "cells": {
+              "engine_version": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/source_response/selection_manifest/engine_version",
+                "canonical_value": "lotus-performance-calculation-engine.v16"
+              },
+              "calculation_fingerprint": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/source_response/selection_manifest/calculation_fingerprint",
+                "canonical_value": "sha256:8325622ea341987096b891f560ef7966f8b5b638313969f7fbc0fde499a0b769"
+              }
+            },
+            "row_id": "selection"
+          }
+        ],
+        "title": "Lineage",
+        "columns": [
+          {
+            "unit": "TEXT",
+            "label": "engine version",
+            "scale": "1",
+            "currency": null,
+            "column_id": "engine_version",
+            "value_type": "TEXT",
+            "display_unit": "TEXT",
+            "display_conversion": "IDENTITY",
+            "display_rounding_mode": "HALF_UP",
+            "display_decimal_places": null
+          },
+          {
+            "unit": "TEXT",
+            "label": "calculation fingerprint",
+            "scale": "1",
+            "currency": null,
+            "column_id": "calculation_fingerprint",
+            "value_type": "TEXT",
+            "display_unit": "TEXT",
+            "display_conversion": "IDENTITY",
+            "display_rounding_mode": "HALF_UP",
+            "display_decimal_places": null
+          }
+        ],
+        "table_id": "Lineage"
+      },
+      {
+        "rows": [
+          {
+            "cells": {
+              "code": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/report_facts/disclosures/0/code",
+                "canonical_value": "CALCULATED_REPLAY_NOT_OFFICIAL"
+              },
+              "text": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/report_facts/disclosures/0/text",
+                "canonical_value": "Explicit retained calculated replay; official publication authority is not attested."
+              }
+            },
+            "row_id": "0"
+          },
+          {
+            "cells": {
+              "code": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/report_facts/disclosures/1/code",
+                "canonical_value": "SOURCE_QUALIFICATION"
+              },
+              "text": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/report_facts/disclosures/1/text",
+                "canonical_value": "CALCULATED_ANALYSIS / RETAINED_SOURCE_ATTESTATION_NOT_LIVE_QUALIFIED"
+              }
+            },
+            "row_id": "1"
+          },
+          {
+            "cells": {
+              "code": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/report_facts/disclosures/2/code",
+                "canonical_value": "SOURCE_OWNED_LINKING"
+              },
+              "text": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/report_facts/disclosures/2/text",
+                "canonical_value": "Performance owns returns, linking factors, contributions and differences. Report performs no linking or residual allocation."
+              }
+            },
+            "row_id": "2"
+          },
+          {
+            "cells": {
+              "code": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/report_facts/disclosures/3/code",
+                "canonical_value": "PRECISION_AND_UNITS"
+              },
+              "text": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/report_facts/disclosures/3/text",
+                "canonical_value": "Canonical decimal text is exact. Return percent and contribution percentage points convert once for display. Source totals and differences are not recomputed."
+              }
+            },
+            "row_id": "3"
+          }
+        ],
+        "title": "Disclosures",
+        "columns": [
+          {
+            "unit": "TEXT",
+            "label": "code",
+            "scale": "1",
+            "currency": null,
+            "column_id": "code",
+            "value_type": "TEXT",
+            "display_unit": "TEXT",
+            "display_conversion": "IDENTITY",
+            "display_rounding_mode": "HALF_UP",
+            "display_decimal_places": null
+          },
+          {
+            "unit": "TEXT",
+            "label": "text",
+            "scale": "1",
+            "currency": null,
+            "column_id": "text",
+            "value_type": "TEXT",
+            "display_unit": "TEXT",
+            "display_conversion": "IDENTITY",
+            "display_rounding_mode": "HALF_UP",
+            "display_decimal_places": null
+          }
+        ],
+        "table_id": "Disclosures"
+      },
+      {
+        "rows": [
+          {
+            "cells": {
+              "value": {
+                "availability": "UNAVAILABLE",
+                "reason_codes": [
+                  "SOURCE_PRODUCT_NOT_CAPTURED"
+                ],
+                "source_pointer": "/report_facts/uncaptured/0/value",
+                "canonical_value": null
+              },
+              "product": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/report_facts/uncaptured/0/product",
+                "canonical_value": "CalendarReturns"
+              },
+              "reason_code": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/report_facts/uncaptured/0/reason_code",
+                "canonical_value": "SOURCE_PRODUCT_NOT_CAPTURED"
+              },
+              "availability": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/report_facts/uncaptured/0/availability",
+                "canonical_value": "UNAVAILABLE"
+              }
+            },
+            "row_id": "0"
+          },
+          {
+            "cells": {
+              "value": {
+                "availability": "UNAVAILABLE",
+                "reason_codes": [
+                  "SOURCE_PRODUCT_NOT_CAPTURED"
+                ],
+                "source_pointer": "/report_facts/uncaptured/1/value",
+                "canonical_value": null
+              },
+              "product": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/report_facts/uncaptured/1/product",
+                "canonical_value": "TrailingReturns"
+              },
+              "reason_code": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/report_facts/uncaptured/1/reason_code",
+                "canonical_value": "SOURCE_PRODUCT_NOT_CAPTURED"
+              },
+              "availability": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/report_facts/uncaptured/1/availability",
+                "canonical_value": "UNAVAILABLE"
+              }
+            },
+            "row_id": "1"
+          },
+          {
+            "cells": {
+              "value": {
+                "availability": "UNAVAILABLE",
+                "reason_codes": [
+                  "SOURCE_PRODUCT_NOT_CAPTURED"
+                ],
+                "source_pointer": "/report_facts/uncaptured/2/value",
+                "canonical_value": null
+              },
+              "product": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/report_facts/uncaptured/2/product",
+                "canonical_value": "SinceInception"
+              },
+              "reason_code": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/report_facts/uncaptured/2/reason_code",
+                "canonical_value": "SOURCE_PRODUCT_NOT_CAPTURED"
+              },
+              "availability": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/report_facts/uncaptured/2/availability",
+                "canonical_value": "UNAVAILABLE"
+              }
+            },
+            "row_id": "2"
+          },
+          {
+            "cells": {
+              "value": {
+                "availability": "UNAVAILABLE",
+                "reason_codes": [
+                  "SOURCE_PRODUCT_NOT_CAPTURED"
+                ],
+                "source_pointer": "/report_facts/uncaptured/3/value",
+                "canonical_value": null
+              },
+              "product": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/report_facts/uncaptured/3/product",
+                "canonical_value": "Risk"
+              },
+              "reason_code": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/report_facts/uncaptured/3/reason_code",
+                "canonical_value": "SOURCE_PRODUCT_NOT_CAPTURED"
+              },
+              "availability": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/report_facts/uncaptured/3/availability",
+                "canonical_value": "UNAVAILABLE"
+              }
+            },
+            "row_id": "3"
+          },
+          {
+            "cells": {
+              "value": {
+                "availability": "UNAVAILABLE",
+                "reason_codes": [
+                  "SOURCE_PRODUCT_NOT_CAPTURED"
+                ],
+                "source_pointer": "/report_facts/uncaptured/4/value",
+                "canonical_value": null
+              },
+              "product": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/report_facts/uncaptured/4/product",
+                "canonical_value": "Attribution"
+              },
+              "reason_code": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/report_facts/uncaptured/4/reason_code",
+                "canonical_value": "SOURCE_PRODUCT_NOT_CAPTURED"
+              },
+              "availability": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/report_facts/uncaptured/4/availability",
+                "canonical_value": "UNAVAILABLE"
+              }
+            },
+            "row_id": "4"
+          },
+          {
+            "cells": {
+              "value": {
+                "availability": "UNAVAILABLE",
+                "reason_codes": [
+                  "SOURCE_PRODUCT_NOT_CAPTURED"
+                ],
+                "source_pointer": "/report_facts/uncaptured/5/value",
+                "canonical_value": null
+              },
+              "product": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/report_facts/uncaptured/5/product",
+                "canonical_value": "ApprovedRestatement"
+              },
+              "reason_code": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/report_facts/uncaptured/5/reason_code",
+                "canonical_value": "SOURCE_PRODUCT_NOT_CAPTURED"
+              },
+              "availability": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/report_facts/uncaptured/5/availability",
+                "canonical_value": "UNAVAILABLE"
+              }
+            },
+            "row_id": "5"
+          },
+          {
+            "cells": {
+              "value": {
+                "availability": "UNAVAILABLE",
+                "reason_codes": [
+                  "SOURCE_PRODUCT_NOT_CAPTURED"
+                ],
+                "source_pointer": "/report_facts/uncaptured/6/value",
+                "canonical_value": null
+              },
+              "product": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/report_facts/uncaptured/6/product",
+                "canonical_value": "CompleteEligibilityPopulation"
+              },
+              "reason_code": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/report_facts/uncaptured/6/reason_code",
+                "canonical_value": "SOURCE_PRODUCT_NOT_CAPTURED"
+              },
+              "availability": {
+                "availability": "AVAILABLE",
+                "reason_codes": [],
+                "source_pointer": "/report_facts/uncaptured/6/availability",
+                "canonical_value": "UNAVAILABLE"
+              }
+            },
+            "row_id": "6"
+          }
+        ],
+        "title": "UncapturedProducts",
+        "columns": [
+          {
+            "unit": "TEXT",
+            "label": "product",
+            "scale": "1",
+            "currency": null,
+            "column_id": "product",
+            "value_type": "TEXT",
+            "display_unit": "TEXT",
+            "display_conversion": "IDENTITY",
+            "display_rounding_mode": "HALF_UP",
+            "display_decimal_places": null
+          },
+          {
+            "unit": "TEXT",
+            "label": "availability",
+            "scale": "1",
+            "currency": null,
+            "column_id": "availability",
+            "value_type": "TEXT",
+            "display_unit": "TEXT",
+            "display_conversion": "IDENTITY",
+            "display_rounding_mode": "HALF_UP",
+            "display_decimal_places": null
+          },
+          {
+            "unit": "TEXT",
+            "label": "value",
+            "scale": "1",
+            "currency": null,
+            "column_id": "value",
+            "value_type": "TEXT",
+            "display_unit": "TEXT",
+            "display_conversion": "IDENTITY",
+            "display_rounding_mode": "HALF_UP",
+            "display_decimal_places": null
+          },
+          {
+            "unit": "TEXT",
+            "label": "reason code",
+            "scale": "1",
+            "currency": null,
+            "column_id": "reason_code",
+            "value_type": "TEXT",
+            "display_unit": "TEXT",
+            "display_conversion": "IDENTITY",
+            "display_rounding_mode": "HALF_UP",
+            "display_decimal_places": null
+          }
+        ],
+        "table_id": "UncapturedProducts"
+      }
+    ],
+    "selection": {
+      "windows": [
+        {
+          "period_end": "2026-01-31",
+          "period_start": "2026-01-01",
+          "source_cut_id": "synthetic-cut-original",
+          "method_binding": {
+            "digest": "sha256:56fc8f8777176e6d0697036c9100c8bebb780d924bc1a689526777a61e7ac80e",
+            "revision": "synthetic.method.r1",
+            "product_name": "SyntheticReturnMethodProfile",
+            "product_version": "v1"
+          },
+          "materialization_id": "d84ff312-36ec-5b48-9c72-33d4d8d2bfbc",
+          "restatement_sequence": 3,
+          "definition_content_hash": "sha256:96136cf01b80386644997d7f7dc3704e68fc89805281df72e93edda4e6233c03",
+          "membership_content_hash": "sha256:f1f6fd4cc75af14240ef1c7a4e8dc70cd108b3a45405d228e13a9dea8c9e2e89",
+          "attestation_content_hash": "sha256:59b3d16e2d9d8e987a74db3cb95a8c17f1f8f86c08373efd455c347ab86eb24c",
+          "retained_receipt_fingerprint": "sha256:a414ab63565ad576d0ec4e477d32aad502cc0195dbe6f5e88d57ee552729cc8a"
+        },
+        {
+          "period_end": "2026-02-28",
+          "period_start": "2026-02-01",
+          "source_cut_id": "synthetic-cut-original",
+          "method_binding": {
+            "digest": "sha256:56fc8f8777176e6d0697036c9100c8bebb780d924bc1a689526777a61e7ac80e",
+            "revision": "synthetic.method.r1",
+            "product_name": "SyntheticReturnMethodProfile",
+            "product_version": "v1"
+          },
+          "materialization_id": "a4eca033-cecf-5989-8393-3df1e7975367",
+          "restatement_sequence": 2,
+          "definition_content_hash": "sha256:b86fa0c11057a08e0cc2f9f57efd863c5a5c71b7eb52c14c2cc63bfdadc38f0b",
+          "membership_content_hash": "sha256:25d930507f65b0c41a773dafeef9f468faf58342fd0c8eb3808f844461a8afd3",
+          "attestation_content_hash": "sha256:94290d0fcdb69c1b291d06593d2d7d1380c92a64e020d4086f0ccbb9cfc6e27b",
+          "retained_receipt_fingerprint": "sha256:06cf2b52111219051bf734f351013da0e83fd3a1325caa1f9aff65e58decaf2b"
+        }
+      ],
+      "tenant_id": "synthetic-tenant-a",
+      "engine_version": "lotus-performance-calculation-engine.v16",
+      "source_request": {
+        "method": "CARINO:v1",
+        "metric_id": "LINKED_MEMBER_CONTRIBUTION",
+        "period_end": "2026-02-28",
+        "return_view": "GROSS",
+        "composite_id": "SYNTHETIC_LINKED_USD",
+        "period_start": "2026-01-01",
+        "calculation_id": "06310000-0000-4000-8000-000000000001",
+        "reporting_currency": "USD",
+        "materialization_ids": [
+          "d84ff312-36ec-5b48-9c72-33d4d8d2bfbc",
+          "a4eca033-cecf-5989-8393-3df1e7975367"
+        ],
+        "restatement_sequence": null
+      },
+      "response_digest": "sha256:06325f43336c6bea42114acdf7b38561b85521348efe4f39d64a0d359516e7c9",
+      "calculation_fingerprint": "sha256:8325622ea341987096b891f560ef7966f8b5b638313969f7fbc0fde499a0b769"
+    },
+    "tenant_id": "synthetic-tenant-a",
+    "report_facts": {
+      "uncaptured": [
+        {
+          "value": null,
+          "product": "CalendarReturns",
+          "reason_code": "SOURCE_PRODUCT_NOT_CAPTURED",
+          "availability": "UNAVAILABLE"
+        },
+        {
+          "value": null,
+          "product": "TrailingReturns",
+          "reason_code": "SOURCE_PRODUCT_NOT_CAPTURED",
+          "availability": "UNAVAILABLE"
+        },
+        {
+          "value": null,
+          "product": "SinceInception",
+          "reason_code": "SOURCE_PRODUCT_NOT_CAPTURED",
+          "availability": "UNAVAILABLE"
+        },
+        {
+          "value": null,
+          "product": "Risk",
+          "reason_code": "SOURCE_PRODUCT_NOT_CAPTURED",
+          "availability": "UNAVAILABLE"
+        },
+        {
+          "value": null,
+          "product": "Attribution",
+          "reason_code": "SOURCE_PRODUCT_NOT_CAPTURED",
+          "availability": "UNAVAILABLE"
+        },
+        {
+          "value": null,
+          "product": "ApprovedRestatement",
+          "reason_code": "SOURCE_PRODUCT_NOT_CAPTURED",
+          "availability": "UNAVAILABLE"
+        },
+        {
+          "value": null,
+          "product": "CompleteEligibilityPopulation",
+          "reason_code": "SOURCE_PRODUCT_NOT_CAPTURED",
+          "availability": "UNAVAILABLE"
+        }
+      ],
+      "disclosures": [
+        {
+          "code": "CALCULATED_REPLAY_NOT_OFFICIAL",
+          "text": "Explicit retained calculated replay; official publication authority is not attested."
+        },
+        {
+          "code": "SOURCE_QUALIFICATION",
+          "text": "CALCULATED_ANALYSIS / RETAINED_SOURCE_ATTESTATION_NOT_LIVE_QUALIFIED"
+        },
+        {
+          "code": "SOURCE_OWNED_LINKING",
+          "text": "Performance owns returns, linking factors, contributions and differences. Report performs no linking or residual allocation."
+        },
+        {
+          "code": "PRECISION_AND_UNITS",
+          "text": "Canonical decimal text is exact. Return percent and contribution percentage points convert once for display. Source totals and differences are not recomputed."
+        }
+      ]
+    },
+    "qualification": "EXPLICIT_RETAINED_CALCULATED_REPLAY",
+    "source_response": {
+      "units": "DECIMAL_RETURN",
+      "method": "CARINO:v1",
+      "status": "CALCULATED_ANALYSIS",
+      "members": [
+        {
+          "portfolio_id": "external-member-a",
+          "linked_contribution": "0.035350000000000000000000000000000000000000000000000000000000000000000000000000000",
+          "participating_period_count": 2
+        },
+        {
+          "portfolio_id": "external-member-b",
+          "linked_contribution": "0.005050000000000000000000000000000000000000000000000000000000000000000000000000000",
+          "participating_period_count": 2
+        }
+      ],
+      "periods": [
+        {
+          "weight": "0.5",
+          "period_end": "2026-01-31",
+          "contribution": "0.03",
+          "period_start": "2026-01-01",
+          "portfolio_id": "external-member-a",
+          "return_value": "0.06",
+          "calculation_id": null,
+          "linking_factor": "1.0100000000000000000000000000000000000000000000000000000000000000000000000000000",
+          "source_fingerprint": "sha256:92502c425468d2ac920ca27638f9c0133f92c4d9facd7f62279d24266f776ffe",
+          "source_snapshot_id": "sha256:92502c425468d2ac920ca27638f9c0133f92c4d9facd7f62279d24266f776ffe",
+          "linked_contribution": "0.030300000000000000000000000000000000000000000000000000000000000000000000000000000",
+          "restatement_version": "d84ff312-36ec-5b48-9c72-33d4d8d2bfbc",
+          "restatement_sequence": 3,
+          "beginning_market_value": "100",
+          "source_authority_identity": {
+            "provider_id": "synthetic-provider-a",
+            "source_kind": "EXTERNAL_PROVIDER",
+            "product_name": "CompositeExternalMemberFacts",
+            "source_digest": "sha256:3484b306ba3dc22b397dc3412a28e3fb9296319ddaf5fc09f8c3aa170c1996c3",
+            "product_version": "v1",
+            "source_revision": "oracle.month-1.corrected",
+            "source_member_id": "external-member-a",
+            "return_source_kind": "EXTERNAL_PROVIDER"
+          }
+        },
+        {
+          "weight": "0.5",
+          "period_end": "2026-01-31",
+          "contribution": "-0.01",
+          "period_start": "2026-01-01",
+          "portfolio_id": "external-member-b",
+          "return_value": "-0.02",
+          "calculation_id": null,
+          "linking_factor": "1.0100000000000000000000000000000000000000000000000000000000000000000000000000000",
+          "source_fingerprint": "sha256:92502c425468d2ac920ca27638f9c0133f92c4d9facd7f62279d24266f776ffe",
+          "source_snapshot_id": "sha256:92502c425468d2ac920ca27638f9c0133f92c4d9facd7f62279d24266f776ffe",
+          "linked_contribution": "-0.010100000000000000000000000000000000000000000000000000000000000000000000000000000",
+          "restatement_version": "d84ff312-36ec-5b48-9c72-33d4d8d2bfbc",
+          "restatement_sequence": 3,
+          "beginning_market_value": "100",
+          "source_authority_identity": {
+            "provider_id": "synthetic-provider-a",
+            "source_kind": "EXTERNAL_PROVIDER",
+            "product_name": "CompositeExternalMemberFacts",
+            "source_digest": "sha256:3484b306ba3dc22b397dc3412a28e3fb9296319ddaf5fc09f8c3aa170c1996c3",
+            "product_version": "v1",
+            "source_revision": "oracle.month-1.corrected",
+            "source_member_id": "external-member-b",
+            "return_source_kind": "EXTERNAL_PROVIDER"
+          }
+        },
+        {
+          "weight": "0.5",
+          "period_end": "2026-02-28",
+          "contribution": "0.005",
+          "period_start": "2026-02-01",
+          "portfolio_id": "external-member-a",
+          "return_value": "0.01",
+          "calculation_id": null,
+          "linking_factor": "1.0100000000000000000000000000000000000000000000000000000000000000000000000000000",
+          "source_fingerprint": "sha256:2b6df555c4fe9a606a0638e7fd1e097aaafac64179c5651436b70b3762805b6d",
+          "source_snapshot_id": "sha256:2b6df555c4fe9a606a0638e7fd1e097aaafac64179c5651436b70b3762805b6d",
+          "linked_contribution": "0.0050500000000000000000000000000000000000000000000000000000000000000000000000000000",
+          "restatement_version": "a4eca033-cecf-5989-8393-3df1e7975367",
+          "restatement_sequence": 2,
+          "beginning_market_value": "100",
+          "source_authority_identity": {
+            "provider_id": "synthetic-provider-a",
+            "source_kind": "EXTERNAL_PROVIDER",
+            "product_name": "CompositeExternalMemberFacts",
+            "source_digest": "sha256:3e0371fa54f7626cd9168c34784c3e71e577df8513784c1d7387e966688392ea",
+            "product_version": "v1",
+            "source_revision": "oracle.month-2",
+            "source_member_id": "external-member-a",
+            "return_source_kind": "EXTERNAL_PROVIDER"
+          }
+        },
+        {
+          "weight": "0.5",
+          "period_end": "2026-02-28",
+          "contribution": "0.015",
+          "period_start": "2026-02-01",
+          "portfolio_id": "external-member-b",
+          "return_value": "0.03",
+          "calculation_id": null,
+          "linking_factor": "1.0100000000000000000000000000000000000000000000000000000000000000000000000000000",
+          "source_fingerprint": "sha256:2b6df555c4fe9a606a0638e7fd1e097aaafac64179c5651436b70b3762805b6d",
+          "source_snapshot_id": "sha256:2b6df555c4fe9a606a0638e7fd1e097aaafac64179c5651436b70b3762805b6d",
+          "linked_contribution": "0.015150000000000000000000000000000000000000000000000000000000000000000000000000000",
+          "restatement_version": "a4eca033-cecf-5989-8393-3df1e7975367",
+          "restatement_sequence": 2,
+          "beginning_market_value": "100",
+          "source_authority_identity": {
+            "provider_id": "synthetic-provider-a",
+            "source_kind": "EXTERNAL_PROVIDER",
+            "product_name": "CompositeExternalMemberFacts",
+            "source_digest": "sha256:3e0371fa54f7626cd9168c34784c3e71e577df8513784c1d7387e966688392ea",
+            "product_version": "v1",
+            "source_revision": "oracle.month-2",
+            "source_member_id": "external-member-b",
+            "return_source_kind": "EXTERNAL_PROVIDER"
+          }
+        }
+      ],
+      "metric_id": "LINKED_MEMBER_CONTRIBUTION",
+      "period_end": "2026-02-28",
+      "return_view": "GROSS",
+      "composite_id": "SYNTHETIC_LINKED_USD",
+      "period_start": "2026-01-01",
+      "qualification": "RETAINED_SOURCE_ATTESTATION_NOT_LIVE_QUALIFIED",
+      "calculation_id": "06310000-0000-4000-8000-000000000001",
+      "cumulative_return": "0.04040",
+      "reporting_currency": "USD",
+      "selection_manifest": {
+        "windows": [
+          {
+            "period_end": "2026-01-31",
+            "period_start": "2026-01-01",
+            "source_cut_id": "synthetic-cut-original",
+            "method_binding": {
+              "digest": "sha256:56fc8f8777176e6d0697036c9100c8bebb780d924bc1a689526777a61e7ac80e",
+              "revision": "synthetic.method.r1",
+              "product_name": "SyntheticReturnMethodProfile",
+              "product_version": "v1"
+            },
+            "materialization_id": "d84ff312-36ec-5b48-9c72-33d4d8d2bfbc",
+            "restatement_sequence": 3,
+            "definition_content_hash": "sha256:96136cf01b80386644997d7f7dc3704e68fc89805281df72e93edda4e6233c03",
+            "membership_content_hash": "sha256:f1f6fd4cc75af14240ef1c7a4e8dc70cd108b3a45405d228e13a9dea8c9e2e89",
+            "attestation_content_hash": "sha256:59b3d16e2d9d8e987a74db3cb95a8c17f1f8f86c08373efd455c347ab86eb24c",
+            "retained_receipt_fingerprint": "sha256:a414ab63565ad576d0ec4e477d32aad502cc0195dbe6f5e88d57ee552729cc8a"
+          },
+          {
+            "period_end": "2026-02-28",
+            "period_start": "2026-02-01",
+            "source_cut_id": "synthetic-cut-original",
+            "method_binding": {
+              "digest": "sha256:56fc8f8777176e6d0697036c9100c8bebb780d924bc1a689526777a61e7ac80e",
+              "revision": "synthetic.method.r1",
+              "product_name": "SyntheticReturnMethodProfile",
+              "product_version": "v1"
+            },
+            "materialization_id": "a4eca033-cecf-5989-8393-3df1e7975367",
+            "restatement_sequence": 2,
+            "definition_content_hash": "sha256:b86fa0c11057a08e0cc2f9f57efd863c5a5c71b7eb52c14c2cc63bfdadc38f0b",
+            "membership_content_hash": "sha256:25d930507f65b0c41a773dafeef9f468faf58342fd0c8eb3808f844461a8afd3",
+            "attestation_content_hash": "sha256:94290d0fcdb69c1b291d06593d2d7d1380c92a64e020d4086f0ccbb9cfc6e27b",
+            "retained_receipt_fingerprint": "sha256:06cf2b52111219051bf734f351013da0e83fd3a1325caa1f9aff65e58decaf2b"
+          }
+        ],
+        "qualification": "EXPLICIT_RETAINED_CALCULATED_REPLAY",
+        "engine_version": "lotus-performance-calculation-engine.v16",
+        "calculation_fingerprint": "sha256:8325622ea341987096b891f560ef7966f8b5b638313969f7fbc0fde499a0b769"
+      },
+      "constituent_decomposition": "AVAILABLE",
+      "reconciliation_difference": "0E-81",
+      "total_linked_contribution": "0.040400000000000000000000000000000000000000000000000000000000000000000000000000000",
+      "display_rounding_difference": "0E-12"
+    },
+    "contract_version": "composite_review.v3",
+    "publication_state": "NOT_ATTESTED",
+    "source_response_digest": "sha256:06325f43336c6bea42114acdf7b38561b85521348efe4f39d64a0d359516e7c9"
+  },
+  "lineage_refs": [
+    "rsnap_9bef46a34fb942279db2365331fb491b",
+    "rrv3_cb23797a2938b03b6a0624c56f7d4d41eadc4beef9681ae1eb7609354fcf3a05"
+  ],
+  "disclosure_refs": [
+    "composite-review.standard-disclosures.v1"
+  ],
+  "requested_by": "actor-a",
+  "correlation_id": "corr_8cb079ef9833",
+  "trace_id": "50b6ee249ab84ffda8e2d53a5626c153"
+}

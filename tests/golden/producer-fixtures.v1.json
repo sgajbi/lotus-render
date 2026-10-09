@@ -334,6 +334,22 @@
       ],
       "provenance": "Exact registered Report SQLite worker/composer package SHA256 0fdda487da8db5bd651526761da2157b2adfdb1d539d1b347741a647219813b8; full retained two-month R2 source replay and trailing-two capture, controlled Render503 profile only. No truncation, source refetch, manufactured financial values, actual Render/Archive HTTP or attestation claim. Producer proof retained as producer-proof.json. Full genuine original/corrected 72-month calendar/trailing packages are separately retained as deterministic-gzip regression fixtures with explicit provenance.",
       "bounded_determinism_fingerprint": "d622f540e8c35d40e23fc3b40a496ee3f506e867b1254a25eb3098ace76650f6"
+    },
+    {
+      "template_id": "composite-review",
+      "template_version": "v3",
+      "golden_sample_id": "golden-composite-review-en-SG-private-banking-v3",
+      "report_data_contract_version": "composite_review.v3",
+      "output_format": "xlsx",
+      "package_path": "tests/golden/composite-review/v3/render-package.json",
+      "expected_artifact_path": "tests/golden/composite-review/v3/expected.xlsx",
+      "producer_repository": "sgajbi/lotus-report",
+      "producer_source_paths": [
+        "src/app/composite_reporting/linked_tables.py",
+        "src/app/composite_reporting/render_package.py"
+      ],
+      "provenance": "Exact registered Report PostgreSQL persisted-worker package SHA256 094b5d39608ceb000141d8a2982bbd02ee12f2daed905d2cea542349a6ed173c from sealed r4 packet manifest 036a775cdc0ac6dcc1533211fa80b6a9d6f2413f2397be2a931cbf9cb17a6c72. Controlled synthetic current-source original/corrected pair, explicit v3 capability and Render503 boundary. Retained-original package bytes equal original; fresh-process reads do not refetch. Actual Render/Archive HTTP, clean-main qualification and institutional attestation are separate evidence. No financial values manufactured or recalculated by Render.",
+      "bounded_determinism_fingerprint": "974ed8bdf7d645faf3087ad3a01cc825f9461cb8282e81b09e0f7ac27ea477fa"
     }
   ]
 }

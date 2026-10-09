@@ -72,6 +72,19 @@
       "reviewed_producer_revision": "6f6380e5ba7bf3b0087fa416d93bdbb608eea458",
       "reviewed_producer_committed_schema_sha256": "0239fca6616e43c63b209071fbdd5c919a13e5c062b78c2cbf71a6f484de2269",
       "reviewed_schema_equivalence": "parsed_json_equal_raw_bytes_different"
+    },
+    {
+      "report_data_contract_version": "composite_review.v3",
+      "source_owner": "lotus-report",
+      "source_repository": "sgajbi/lotus-report",
+      "source_path": "contracts/composite_review.v3.schema.json",
+      "compatibility_policy": "exact-version",
+      "status": "active",
+      "effective_from": "2026-10-09",
+      "consumer_schema_path": "contracts/report-data/composite_review.v3.schema.json",
+      "agreed_schema_sha256": "c81dce9accd3721931663f40d160b282eafcf039191d2d649be9698e7a9c4237",
+      "reviewed_packet_manifest_sha256": "036a775cdc0ac6dcc1533211fa80b6a9d6f2413f2397be2a931cbf9cb17a6c72",
+      "reviewed_schema_equivalence": "exact_sealed_candidate_packet_bytes"
     }
   ]
 }

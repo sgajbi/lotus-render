@@ -2,12 +2,13 @@
 
 ## Current scope
 
-Current scope: separate RPT01 `composite-review v1` and `v2` XLSX suppliers use active development
-manifests, exact Report-owned `composite_review.v1` / `composite_review.v2` and XlsxWriter 3.2.9.
-Their source graphs are `templates/xlsx/composite-review/v1` and `v2`, each with
+Current scope: separate RPT01 `composite-review v1`, `v2` and `v3` XLSX suppliers use active development
+manifests, exact Report-owned `composite_review.v1` / `composite_review.v2` / `composite_review.v3` and XlsxWriter 3.2.9.
+Their source graphs are `templates/xlsx/composite-review/v1`, `v2` and `v3`, each with
 `shared_design_version=none`; digest validation covers each complete graph. V1 bytes and retained
 semantics stay fixed. V2 adds captured calendar/trailing return tables with strict source-product
-authority. Each golden artifact is `expected.xlsx`. See
+authority. V3 adds seven complete source-owned linked-analysis tables, distinct factor/count units
+and strict selector/custody bindings without recalculation. Each golden artifact is `expected.xlsx`. See
 [Composite Review Workbook](Composite-Review-Workbook) for the dictionary, qualification,
 precision policy and bounds. The PDF family details below retain their Typst source graphs.
 

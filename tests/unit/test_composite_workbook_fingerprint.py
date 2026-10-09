@@ -40,9 +40,11 @@ def test_only_container_drift_preserves_exact_member_fingerprint() -> None:
 
 def test_committed_workbook_matches_its_banked_member_fingerprint() -> None:
     fixtures = json.loads(Path("tests/golden/producer-fixtures.v1.json").read_text())["fixtures"]
-    fixture = next(item for item in fixtures if item.get("output_format") == "xlsx")
-    artifact = Path(fixture["expected_artifact_path"]).read_bytes()
-    assert workbook_content_fingerprint(artifact) == fixture["bounded_determinism_fingerprint"]
+    for fixture in fixtures:
+        if fixture.get("output_format") == "xlsx":
+            artifact = Path(fixture["expected_artifact_path"]).read_bytes()
+            expected = fixture["bounded_determinism_fingerprint"]
+            assert workbook_content_fingerprint(artifact) == expected
 
 
 @pytest.mark.parametrize("change", ["membership", "name", "number", "pin", "formula", "xml"])
