@@ -141,10 +141,11 @@ async def metadata(container: ContainerDependency) -> MetadataResponse:
         "supportability: which (template_id, template_version) pairs exist, whether "
         "each is renderable (status), and whether its bytes are frozen under recorded "
         "approval (template_publication -- a separate stated fact from rendering "
-        "support; custody and distribution authority live elsewhere). Deliberately "
-        "narrow: no digests (consumers must never bind to template bytes), no "
-        "locales or brand variants (a mismatch is a render-time refusal), no output "
-        "formats and no runtime posture (the /metadata surface states those)."
+        "support; custody and distribution authority live elsewhere). "
+        "Each version states its registry-owned supported_output_formats; a producer "
+        "must also check /metadata supportedOutputFormats for runtime capability. "
+        "No digests (consumers must never bind to template bytes), locales or brand "
+        "variants (a mismatch is a render-time refusal), or runtime posture are projected."
     ),
 )
 async def system_templates(container: ContainerDependency) -> TemplatesProjectionResponse:
@@ -160,6 +161,7 @@ async def system_templates(container: ContainerDependency) -> TemplatesProjectio
             supported_report_data_contract_versions=list(
                 manifest.supported_report_data_contract_versions
             ),
+            supported_output_formats=list(manifest.supported_output_formats),
         )
         for manifest in container.template_registry.registered_manifests()
     ]
