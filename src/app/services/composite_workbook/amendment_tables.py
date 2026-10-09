@@ -76,7 +76,7 @@ def amendment_rows(raw: dict[str, Any]) -> list[PointerRow]:
                 f"m{index}:a{ordinal}",
                 {"month": f"/selection/months/{index}/month", "value": pointer},
             )
-            for ordinal, pointer in enumerate(pointers)
+            for ordinal, pointer in enumerate(pointers, start=len(rows))
         )
     return rows
 
