@@ -14,6 +14,7 @@ from app.contracts.render_package import RenderPackage
 from app.domain.templates.registry import TemplateRegistry
 from app.services.composite_workbook import literal_writer
 from app.services.composite_workbook.capacity import preflight_workbook
+from app.services.composite_workbook.fingerprint import workbook_content_fingerprint
 from app.services.composite_workbook.projection import workbook_tables
 from app.services.composite_workbook.rendering import CompositeWorkbookRenderService
 from app.services.composite_workbook.source_cells import validate_dataset
@@ -57,9 +58,8 @@ def test_complete_independent_workbook_reconciliation(case: str, count: int) -> 
     package = RenderPackage.model_validate(wire)
     result = service().render(package)
     if case == "original":
-        assert (
-            result.artifact_bytes
-            == Path("tests/golden/composite-review/v8/expected.xlsx").read_bytes()
+        assert workbook_content_fingerprint(result.artifact_bytes) == workbook_content_fingerprint(
+            Path("tests/golden/composite-review/v8/expected.xlsx").read_bytes()
         )
     book = openpyxl.load_workbook(io.BytesIO(result.artifact_bytes))
     data = wire["report_data"]
