@@ -1,5 +1,33 @@
 # Repository Engineering Context
 
+## Historical policy evidence consumer practice (#352)
+
+Additive `composite-review v7` consumes only `composite_review.v7` and selection v3:
+ordinary monthly evidence v3 and correction evidence v4, with policy proposal/approval v2.
+Definition v1/v2 is an independent axis. `composite_historical.py` and adjacent
+`composite_workbook/historical_*` modules own the typed selector, producer-namespaced schema,
+proof bindings, ordered lineage, ten exact tables and custody identity. The producer schema is
+also packaged under `app.contracts/historical_schemas` for installed distributions; its committed
+blob must equal the public contract. Common eligibility/amendment helpers supply version-independent
+hash/scope/link checks; frozen v4/v6 admission remains unchanged.
+
+PolicyAdmission retains all scalar proof leaves, original base64 bytes and credentials, with
+lexical object keys, original array order, RFC6901 escaping and null leaves. Amendments and
+PolicyAdmission row ordinals continue globally across selected months. Missing applicable data
+remains UNAVAILABLE; root amendment and policy run ID nulls have explicit NOT_APPLICABLE reasons.
+The literal writer, physical capacity limits and existing persistence/replay lifecycle are reused.
+
+Render checks recorded producer schema, hashes, scope, actor, intent, versions and custody.
+Manage alone verifies actual original source format and current trust/revocation admission.
+An embedded key, signature or rehashed envelope is not institutional acceptance or a fresh grant.
+No consumer cryptography, calculator, trust service, ledger or runtime split is introduced.
+Qualification is CONTROLLED_HISTORICAL_POLICY_EVIDENCE_REPLAY / NOT_ATTESTED / development.
+Fixtures preserve exact Report fit r3 package bytes and r4 schema corrections around controlled
+Manage graphs. Job/snapshot IDs are authored transport fixtures, not durable capture evidence.
+Producer main/gates, consumer main/wiki and joined custody acceptance remain release conditions.
+Use `tests/unit/test_composite_historical_*.py` and
+`tests/e2e/test_composite_historical_journey.py`; retain all v1-v6 assets and banked workbooks.
+
 ## Monthly source-amendment consumer practice (#352)
 
 `composite-review v6` admits only `composite_review.v6` with `selection_version=v2`.

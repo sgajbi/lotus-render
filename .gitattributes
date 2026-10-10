@@ -29,3 +29,10 @@ src/app/contracts/examples/composite-review-render-package.v5.json -text whitesp
 tests/golden/composite-review/v5/render-package.json -text whitespace=cr-at-eol
 tests/fixtures/composite-pooled-v5/*.json -text whitespace=cr-at-eol
 contracts/report-data/composite_review.v5.schema.json -text whitespace=cr-at-eol
+contracts/report-data/composite_review.v7.schema.json -text whitespace=cr-at-eol
+contracts/report-data/selection.v3.schema.json -text whitespace=cr-at-eol
+src/app/contracts/historical_schemas/*.json -text whitespace=cr-at-eol
+src/app/contracts/examples/composite-review-render-package.v7.json -text whitespace=cr-at-eol
+tests/golden/composite-review/v7/render-package.json -text whitespace=cr-at-eol
+tests/fixtures/composite-historical-v7/**/*.json -text whitespace=cr-at-eol
+tests/fixtures/composite-historical-v7/*.json -text whitespace=cr-at-eol

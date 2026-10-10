@@ -247,6 +247,17 @@
       "output_formats": ["xlsx"],
       "status": "active",
       "scope": "Controlled NOT_ATTESTED monthly source-amendment eligibility evidence; complete predecessor/original custody and parent publication pins; no TWR, MWR, dispersion, contribution or model-fee calculation, institutional authority or joined custody qualification"
+    },
+    {
+      "template_id": "composite-review",
+      "template_version": "v7",
+      "report_types": ["composite_review"],
+      "report_data_contract_versions": ["composite_review.v7"],
+      "locales": ["en-SG"],
+      "brand_variants": ["private_banking"],
+      "output_formats": ["xlsx"],
+      "status": "active",
+      "scope": "Development CONTROLLED NOT_ATTESTED historical policy custody with selection v3 and monthly source v3/v4; complete original bytes, recorded operation proof and ordered correction lineage; producer trust verification remains Manage-owned; no fresh grant, cryptographic or bank provenance acceptance, financial calculation or joined custody qualification"
     }
   ],
   "non_goals": [

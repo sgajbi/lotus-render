@@ -1,0 +1,24 @@
+{
+  "amendment_recipe": "v4 amendment scalar leaves then each retained receipt product_name,product_version,content_hash,publication_sequence and v4 lineage scalar leaves. v3 root emits /report_facts/no_amendment as NOT_APPLICABLE/ORDINARY_ROOT_NO_AMENDMENT. Row IDs m{month_index}:a{global_table_row_ordinal}. Columns month,value.",
+  "calculation_boundary": "Configured-identity controlled producer custody only; no cryptographic or bank provenance acceptance, TWR, MWR, dispersion, contribution or model-fee calculation. CONTROLLED / NOT_ATTESTED.",
+  "capacities": "Unchanged preflight aggregate/cell/sheet/package caps; each table <=10000 rows; source months <=120 and lineage <=31. Oversize refused, never shortened.",
+  "consumer_baseline": "2f0b95a7b6774b686de017ecf4f076a5e15bbeb0",
+  "contract": "composite_review.v7",
+  "coverage": "All12 actual graph cases: both definition profiles, root v3 / correction v4 / second correction v4, EVALUATED_ONLY/PUBLISHED. Every dataset validated by generated full JSON Schema and source admission; every package passed unchanged capacity preflight.",
+  "example_boundary": "Source envelopes are exact frozen producer bytes as JSON values. Job/snapshot record IDs are authored unit transport fixtures; no durable DB capture or runtime execution is claimed.",
+  "identity_addition": {
+    "calculation_boundary": "Configured-identity controlled producer custody only; no cryptographic or bank provenance acceptance, TWR, MWR, dispersion, contribution or model-fee calculation. CONTROLLED / NOT_ATTESTED."
+  },
+  "pending": "Producer qualified main; Report/Render/Archive source PR/main/wiki qualification.",
+  "posture": "CONTROLLED / NOT_ATTESTED; UNCOMMITTED_CONSUMER_DRAFT; NOT_RELEASE_ADMITTED",
+  "producer_baseline": "9224d85664fb07e8074ef21681b88449d05193e8",
+  "producer_graph_manifest_sha256": "4b91c97835bcb2b00d095c0ce02009d9b519e81847966ac07e2557d64d644c57",
+  "producer_manifest_sha256": "42f303700e1699774df2a8babd34eb32d79aee3a261ddb7f7b6ceed141834a2e",
+  "provenance_recipe": "Months in selection order; selected proposal first, then newest-to-oldest retained receipts. For each proposal emit all policy_approval scalar leaves with POLICY_ADMISSION, then operation_verification scalar leaves with EVALUATION_PROPOSAL; for published or retained receipt emit approval.operation_verification scalar leaves with EVALUATION_APPROVAL. Lexical object keys, original array order, RFC6901 escaping, retain null leaves. Row IDs m{month_index}:p{global_table_row_ordinal}. Columns month,evidence_role,value; exact text, no truncation. Policy scope/run_id null is NOT_APPLICABLE/POLICY_RUN_NOT_APPLICABLE.",
+  "publication_state": "NOT_ATTESTED",
+  "qualification": "CONTROLLED_HISTORICAL_POLICY_EVIDENCE_REPLAY",
+  "r3_correction": "Carry calculation_boundary consistently in actual v7 composite_report_identity custody and workbook Identity, generated through existing package/custody factories. r2 remains preserved. No other schema/table/pointer changes.",
+  "render_package_version": "render_package.v1",
+  "selection_version": "v3",
+  "template": "composite-review/v7"
+}

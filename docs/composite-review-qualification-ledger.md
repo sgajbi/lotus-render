@@ -1,5 +1,55 @@
 # Composite review qualification ledger
 
+## Historical policy evidence v7 (#352)
+
+Additive development v7 admits selection v3 and exact Manage monthly ordinary v3 / correction
+v4 products with policy v2. The source schema is Report fit r4 (manifest
+`32b6090df4b52d8b175ea7c2475d41c3a7ace8a579538a8164dd809939f55f33`), preserving all twelve
+Report factory package bytes from r3 (manifest
+`f6ca6e09dae16a460154e14711dcd367574702e8190ef99f173cedc153983b09`). The earlier r1/r2 packets
+remain historical evidence; r3 corrected required custody calculation_boundary and r4 corrected
+schema/OpenAPI union presentation without widening the admitted wire variants.
+
+Manage's frozen schema packet is
+`42f303700e1699774df2a8babd34eb32d79aee3a261ddb7f7b6ceed141834a2e`; its graph supplement r1 is
+`4b91c97835bcb2b00d095c0ce02009d9b519e81847966ac07e2557d64d644c57`. Portable provenance r2
+`a64a6d19136391559b9802993170b89d1db295fe79042e23981f2f92a24db8ca` preserves all twelve raw
+graph payloads and normalizes only source-code provenance hashes to UTF8/LF. Original artifact
+bytes/base64/signing contracts are never normalized. Public Manage candidate
+`09bb66341b7aebc84922d20e4694d604bdd727a6` / PR799 is distinct from qualified main.
+
+Render's independent consumer retains all original bytes, credentials and recorded operation
+proofs; verifies schema, hashes, intent, identity, scope, version and ordered lineage; and checks
+the exact ten-table pointer/cell/column recipes before literal rendering. Manage alone verifies
+original-format signatures and current trust pins/revocation/admission. Embedded keys, signatures
+and rehashed JSON cannot confer current authorization or institutional provenance. Qualification
+remains CONTROLLED_HISTORICAL_POLICY_EVIDENCE_REPLAY / NOT_ATTESTED / development; official
+activation and production original-format adapter remain UNAVAILABLE.
+
+The separate exact two-month Report factory fit (manifest
+`afb2966dd1679dded3df4bf046d1033723c4c4efa041e3f532105b4fd41ec43c`) binds actual September
+PUBLISHED and independently approved October EVALUATED_ONLY/PUBLISHED graphs from Manage packet
+`0ff8e4ff783412abebff1dd329e1d2e1dd24a4afe4bbc354fc3df90d3d109d6f`. The original raw digests
+are distinct; no September original was relabelled or resigned. Fictional November operation
+clocks are controlled fixture time, not current production verification. Global table ordinals,
+complete source pointers and sorted replay are verified against these emitted packages.
+All fourteen package fixtures use deterministic gzip; decompression must reproduce their exact
+sealed raw JSON SHA256. The ordinary evaluated golden/client package stays below the existing
+source-file hook limit; full corrections and multi-month evidence remain in the fixture matrix.
+
+The golden package is an exact Report factory emission around controlled Manage in-memory graph
+products, with authored job/snapshot transport IDs. It does not claim durable Report capture,
+joined Archive acceptance, genuine bank authentication or financial calculation. All v1-v6 asset
+blobs, banked workbooks and prior evidence remain fixed. The existing writer, finite capacity,
+HTTP/SQLite retry/read/restart and custody lifecycle are reused without a runtime split.
+
+Owning modules follow `composite_workbook` contract/source/table/custody separation and reuse
+common hash, scope, pointer, display and literal-writer helpers. JSON Schema validation uses the
+exact packaged producer-namespaced schema, without a cryptography dependency or trust service.
+No central skill/routing change is needed; repository practice and wiki truth are updated here.
+Producer qualified main/gates, consumer protected merge/main/wiki and exact joined acceptance
+remain release conditions; this section does not close issue #352 or certify all report products.
+
 This ledger records bounded Render v2 and v3 supplier and custody qualification owned by
 [issue #344](https://github.com/sgajbi/lotus-render/issues/344) and
 [issue #347](https://github.com/sgajbi/lotus-render/issues/347). Its scope is controlled genuine

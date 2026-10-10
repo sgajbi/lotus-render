@@ -397,6 +397,22 @@
       ],
       "provenance": "CONTROLLED COMPONENT FIXTURE: Render-authored unit envelope and opaque unit custody placeholders around the frozen Report definition-v2 published dataset; not an emitted Report worker package. Source handoff JSON904d0d2cfcc9403ad4e44530cf496475a3fe84fdd5648c1d129bbb4206aae194 and ZIP52389e32326c0b5359e24367dfb49032277c94478fd84821b8e395de7c4e7a28 bind controlled in-memory Manage fixtures, source_contract evidence only. No actual producer API/PG/fresh-worker, joined Render/Archive delivery, financial calculation or authority claim. Actual emitted packages and joined custody remain integration gates. Existing v1-v5 assets unchanged.",
       "bounded_determinism_fingerprint": "8f15241041bf789ec7d26c9643f3b3dfba0646cb0bca986489208069472dd63b"
+    },
+    {
+      "template_id": "composite-review",
+      "template_version": "v7",
+      "golden_sample_id": "golden-composite-review-en-SG-private-banking-v7",
+      "report_data_contract_version": "composite_review.v7",
+      "output_format": "xlsx",
+      "package_path": "tests/golden/composite-review/v7/render-package.json",
+      "expected_artifact_path": "tests/golden/composite-review/v7/expected.xlsx",
+      "producer_repository": "sgajbi/lotus-report",
+      "producer_source_paths": [
+        "src/app/composite_reporting/historical_tables.py",
+        "src/app/composite_reporting/render_package.py"
+      ],
+      "provenance": "Exact Report ordinary evaluated factory package SHA256 643f851b96871abbdf2274c06142bff764664e59da3c1b9d551a27c055d61437 from sealed fit r3 f6ca6e09dae16a460154e14711dcd367574702e8190ef99f173cedc153983b09; r4 changes only schemas/handoff, preserving this package. All twelve source graph cases and both actual two-month packages are retained separately as deterministic gzip with exact decompressed raw SHA pins. Job/snapshot IDs are authored unit transport fixtures, not durable Report captures. Manage original-format production adapter is unavailable; no fresh trust grant, bank provenance, financial calculation, joined Archive acceptance or release qualification is claimed. All v1-v6 artifacts and qualification entries remain unchanged.",
+      "bounded_determinism_fingerprint": "cc2ec5a7c30d8903e9a13affedfa46da882319562942504a40125a350957e596"
     }
   ]
 }
