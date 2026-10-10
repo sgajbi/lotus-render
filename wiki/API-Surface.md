@@ -1,5 +1,11 @@
 # API Surface
 
+The v8 `composite_source_context_xlsx_package` OpenAPI external example is the exact registered
+Report worker package around controlled literal sources. It combines primary-vector SI,
+calendar/trailing products and direct supplied history through the existing `POST /renders`.
+Exact `composite-review v8` / `composite_review.v8` axes and mixed custody are required. Component
+render/store proof does not establish live financial or joined Archive acceptance.
+
 ## Current scope
 
 The existing render submission accepts registry-admitted `composite_review.v1` / `composite_review.v2` / `composite_review.v3` / `composite_review.v4` / `composite_review.v5` / `composite_review.v6`

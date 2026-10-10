@@ -22,6 +22,7 @@ from app.contracts.composite_review import (
     CompositeTable,
 )
 from app.contracts.composite_selection import CompositePinnedSelection
+from app.contracts.composite_source_context import CompositeSourceContextContent, SourceContextTable
 from app.services.composite_workbook.amendment_source import validate_amendment_source
 from app.services.composite_workbook.amendment_tables import validate_amendment_tables
 from app.services.composite_workbook.eligibility_source import validate_eligibility_source
@@ -132,7 +133,9 @@ def _validate_financial_number(column: CompositeColumn, cell: CompositeCell) -> 
             raise ValueError("composite_cell_count_invalid")
 
 
-def validate_table(dataset: dict[str, Any], table: CompositeTable | ProductTable) -> None:
+def validate_table(
+    dataset: dict[str, Any], table: CompositeTable | ProductTable | SourceContextTable
+) -> None:
     keys = [column.column_id for column in table.columns]
     if len(keys) != len(set(keys)) or len({row.row_id for row in table.rows}) != len(table.rows):
         raise ValueError("composite_table_identity_duplicated")
@@ -144,7 +147,7 @@ def validate_table(dataset: dict[str, Any], table: CompositeTable | ProductTable
 
 def _validate_row(
     dataset: dict[str, Any],
-    table: CompositeTable | ProductTable,
+    table: CompositeTable | ProductTable | SourceContextTable,
     cells: Mapping[str, CompositeCell],
 ) -> None:
     if set(cells) != {column.column_id for column in table.columns}:
@@ -153,7 +156,19 @@ def _validate_row(
         validate_cell(dataset, column, cells[column.column_id])
 
 
-def validate_dataset(dataset: dict[str, Any]) -> CompositeContent:
+def validate_dataset(dataset: dict[str, Any]) -> CompositeContent | CompositeSourceContextContent:
+    if dataset.get("contract_version") == "composite_review.v8":
+        from app.services.composite_workbook.source_context import validate_source_context
+        from app.services.composite_workbook.source_context_tables import (
+            validate_source_context_tables,
+        )
+
+        context = CompositeSourceContextContent.model_validate_json(
+            json.dumps(dataset, allow_nan=False)
+        )
+        validate_source_context(context, dataset)
+        validate_source_context_tables(context, dataset)
+        return context
     if dataset.get("contract_version") == "composite_review.v7":
         historical = CompositeHistoricalContent.model_validate_json(
             json.dumps(dataset, allow_nan=False)

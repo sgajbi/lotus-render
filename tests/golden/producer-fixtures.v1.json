@@ -413,6 +413,19 @@
       ],
       "provenance": "Exact Report ordinary evaluated factory package SHA256 643f851b96871abbdf2274c06142bff764664e59da3c1b9d551a27c055d61437 from sealed fit r3 f6ca6e09dae16a460154e14711dcd367574702e8190ef99f173cedc153983b09; r4 changes only schemas/handoff, preserving this package. All twelve source graph cases and both actual two-month packages are retained separately as deterministic gzip with exact decompressed raw SHA pins. Job/snapshot IDs are authored unit transport fixtures, not durable Report captures. Manage original-format production adapter is unavailable; no fresh trust grant, bank provenance, financial calculation, joined Archive acceptance or release qualification is claimed. All v1-v6 artifacts and qualification entries remain unchanged.",
       "bounded_determinism_fingerprint": "cc2ec5a7c30d8903e9a13affedfa46da882319562942504a40125a350957e596"
+    },
+    {
+      "template_id": "composite-review",
+      "template_version": "v8",
+      "golden_sample_id": "golden-composite-review-en-SG-private-banking-v8",
+      "report_data_contract_version": "composite_review.v8",
+      "output_format": "xlsx",
+      "package_path": "tests/golden/composite-review/v8/render-package.json",
+      "expected_artifact_path": "tests/golden/composite-review/v8/expected.xlsx",
+      "producer_repository": "sgajbi/lotus-report",
+      "producer_source_paths": ["src/app/composite_reporting/source_context_contract.py", "src/app/composite_reporting/membership_history.py", "src/app/composite_reporting/product_tables.py"],
+      "provenance": "Exact registered SQLite-worker original package SHA256 2f5c478efbd069359544acc0a705715832b1f41ce4ae76b89fa3552848f2b351 from reviewed Report eab47a0e501f8262e8b6481f6a244e15228ff384. Controlled literal annual source fixture; full primary SI, calendar/trailing products and supplied Manage v1 history in one retained snapshot. Source-off component render/reopen proof does not establish genuine January financial joins, institutional population or joined Archive acceptance. All v1-v7 assets remain unchanged.",
+      "bounded_determinism_fingerprint": "7287866e4db8e1781f6e1cf3b1653bca8e199a1674ab2c247b6852ce0ce2d205"
     }
   ]
 }

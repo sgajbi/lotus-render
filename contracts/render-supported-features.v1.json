@@ -258,6 +258,17 @@
       "output_formats": ["xlsx"],
       "status": "active",
       "scope": "Development CONTROLLED NOT_ATTESTED historical policy custody with selection v3 and monthly source v3/v4; complete original bytes, recorded operation proof and ordered correction lineage; producer trust verification remains Manage-owned; no fresh grant, cryptographic or bank provenance acceptance, financial calculation or joined custody qualification"
+    },
+    {
+      "template_id": "composite-review",
+      "template_version": "v8",
+      "report_types": ["composite_review"],
+      "report_data_contract_versions": ["composite_review.v8"],
+      "locales": ["en-SG"],
+      "brand_variants": ["private_banking"],
+      "output_formats": ["xlsx"],
+      "status": "active",
+      "scope": "Development NOT_ATTESTED financial primary with exact original Manage v1 definition, optional primary-vector SI, existing calendar/trailing products and supplied direct membership history; no calculation, eligibility inference, institutional authority or joined financial/custody qualification"
     }
   ],
   "non_goals": [

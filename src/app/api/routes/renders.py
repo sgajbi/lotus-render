@@ -161,6 +161,19 @@ INVALID_TENANT_RESPONSE = _error_response(
                                 "src/app/contracts/examples/composite-review-render-package.v7.json"
                             ),
                         },
+                        "composite_source_context_xlsx_package": {
+                            "summary": "Controlled v8 SI and supplied history, NOT_ATTESTED",
+                            "description": (
+                                "Exact registered Report worker package around controlled literal "
+                                "sources. Complete primary SI, calendar/trailing captures and "
+                                "supplied direct membership history. No live financial or joined "
+                                "Archive qualification."
+                            ),
+                            "externalValue": (
+                                "https://raw.githubusercontent.com/sgajbi/lotus-render/main/"
+                                "src/app/contracts/examples/composite-review-render-package.v8.json"
+                            ),
+                        },
                         "composite_amendment_xlsx_package": {
                             "summary": (
                                 "Controlled v6 eligibility source correction; component fixture"
