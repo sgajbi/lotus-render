@@ -1,5 +1,27 @@
 # Composite review qualification ledger
 
+## V8 financial source-context component candidate (#352 / Report #417)
+
+Frozen producer: Report `eab47a0e501f8262e8b6481f6a244e15228ff384`, tree
+`e41ae2735eb4492e70d934a363ea679419316570`. Consumer base:
+`e8035036ef6ab0a590cba88da7d0b73f5ad323b2`.
+Root reports protected producer delivery merged as `c731799f9c88b7d078c68456ae442b847247c966`
+with that identical tree; the historical fixture and schema pins remain unchanged.
+
+Original and corrected registered-worker package SHA256 values are respectively
+`2f5c478efbd069359544acc0a705715832b1f41ce4ae76b89fa3552848f2b351` and
+`147d8b71ffcd9d0aca1aa99485abf2860aa54c8b6e03b43b0a9a7f6fba011fdd`.
+They preserve all three Performance captures plus original Manage definition and supplied
+membership history in one v8 manifest. Independent XLSX tests reconcile all 714/739 semantic
+cells, source pointers, displays, policies and complete raw PinnedData. Registered in-process
+Render/SQLite tests exercise retry, store reopen and tenant isolation with Archive disabled.
+
+These controlled literal annual fixtures are not genuine January producer inputs or a live
+source-financial acceptance. Retained package rendering does not establish joined Archive
+completion. Root owns integration acceptance, protected delivery and main validation. The
+candidate remains development / NOT_ATTESTED; #352 and #417 remain open. No existing v4/v6/v7
+joined qualification is replaced, and no R27 campaign is replayed.
+
 ## Native historical consumer compatibility (#352)
 
 R12's first actual Report worker request failed Render source admission before any workbook.

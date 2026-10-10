@@ -3,6 +3,8 @@
 Current scope: Composite XLSX presents controlled source evidence: v1 review, v2 calendar/trailing returns,
 v3 linked analysis, [v4 eligibility/history](#complete-eligibility-evidence-v4) and
 [v5 pooled analysis](#pooled-analysis-v5) and [v6 source amendments](#monthly-eligibility-source-amendments-v6).
+The additive [v8 financial source context](#financial-source-context-v8) combines original
+definition custody, optional SI, calendar/trailing products and direct supplied history.
 All remain `NOT_ATTESTED` and `development`; enterprise qualification stays open.
 
 Use the version dictionary below, [R5 custody evidence](#controlled-r5-custody-qualification),
@@ -25,6 +27,39 @@ Select the exact tuple advertised by `GET /system/templates`:
 | `composite-review v4` | `composite_review.v4` | `xlsx` |
 | `composite-review v5` | `composite_review.v5` | `xlsx` |
 | `composite-review v6` | `composite_review.v6` | `xlsx` |
+| `composite-review v7` | `composite_review.v7` | `xlsx` |
+| `composite-review v8` | `composite_review.v8` | `xlsx` |
+
+## Financial source context v8
+
+One v8 report presents the financial primary together with optional `SinceInception`, existing
+`AnnualReturns`/`TrailingReturns` and `MembershipHistory`. Report retains the exact original Manage
+v1 definition and selected supplied v1 membership snapshots alongside Performance responses.
+The consumer checks the frozen producer schema, source hashes, every vector join, complete
+primary rows, exact SI/history recipes and mixed Report custody. Existing v1-v7 assets stay fixed.
+
+SI uses `INCLUSIVE_SOURCE_INCEPTION`: it copies `/source_response/cumulative_return` only when
+the primary begins at captured inception and every period is READY. A later-starting primary keeps
+its own facts and shows null SI with `SOURCE_VECTOR_BEGINS_AFTER_PINNED_INCEPTION`; other non-ready
+coverage uses `COMPLETE_READY_SOURCE_VECTOR_REQUIRED`. A longer SI vector is not inferred.
+Return display is ratio-to-percent, two places, HALF_UP; canonical decimal text stays exact.
+Full-inception primary coverage can supply complete calendar and trailing subvectors together.
+
+Supplied history preserves all original intervals, including outside the financial cut, original
+parent and correction impact dates. Row IDs `r{capture_index}:d{decision_index}` retain source
+order. `discretionary` uses lowercase boolean text. An open `effective_to` remains null with
+`NOT_APPLICABLE / OPEN_ENDED_INTERVAL`; other nulls use `SOURCE_FIELD_NOT_APPLICABLE`.
+No missing interval becomes CLOSED, no policy is evaluated and no monthly approval is inferred.
+
+Every history and definition value has a direct source pointer; all product responses and raw
+snapshots remain complete in PinnedData. CellEvidence, ColumnPolicy and ArtifactIdentity retain
+canonical values, unit/rounding policy and transport identity. The existing physical limits and
+literal-only writer remain fixed; oversized complete captures refuse rather than truncate.
+
+The golden and original/corrected fixtures are actual registered Report SQLite-worker packages
+around controlled literal annual sources. Their native XLSX component and retained-store tests
+do not establish live financial correctness, genuine January joins, institutional population or
+joined Report/Render/Archive acceptance. Those integration gates remain open under #352/#417.
 
 ## Monthly eligibility source amendments v6
 

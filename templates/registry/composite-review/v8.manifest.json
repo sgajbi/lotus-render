@@ -1,0 +1,36 @@
+{
+  "template_id": "composite-review",
+  "template_version": "v8",
+  "supported_report_types": [
+    "composite_review"
+  ],
+  "supported_report_data_contract_versions": [
+    "composite_review.v8"
+  ],
+  "supported_locales": [
+    "en-SG"
+  ],
+  "supported_brand_variants": [
+    "private_banking"
+  ],
+  "supported_output_formats": [
+    "xlsx"
+  ],
+  "required_disclosure_fragments": [
+    "composite-review.standard-disclosures.v1"
+  ],
+  "owner_team": "lotus-reporting",
+  "approver": "lotus-platform-governance",
+  "approved_at": "2026-10-11",
+  "status": "active",
+  "publication": "development",
+  "published_at": null,
+  "published_by": null,
+  "golden_sample_ids": [
+    "golden-composite-review-en-SG-private-banking-v8"
+  ],
+  "shared_design_version": "none",
+  "template_digest": "sha256:c6c29344f8cde43e0359c31db1746d069e0543cf6dacb68d5b328b73cf086270",
+  "runtime_engine": "xlsxwriter",
+  "runtime_engine_version": "3.2.9"
+}

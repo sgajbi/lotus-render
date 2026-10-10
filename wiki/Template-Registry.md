@@ -2,9 +2,14 @@
 
 ## Current scope
 
-Current scope: separate RPT01 `composite-review v1` through `v7` XLSX suppliers use active development
-manifests, matching exact Report-owned `composite_review.v1` through `composite_review.v7` and XlsxWriter 3.2.9.
-Their source graphs are `templates/xlsx/composite-review/v1` through `v7`, each with
+V8 combines financial primary/SI, existing calendar/trailing products and exact supplied Manage v1
+history in one report. The definition and all attachments bind to the retained Report revision.
+Native controlled component fixtures do not establish live financial or joined Archive acceptance;
+publication stays development / NOT_ATTESTED and every v1-v7 source graph remains unchanged.
+
+Current scope: separate RPT01 `composite-review v1` through `v8` XLSX suppliers use active development
+manifests, matching exact Report-owned `composite_review.v1` through `composite_review.v8` and XlsxWriter 3.2.9.
+Their source graphs are `templates/xlsx/composite-review/v1` through `v8`, each with
 `shared_design_version=none`; digest validation covers each complete graph. V1 bytes and retained
 semantics stay fixed. V2 adds captured calendar/trailing return tables with strict source-product
 authority. V3 adds seven complete source-owned linked-analysis tables, distinct factor/count units

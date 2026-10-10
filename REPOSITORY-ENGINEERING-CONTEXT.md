@@ -1,5 +1,33 @@
 # Repository Engineering Context
 
+## Financial source-context consumer practice (#352)
+
+Additive `composite-review v8` consumes the frozen Report `composite_review.v8` schema from
+`eab47a0e501f8262e8b6481f6a244e15228ff384`. The `composite_source_context` contract and
+`composite_workbook/source_context*` modules own exact Manage v1 definition/history joins,
+primary-vector SI, complete primary populations, pointer recipes and mixed Report custody.
+The packaged `source_context_schemas` schema must equal the public consumer schema.
+Existing v2 calendar/trailing admission and table recipes are reused through a typed adapter;
+that adapter is internal and never serializes a v2 claim. All v1-v7 inputs/assets stay frozen.
+
+SI copies primary cumulative return only for inclusive inception coverage with every source
+period READY. A later primary remains financially valid with explicitly unavailable SI; there
+is no independent longer SI vector. Full-inception primary coverage permits existing annual
+and trailing subvectors in the same v8 report. Supplied history keeps complete raw intervals,
+direct parent and impact dates, lowercase boolean text and explicit null reasons. It requires
+no monthly approval and infers no account closure. Membership joins include every primary
+and product window; an extra revision may only be the direct original parent of a referenced
+correction. Exact GET paths never resolve latest. Definition v1 uses recursive content-hash
+exclusion; membership v1 excludes only its root hash. Whole-response digests remain distinct.
+
+Reuse the literal writer, full physical preflight and existing persistence lifecycle. The raw
+primary/products/definition/history aggregate also stays within Report's 8 MiB capture budget.
+Run `tests/unit/test_composite_source_context*.py` and the registered SQLite journey in
+`tests/e2e/test_composite_source_context_journey.py`. Fixtures are exact registered Report
+worker packages around controlled literal sources; actual source authority, genuine January
+financial joins and joined Archive acceptance remain separate Root-owned integration gates.
+No financial engine, source client, ledger, endpoint or runtime split is added.
+
 ## Historical policy evidence consumer practice (#352)
 
 Additive `composite-review v7` consumes only `composite_review.v7` and selection v3:

@@ -40,7 +40,7 @@ def _validate_contract_axes(package: RenderPackage) -> None:
     expected = f"composite_review.{package.template_version}"
     if (
         package.template_id != "composite-review"
-        or package.template_version not in {"v1", "v2", "v3", "v4", "v5", "v6", "v7"}
+        or package.template_version not in {"v1", "v2", "v3", "v4", "v5", "v6", "v7", "v8"}
         or package.report_data_contract_version != expected
         or package.report_data.get("contract_version") != expected
     ):
@@ -73,6 +73,13 @@ def _validate_layout(layout: dict[str, Any], table_names: set[str], *, version: 
 
 
 def _validate_table_set(layout: dict[str, Any], table_names: set[str], version: str) -> None:
+    if version == "v8":
+        from app.services.composite_workbook.source_context_tables import (
+            validate_source_context_table_set,
+        )
+
+        validate_source_context_table_set(layout, table_names)
+        return
     if version == "v7":
         validate_historical_table_set(layout, table_names)
         return
@@ -114,12 +121,17 @@ def _validate_return_table_set(layout: dict[str, Any], table_names: set[str], ve
 
 
 def _validate_custody(package: RenderPackage) -> None:
+    from app.services.composite_workbook.source_context_custody import (
+        validate_source_context_custody,
+    )
+
     validate = {
         "v3": validate_linked_custody,
         "v4": validate_eligibility_custody,
         "v5": validate_pooled_custody,
         "v6": validate_amendment_custody,
         "v7": validate_historical_custody,
+        "v8": validate_source_context_custody,
     }.get(package.template_version)
     if validate is not None:
         validate(package)
@@ -167,7 +179,7 @@ class CompositeWorkbookRenderService:
         attempt.mark_validating_package()
         attempt.mark_rendering()
         tables = workbook_tables(render_package, content, digest)
-        if render_package.template_version in {"v4", "v5", "v6", "v7"}:
+        if render_package.template_version in {"v4", "v5", "v6", "v7", "v8"}:
             retained, _ = preflight_workbook(render_package, tables)
             tables = iter(retained)
         artifact = write_literal_workbook(
