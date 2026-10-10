@@ -1,0 +1,46 @@
+{
+  "source": "R12/d2f6b8d5d17d491589db8ebbed39a355",
+  "qualification": "CONTROLLED_NATIVE_PUBLIC_PRODUCTS_NOT_ENTERPRISE_ATTESTATION",
+  "files": {
+    "render-request.json": {
+      "sha256": "df6680b1066d179264ff6c870516c6e7954232d815605ef483614a24da1f2690",
+      "bytes": 359790
+    },
+    "v1-root-published.json": {
+      "sha256": "9e2a1217f8f514f7f67ededcd73447c531ce4a4f6086ab45e6a451a5906bbd98",
+      "bytes": 588589
+    },
+    "v1-correction-2-evaluated-only.json": {
+      "sha256": "7ed733c2af0d9ec2cbe3ed68745cc35ed482c13f5d548354cac12e7933f07399",
+      "bytes": 990053
+    },
+    "v1-correction-3-published.json": {
+      "sha256": "1947ae50ca0aa1e6b8e0b66f93a90a7bf5492a55a5629e59b2aa86ab6c2553ce",
+      "bytes": 1675928
+    },
+    "v2-root-evaluated-only.json": {
+      "sha256": "40bbaac19fc24fabd7768cb5465ad03ec4079cb0856c5160661be3f441d4a36e",
+      "bytes": 450670
+    },
+    "v2-root-published.json": {
+      "sha256": "663b26ea69abdc43c863f6a798390c955251e49aab8ec9c6ed5a2ed59179da6a",
+      "bytes": 594592
+    },
+    "v2-correction-2-published.json": {
+      "sha256": "9ed695307a5e3012a754982fb7778ded7c695f1a2575962bd6308425db9b23b4",
+      "bytes": 1144710
+    },
+    "v2-correction-3-evaluated-only.json": {
+      "sha256": "828e130daeca86a1d56039c5f64066dc79e98695d9f2166186475671dd3b8242",
+      "bytes": 1545835
+    },
+    "two-month-published-evaluated.json": {
+      "sha256": "95e503f82aa63122355cc36f201d0e1df8400703d07ed4c5364f04090b6af212",
+      "bytes": 1008029
+    },
+    "two-month-published-published.json": {
+      "sha256": "4ef5c014cf2105b62fdac64dfaa26ceba0f94f331be497c45bdd40b03f8ac7da",
+      "bytes": 1154810
+    }
+  }
+}

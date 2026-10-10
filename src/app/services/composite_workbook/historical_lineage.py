@@ -5,7 +5,7 @@ from typing import Any
 from app.contracts.composite_eligibility_selection import EligibilitySelection
 from app.services.composite_workbook.amendment_lineage import (
     _validate_link,
-    _validate_parent_publication,
+    _validate_parent_publication_binding,
     _validate_receipt_scope,
 )
 from app.services.composite_workbook.eligibility_hashes import whole_response_digest
@@ -47,7 +47,11 @@ def validate_historical_lineage(
         current = receipt["approval"]["proposal"]
     _require(current["product_version"] == "v3")
     if month["evidence_kind"] == "PUBLISHED":
-        _validate_parent_publication(month, proposal, selection)
+        _validate_parent_publication_binding(month, proposal, selection)
+        _require(
+            month["publication"]["sequence"]
+            > proposal["amendment"]["expected_current_publication_sequence"]
+        )
 
 
 def _validate_retained_receipt(
@@ -95,5 +99,5 @@ def _validate_retained_receipt(
         _require(receipt["lineage"] == proposal["amendment"])
         _require(
             receipt["publication_sequence"]
-            == proposal["amendment"]["expected_current_publication_sequence"] + 1
+            > proposal["amendment"]["expected_current_publication_sequence"]
         )
