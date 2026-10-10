@@ -548,3 +548,27 @@ current-main qualification or enterprise scale/SLO evidence.
 
 See [Template Registry](Template-Registry), [API Surface](API-Surface),
 [Configuration](Configuration) and [Operations](Operations) for the shared contracts.
+
+## Historical policy custody v7
+
+Development template `composite-review/v7` consumes `composite_review.v7` with selection v3.
+Ordinary monthly source v3 and successive correction source v4 retain policy proposal/approval v2;
+CompositeDefinition v1/v2 remains separate. Ten visible tables add Amendments and PolicyAdmission
+to the eight eligibility tables. Complete original artifact bytes, reference/signing contract,
+original credential, normalized policy and each retained current-operation proof remain visible
+and lossless in PinnedData. Object keys are lexical, arrays keep their source order, pointers use
+RFC6901 escaping, and table row ordinals continue across months. Nothing is truncated to fit.
+
+Render verifies recorded schema, content/response hashes, scope, intent and custody bindings.
+Manage owns original-format signature verification and current trust pins/revocation/admission.
+The embedded signature/key is retained evidence; it cannot confer a new current grant or bank
+authentication. The required custody and ArtifactIdentity calculation boundary states configured
+identity and controlled producer custody, with no cryptographic or bank provenance acceptance.
+No TWR, MWR, dispersion, contribution or model-fee calculation occurs.
+
+All twelve supplied definition/root/correction/outcome cases are controlled Report factory
+packages around Manage's in-memory registered graph responses. Their authored job/snapshot IDs
+do not establish durable Report capture or joined Archive acceptance. Qualification remains
+CONTROLLED / NOT_ATTESTED; production original-format adapter and official activation remain
+UNAVAILABLE. Producer and consumer protected main/gates/wiki plus joined acceptance are separate
+release conditions. Frozen v4/v6 contracts, selectors, templates and prior artifacts stay fixed.

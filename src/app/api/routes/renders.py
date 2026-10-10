@@ -148,6 +148,19 @@ INVALID_TENANT_RESPONSE = _error_response(
                                 "src/app/contracts/examples/composite-review-render-package.v5.json"
                             ),
                         },
+                        "composite_historical_xlsx_package": {
+                            "summary": "Controlled v7 historical policy custody, NOT_ATTESTED",
+                            "description": (
+                                "Exact Report factory package around controlled Manage graph "
+                                "products. Job/snapshot IDs are authored unit transport fixtures; "
+                                "no durable capture, fresh trust grant, bank provenance or joined "
+                                "Archive acceptance. No financial calculation."
+                            ),
+                            "externalValue": (
+                                "https://raw.githubusercontent.com/sgajbi/lotus-render/main/"
+                                "src/app/contracts/examples/composite-review-render-package.v7.json"
+                            ),
+                        },
                         "composite_amendment_xlsx_package": {
                             "summary": (
                                 "Controlled v6 eligibility source correction; component fixture"

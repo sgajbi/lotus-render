@@ -2,9 +2,9 @@
 
 ## Current scope
 
-Current scope: separate RPT01 `composite-review v1`, `v2`, `v3`, `v4`, `v5` and `v6` XLSX suppliers use active development
-manifests, matching exact Report-owned `composite_review.v1` through `composite_review.v6` and XlsxWriter 3.2.9.
-Their source graphs are `templates/xlsx/composite-review/v1`, `v2`, `v3`, `v4`, `v5` and `v6`, each with
+Current scope: separate RPT01 `composite-review v1` through `v7` XLSX suppliers use active development
+manifests, matching exact Report-owned `composite_review.v1` through `composite_review.v7` and XlsxWriter 3.2.9.
+Their source graphs are `templates/xlsx/composite-review/v1` through `v7`, each with
 `shared_design_version=none`; digest validation covers each complete graph. V1 bytes and retained
 semantics stay fixed. V2 adds captured calendar/trailing return tables with strict source-product
 authority. V3 adds seven complete source-owned linked-analysis tables, distinct factor/count units
@@ -16,6 +16,12 @@ precision policy and bounds. V5 adds pooled source outcomes and complete correct
 evidence without solving financial results. Seven frozen Report packages support bounded consumer
 proof; live source, Archive and institutional acceptance remain open. The PDF family details below
 retain their Typst source graphs.
+
+V7 adds complete historical policy and recorded-operation custody with monthly source v3/v4 and
+selection v3. Original artifact bytes and proof credentials remain retained. Manage owns actual
+source-format verification and current trust admission; v7 confers no fresh grant or bank
+provenance. Qualification remains CONTROLLED / NOT_ATTESTED / development. Frozen v4/v6 assets
+and all prior banked artifacts are unchanged.
 
 | Reader | Start here |
 |---|---|

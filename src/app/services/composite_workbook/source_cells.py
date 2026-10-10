@@ -7,6 +7,7 @@ from typing import Any
 
 from app.contracts.composite_amendment import CompositeAmendmentContent
 from app.contracts.composite_eligibility import CompositeEligibilityContent
+from app.contracts.composite_historical import CompositeHistoricalContent
 from app.contracts.composite_linked import CompositeLinkedContent
 from app.contracts.composite_pooled import CompositePooledReportData
 from app.contracts.composite_products import (
@@ -25,6 +26,8 @@ from app.services.composite_workbook.amendment_source import validate_amendment_
 from app.services.composite_workbook.amendment_tables import validate_amendment_tables
 from app.services.composite_workbook.eligibility_source import validate_eligibility_source
 from app.services.composite_workbook.eligibility_tables import validate_eligibility_tables
+from app.services.composite_workbook.historical_source import validate_historical_source
+from app.services.composite_workbook.historical_tables import validate_historical_tables
 from app.services.composite_workbook.linked_source import validate_linked_source
 from app.services.composite_workbook.linked_tables import validate_linked_tables
 from app.services.composite_workbook.pinned_identity import validate_pinned_identity
@@ -151,6 +154,13 @@ def _validate_row(
 
 
 def validate_dataset(dataset: dict[str, Any]) -> CompositeContent:
+    if dataset.get("contract_version") == "composite_review.v7":
+        historical = CompositeHistoricalContent.model_validate_json(
+            json.dumps(dataset, allow_nan=False)
+        )
+        validate_historical_source(historical, dataset)
+        validate_historical_tables(historical, dataset)
+        return historical
     if dataset.get("contract_version") == "composite_review.v6":
         amendment = CompositeAmendmentContent.model_validate_json(
             json.dumps(dataset, allow_nan=False)

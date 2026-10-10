@@ -1,0 +1,20 @@
+{
+  "layout_version": "composite_workbook.v7",
+  "financial_storage": "literal_text_with_exact_canonical_companion",
+  "display_rounding_mode": "HALF_UP",
+  "metadata_created": "2000-01-01T00:00:00",
+  "identity_storage": "ordered_json_text_v1",
+  "header_background": "#173A42",
+  "header_foreground": "#FFFFFF",
+  "required_tables": ["Summary", "Members", "EligibilityAssessments", "EligibilityReasons", "MembershipHistory", "Methods", "Lineage", "Disclosures", "Amendments", "PolicyAdmission"],
+  "optional_tables": [],
+  "period_tables": [],
+  "max_rows_per_sheet": 1000,
+  "max_total_rows": 30000,
+  "max_total_cells": 210000,
+  "max_total_text_bytes": 16777216,
+  "max_sheets": 64,
+  "max_columns": 100,
+  "max_cell_utf16_units": 32767,
+  "max_output_bytes": 16777216
+}

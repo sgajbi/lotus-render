@@ -133,6 +133,22 @@
       "reviewed_packet_manifest_sha256": "904d0d2cfcc9403ad4e44530cf496475a3fe84fdd5648c1d129bbb4206aae194",
       "reviewed_packet_zip_sha256": "52389e32326c0b5359e24367dfb49032277c94478fd84821b8e395de7c4e7a28",
       "reviewed_schema_equivalence": "exact_frozen_contract_bytes_controlled_in_memory_examples_not_runtime_proof"
+    },
+    {
+      "report_data_contract_version": "composite_review.v7",
+      "source_owner": "lotus-report",
+      "source_repository": "sgajbi/lotus-report",
+      "source_path": "contracts/composite_review.v7.schema.json",
+      "upstream_domain_owner": "lotus-manage",
+      "compatibility_policy": "exact-version",
+      "status": "active",
+      "effective_from": "2026-10-10",
+      "consumer_schema_path": "contracts/report-data/composite_review.v7.schema.json",
+      "agreed_schema_sha256": "022ef085d3435945575f7de55cd06777ae763342d34bc78d4f4207513e3970be",
+      "agreed_selector_path": "contracts/report-data/selection.v3.schema.json",
+      "agreed_selector_sha256": "63c5b8af4f9aec4f4e12e3940bbe061be3365abf62b8e1e786b03fd0017dca38",
+      "reviewed_packet_manifest_sha256": "32b6090df4b52d8b175ea7c2475d41c3a7ace8a579538a8164dd809939f55f33",
+      "reviewed_schema_equivalence": "exact_sealed_report_r4_schema_controlled_manage_graphs_not_release_admission"
     }
   ]
 }

@@ -1,0 +1,22 @@
+{
+  "files": {
+    "composite_review.v7.schema.json": "022ef085d3435945575f7de55cd06777ae763342d34bc78d4f4207513e3970be",
+    "handoff.json": "5109a5f5a312e3163ae63f26d412ae67fa2bc58853778493b07201a97bb81617",
+    "selection.v3.schema.json": "63c5b8af4f9aec4f4e12e3940bbe061be3365abf62b8e1e786b03fd0017dca38",
+    "two-month-published-evaluated.custody.json": "9107ae0e8b2edc272d6cc4b8a98c46a4646b767311b8b93d3ce616d713993681",
+    "two-month-published-evaluated.dataset.json": "69a67bdca6f99f465195b3f7d79f9336651f68ba550fdf3d45b1e1c32db7b8ed",
+    "two-month-published-evaluated.package.json": "46ffe45c726f8234ae223836f87414aa336f0d95a568283960998e7e0e4d1795",
+    "two-month-published-evaluated.provenance-pointers.json": "e4e16f1d4f280a8777ce4e524df84e02affc18baed01ac783435b95c2f40cafd",
+    "two-month-published-evaluated.selection.json": "66d2733d72bd17b5b05fe9255a6df98c5d6ec16ae5aa64c8c2868b0c689cbac3",
+    "two-month-published-evaluated.snapshot-record.json": "f377b20a1edc0381f29b0498e704555cdec02b262a85f11f4de2112b448baf4b",
+    "two-month-published-evaluated.table-policy.json": "ec5cc1547ab8c53f1af49bef6e4cce3aa1af4b3a0440d4f06ec2f77d0b7bc743",
+    "two-month-published-published.custody.json": "cc6f05533562824acf109d2cb10dc5d9a4aa4c87e0d76ed86a7aa0d170d2a29d",
+    "two-month-published-published.dataset.json": "fea7d7245c5303c949b8bb0c6df381b2463aa04aa3e6f5895558844ac7f23984",
+    "two-month-published-published.package.json": "8780af25acf0d639b1d78e8e060a15c707af6bec77620090d71526b5ad3a49d5",
+    "two-month-published-published.provenance-pointers.json": "dfb6e2696ed04e4e907d0ca8dfba24b5dab34c881409a7bc6d5f79e002215bc2",
+    "two-month-published-published.selection.json": "1728a96cb6f6837ca9a63b9b847ce0ca1d11db386ee72e9d6c9dfc2273515954",
+    "two-month-published-published.snapshot-record.json": "471cb7b9a4e4d5728e586de0b1b59fdeb57dec3b80e29f6cf5062ed1c5fd40e9",
+    "two-month-published-published.table-policy.json": "9894278d5766ab3d925edb208f674fa46c8f73b112037493fcad06972e11734c"
+  },
+  "posture": "CONTROLLED_DRAFT_FIT_ONLY"
+}

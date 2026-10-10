@@ -17,6 +17,7 @@ dependencies = [
   "prometheus-fastapi-instrumentator==8.1.0",
   "starlette==1.6.0",
   "XlsxWriter==3.2.9",
+  "jsonschema==4.23.0",
 ]
 
 [project.optional-dependencies]
@@ -62,7 +63,7 @@ branch = true
 source = ["src/app"]
 
 [tool.setuptools.package-data]
-"app.contracts" = ["examples/*.json"]
+"app.contracts" = ["examples/*.json", "historical_schemas/*.json"]
 
 [tool.deptry]
 # `app` is this repository's own package under `src`, not a third-party distribution. Without this
