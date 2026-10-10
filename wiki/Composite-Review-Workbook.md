@@ -566,6 +566,18 @@ authentication. The required custody and ArtifactIdentity calculation boundary s
 identity and controlled producer custody, with no cryptographic or bank provenance acceptance.
 No TWR, MWR, dispersion, contribution or model-fee calculation occurs.
 
+Recorded proofs permit real provider delay: `checked_at <= requested_at <= admitted_at < expires_at`,
+with a five-minute maximum from checked to expiry. Operation time still binds exactly to requested
+time. Retained evidence is checked against its recorded window without consulting today's clock.
+V7 corrections bind the exact parent publication and require a strictly later publication number.
+Manage allocates these numbers across its publication table; gaps do not imply missing lineage.
+Equal or older publication numbers, wrong parent identity/digest and incomplete lineage refuse.
+
+The native R12 regression retains nine unchanged, SHA-pinned Report datasets from both definition
+profiles, ordinary/correction/successor outcomes and two-month selections, plus the actual first
+worker request. Offline admission and registered in-process rendering prove this consumer boundary;
+they do not replace the Root-owned joined Report-to-Render-to-Archive acceptance campaign.
+
 All twelve supplied definition/root/correction/outcome cases are controlled Report factory
 packages around Manage's in-memory registered graph responses. Their authored job/snapshot IDs
 do not establish durable Report capture or joined Archive acceptance. Qualification remains

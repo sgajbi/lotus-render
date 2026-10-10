@@ -180,7 +180,7 @@ def _validate_link(
     )
 
 
-def _validate_parent_publication(
+def _validate_parent_publication_binding(
     month: dict[str, Any], proposal: dict[str, Any], selection: EligibilitySelection
 ) -> None:
     amendment = proposal["amendment"]
@@ -213,6 +213,13 @@ def _validate_parent_publication(
         "composite_amendment_parent_publication_conflict",
     )
     _require(month["receipt"]["lineage"] == amendment)
+
+
+def _validate_parent_publication(
+    month: dict[str, Any], proposal: dict[str, Any], selection: EligibilitySelection
+) -> None:
+    _validate_parent_publication_binding(month, proposal, selection)
     _require(
-        month["publication"]["sequence"] == amendment["expected_current_publication_sequence"] + 1
+        month["publication"]["sequence"]
+        == proposal["amendment"]["expected_current_publication_sequence"] + 1
     )

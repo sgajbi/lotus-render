@@ -1,5 +1,32 @@
 # Composite review qualification ledger
 
+## Native historical consumer compatibility (#352)
+
+R12's first actual Report worker request failed Render source admission before any workbook.
+The retained raw request SHA256 is `df6680b1066d179264ff6c870516c6e7954232d815605ef483614a24da1f2690`.
+Its policy proof requested at `2026-10-10T06:51:53.516596Z` and admitted at
+`2026-10-10T06:51:53.528816Z` are distinct valid instants. Manage's original contract permits
+`checked <= requested <= admitted < expiry` with a five-minute maximum. The consumer incorrectly
+required equality and admitted at expiry. The baseline offline reproduction asserted this refusal.
+
+A later offline-only conflict affected four non-adjacent publication occurrences, including
+publication5 after exact parent3 and publication7 after exact parent5. Manage's table-wide
+PostgreSQL identity allocation does not promise adjacency. V7 now
+requires a strictly later sequence and reuses exact parent identity/response binding; complete
+predecessor hashes and lineage remain mandatory. This second conflict was not reached live.
+Frozen v6 admission remains unchanged.
+
+`tests/fixtures/composite-historical-v7/native-r12` retains deterministic gzip copies of all nine
+original public Report datasets and the actual raw worker request, with decompressed byte counts
+and hashes. No source proof, signature, raw original artifact or dataset is rewritten. Tests exercise
+all nine unchanged datasets and sorted replay, the original registered HTTP request, recorded-clock
+boundaries and refusal controls. Structural mutation tests are unsigned clones, never producer trust.
+
+These are controlled configured-source products; institutional authority, production original-format
+adapter, official activation and joined runtime acceptance remain outside this bounded fix. #352 stays
+open. No schema, layout, engine, dependency, migration, runtime profile, CI or central skill change is
+needed; repository context, this ledger and authored wiki carry the corrected local practice.
+
 ## Historical policy evidence v7 (#352)
 
 Additive development v7 admits selection v3 and exact Manage monthly ordinary v3 / correction

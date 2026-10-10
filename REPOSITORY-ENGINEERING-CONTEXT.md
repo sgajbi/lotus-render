@@ -18,6 +18,12 @@ remains UNAVAILABLE; root amendment and policy run ID nulls have explicit NOT_AP
 The literal writer, physical capacity limits and existing persistence/replay lifecycle are reused.
 
 Render checks recorded producer schema, hashes, scope, actor, intent, versions and custody.
+Recorded operation proof chronology is `checked_at <= requested_at <= admitted_at < expires_at`,
+with expiry at most five minutes after checked. Operation time binds exactly to requested time;
+provider admission may follow it. Historical replay never requests the current clock.
+V7 correction publication must be strictly later than its exact claimed parent publication.
+Manage's PostgreSQL identity sequence is table-wide, so unrelated publications can leave gaps;
+parent identity, response digest and complete predecessor lineage remain mandatory.
 Manage alone verifies actual original source format and current trust/revocation admission.
 An embedded key, signature or rehashed envelope is not institutional acceptance or a fresh grant.
 No consumer cryptography, calculator, trust service, ledger or runtime split is introduced.

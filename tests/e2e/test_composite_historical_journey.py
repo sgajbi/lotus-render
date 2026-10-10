@@ -26,6 +26,30 @@ def _package() -> dict[str, Any]:
     return data
 
 
+def test_unchanged_native_request_renders_through_registered_intake(tmp_path: Path) -> None:
+    raw = gzip.decompress(
+        Path(
+            "tests/fixtures/composite-historical-v7/native-r12/render-request.json.gz"
+        ).read_bytes()
+    )
+    payload = json.loads(raw)
+    settings = Settings(render_store_path=str(tmp_path / "native.sqlite3"), archive_base_url=None)
+    with TestClient(create_app(settings)) as client:
+        response = client.post(
+            "/renders",
+            content=raw,
+            headers={
+                "Content-Type": "application/json",
+                "X-Tenant-Id": payload["report_data"]["tenant_id"],
+            },
+        )
+        assert response.status_code == 201, response.text
+        body = response.json()
+        assert body["status"] == "rendered"
+        assert body["runtime_engine"] == "xlsxwriter"
+        assert base64.b64decode(body["artifact_base64"]).startswith(b"PK")
+
+
 def test_component_v7_submit_retry_restart_and_new_job_rerender(tmp_path: Path) -> None:
     payload = _package()
     settings = Settings(
