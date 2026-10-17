@@ -28,7 +28,7 @@ from app.services.composite_workbook.linked_tables import LINKED_TABLE_COLUMNS
 from app.services.composite_workbook.literal_writer import write_literal_workbook
 from app.services.composite_workbook.pooled_custody import validate_pooled_custody
 from app.services.composite_workbook.pooled_policy import validate_pooled_table_set
-from app.services.composite_workbook.projection import workbook_tables
+from app.services.composite_workbook.projection import WorkbookContent, workbook_tables
 from app.services.composite_workbook.source_cells import validate_dataset
 from app.services.render_intake import RenderIntakeService
 from app.services.render_ports import RenderRuntimeMetadata
@@ -40,7 +40,7 @@ def _validate_contract_axes(package: RenderPackage) -> None:
     expected = f"composite_review.{package.template_version}"
     if (
         package.template_id != "composite-review"
-        or package.template_version not in {"v1", "v2", "v3", "v4", "v5", "v6", "v7", "v8"}
+        or package.template_version not in {"v1", "v2", "v3", "v4", "v5", "v6", "v7", "v8", "v9"}
         or package.report_data_contract_version != expected
         or package.report_data.get("contract_version") != expected
     ):
@@ -73,6 +73,11 @@ def _validate_layout(layout: dict[str, Any], table_names: set[str], *, version: 
 
 
 def _validate_table_set(layout: dict[str, Any], table_names: set[str], version: str) -> None:
+    if version == "v9":
+        from app.services.composite_workbook.notice_metadata import validate_notice_table_set
+
+        validate_notice_table_set(layout, table_names)
+        return
     if version == "v8":
         from app.services.composite_workbook.source_context_tables import (
             validate_source_context_table_set,
@@ -121,6 +126,7 @@ def _validate_return_table_set(layout: dict[str, Any], table_names: set[str], ve
 
 
 def _validate_custody(package: RenderPackage) -> None:
+    from app.services.composite_workbook.notice_custody import validate_notice_custody
     from app.services.composite_workbook.source_context_custody import (
         validate_source_context_custody,
     )
@@ -132,6 +138,7 @@ def _validate_custody(package: RenderPackage) -> None:
         "v6": validate_amendment_custody,
         "v7": validate_historical_custody,
         "v8": validate_source_context_custody,
+        "v9": validate_notice_custody,
     }.get(package.template_version)
     if validate is not None:
         validate(package)
@@ -158,7 +165,13 @@ class CompositeWorkbookRenderService:
         layout = json.loads((directory / "layout.json").read_text(encoding="utf-8"))
         try:
             _validate_contract_axes(render_package)
-            content = validate_dataset(render_package.report_data)
+            content: WorkbookContent
+            if render_package.template_version == "v9":
+                from app.services.composite_workbook.notice_source import validate_notice
+
+                content = validate_notice(render_package.report_data)
+            else:
+                content = validate_dataset(render_package.report_data)
             _validate_custody(render_package)
             _validate_layout(
                 layout,
@@ -179,7 +192,7 @@ class CompositeWorkbookRenderService:
         attempt.mark_validating_package()
         attempt.mark_rendering()
         tables = workbook_tables(render_package, content, digest)
-        if render_package.template_version in {"v4", "v5", "v6", "v7", "v8"}:
+        if render_package.template_version in {"v4", "v5", "v6", "v7", "v8", "v9"}:
             retained, _ = preflight_workbook(render_package, tables)
             tables = iter(retained)
         artifact = write_literal_workbook(

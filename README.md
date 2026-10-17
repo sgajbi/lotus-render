@@ -8,6 +8,14 @@ made it.
 It holds no client, portfolio or advisory data of its own, and fetches none. The package is the
 whole input.
 
+The [retained correction-notice receiver](docs/composite-correction-notice.md) registers v9 as a
+Development / PARTIAL / NOT_ATTESTED candidate: complete same-scope retained v8 facts,
+acknowledged path and separate notice custody. Final Report `66dc819` supplies the reviewed
+schemas/KAT; Report #447 main retains the identical producer subtree. Archive197 native DTO
+correspondence is verified offline, with all-cell workbook fit and registered SQLite replay
+checked locally. Joined live authority/custody, source-off recovery and institutional acceptance
+remain outstanding; full correction-feature support is not claimed.
+
 Composite XLSX has exact v1/v2/v3/v4/v5/v6 template and data-contract axes. V3 presents pinned source-owned
 linked contributions and factors without recalculation, with complete source and custody identity.
 Its seven tables preserve canonical decimal text and distinguish factors, returns, money and counts.

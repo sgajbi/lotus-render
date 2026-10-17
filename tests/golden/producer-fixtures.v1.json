@@ -426,6 +426,19 @@
       "producer_source_paths": ["src/app/composite_reporting/source_context_contract.py", "src/app/composite_reporting/membership_history.py", "src/app/composite_reporting/product_tables.py"],
       "provenance": "Exact registered SQLite-worker original package SHA256 2f5c478efbd069359544acc0a705715832b1f41ce4ae76b89fa3552848f2b351 from reviewed Report eab47a0e501f8262e8b6481f6a244e15228ff384. Controlled literal annual source fixture; full primary SI, calendar/trailing products and supplied Manage v1 history in one retained snapshot. Source-off component render/reopen proof does not establish genuine January financial joins, institutional population or joined Archive acceptance. All v1-v7 assets remain unchanged.",
       "bounded_determinism_fingerprint": "7287866e4db8e1781f6e1cf3b1653bca8e199a1674ab2c247b6852ce0ce2d205"
+    },
+    {
+      "template_id": "composite-review",
+      "template_version": "v9",
+      "golden_sample_id": "golden-composite-review-en-SG-private-banking-v9",
+      "report_data_contract_version": "composite_review.v9",
+      "output_format": "xlsx",
+      "package_path": "tests/golden/composite-review/v9/render-package.json",
+      "expected_artifact_path": "tests/golden/composite-review/v9/expected.xlsx",
+      "producer_repository": "sgajbi/lotus-report",
+      "producer_source_paths": ["src/app/composite_reporting/correction_notice/contract.py", "src/app/composite_reporting/correction_notice/capture.py"],
+      "provenance": "Exact Report signed2275b3f native r6.3 package SHA256 2e542658f62caf2f519efb196eeb163ac1ecfe4243661942113efcd838c1ff97, generated manifest743370185be46a9e6b70c3631abed1e93cebdd6f62e34aa9a2a993c2782e50ab. Complete controlled historical sources, synthetic own notice and immutable relationship record. Native Archive197 generated DTO/schema/KAT remains pending before freeze; no actual Archive197 GET, current source authority, joined custody or feature closure is claimed. Existing v1-v8 golden entries and artifacts are unchanged.",
+      "bounded_determinism_fingerprint": "89bdd847cd33ebceebeb8127039e79909627828f72a05ef7f5c8b5c22ccdfab1"
     }
   ]
 }

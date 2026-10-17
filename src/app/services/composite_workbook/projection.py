@@ -4,6 +4,7 @@ import json
 from collections.abc import Iterator
 from typing import Any
 
+from app.contracts.composite_notice import CompositeNoticeContent, NoticeTable
 from app.contracts.composite_products import CompositeContent, CompositeOutputTable
 from app.contracts.composite_source_context import CompositeSourceContextContent, SourceContextTable
 from app.contracts.render_package import RenderPackage
@@ -12,10 +13,10 @@ from app.services.composite_workbook.identity import JSON_CHUNK_CHARACTERS, iden
 from app.services.composite_workbook.literal_writer import LiteralTable
 from app.services.composite_workbook.presentation import display_cell
 
-WorkbookContent = CompositeContent | CompositeSourceContextContent
+WorkbookContent = CompositeContent | CompositeSourceContextContent | CompositeNoticeContent
 
 
-def _visible_table(table: CompositeOutputTable | SourceContextTable) -> LiteralTable:
+def _visible_table(table: CompositeOutputTable | SourceContextTable | NoticeTable) -> LiteralTable:
     return LiteralTable(
         table.table_id,
         ("Report row identity", *(column.label for column in table.columns)),
@@ -126,6 +127,22 @@ def _artifact_identity(package: RenderPackage, template_digest: str) -> LiteralT
         )
     if package.template_version == "v7":
         fields["calculation_boundary"] = CALCULATION_BOUNDARY
+    if package.template_version == "v9":
+        data = package.report_data
+        for key in ("comparison_profile", "pair_fingerprint", "manifest_digest"):
+            fields[key] = data[key]
+        for side in ("before", "after"):
+            generation = data["generations"][side]
+            fields[side + "_generation"] = {
+                k: generation[k]
+                for k in (
+                    "selection",
+                    "contract_version",
+                    "capture_identity",
+                    "snapshot_response_bytes_sha256",
+                )
+            }
+        fields["notice_completeness"] = data["notice_completeness"]
     return LiteralTable(
         "ArtifactIdentity",
         ("Field", "Exact JSON value"),
@@ -138,7 +155,12 @@ def workbook_tables(
 ) -> Iterator[LiteralTable]:
     for table in content.tables:
         yield _visible_table(table)
-    yield _cell_evidence(content)
+    if isinstance(content, CompositeNoticeContent):
+        from app.services.composite_workbook.notice_projection import notice_cell_evidence
+
+        yield notice_cell_evidence(content)
+    else:
+        yield _cell_evidence(content)
     yield _column_policy(content)
     yield _artifact_identity(package, template_digest)
     # The canonical JSON is chunked, never shortened. Reassembly preserves raw
