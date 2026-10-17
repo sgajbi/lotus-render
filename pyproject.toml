@@ -63,7 +63,7 @@ branch = true
 source = ["src/app"]
 
 [tool.setuptools.package-data]
-"app.contracts" = ["examples/*.json", "historical_schemas/*.json", "source_context_schemas/*.json"]
+"app.contracts" = ["examples/*.json", "historical_schemas/*.json", "source_context_schemas/*.json", "notice_schemas/*.json"]
 
 [tool.deptry]
 # `app` is this repository's own package under `src`, not a third-party distribution. Without this

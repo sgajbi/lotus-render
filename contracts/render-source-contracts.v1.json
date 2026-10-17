@@ -163,6 +163,21 @@
       "agreed_schema_sha256": "d64d0f3cd782b5c8a65c06c82ddc22f9ff23ec98709435fd7676908ccb5cd2f4",
       "reviewed_producer_revision": "eab47a0e501f8262e8b6481f6a244e15228ff384",
       "reviewed_schema_equivalence": "exact_committed_producer_schema; controlled_literal_component_packages_not_live_financial_qualification"
+    },
+    {
+      "report_data_contract_version": "composite_review.v9",
+      "source_owner": "lotus-report",
+      "source_repository": "sgajbi/lotus-report",
+      "source_path": "src/app/composite_reporting/correction_notice/contract.py",
+      "upstream_domain_owners": ["lotus-performance", "lotus-manage", "lotus-archive"],
+      "compatibility_policy": "exact-version",
+      "status": "active",
+      "effective_from": "2026-10-12",
+      "consumer_schema_path": "contracts/report-data/composite_review.v9.schema.json",
+      "authoring_schema_sha256": "6a28e4365931ac1df34419003861582339b08219fcdac936378b822ed483b9b4",
+      "reviewed_producer_revision": "66dc819432c137cb7f160ce8f685db0051b4a16b",
+      "reviewed_packet_manifest_sha256": "48e1419b103be49a80dbc0998e9de0805a1f063e2538b92e912b0be6f82e014f",
+      "reviewed_schema_equivalence": "exact_final_generated_native_contract_bytes; Report_main_11fe4981a856a078cd0ed0ada881935cc803a214_correction_notice_subtree_242e23d6ae1b199e61d6add49c2a9a1c7c6bad08_equal_to_reviewed_artifact_revision; Archive197_offline_DTO_schema_KAT_correspondence; controlled_retained_inputs_not_live_source_authority_or_joined_custody_qualification"
     }
   ]
 }

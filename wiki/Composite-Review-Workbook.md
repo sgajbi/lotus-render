@@ -7,6 +7,17 @@ The additive [v8 financial source context](#financial-source-context-v8) combine
 definition custody, optional SI, calendar/trailing products and direct supplied history.
 All remain `NOT_ATTESTED` and `development`; enterprise qualification stays open.
 
+## Retained correction notice (v9)
+
+V9 is a development correction-notice candidate under Render #352 / Report #446, preserving
+two same-scope retained v8 generations, their four-node path and separate notice custody.
+Final Report66dc819 schema/known answers include the native Archive197 relationship DTO;
+Render retains 256-character identifier/profile bounds and strict aware timestamps.
+Workbook/cell/fit and SQLite replay are checked locally; historical Report2275b3f / Render61b6
+evidence keeps its original cohort. Root joined API/authority/storage/runtime proof is pending. The
+[correction-notice guide](https://github.com/sgajbi/lotus-render/blob/main/docs/composite-correction-notice.md)
+records the scope; explanation, materiality, approval and recipients remain open; published qualification is unchanged.
+
 Use the version dictionary below, [R5 custody evidence](#controlled-r5-custody-qualification),
 [R6 linked evidence](#controlled-r6-linked-analysis-qualification) and
 [verification](#reproducible-verification) for each fixture and qualification boundary.

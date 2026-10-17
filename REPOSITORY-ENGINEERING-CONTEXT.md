@@ -1,5 +1,22 @@
 # Repository Engineering Context
 
+## Correction-notice receiver authoring practice (#352 / Report #446)
+
+Additive v9 authoring uses `composite_notice*` contracts and cohesive `composite_workbook/notice_*`
+modules. Keep unchanged v8 source admission separate from exact side/union/metadata/path/hash/own
+custody checks. No financial arithmetic, source fetch, revision minting or runtime split belongs
+here. V9 is registered as a development authoring candidate against final signed Report66dc819 and
+its exact native schemas/package/KAT. Historical Report2275b3f / Render61b6 qualification remains
+bound to its original committed fixtures and sealed evidence. Complete projection/physical-cell/fit, strict relationship
+timestamp, captured-path links, six source anchors and SQLite replay tests are required.
+The final producer embeds the native Archive197 relationship DTO; exact schema bytes and offline
+KAT correspondence are separate from Render's existing 256-character typed identifier/profile
+bounds and strict aware-timestamp validation. Do not weaken either policy to match a wider DTO or
+rely on optional JSON Schema format support. Root owns joined API/authority/storage qualification.
+Producer ArtifactIdentity planning uses a placeholder digest and different rounding description/order;
+retain existing Render identity text/order plus the six appended notice fields, and measure actual fit.
+See `docs/composite-correction-notice.md`. Preserve every legacy schema/template/golden blob.
+
 ## Financial source-context consumer practice (#352)
 
 Additive `composite-review v8` consumes the frozen Report `composite_review.v8` schema from

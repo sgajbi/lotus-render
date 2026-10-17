@@ -1,5 +1,49 @@
 # Composite review qualification ledger
 
+## 2026-10-17 — v9 final handoff supersession
+
+Final reviewed Report artifact revision `66dc819432c137cb7f160ce8f685db0051b4a16b` supplies
+handoff manifest `48e1419b103be49a80dbc0998e9de0805a1f063e2538b92e912b0be6f82e014f`, generated
+manifest `c90bd5a91e2c629885cbcb9f1927f855f0641dfe668e47f4bdffc790695258b9` and v9 schema
+`6a28e4365931ac1df34419003861582339b08219fcdac936378b822ed483b9b4`. Archive197 native
+DTO/schema/KAT correspondence is verified offline. Report #447 landed the identical
+correction-notice subtree `242e23d6ae1b199e61d6add49c2a9a1c7c6bad08` on qualified Report main
+`11fe4981a856a078cd0ed0ada881935cc803a214`; the historical artifact pin remains valid.
+See the [producer provenance resolution](https://github.com/sgajbi/lotus-report/issues/446#issuecomment-6231048506).
+
+This supersedes the DTO-pending status in the [2026-10-12 authoring checkpoint](#2026-10-12--v9-retained-correction-notice-authoring-checkpoint-352--report-446).
+That dated checkpoint's original Report2275/Render61b6 cohort, hashes and measurements remain
+historical evidence, not rewritten final-producer executions. Package, projection, custody
+schema, nine known answers, financial/source values and physical limits remain unchanged.
+
+Render signed head `1c1ebd02320bd105e0a8804e603fdf6a32d7543a` has bounded independent review
+and ten successful Feature/PR checks, recorded in [the exact-head evidence](https://github.com/sgajbi/lotus-render/issues/352#issuecomment-6231387029).
+Qualification remains Development / PARTIAL / NOT_ATTESTED. Joined live authority/custody,
+source-off/process recovery, institutional acceptance and full correction-feature obligations
+remain open; offline correspondence and CI do not satisfy those gates.
+
+## 2026-10-12 — v9 retained correction-notice authoring checkpoint (#352 / Report #446)
+
+Historical status at authoring; current offline correspondence is recorded in the
+[2026-10-17 supersession](#2026-10-17--v9-final-handoff-supersession).
+
+Specification r5 SHA256 `f6a058c49de7e0d643cc0634228733ddffc8f1203cbc6498160b9d19241eb8c4`
+and fixture recipe `fcd2fbe870ec7dc73b121fd60a0ca0ebc474f1207aa65d224eec87891cdecbec`
+govern this bounded receiver. Base Render is `e2a868b8613a01a9fdef141b7967a2cd8e8068a1`.
+The reviewed r6 amendment replaces the economic POST acknowledgement with an immutable eight-field
+relationship record. Signed Report `2275b3fb3aae8df56e3972c12dc4a623f450cbff` supplies the native
+authoring candidate; handoff manifest SHA256
+`9713fb7588f9458c0b5de3069ed858cb2bcbe89762e664b9c38f95140c13aa8d` and generated manifest
+`743370185be46a9e6b70c3631abed1e93cebdd6f62e34aa9a2a993c2782e50ab` are byte-verified.
+V9 is registered in development. Receiver tests check exact schemas, nine preimages, all 32 tables,
+15 separately resealed producer refusals, six-field source custody and actual writer/SQLite replay.
+Actual fit: request 4,824,578 bytes; 47 sheets; 12,777 data rows; 150,148 cells; 7,746,370 text
+bytes; output 890,817 bytes. Existing caps are unchanged. Producer planning differs only in
+ArtifactIdentity placeholder digest and rounding text/order; Render preserves its established fields.
+Archive197 generated DTO/schema/KAT agreement remains pending before freeze. No joined runtime,
+current source authority, Archive acceptance or feature closure is claimed.
+See [the correction-notice guide](composite-correction-notice.md) for scope and exit gates.
+
 ## V8 financial source-context component candidate (#352 / Report #417)
 
 Frozen producer: Report `eab47a0e501f8262e8b6481f6a244e15228ff384`, tree
